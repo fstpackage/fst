@@ -61,7 +61,7 @@ fst.metadata <- function(path)
 {
   metaData <- fstMeta(normalizePath(path, mustWork = TRUE))
 
-  colInfo <- list(Path = shortPathName(path), NrOfRows = metaData$blockPosVec[1], Keys = metaData$keyColVec, ColumnNames = metaData$colNames, ColumnTypes = metaData$colTypeVec)
+  colInfo <- list(Path = path, NrOfRows = metaData$blockPosVec[1], Keys = metaData$keyColVec, ColumnNames = metaData$colNames, ColumnTypes = metaData$colTypeVec)
   class(colInfo) <- "fst.metadata"
 
   colInfo
