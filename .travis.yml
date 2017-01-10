@@ -1,0 +1,7 @@
+language: R
+cache: packages
+sudo: false
+
+os:
+  - linux
+  - osx

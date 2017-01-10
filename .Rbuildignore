@@ -1,0 +1,10 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+\.o$
+\.dll$
+\.a$
+\.Rmd$
+\.md$
+\.fst$
+\.png$
+\.yml$

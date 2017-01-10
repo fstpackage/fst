@@ -1,0 +1,19 @@
+
+PKG_CPPFLAGS = -I. -ILZ4 -IZSTD -IZSTD/common -IZSTD/decompress -IZSTD/compress
+CXX_STD      = CXX11
+PKG_LIBS     = -L. -lLZ4 -lZSTD
+
+# libraries
+LIBLZ4  = LZ4/lz4.o
+LIBZSTD = ZSTD/common/entropy_common.o ZSTD/common/error_private.o ZSTD/common/fse_decompress.o ZSTD/compress/fse_compress.o ZSTD/decompress/huf_decompress.o ZSTD/compress/huf_compress.o ZSTD/decompress/zstd_decompress.o ZSTD/common/xxhash.o ZSTD/common/zstd_common.o ZSTD/compress/zstd_compress.o
+
+$(SHLIB): libLZ4.a libZSTD.a
+
+libLZ4.a: $(LIBLZ4)
+	$(AR) rcs libLZ4.a $(LIBLZ4)
+
+libZSTD.a: $(LIBZSTD)
+	$(AR) rcs libZSTD.a $(LIBZSTD)
+
+clean:
+	rm -f $(SHLIB) $(LIBLZ4) $(OBJECTS) libLZ4.a $(LIBZSTD) libZSTD.a

@@ -1,0 +1,20 @@
+Package: fst
+Type: Package
+Title: Ultra fast storage and retrieval of datasets
+Version: 0.7.1
+Date: 2017-01-10
+Author: Mark Klik
+Maintainer: Mark Klik <markklik@gmail.com>
+Description: A package for ultra fast storage and retrieval of datasets.
+LazyData: true
+Imports: data.table, Rcpp
+LinkingTo: Rcpp
+SystemRequirements: little-endian platform
+RoxygenNote: 5.0.1
+Suggests: testthat
+License: BSD_2_clause + file LICENSE
+Copyright: This package includes the sources of the LZ4 library written
+    by Yann Collet and the sources of the ZSTD library owned by Facebook, Inc.
+    See the LICENSE file for further details on the licenses of LZ4 and ZSTD.
+URL: https://github.com/fstPackage/fst
+BugReports: https://github.com/fstPackage/fst/issues

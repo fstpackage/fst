@@ -1,0 +1,15 @@
+.Rproj.user
+*.Rhistory
+*.dll
+*.html
+*.pdf
+*.o
+*.a
+*.txt
+*.gz
+*.rds
+*.fst
+*.fea
+*.zip
+*.Rproj
+*.dll
