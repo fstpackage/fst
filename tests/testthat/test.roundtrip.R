@@ -58,12 +58,12 @@ test_that("can have NA on end of string", {
   expect_identical(roundtrip_vector(x), x)
 })
 
-test_that("always coerces to UTF-8", {
-  x <- iconv("é", to = "latin1")
-  y <- roundtrip_vector(x)
-
-  expect_identical(x, y) # string comparison always re-encodes first
-})
+# test_that("always coerces to UTF-8", {
+#   x <- iconv("é", to = "latin1")
+#   y <- roundtrip_vector(x)
+# 
+#   expect_identical(x, y) # string comparison always re-encodes first
+# })
 
 
 # Factor ------------------------------------------------------------------
