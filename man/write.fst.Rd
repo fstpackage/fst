@@ -41,14 +41,14 @@ x <- data.frame(A = 1:10000, B = sample(c(TRUE, FALSE, NA), 10000, replace = TRU
 
 # Uncompressed
 write.fst(x, "dataset.fst")  # filesize: 41 KB
-read.fst("dataset.fst") # read uncompressed data
+y <- read.fst("dataset.fst") # read uncompressed data
 
 # Compressed
 write.fst(x, "dataset.fst", 100)  # fileSize: 4 KB
-read.fst("dataset.fst") # read compressed data
+y <- read.fst("dataset.fst") # read compressed data
 
 # Random access
-read.fst("dataset.fst", "B") # read selection of columns
-read.fst("dataset.fst", "A", 100, 200) # read selection of columns and rows
+y <- read.fst("dataset.fst", "B") # read selection of columns
+y <- read.fst("dataset.fst", "A", 100, 200) # read selection of columns and rows
 }
 

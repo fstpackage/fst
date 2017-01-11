@@ -29,10 +29,10 @@ dataTable <- data.frame(Xint=1:nrOfRows, Ylog=sample(c(TRUE, FALSE, NA), nrOfRow
 TestWriteRead <- function(col, from = 1L, to = nrOfRows, selColumns = NULL, compress = 0L, totLength = nrOfRows)
 {
   dt <- dataTable[1:totLength, col, drop = FALSE]
-  write.fst(dt, "FactorStore/data1.fds", compress)  # use compression
+  write.fst(dt, "FactorStore/data1.fst", compress)  # use compression
 
   # Read full dataset
-  data <- read.fst("FactorStore/data1.fds", columns = selColumns, from = from, to = to)
+  data <- read.fst("FactorStore/data1.fst", columns = selColumns, from = from, to = to)
 
   to = min(to, nrOfRows)
   if (is.null(selColumns))
@@ -202,6 +202,6 @@ test_that("Select out of range row number",
 {
   TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact"), from = 4, to = 7000)
   TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact"), from = 4, to = NULL)
-  expect_error(read.fst("FactorStore/data1.fds", from = 12000, to = NULL), "Row selection is out of range")
-  expect_error(read.fst("FactorStore/data1.fds", from = 0, to = NULL), "Parameter 'from' should have")
+  expect_error(read.fst("FactorStore/data1.fst", from = 12000, to = NULL), "Row selection is out of range")
+  expect_error(read.fst("FactorStore/data1.fst", from = 0, to = NULL), "Parameter 'from' should have")
 })
