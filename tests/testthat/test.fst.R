@@ -100,19 +100,19 @@ BlockTestSingleType <- function(type)
 {
   # Single first block
   BlockTests(type, 0, 0, 0L )  # uncompressed
-  # BlockTests(type, 0, 0, 40L)  # algorithm 1
+  BlockTests(type, 0, 0, 40L)  # algorithm 1
   # BlockTests(type, 0, 0, 80L)  # algorithm 2
 
   # Single middle block
   BlockTests(type, 1, 1, 0L )  # uncompressed
-  # BlockTests(type, 1, 1, 40L)  # algorithm 1
+  BlockTests(type, 1, 1, 40L)  # algorithm 1
   # BlockTests(type, 1, 1, 80L)  # algorithm 2
 
   lastBlock = as.integer((nrOfRows - 1) / blockSize)
 
   # Single last block
   BlockTests(type, lastBlock, lastBlock, 0L )  # uncompressed
-  # BlockTests(type, lastBlock, lastBlock, 40L)  # algorithm 1
+  BlockTests(type, lastBlock, lastBlock, 40L)  # algorithm 1
   # BlockTests(type, lastBlock, lastBlock, 80L)  # algorithm 2
 
   # Multiple blocks
@@ -120,10 +120,10 @@ BlockTestSingleType <- function(type)
   BlockTests(type, lastBlock - 1, lastBlock, 0L)  # uncompressed
   BlockTests(type, 0, lastBlock, 0L)  # uncompressed
 
-  # BlockTests(type, 0, 1, 40L)  # algorithm 1
-  # BlockTests(type, lastBlock - 1, lastBlock, 40L)  # algorithm 1
-  # BlockTests(type, 0, lastBlock, 40L)  # algorithm 1
-  # 
+  BlockTests(type, 0, 1, 40L)  # algorithm 1
+  BlockTests(type, lastBlock - 1, lastBlock, 40L)  # algorithm 1
+  BlockTests(type, 0, lastBlock, 40L)  # algorithm 1
+
   # BlockTests(type, 0, 1, 80L)  # algorithm 2
   # BlockTests(type, lastBlock - 1, lastBlock, 80L)  # algorithm 2
   # BlockTests(type, 0, lastBlock, 80L)  # algorithm 2
