@@ -100,7 +100,7 @@ BlockTestSingleType <- function(type)
 {
   # Single first block
   BlockTests(type, 0, 0, 0L )  # uncompressed
-  # BlockTests(type, 0, 0, 40L)  # algorithm 1
+  BlockTests(type, 0, 0, 40L)  # algorithm 1
   BlockTests(type, 0, 0, 80L)  # algorithm 2
 
   # Single middle block
