@@ -44,12 +44,21 @@ TestWriteRead <- function(col, from = 1L, to = nrOfRows, selColumns = NULL, comp
   }
 
   row.names(subDT) <- NULL
+
+  uneq <- subDT[, 1] != data[, 1]
+  diffTable <- subDT
+  diffTable$Row <- 1:nrow(diffTable)
+  diffTable$Other <- data[, 1]
   
   message <- paste("cols subDT:", ncol(subDT), ", rows subDT:", nrow(subDT),
     "cols data:", ncol(data), ", rows data:", nrow(data),
     "head subDT:", paste(subDT[1:10, 1], collapse = ","),
-    "head data:", paste(data[1:10, 1], collapse = ","))
-  
+    "head data:", paste(data[1:10, 1], collapse = ","),
+    "unequals:", sum(uneq),
+    "uneq rows subDT1", paste(head(diffTable[uneq, ])[, 1], collapse = ","),
+    "uneq rows subDT2", paste(head(diffTable[uneq, ])[, 2], collapse = ","),
+    "uneq rows subDT3", paste(head(diffTable[uneq, ])[, 3], collapse = ","))
+
   expect_equal(subDT, data, info = message)
 }
 
