@@ -44,8 +44,15 @@ TestWriteRead <- function(col, from = 1L, to = nrOfRows, selColumns = NULL, comp
   }
 
   row.names(subDT) <- NULL
-  expect_equal(subDT, data, info = paste("dim(subDT):", dim(subDT), "dim(data)", dim(data)))
+  
+  message <- paste("cols subDT:", ncol(subDT), ", rows subDT:", nrow(subDT),
+    "cols data:", ncol(data), ", rows data:", nrow(data),
+    "head subDT:", paste(subDT[1:10, 1], collapse = ","),
+    "head data:", paste(data[1:10, 1], collapse = ","))
+  
+  expect_equal(subDT, data, info = message)
 }
+
 
 colNames <- colnames(dataTable)
 
@@ -100,12 +107,12 @@ BlockTestSingleType <- function(type)
 {
   # Single first block
   BlockTests(type, 0, 0, 0L )  # uncompressed
-  BlockTests(type, 0, 0, 40L)  # algorithm 1
+  # BlockTests(type, 0, 0, 40L)  # algorithm 1
   BlockTests(type, 0, 0, 80L)  # algorithm 2
 
   # Single middle block
   BlockTests(type, 1, 1, 0L )  # uncompressed
-  # BlockTests(type, 1, 1, 40L)  # algorithm 1
+  BlockTests(type, 1, 1, 40L)  # algorithm 1
   BlockTests(type, 1, 1, 80L)  # algorithm 2
 
   lastBlock = as.integer((nrOfRows - 1) / blockSize)
