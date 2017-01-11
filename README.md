@@ -7,11 +7,11 @@
 Overview
 --------
 
-Package fst provides a fast, easy and flexible way to serialize data frames. It allows for fast compression and decompression and has the ability to access stored frames randomly. With access speeds of above 1 GB/s, fst is specifically designed to unlock the potential of high speed solid state disks that can be found in most modern computers. The figure below compares the read and write performance of the fst package to various alternatives.
+Package `fst` provides a fast, easy and flexible way to serialize data frames. It allows for fast compression and decompression and has the ability to access stored frames randomly. With access speeds of above 1 GB/s, `fst` is specifically designed to unlock the potential of high speed solid state disks that can be found in most modern computers. The figure below compares the read and write performance of the `fst` package to various alternatives.
 
 ![](README-speedFigure-1.png)
 
-Package fst outperforms the `feather` and `data.table` packages as well as the base `readRDS` / `writeRDS` functions for uncompressed reads and writes. But it also offers additional features such as very fast compression and random access (columns and rows) to the stored data.
+Package `fst` outperforms the `feather` and `data.table` packages as well as the base `readRDS` / `writeRDS` functions for uncompressed reads and writes. But it also offers additional features such as very fast compression and random access (columns and rows) to the stored data.
 
 Installation
 ------------
@@ -32,7 +32,7 @@ devtools::install_github("fstPackage/fst")
 Basic usage
 -----------
 
-Using fst is extremely simple. Data can be stored and retrieved using methods `fst.write` and `fst.read`:
+Using `fst` is extremely simple. Data can be stored and retrieved using methods `fst.write` and `fst.read`:
 
 ``` r
 # Generate a random data frame with 10 million rows and various column types
@@ -72,20 +72,22 @@ Here, only data from the selected rows and columns are deserialized from file.
 Compression
 -----------
 
-For compression the excellent and speedy [LZ4](https://github.com/lz4/lz4) and [ZSTD](https://github.com/facebook/zstd) compression algorithms are used. These compressors in combination with type-specific bit and byte filters, enable fst to achieve high compression speeds at reasonable compression factors. The compression factor can be tuned from 0 (minimum) to 100 (maximum):
+For compression the excellent and speedy [LZ4](https://github.com/lz4/lz4) and [ZSTD](https://github.com/facebook/zstd) compression algorithms are used. These compressors in combination with type-specific bit and byte filters, enable `fst` to achieve high compression speeds at reasonable compression factors. The compression factor can be tuned from 0 (minimum) to 100 (maximum):
 
 ``` r
   write.fst(x, "dataset.fst", 100)  # use maximum compression
 ```
 
-For this particular data frame the on-disk size of `x` is less than 35 percent of the in-memory size (`object.size(x)`) when full compression is used. The figure below shows the compression ratio depending on the settings used and compares them to the ratio's achieved by the `feather` and `data.table` packages (without compression) and method `saveRDS` (gzip mode) from base R:
+For this particular data frame the on-disk size of `x` is less than 35 percent of the in-memory size (`object.size(x)`) when full compression is used. The figure below shows the compression ratio depending on the settings used and compares them to the ratio's achieved by the `feather` and `data.table` packages (that offer no additional compression) and method `saveRDS` (gzip mode) from base R:
 
 ![](README-plot-1.png)
 
-Note that the on-disk size of a csv file is usually larger than the in-memory size (here with a factor of about 2). There are only 10 settings for compression in base R gzip, which have been scaled up from 0 to 100 (setting 9) in the figure for easier comparison. The corresponding read and write speeds:
+Note that the on-disk size of a csv file is usually larger than the in-memory size (here with a factor of about 2). Obviously, csv files are text-based and it's no surprise that deserializing from text-based sources takes more time (due to neccessary text parsing). Method `fread` from the `data.table` package actually has an impressive performance.
+
+The read and write speeds measured in the same benchmark:
 
 ![](README-benchmark-1.png)
 
-The read and write speeds reported in the figure are calculated by dividing the in-memory size of the data frame by the measured elapsed time for a read or write operation (more details will follow). As you can see, fst achieves very high read and write speeds, even for compressed data. For this benchmark, a modest laptop was used with a Core i7-4710HQ CPU @ 2.5GHz (but using a high-end PCI-e 3.0 x4 SSD to cope with the large IO speeds).
+There are only 10 settings for compression in `saveRDS` (gzip mode), which have been scaled up from 0 (uncompressed) to 100 (setting 9) for easier comparison. The read and write speeds reported in the figure are calculated by dividing the in-memory size of the data frame by the measured elapsed time for a read or write operation (more details will follow). As you can see, `fst` achieves very high read and write speeds, even for compressed data. For this benchmark, a modest laptop was used with a Core i7-4710HQ CPU @ 2.5GHz (but using a high-end PCI-e 3.0 x4 SSD to cope with the large speeds).
 
-> **Note to users**: The binary format used for data storage by the package (the 'fst file format') is expected to evolve in the coming months. Therefore, **fst should not be used for long-term data storage**.
+> **Note to users**: The binary format used for data storage by the package (the 'fst file format') is expected to evolve in the coming months. Therefore, **`fst` should not be used for long-term data storage**.

@@ -652,7 +652,7 @@ void LogicDecompr64(char* logicalVec, const unsigned long long* compBuf, int nrO
   // Compute remaining logicals
   unsigned long long compVal = compress[nrOfLongs];
   int nrOfRemainLongs = 1 + (remain - 1) / 2;  // per 2 logicals
-  unsigned long long remainLogics[nrOfRemainLongs];
+  unsigned long long remainLogics[16];  // at maximum nrOfRemainLongs equals 16
 
   for (int remainNr = 0; remainNr < nrOfRemainLongs; ++remainNr)
   {
@@ -725,7 +725,7 @@ void LogicCompr64(const char* logicalVec, unsigned long long* compress, int nrOf
   logics = &logicals[16 * nrOfLongs];
 
   int nrOfRemainLongs = 1 + (remain - 1) / 2;  // per 2 logicals
-  unsigned long long remainLongs[nrOfRemainLongs];
+  unsigned long long remainLongs[16];  // at maximum nrOfRemainLongs equals 16
   memcpy(remainLongs, logics, remain * sizeof(int));
 
   unsigned long long compRes = 0;
@@ -954,7 +954,8 @@ unsigned int LZ4_INT_TO_BYTE_C(char* dst, unsigned int dstCapacity, const char* 
   int nrOfLongs = 1 + (srcSize - 1) / 32;  // srcSize is processed in blocks of 32 bytes
 
   // Compress buffer
-  char buf[nrOfLongs * 8];
+  char buf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
+  // char buf[nrOfLongs * 8];
 
   CompactIntToByte(buf, src, srcSize / 4);
   return LZ4_compress_fast(buf, dst, nrOfLongs * 8, dstCapacity, 101 - compressionLevel);  // no acceleration at compress == 100
@@ -966,7 +967,8 @@ unsigned int LZ4_INT_TO_BYTE_D(char* dst, unsigned int dstCapacity, const char* 
   int nrOfDstInts = dstCapacity / 4;
 
   // Compress buffer
-  char buf[nrOfLongs * 8];
+  char buf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
+  // char buf[nrOfLongs * 8];
 
   // Decompress
   LZ4_decompress_fast(src, (char*) buf, nrOfLongs * 8);
@@ -981,7 +983,8 @@ unsigned int ZSTD_INT_TO_BYTE_C(char* dst, unsigned int dstCapacity, const char*
   int nrOfLongs = 1 + (srcSize - 1) / 32;  // srcSize is processed in blocks of 32 bytes
 
   // Compress buffer
-  char buf[nrOfLongs * 8];
+  char buf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
+  // char buf[nrOfLongs * 8];
 
   CompactIntToByte(buf, src, srcSize / 4);
 
@@ -994,7 +997,8 @@ unsigned int ZSTD_INT_TO_BYTE_D(char* dst, unsigned int dstCapacity, const char*
   int nrOfDstInts = dstCapacity / 4;
 
   // Compress buffer
-  char buf[nrOfLongs * 8];
+  // char buf[nrOfLongs * 8];
+  char buf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
 
   // Decompress
   ZSTD_decompress((char*) buf, 8 * nrOfLongs, src, compressedSize);
@@ -1008,7 +1012,8 @@ unsigned int LZ4_INT_TO_SHORT_SHUF2_C(char* dst, unsigned int dstCapacity, const
   int nrOfLongs = 1 + (srcSize - 1) / 16;  // srcSize is processed in blocks of 16 bytes
 
   // Compress buffer
-  char buf[nrOfLongs * 8];
+  // char buf[nrOfLongs * 8];
+  char buf[MAX_SIZE_COMPRESS_BLOCK_HALF];
 
   CompactIntToShort(buf, src, srcSize / 4);  // expecting a integer vector here
   return LZ4_compress_fast(buf, dst, nrOfLongs * 8, dstCapacity, 100 - compressionLevel);  // no acceleration at compress == 100
@@ -1020,7 +1025,8 @@ unsigned int LZ4_INT_TO_SHORT_SHUF2_D(char* dst, unsigned int dstCapacity, const
   int nrOfDstInts = dstCapacity / 4;
 
   // Compress buffer
-  char buf[nrOfLongs * 8];
+  // char buf[nrOfLongs * 8];
+  char buf[MAX_SIZE_COMPRESS_BLOCK_HALF];
 
   // Decompress
   LZ4_decompress_fast(src, (char*) buf, nrOfLongs * 8);
@@ -1095,7 +1101,8 @@ unsigned int LZ4_LOGIC64_C(char* dst, unsigned int dstCapacity, const char* src,
   int nrOfLongs = 1 + (nrOfLogicals - 1) / 32;
 
   // Compress buffer
-  unsigned long long buf[nrOfLongs];
+  // unsigned long long buf[nrOfLongs];
+  unsigned long long buf[MAX_SIZE_COMPRESS_BLOCK_128];
 
   LogicCompr64(src, buf, nrOfLogicals);
   return LZ4_compress_fast((char*) buf, dst, nrOfLongs * 8, dstCapacity, 100 - compressionLevel);  // no acceleration at compress == 100
@@ -1106,8 +1113,9 @@ unsigned int LZ4_LOGIC64_D(char* dst, unsigned int dstCapacity, const char* src,
   int nrOfLogicals = dstCapacity / 4;
   int nrOfLongs = 1 + (nrOfLogicals - 1) / 32;
 
-    // Compress buffer
-  unsigned long long buf[nrOfLongs];
+  // Compress buffer
+  // unsigned long long buf[nrOfLongs];
+  unsigned long long buf[MAX_SIZE_COMPRESS_BLOCK_128];
 
   // Decompress
   int size = LZ4_decompress_fast(src, (char*) buf, 8 * nrOfLongs);
@@ -1128,7 +1136,8 @@ unsigned int ZSTD_LOGIC64_C(char* dst, unsigned int dstCapacity, const char* src
   int nrOfLongs = 1 + (nrOfLogicals - 1) / 32;
 
   // Compress buffer
-  unsigned long long buf[nrOfLongs];
+  // unsigned long long buf[nrOfLongs];
+  unsigned long long buf[MAX_SIZE_COMPRESS_BLOCK_128];
 
   LogicCompr64(src, buf, nrOfLogicals);
 
@@ -1141,7 +1150,8 @@ unsigned int ZSTD_LOGIC64_D(char* dst, unsigned int dstCapacity, const char* src
   int nrOfLongs = 1 + (nrOfLogicals - 1) / 32;
 
     // Compress buffer
-  unsigned long long buf[nrOfLongs];
+  // unsigned long long buf[nrOfLongs];
+  unsigned long long buf[MAX_SIZE_COMPRESS_BLOCK_128];
 
   // Decompress
   int size = ZSTD_decompress((char*) buf, 8 * nrOfLongs, src, compressedSize);
@@ -1158,7 +1168,9 @@ unsigned int ZSTD_LOGIC64_D(char* dst, unsigned int dstCapacity, const char* src
 unsigned int LZ4_C_SHUF4(char* dst, unsigned int dstCapacity, const char* src,  unsigned int srcSize, int compressionLevel)
 {
   int intSize = srcSize / 4;
-  int shuffleBuf[intSize];
+  
+  int shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
+  // int shuffleBuf[intSize];
 
   ShuffleInt2((int*) src, shuffleBuf, intSize);
   return LZ4_compress_fast((char*) shuffleBuf, dst, srcSize, dstCapacity, 100 - compressionLevel);  // large acceleration
@@ -1167,7 +1179,9 @@ unsigned int LZ4_C_SHUF4(char* dst, unsigned int dstCapacity, const char* src,  
 unsigned int LZ4_D_SHUF4(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize)
 {
   int intSize = dstCapacity / 4;
-  int shuffleBuf[intSize];
+  
+  int shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
+  // int shuffleBuf[intSize];
 
   int size = LZ4_decompress_fast(src, (char*) shuffleBuf, dstCapacity);
   DeshuffleInt2(shuffleBuf, (int*) dst, intSize);
@@ -1183,7 +1197,9 @@ unsigned int LZ4_D_SHUF4(char* dst, unsigned int dstCapacity, const char* src, u
 unsigned int LZ4_C_SHUF8(char* dst, unsigned int dstCapacity, const char* src,  unsigned int srcSize, int compressionLevel)
 {
   int doubleSize = srcSize / 8;
-  double shuffleBuf[doubleSize];
+  
+  // double shuffleBuf[doubleSize];
+  double shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_8];
 
   ShuffleReal((double*) src, shuffleBuf, doubleSize);
   return LZ4_compress_fast((char*) shuffleBuf, dst, srcSize, dstCapacity, 100 - compressionLevel);  // large acceleration
@@ -1192,7 +1208,9 @@ unsigned int LZ4_C_SHUF8(char* dst, unsigned int dstCapacity, const char* src,  
 unsigned int LZ4_D_SHUF8(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize)
 {
   int doubleSize = dstCapacity / 8;
-  double shuffleBuf[doubleSize];
+  
+  // double shuffleBuf[doubleSize];
+  double shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_8];
 
   int size = LZ4_decompress_fast(src, (char*) shuffleBuf, dstCapacity);
   DeshuffleReal(shuffleBuf, (double*) dst, doubleSize);
@@ -1206,7 +1224,9 @@ unsigned int LZ4_D_SHUF8(char* dst, unsigned int dstCapacity, const char* src, u
 unsigned int ZSTD_C_SHUF8(char* dst, unsigned int dstCapacity, const char* src,  unsigned int srcSize, int compressionLevel)
 {
   int doubleSize = srcSize / 8;
-  double shuffleBuf[doubleSize];
+  
+  // double shuffleBuf[doubleSize];
+  double shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_8];
 
   ShuffleReal((double*) src, shuffleBuf, doubleSize);
   return ZSTD_compress(dst, dstCapacity, (char*) shuffleBuf, srcSize, compressionLevel / 4.5);
@@ -1215,7 +1235,9 @@ unsigned int ZSTD_C_SHUF8(char* dst, unsigned int dstCapacity, const char* src, 
 unsigned int ZSTD_D_SHUF8(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize)
 {
   int doubleSize = dstCapacity / 8;
-  double shuffleBuf[doubleSize];
+  
+  // double shuffleBuf[doubleSize];
+  double shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_8];
 
   int size = ZSTD_decompress((char*) shuffleBuf, dstCapacity, src, compressedSize);
   DeshuffleReal(shuffleBuf, (double*) dst, doubleSize);
@@ -1242,7 +1264,9 @@ unsigned int ZSTD_D(char* dst, unsigned int dstCapacity, const char* src, unsign
 unsigned int ZSTD_C_SHUF4(char* dst, unsigned int dstCapacity, const char* src,  unsigned int srcSize, int compressionLevel)
 {
   int intSize = srcSize / 4;
-  int shuffleBuf[intSize];
+  
+  // int shuffleBuf[intSize];
+  int shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
 
   ShuffleInt2((int*) src, shuffleBuf, intSize);
   return ZSTD_compress(dst, dstCapacity, (char*) shuffleBuf, srcSize, compressionLevel / 4.5);
@@ -1251,7 +1275,9 @@ unsigned int ZSTD_C_SHUF4(char* dst, unsigned int dstCapacity, const char* src, 
 unsigned int ZSTD_D_SHUF4(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize)
 {
   int intSize = dstCapacity / 4;
-  int shuffleBuf[intSize];
+
+  // int shuffleBuf[intSize];
+  int shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
 
   int size = ZSTD_decompress((char*) shuffleBuf, dstCapacity, src, compressedSize);
   DeshuffleInt2(shuffleBuf, (int*) dst, intSize);

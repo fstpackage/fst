@@ -1,7 +1,7 @@
 
-context("fst random access")
-
 require(testthat)
+
+context("fst random access")
 
 # Clean testdata directory
 if (!file.exists("FactorStore"))

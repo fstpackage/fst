@@ -36,6 +36,15 @@
 #ifndef COMPRESSION_H
 #define COMPRESSION_H
 
+#define MAX_SIZE_COMPRESS_BLOCK 16384
+#define MAX_SIZE_COMPRESS_BLOCK_HALF 8192
+#define MAX_SIZE_COMPRESS_BLOCK_QUARTER 4096
+#define MAX_SIZE_COMPRESS_BLOCK_8 2048
+#define MAX_SIZE_COMPRESS_BLOCK_128 128
+#define MAX_COMPRESSBOUND 17036  // maximum compression buffer at source size of MAX_SIZE_COMPRESS_BLOCK
+
+// of LZ4 and ZSTD
+// #define LZ4_COMPRESSBOUND(isize)  ((unsigned)(isize) > (unsigned)LZ4_MAX_INPUT_SIZE ? 0 : (isize) + ((isize)/255) + 16)
 
 #include <Rcpp.h>
 

@@ -244,7 +244,7 @@ SEXP LowerBoundIndex(SEXP table, SEXP key, SEXP lower, SEXP upper)
   int nrOfSelect = LENGTH(keyNames);
   int nrOfCols = LENGTH(colNames);
 
-  int colIndex[nrOfSelect];
+  int *colIndex = new int[nrOfSelect];
 
   for (int colSel = 0; colSel < nrOfSelect; ++colSel)
   {
@@ -261,21 +261,17 @@ SEXP LowerBoundIndex(SEXP table, SEXP key, SEXP lower, SEXP upper)
       }
     }
 
-    if (equal == -1) ::Rf_error("Selected key not found.");
+    if (equal == -1)
+    {
+      delete[] colIndex;
+      ::Rf_error("Selected key not found.");
+    }
 
     colIndex[colSel] = equal;
   }
 
   int lowerIndex = (*INTEGER(lower)) - 1;
   int upperIndex = *INTEGER(upper);
-
-  vector<int> colIndexVec;
-  for (int i = 0; i < nrOfSelect; ++i)
-  {
-    colIndexVec.push_back(colIndex[i]);
-  }
-  // vector<int> uppers;
-  // vector<int> lowers;
 
   // Binary search on all selected columns
   for (int colSel = 0; colSel < nrOfSelect; ++colSel)
@@ -339,7 +335,10 @@ SEXP LowerBoundIndex(SEXP table, SEXP key, SEXP lower, SEXP upper)
       }
 
       default:
-      ::Rf_error("Unknown type found in column.");
+      {
+        delete[] colIndex;
+        ::Rf_error("Unknown type found in column.");
+      }
     }
 
     // lowers.push_back(lowerIndex);
@@ -352,15 +351,13 @@ SEXP LowerBoundIndex(SEXP table, SEXP key, SEXP lower, SEXP upper)
   res = Rf_allocVector(INTSXP, 1);
   *INTEGER(res) = lowerIndex;
 
-  // return res;
-
+  delete[] colIndex;
+  
   return List::create(
     _["keyNames"] = keyNames,
     _["colNames"] = colNames,
     _["upperIndex"] = upperIndex,
     _["lowerIndex"] = lowerIndex,
-    _["colIndexVec"] = colIndexVec,
-    // _["lowers"] = lowers,
     _["res"] = res);
 }
 
