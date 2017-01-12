@@ -51,7 +51,6 @@
 
 // External libraries
 #include "lz4.h"
-#include "zstd.h"
 
 using namespace std;
 using namespace Rcpp;
@@ -97,7 +96,7 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression)
     ::Rf_error("Your dataset needs at least one column.");
   }
 
-  short int *metaData = new short int[nrOfCols + keyLength + 2];
+  short int metaData[nrOfCols + keyLength + 2];
 
   metaData[0] = nrOfCols;
 
@@ -127,8 +126,9 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression)
 
   metaData[1] = keyLength;
 
+
   // Pointers to column file positions
-  unsigned long long *positionData = new unsigned long long[nrOfCols + 1];
+  unsigned long long positionData[nrOfCols + 1];
 
   SEXP firstCol = VECTOR_ELT(table, 0);
   int nrOfRows = LENGTH(firstCol);
@@ -140,8 +140,6 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression)
 
   if (nrOfRows == 0)
   {
-    delete[] metaData;
-    delete[] positionData;
     myfile.close();
     ::Rf_error("The dataset contains no data.");
   }
@@ -184,8 +182,6 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression)
         break;
 
       default:
-        delete[] metaData;
-        delete[] positionData;
         myfile.close();
         ::Rf_error("Unknown type found in column.");
     }
@@ -197,9 +193,7 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression)
 
   myfile.close();
 
-  // cleanup
-  delete[] metaData;
-  delete[] positionData;
+  // return;
 
   return List::create(
     _["keyNames"] = keyNames,
@@ -223,7 +217,7 @@ List fstMeta(String fileName)
 
 
   // Read key column index
-  short int *keyColumns = new short int[keyLength + 1];
+  short int keyColumns[keyLength + 1];
   myfile.read((char*) keyColumns, keyLength * sizeof(short int));  // may be of length zero
 
   // Convert to integer vector
@@ -235,7 +229,7 @@ List fstMeta(String fileName)
 
 
   // Read column types
-  short int *colTypes = new short int[nrOfCols];
+  short int colTypes[nrOfCols];
   myfile.read((char*) colTypes, nrOfCols * sizeof(short int));
 
   // Convert to integer vector
@@ -264,11 +258,8 @@ List fstMeta(String fileName)
   unsigned long long offset = (nrOfCols + 1) * sizeof(unsigned long long) + (nrOfCols + keyLength + 2) * sizeof(short int);
   fdsReadCharVec(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
 
-  // cleanup
-  delete[] keyColumns;
-  delete[] colTypes;
-  delete[] allBlockPos;
   myfile.close();
+
   UNPROTECT(1);
 
   return List::create(
@@ -296,12 +287,12 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 
 
   // Read key column index
-  short int *keyColumns = new short int[keyLength + 1];
+  short int keyColumns[keyLength + 1];
   myfile.read((char*) keyColumns, keyLength * sizeof(short int));  // may be of length zero
 
 
   // Read column types
-  short int *colTypes = new short int[nrOfCols];
+  short int colTypes[nrOfCols];
   myfile.read((char*) colTypes, nrOfCols * sizeof(short int));
 
 
@@ -318,7 +309,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 
 
   // Determine column selection
-  int *colIndex = new int[nrOfCols];
+  int colIndex[nrOfCols];
   int nrOfSelect = LENGTH(columnSelection);
 
   if (Rf_isNull(columnSelection))
@@ -349,10 +340,6 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 
       if (equal == -1)
       {
-        delete[] colIndex;
-        delete[] colTypes;
-        delete[] keyColumns;
-        delete[] allBlockPos;
         myfile.close();
         UNPROTECT(1);
         ::Rf_error("Selected column not found.");
@@ -369,10 +356,6 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 
   if (firstRow >= nrOfRows || firstRow < 0)
   {
-    delete[] colIndex;
-    delete[] colTypes;
-    delete[] keyColumns;
-    delete[] allBlockPos;
     myfile.close();
     UNPROTECT(1);
 
@@ -393,10 +376,6 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 
     if (lastRow <= firstRow)
     {
-      delete[] colIndex;
-      delete[] colTypes;
-      delete[] keyColumns;
-      delete[] allBlockPos;
       myfile.close();
       UNPROTECT(1);
       ::Rf_error("Parameter 'lastRow' should be equal to or larger than parameter 'fromRow'.");
@@ -423,10 +402,6 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 
     if (colNr < 0 || colNr >= nrOfCols)
     {
-      delete[] colIndex;
-      delete[] colTypes;
-      delete[] keyColumns;
-      delete[] allBlockPos;
       myfile.close();
       UNPROTECT(4);
       ::Rf_error("Column selection is out of range.");
@@ -482,17 +457,15 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
       case 5:
         SEXP facVec;
         PROTECT(facVec = Rf_allocVector(INTSXP, length));
+
         singleColInfo = fdsReadFactorVec(myfile, facVec, pos, firstRow, length, nrOfRows);
+
         SET_VECTOR_ELT(resTable, colSel, facVec);
         UNPROTECT(2);  // level string was also generated
         break;
 
 
       default:
-        delete[] colIndex;
-        delete[] colTypes;
-        delete[] keyColumns;
-        delete[] allBlockPos;
         myfile.close();
         ::Rf_error("Unknown type found in column.");
     }
@@ -527,12 +500,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
       SET_STRING_ELT(keyNames, i, STRING_ELT(colNames, keyColumns[i]));
     }
 
-    // cleanup
     UNPROTECT(5);
-    delete[] colIndex;
-    delete[] colTypes;
-    delete[] keyColumns;
-    delete[] allBlockPos;
 
     return List::create(
       _["keyNames"] = keyNames,
@@ -542,10 +510,6 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   }
 
   UNPROTECT(4);
-  delete[] colIndex;
-  delete[] colTypes;
-  delete[] keyColumns;
-  delete[] allBlockPos;
 
   return List::create(
     _["keyNames"] = R_NilValue,

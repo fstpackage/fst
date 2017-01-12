@@ -32,9 +32,9 @@ TestWriteRead <- function(col, from = 1L, to = nrOfRows, selColumns = NULL, comp
   write.fst(dt, "FactorStore/data1.fst", compress)  # use compression
 
   # Read full dataset
+  to = min(to, nrOfRows)
   data <- read.fst("FactorStore/data1.fst", columns = selColumns, from = from, to = to)
 
-  to = min(to, nrOfRows)
   if (is.null(selColumns))
   {
     subDT <- dt[from:to, , drop = FALSE]
@@ -57,9 +57,9 @@ TestWriteRead <- function(col, from = 1L, to = nrOfRows, selColumns = NULL, comp
     "head subDT:", paste(subDT[1:10, 1], collapse = ","),
     "head data:", paste(data[1:10, 1], collapse = ","),
     "unequals:", sum(uneq),
-    "uneq rows subDT1", paste(head(diffTable[uneq, ])[, 1], collapse = ","),
-    "uneq rows subDT2", paste(head(diffTable[uneq, ])[, 2], collapse = ","),
-    "uneq rows subDT3", paste(head(diffTable[uneq, ])[, 3], collapse = ","))
+    "uneq rows subDT1", paste(diffTable[uneq, ][1:min(25, sum(uneq, na.rm = TRUE)), 1], collapse = ","),
+    "uneq rows subDT2", paste(diffTable[uneq, ][1:min(25, sum(uneq, na.rm = TRUE)), 2], collapse = ","),
+    "uneq rows subDT3", paste(diffTable[uneq, ][1:min(25, sum(uneq, na.rm = TRUE)), 3], collapse = ","))
 
   expect_equal(subDT, data, info = message)
 }

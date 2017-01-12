@@ -48,12 +48,10 @@ using namespace Rcpp;
 
 #define COL_META_SIZE 8
 #define PREF_BLOCK_SIZE 16384
-#define PREF_BLOCK_SIZE_2 8192
-#define MAX_COMPRESSBOUND_PLUS_COL_META_SIZE 17044 // MAX_COMPRESSBOUND + COL_META_SIZE
 
 
 inline unsigned long long CompressBlock(StreamCompressor* streamCompressor, ofstream &myfile, char* vecP, char* compBuf, char* blockIndex,
-  int block, unsigned long long blockIndexPos, int *maxCompSize, int sourceBlockSize)
+                                        int block, unsigned long long blockIndexPos, int *maxCompSize, int sourceBlockSize)
 {
   // 1 long file pointer and 1 short algorithmID per block
   unsigned long long* blockPosition = (unsigned long long*) &blockIndex[COL_META_SIZE + block * 10];
@@ -72,7 +70,7 @@ inline unsigned long long CompressBlock(StreamCompressor* streamCompressor, ofst
 
 // Method for writing column data of any type to a ofstream.
 SEXP fdsStreamUncompressed(ofstream &myfile, char* vec, unsigned int vecLength, int elementSize, int blockSizeElems,
-  FixedRatioCompressor* fixedRatioCompressor)
+                           FixedRatioCompressor* fixedRatioCompressor)
 {
   int nrOfBlocks = 1 + (vecLength - 1) / blockSizeElems;  // number of compressed / uncompressed blocks
   int remain = 1 + (vecLength + blockSizeElems - 1) % blockSizeElems;  // number of elements in last incomplete block
@@ -103,7 +101,7 @@ SEXP fdsStreamUncompressed(ofstream &myfile, char* vec, unsigned int vecLength, 
   
   if (nrOfBlocks == 0)  // single block
   {
-    char compBuf[MAX_COMPRESSBOUND_PLUS_COL_META_SIZE];  // meta data and compression buffer
+    char compBuf[compressBufSizeRemain + COL_META_SIZE];  // meta data and compression buffer
     
     unsigned int *compress = (unsigned int*) compBuf;
     compress[0] = 0;
@@ -121,7 +119,7 @@ SEXP fdsStreamUncompressed(ofstream &myfile, char* vec, unsigned int vecLength, 
   
   // More than one block
   int compressBufSize = fixedRatioCompressor->CompressBufferSize(blockSize);  // fixed size of a compressed block
-  char compBuf[MAX_COMPRESSBOUND_PLUS_COL_META_SIZE];  // meta data and compression buffer
+  char compBuf[compressBufSize + COL_META_SIZE];  // meta data and compression buffer
   
   // First block and metadata
   
@@ -158,7 +156,7 @@ SEXP fdsStreamUncompressed(ofstream &myfile, char* vec, unsigned int vecLength, 
 
 // Method for writing column data of any type to a stream.
 SEXP fdsStreamcompressed(ofstream &myfile, char* colVec, unsigned int nrOfRows, int elementSize,
-  StreamCompressor* streamCompressor, int blockSizeElems)
+                         StreamCompressor* streamCompressor, int blockSizeElems)
 {
   int nrOfBlocks = 1 + (nrOfRows - 1) / blockSizeElems;  // number of compressed / uncompressed blocks
   int remain = 1 + (nrOfRows + blockSizeElems - 1) % blockSizeElems;  // number of elements in last incomplete block
@@ -182,8 +180,8 @@ SEXP fdsStreamcompressed(ofstream &myfile, char* colVec, unsigned int nrOfRows, 
   
   // Compress in blocks
   
-  // int compBufSize =  streamCompressor->CompressBufferSize();  // maximum compressed block size
-  char compBuf[MAX_COMPRESSBOUND];  // buffer used during compression
+  int compBufSize =  streamCompressor->CompressBufferSize();  // maximum compressed block size
+  char compBuf[compBufSize];  // buffer used during compression
   
   --nrOfBlocks;  // Do last block later
   for (int block = 0; block < nrOfBlocks; ++block)
@@ -204,6 +202,7 @@ SEXP fdsStreamcompressed(ofstream &myfile, char* colVec, unsigned int nrOfRows, 
   delete[] blockIndex;
   
   return List::create(
+    _["compBufSize"] = compBufSize,
     _["blockIndexPos"] = (int) blockIndexPos,
     _["nrOfBlocks"] = nrOfBlocks,
     _["curPos"] = (int) curPos);
@@ -213,7 +212,7 @@ SEXP fdsStreamcompressed(ofstream &myfile, char* colVec, unsigned int nrOfRows, 
 // Read data compressed with a fixed ratio compressor from a stream
 // Note that repSize is assumed to be a multiple of elementSize
 inline SEXP fdsReadFixedCompStream(ifstream &myfile, char* outVec, unsigned long long blockPos,
-  unsigned int* meta, unsigned int startRow, int elementSize, unsigned int vecLength)
+                                   unsigned int* meta, unsigned int startRow, int elementSize, unsigned int vecLength)
 {
   unsigned int compAlgo = meta[1];  // identifier of the fixed ratio compressor
   unsigned int repSize = fixedRatioSourceRepSize[(int) compAlgo];  // in bytes
@@ -245,8 +244,8 @@ inline SEXP fdsReadFixedCompStream(ifstream &myfile, char* outVec, unsigned long
   // Process partial repetition block
   if (startOffset != 0)
   {
-    char repBuf[MAX_TARGET_REP_SIZE];  // rep unit buffer for target
-    char buf[MAX_SOURCE_REP_SIZE];  // rep unit buffer for source
+    char repBuf[targetRepSize];  // rep unit buffer for target
+    char buf[repSize];  // rep unit buffer for source
     
     myfile.read(repBuf, targetRepSize);  // read single repetition block
     int resSize = decompressor.Decompress(compAlgo, buf, repSize, repBuf, targetRepSize);  // decompress repetition block
@@ -258,16 +257,16 @@ inline SEXP fdsReadFixedCompStream(ifstream &myfile, char* outVec, unsigned long
       
       return List::create(
         _["meta[0]"] = meta[0],
-        _["meta[1]"] = meta[1],
-        _["repSize"] = repSize,
-        _["targetRepSize"] = targetRepSize,
-        _["startOffset"] = startOffset,
-        _["startRep"] = startRep,
-        _["vecLength"] = vecLength,
-        _["elementSize"] = elementSize,
-        _["repSizeElement"] = repSizeElement,
-        _["resSize"] = resSize,
-        _["blockPos"] = blockPos);
+                           _["meta[1]"] = meta[1],
+                                              _["repSize"] = repSize,
+                                              _["targetRepSize"] = targetRepSize,
+                                              _["startOffset"] = startOffset,
+                                              _["startRep"] = startRep,
+                                              _["vecLength"] = vecLength,
+                                              _["elementSize"] = elementSize,
+                                              _["repSizeElement"] = repSizeElement,
+                                              _["resSize"] = resSize,
+                                              _["blockPos"] = blockPos);
     }
     
     int length = repSizeElement - startOffset;  // remaining elements
@@ -286,9 +285,7 @@ inline SEXP fdsReadFixedCompStream(ifstream &myfile, char* outVec, unsigned long
   unsigned int blockSize = nrOfRepsPerBlock * repSize;  // block size in bytes
   unsigned int targetBlockSize = nrOfRepsPerBlock * targetRepSize;  // block size in bytes
   
-  
-  // char repBuf[targetBlockSize];  // read buffer
-  char repBuf[PREF_BLOCK_SIZE_2];  // define maximum read buffer (probably too much)
+  char repBuf[targetBlockSize];  // read buffer
   
   
   // Decompress full blocks
@@ -312,7 +309,7 @@ inline SEXP fdsReadFixedCompStream(ifstream &myfile, char* outVec, unsigned long
   }
   
   // Last rep unit may be partial
-  char buf[MAX_SOURCE_REP_SIZE];  // single rep unit buffer
+  char buf[repSize];  // single rep unit buffer
   unsigned int nrOfElemsLastRep = startRow + vecLength - endRep * repSizeElement;
   
   
@@ -363,9 +360,8 @@ SEXP fdsReadColumn(ifstream &myfile, char* outVec, unsigned long long blockPos, 
   }
   
   // Data is compressed
-
-  // unsigned int *maxCompSize = (unsigned int*) &compress[0];  // currently not used
   
+  unsigned int* maxCompSize = (unsigned int*) &compress[0];  // 4 algorithms in index
   int blockSizeElements = compress[1];  // number of elements per block
   
   // Number of compressed data blocks, the last block can be smaller than blockSizeElements
@@ -386,11 +382,8 @@ SEXP fdsReadColumn(ifstream &myfile, char* outVec, unsigned long long blockPos, 
   myfile.read(blockIndex, (2 + endBlock - startBlock) * 10);
   
   int blockSize = elementSize * blockSizeElements;
-  
-  // char compBuf[*maxCompSize];  // read buffer
-  char compBuf[MAX_SIZE_COMPRESS_BLOCK];  // read buffer
-  
-  char tmpBuf[MAX_SIZE_COMPRESS_BLOCK];  // temporary buffer
+  char compBuf[*maxCompSize];  // read buffer
+  char tmpBuf[blockSize];  // temporary buffer
   Decompressor decompressor;
   
   unsigned long long* blockPStart = (unsigned long long*) &blockIndex[0];
