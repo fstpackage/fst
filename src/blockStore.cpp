@@ -390,11 +390,11 @@ SEXP fdsReadColumn(ifstream &myfile, char* outVec, unsigned long long blockPos, 
   
   int blockSize = elementSize * blockSizeElements;
   
-  // Test for buffer size here
   // char compBuf[*maxCompSize];  // read buffer
+  // char tmpBuf[blockSize];  // temporary buffer
   char compBuf[MAX_COMPRESSBOUND];  // maximum size needed in worst case scenario compression
+  char tmpBuf[MAX_SIZE_COMPRESS_BLOCK];  // temporary buffer
   
-  char tmpBuf[blockSize];  // temporary buffer
   Decompressor decompressor;
   
   unsigned long long* blockPStart = (unsigned long long*) &blockIndex[0];
