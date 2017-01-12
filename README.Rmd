@@ -28,7 +28,7 @@ require(ggplot2)
 require(data.table)
 require(fst)
 
-speeds <- data.table(read.fst("speeds.fst"))
+speeds <- data.table(read.fst("speeds_ocz.fst"))
 
 memSize <- speeds[Compression == 0 & Package == "rds", Size[1]]
 
@@ -78,7 +78,7 @@ nrOfRows <- 1e7
 x <- data.frame(
   Integers = 1:nrOfRows,  # integer
   Logicals = sample(c(TRUE, FALSE, NA), nrOfRows, replace = TRUE),  # logical
-  Factors = factor(sample(state.name, nrOfRows, replace = TRUE)),  # text
+  Text = factor(sample(state.name, nrOfRows, replace = TRUE)),  # text
   Numericals = runif(nrOfRows, 0.0, 100),  # numericals
   stringsAsFactors = FALSE)
 
@@ -101,7 +101,7 @@ With `read.fst` you can access a selection of rows from the stored data frame by
 You will notice that the read times for this small subset are very short because `read.fst` (almost) only touches the on-disk data from within the selected range. Specific columns can be selected with:
 
 ```{r, results='hide'}
-  read.fst("dataset.fst", c("Logicals", "Factors"), 2000, 4990) # subset rows and columns
+  read.fst("dataset.fst", c("Logicals", "Text"), 2000, 4990) # subset rows and columns
 ```
 
 Here, only data from the selected rows and columns are deserialized from file.
@@ -122,25 +122,29 @@ require(data.table)
 require(reshape2)
 
 ggplot(speeds) +
-  geom_line(aes(Compression, 100 * Factor, colour = Package)) +
+  geom_smooth(aes(Compression, 100 * Factor, colour = Package)) +
   geom_point(aes(Compression, 100 * Factor, colour = Package, shape = Package), size = 2) +
-  ylab("Percentage of size compared to saveRDS") +
+  ylab("Percentage of in-memory size") +
   ylim(0, NA)
 ```
 
-Note that the on-disk size of a csv file is usually larger than the in-memory size (here with a factor of about 2). Obviously, csv files are text-based and it's no surprise that deserializing from text-based sources takes more time (due to neccessary text parsing). Method `fread` from the `data.table` package actually has an impressive performance.
+Note that the on-disk size of a csv file is usually larger than the in-memory size (here with a factor of about 2). Obviously, csv files are text-based and it's no surprise that deserializing from text-based sources takes more time (due to neccessary text parsing). For a non-binary-file writer, method `fwrite` from the `data.table` package actually has a very impressive performance! There are only 10 settings for compression in `saveRDS` (gzip mode), which have been scaled up from 0 (uncompressed) to 100 (setting 9) for easier comparison.
 
 The read and write speeds measured in the same benchmark:
 
-```{r benchmark, echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(speeds) +
+```{r benchmark, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+speeds[, MaxCompression := max(Compression), by = "Package"]
+
+ggplot(speeds[MaxCompression > 0]) +
   geom_smooth(aes(Compression, Speed, colour = Package), size = 1) +
   geom_point(aes(Compression, Speed, colour = Package), size = 0.7) +
   facet_wrap(~ Mode, 1) +
   ylim(0, NA) + ylab("Read / Write speed (MB/s)") + xlab("Compression setting")
 ```
 
-There are only 10 settings for compression in `saveRDS` (gzip mode), which have been scaled up from 0 (uncompressed) to 100 (setting 9) for easier comparison. The read and write speeds reported in the figure are calculated by dividing the in-memory size of the data frame by the measured elapsed time for a read or write operation (more details will follow). As you can see, `fst` achieves very high read and write speeds, even for compressed data. For this benchmark, a modest laptop was used with a Core i7-4710HQ CPU @ 2.5GHz (but using a high-end PCI-e 3.0 x4 SSD to cope with the large speeds).
+The read and write speeds reported in the figure are calculated by dividing the in-memory size of the data frame by the measured elapsed time for a read or write operation (more details will follow). As you can see, `fst` achieves very high read and write speeds, even for compressed data. For this benchmark, a Intel Xeon E5 CPU was used, running  at 2.5 GHz. To cope with the large IO speeds, a OCZ RevoDrive 350 was used with maximum read and write speeds of around 1750 MB/s.
+
+As you can see from the figure, the benchmark measures higher speeds for the lower compression settings. This is due to the fact that the on-disk filesize of the data frame used is actually significantly smaller than the in-memory size. Package `fst` employs several type-specific byte and bit shifters that are used even in uncompressed mode. For example, a single logical value in R takes up 32 bits in memory, and only 2 bits on-disk (there are 3 possible values: `TRUE`, `FALSE`, and `NA`).
 
 
 > **Note to users**: The binary format used for data storage by the package (the 'fst file format') is expected to evolve in the coming months. Therefore, **`fst` should not be used for long-term data storage**.
