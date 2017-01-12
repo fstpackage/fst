@@ -250,8 +250,8 @@ inline SEXP fdsReadFixedCompStream(ifstream &myfile, char* outVec, unsigned long
   // Process partial repetition block
   if (startOffset != 0)
   {
-    char repBuf[targetRepSize];  // rep unit buffer for target
-    char buf[repSize];  // rep unit buffer for source
+    char repBuf[MAX_TARGET_REP_SIZE];  // rep unit buffer for target
+    char buf[MAX_SOURCE_REP_SIZE];  // rep unit buffer for source
     
     myfile.read(repBuf, targetRepSize);  // read single repetition block
     int resSize = decompressor.Decompress(compAlgo, buf, repSize, repBuf, targetRepSize);  // decompress repetition block
@@ -263,16 +263,16 @@ inline SEXP fdsReadFixedCompStream(ifstream &myfile, char* outVec, unsigned long
       
       return List::create(
         _["meta[0]"] = meta[0],
-                           _["meta[1]"] = meta[1],
-                                              _["repSize"] = repSize,
-                                              _["targetRepSize"] = targetRepSize,
-                                              _["startOffset"] = startOffset,
-                                              _["startRep"] = startRep,
-                                              _["vecLength"] = vecLength,
-                                              _["elementSize"] = elementSize,
-                                              _["repSizeElement"] = repSizeElement,
-                                              _["resSize"] = resSize,
-                                              _["blockPos"] = blockPos);
+        _["meta[1]"] = meta[1],
+        _["repSize"] = repSize,
+        _["targetRepSize"] = targetRepSize,
+        _["startOffset"] = startOffset,
+        _["startRep"] = startRep,
+        _["vecLength"] = vecLength,
+        _["elementSize"] = elementSize,
+        _["repSizeElement"] = repSizeElement,
+        _["resSize"] = resSize,
+        _["blockPos"] = blockPos);
     }
     
     int length = repSizeElement - startOffset;  // remaining elements
