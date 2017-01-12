@@ -185,8 +185,10 @@ SEXP fdsStreamcompressed(ofstream &myfile, char* colVec, unsigned int nrOfRows, 
   
   // Compress in blocks
   
-  int compBufSize =  streamCompressor->CompressBufferSize();  // maximum compressed block size
-  char compBuf[compBufSize];  // buffer used during compression
+  // int compBufSize =  streamCompressor->CompressBufferSize();  // maximum compressed block size
+  
+  char compBuf[MAX_COMPRESSBOUND];
+  // char compBuf[compBufSize];  // buffer used during compression
   
   --nrOfBlocks;  // Do last block later
   for (int block = 0; block < nrOfBlocks; ++block)
@@ -207,7 +209,6 @@ SEXP fdsStreamcompressed(ofstream &myfile, char* colVec, unsigned int nrOfRows, 
   delete[] blockIndex;
   
   return List::create(
-    _["compBufSize"] = compBufSize,
     _["blockIndexPos"] = (int) blockIndexPos,
     _["nrOfBlocks"] = nrOfBlocks,
     _["curPos"] = (int) curPos);
