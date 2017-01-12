@@ -315,7 +315,7 @@ inline SEXP fdsReadFixedCompStream(ifstream &myfile, char* outVec, unsigned long
   }
   
   // Last rep unit may be partial
-  char buf[repSize];  // single rep unit buffer
+  char buf[MAX_SOURCE_REP_SIZE];  // single rep unit buffer
   unsigned int nrOfElemsLastRep = startRow + vecLength - endRep * repSizeElement;
   
   
