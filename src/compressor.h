@@ -43,6 +43,7 @@
 #define NR_OF_ALGORITHMS 15
 #define MAX_TARGET_REP_SIZE 8
 #define MAX_SOURCE_REP_SIZE 128
+#define MAX_TARGET_BUFFER 8192  // 16384  / 2 
 
 // Compression algorithm types. Used for determining the maximum compression buffer size.
 enum CompAlgoType
