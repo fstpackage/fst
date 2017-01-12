@@ -291,7 +291,7 @@ inline SEXP fdsReadFixedCompStream(ifstream &myfile, char* outVec, unsigned long
   unsigned int blockSize = nrOfRepsPerBlock * repSize;  // block size in bytes
   unsigned int targetBlockSize = nrOfRepsPerBlock * targetRepSize;  // block size in bytes
   
-  char repBuf[targetBlockSize];  // read buffer
+  char repBuf[MAX_TARGET_BUFFER];  // maximum size read buffer for PREF_BLOCK_SIZE source
   
   
   // Decompress full blocks
