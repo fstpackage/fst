@@ -53,7 +53,7 @@ using namespace Rcpp;
 
 
 inline unsigned long long CompressBlock(StreamCompressor* streamCompressor, ofstream &myfile, char* vecP, char* compBuf, char* blockIndex,
-                                        int block, unsigned long long blockIndexPos, int *maxCompSize, int sourceBlockSize)
+  int block, unsigned long long blockIndexPos, unsigned int *maxCompSize, int sourceBlockSize)
 {
   // 1 long file pointer and 1 short algorithmID per block
   unsigned long long* blockPosition = (unsigned long long*) &blockIndex[COL_META_SIZE + block * 10];
@@ -62,7 +62,7 @@ inline unsigned long long CompressBlock(StreamCompressor* streamCompressor, ofst
   
   // Compress block
   CompAlgo compAlgo;
-  int compSize = streamCompressor->Compress(myfile, vecP, sourceBlockSize, compBuf, compAlgo);
+  unsigned int compSize = (unsigned int) streamCompressor->Compress(myfile, vecP, sourceBlockSize, compBuf, compAlgo);
   if (compSize > *maxCompSize) *maxCompSize = compSize;
   *blockAlgorithm = (int) compAlgo;
   
@@ -72,7 +72,7 @@ inline unsigned long long CompressBlock(StreamCompressor* streamCompressor, ofst
 
 // Method for writing column data of any type to a ofstream.
 SEXP fdsStreamUncompressed(ofstream &myfile, char* vec, unsigned int vecLength, int elementSize, int blockSizeElems,
-                           FixedRatioCompressor* fixedRatioCompressor)
+  FixedRatioCompressor* fixedRatioCompressor)
 {
   int nrOfBlocks = 1 + (vecLength - 1) / blockSizeElems;  // number of compressed / uncompressed blocks
   int remain = 1 + (vecLength + blockSizeElems - 1) % blockSizeElems;  // number of elements in last incomplete block
@@ -97,7 +97,9 @@ SEXP fdsStreamUncompressed(ofstream &myfile, char* vec, unsigned int vecLength, 
       _["vecLength"] = vecLength);
   }
   
+  
   // Use a fixed-ratio compressor
+  
   int remainBlock = remain * elementSize;
   int compressBufSizeRemain = fixedRatioCompressor->CompressBufferSize(remainBlock);  // size of block
   
@@ -171,18 +173,17 @@ SEXP fdsStreamcompressed(ofstream &myfile, char* colVec, unsigned int nrOfRows, 
   
   // Blocks meta information
   char* blockIndex = new char[COL_META_SIZE + 10 + nrOfBlocks * 10];  // 1 long file pointer and 1 short algorithmID per block
-  int* maxCompSize = (int*) &blockIndex[0];  // maximum compression block length
-  int* blockSizeElements = (int*) &blockIndex[4];  // number of elements per block
+  unsigned int* maxCompSize = (unsigned int*) &blockIndex[0];  // maximum uncompressed block length
+  unsigned int* blockSizeElements = (unsigned int*) &blockIndex[4];  // number of elements per block
   
   *blockSizeElements = blockSizeElems;
+  *maxCompSize = blockSize;  // can be used later for optimization
   
   // Write block index
   myfile.write((char*) blockIndex, 10 + COL_META_SIZE + nrOfBlocks * 10);
   unsigned long long blockIndexPos = 10 + COL_META_SIZE + nrOfBlocks * 10;  // relative to the column data starting position
   
-  *maxCompSize = blockSize;  // can be used later for optimization
-  
-  
+
   // Compress in blocks
   
   // int compBufSize =  streamCompressor->CompressBufferSize();  // maximum compressed block size
@@ -367,8 +368,8 @@ SEXP fdsReadColumn(ifstream &myfile, char* outVec, unsigned long long blockPos, 
   
   // Data is compressed
   
-  unsigned int* maxCompSize = (unsigned int*) &compress[0];  // 4 algorithms in index
-  int blockSizeElements = compress[1];  // number of elements per block
+  // unsigned int* maxCompSize = (unsigned int*) &compress[0];  // 4 algorithms in index
+  unsigned int blockSizeElements = compress[1];  // number of elements per block
   
   // Number of compressed data blocks, the last block can be smaller than blockSizeElements
   int nrOfBlocks = 1 + (size - 1) / blockSizeElements;
@@ -388,7 +389,11 @@ SEXP fdsReadColumn(ifstream &myfile, char* outVec, unsigned long long blockPos, 
   myfile.read(blockIndex, (2 + endBlock - startBlock) * 10);
   
   int blockSize = elementSize * blockSizeElements;
-  char compBuf[*maxCompSize];  // read buffer
+  
+  // Test for buffer size here
+  // char compBuf[*maxCompSize];  // read buffer
+  char compBuf[MAX_COMPRESSBOUND];  // maximum size needed in worst case scenario compression
+  
   char tmpBuf[blockSize];  // temporary buffer
   Decompressor decompressor;
   
