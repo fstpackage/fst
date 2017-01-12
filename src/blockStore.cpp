@@ -49,6 +49,8 @@ using namespace Rcpp;
 #define COL_META_SIZE 8
 #define PREF_BLOCK_SIZE 16384
 
+#define MAX_COMPRESSBOUND_PLUS_META_SIZE 17044
+
 
 inline unsigned long long CompressBlock(StreamCompressor* streamCompressor, ofstream &myfile, char* vecP, char* compBuf, char* blockIndex,
                                         int block, unsigned long long blockIndexPos, int *maxCompSize, int sourceBlockSize)
@@ -99,9 +101,11 @@ SEXP fdsStreamUncompressed(ofstream &myfile, char* vec, unsigned int vecLength, 
   int remainBlock = remain * elementSize;
   int compressBufSizeRemain = fixedRatioCompressor->CompressBufferSize(remainBlock);  // size of block
   
+  char compBuf[MAX_COMPRESSBOUND_PLUS_META_SIZE];  // meta data and compression buffer
+    
   if (nrOfBlocks == 0)  // single block
   {
-    char compBuf[compressBufSizeRemain + COL_META_SIZE];  // meta data and compression buffer
+    // char compBuf[compressBufSizeRemain + COL_META_SIZE];  // meta data and compression buffer
     
     unsigned int *compress = (unsigned int*) compBuf;
     compress[0] = 0;
@@ -119,7 +123,8 @@ SEXP fdsStreamUncompressed(ofstream &myfile, char* vec, unsigned int vecLength, 
   
   // More than one block
   int compressBufSize = fixedRatioCompressor->CompressBufferSize(blockSize);  // fixed size of a compressed block
-  char compBuf[compressBufSize + COL_META_SIZE];  // meta data and compression buffer
+  
+  // char compBuf[compressBufSize + COL_META_SIZE];  // meta data and compression buffer
   
   // First block and metadata
   
