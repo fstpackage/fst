@@ -50,7 +50,9 @@ TestWriteRead <- function(col, from = 1L, to = nrOfRows, selColumns = NULL, comp
   diffTable$Row <- 1:nrow(diffTable)
   diffTable$Other <- data[, 1]
   
-  message <- paste("cols subDT:", ncol(subDT), ", rows subDT:", nrow(subDT),
+  message <- paste(
+    "args: col:", col, "| from:", from, "| to:", to, "| setColumns:", selColumns,
+    "| compress:", compress, "| totLength", totLength, " cols subDT:", ncol(subDT), ", rows subDT:", nrow(subDT),
     "cols data:", ncol(data), ", rows data:", nrow(data),
     "head subDT:", paste(subDT[1:10, 1], collapse = ","),
     "head data:", paste(data[1:10, 1], collapse = ","),
