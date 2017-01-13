@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-Package `fst` provides a fast, easy and flexible way to serialize data frames. It allows for fast compression and decompression and has the ability to access stored frames randomly. With access speeds of above 1 GB/s, `fst` is specifically designed to unlock the potential of high speed solid state disks that can be found in most modern computers. The figure below compares the read and write performance of the `fst` package to various alternatives.
+Package `fst` [(code here)][fstRepo] provides a fast, easy and flexible way to serialize data frames. It allows for fast compression and decompression and has the ability to access stored frames randomly. With access speeds of above 1 GB/s, `fst` is specifically designed to unlock the potential of high speed solid state disks that can be found in most modern computers. The figure below compares the read and write performance of the `fst` package to various alternatives.
 
 ```{r speedCode, echo=FALSE, message=FALSE, results='hide'}
 require(ggplot2)
@@ -144,10 +144,11 @@ ggplot(speeds[MaxCompression > 0]) +
 
 The read and write speeds reported in the figure are calculated by dividing the in-memory size of the data frame by the measured elapsed time for a read or write operation (more details will follow). As you can see, `fst` achieves very high read and write speeds, even for compressed data. For this benchmark, a Intel Xeon E5 CPU was used, running  at 2.5 GHz. To cope with the large IO speeds, a OCZ RevoDrive 350 was used with maximum read and write speeds of around 1750 MB/s.
 
-As you can see from the figure, the benchmark measures higher speeds for the lower compression settings. This is due to the fact that the on-disk filesize of the data frame used is actually significantly smaller than the in-memory size. Package `fst` employs several type-specific byte and bit shifters that are used even in uncompressed mode. For example, a single logical value in R takes up 32 bits in memory, and only 2 bits on-disk (there are 3 possible values: `TRUE`, `FALSE`, and `NA`).
+As you can see from the figure, the benchmark measures higher speeds than the reported maximum SSD speed for low compression settings. This is due to the fact that the on-disk filesize of the data frame used is actually significantly smaller than the in-memory size, even at a compression setting of zero. Package `fst` employs several type-specific byte- and bit- shifters that are used even in uncompressed mode. For example, a single logical value in R takes up 32 bits in memory, and only 2 bits on-disk (there are 3 possible values: `TRUE`, `FALSE`, and `NA`).
 
 
 > **Note to users**: The binary format used for data storage by the package (the 'fst file format') is expected to evolve in the coming months. Therefore, **`fst` should not be used for long-term data storage**.
 
+[fstRepo]: https://github.com/fstpackage/fst
 [lz4Repo]: https://github.com/lz4/lz4
 [zstdRepo]: https://github.com/facebook/zstd
