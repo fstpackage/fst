@@ -43,10 +43,11 @@ speeds <- speeds[Package == "csv" & Mode == "Write", Function := "fwrite"]
 speeds <- speeds[Package == "rds" & Mode == "Read", Function := "readRDS"]
 speeds <- speeds[Package == "rds" & Mode == "Write", Function := "saveRDS"]
 
-speeds <- speeds[Package == "feather", Package := "read_feather - write_feather"]
-speeds <- speeds[Package == "fst", Package := "read.fst - write.fst"]
-speeds <- speeds[Package == "csv", Package := "fread - fwrite"]
-speeds <- speeds[Package == "rds", Package := "readRDS - saveRDS"]
+speeds <- speeds[Package == "feather", Methods := "read_feather/write_feather"]
+speeds <- speeds[Package == "fst", Methods := "read.fst/write.fst"]
+speeds <- speeds[Package == "csv", Methods := "fread/fwrite"]
+speeds <- speeds[Package == "rds", Methods := "readRDS/saveRDS"]
+speeds <- speeds[Package == "csv", Package := "data.table"]
 
 speedNoCompress <- speeds[Compression == 0, list(Time = 1e-6 * median(Time), `Size (MB)` = format(1e-6*median(Size), digits = 2), `Speed (MB/s)` = median(Speed), N = .N), by = "Function"]
 
@@ -54,16 +55,17 @@ speedNoCompress <- speeds[Compression == 0, list(Time = 1e-6 * median(Time), `Si
 kable(speedNoCompress)
 ```
 
-Parameter *speed* is calculated by dividing the in-memory size of the data frame by the measured time. The results are also visualized in the figure below.
+These benchmarks were performed on a Xeon E5 CPU @2.5GHz (more systems will follow). Parameter *speed* was calculated by dividing the in-memory size of the data frame by the measured time. The results are also visualized in the figure below.
 
-```{r speedCode, echo=FALSE, message=FALSE, results='hide'}
+```{r speedCode, echo=FALSE, message=FALSE, results='hide', fig.width=8.5, fig.height=6}
 ggplot(speeds[Compression == 0]) +
   geom_violin(aes(Mode, Speed, colour = Mode)) +
-  geom_jitter(aes(Mode, Speed, colour = Mode), size = 1, alpha = 0.15, width = 0.25) +
+  geom_jitter(aes(Mode, Speed, colour = Mode), size = 1, alpha = 0.05, width = 0.25) +
   facet_wrap(~ Package, 1) +
   ylim(0, NA) +
   ylab("Read or Write speed (MB/s)") +
-  xlab("")
+  xlab("") +
+  theme(legend.position="none")
 ```
 
 Package `fst` outperforms the `feather` and `data.table` packages as well as the base `readRDS` / `writeRDS` functions for uncompressed reads and writes. But it also offers additional features such as very fast compression and random access (columns and rows) to the stored data.
@@ -138,12 +140,12 @@ For compression the excellent and speedy [LZ4][lz4Repo] and [ZSTD][zstdRepo] com
 
 For this particular data frame the on-disk size of `x` is less than 35 percent of the in-memory size (`object.size(x)`) when full compression is used. The figure below shows the compression ratio depending on the settings used and compares them to the ratio's achieved by the `feather` and `data.table` packages (that offer no additional compression) and method `saveRDS` (gzip mode) from base R:
 
-```{r plot, echo=FALSE, message=FALSE}
+```{r plot, echo=FALSE, message=FALSE, fig.width=8.5, fig.height=6}
 speeds <- speeds[, Factor := Size / memSize]
 
 ggplot(speeds) +
-  geom_smooth(aes(Compression, 100 * Factor, colour = Package)) +
-  geom_point(aes(Compression, 100 * Factor, colour = Package, shape = Package), size = 2) +
+  geom_smooth(aes(Compression, 100 * Factor, colour = Methods)) +
+  geom_point(aes(Compression, 100 * Factor, colour = Methods, shape = Methods), size = 2) +
   ylab("Percentage of in-memory size") +
   ylim(0, NA)
 ```
@@ -152,7 +154,7 @@ Note that the on-disk size of a csv file is usually larger than the in-memory si
 
 The read and write speeds measured in the same benchmark:
 
-```{r benchmark, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+```{r benchmark, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.width=8.5, fig.height=6}
 speeds[, MaxCompression := max(Compression), by = "Package"]
 
 ggplot(speeds[MaxCompression > 0]) +
