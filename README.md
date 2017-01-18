@@ -9,7 +9,20 @@ Overview
 
 Package `fst` [(code here)](https://github.com/fstpackage/fst) provides a fast, easy and flexible way to serialize data frames. It allows for fast compression and decompression and has the ability to access stored frames randomly. With access speeds of above 1 GB/s, `fst` is specifically designed to unlock the potential of high speed solid state disks that can be found in most modern computers. The figure below compares the read and write performance of the `fst` package to various alternatives.
 
-![](README-speedFigure-1.png)
+| Function       |        Time| Size (MB) |  Speed (MB/s)|    N|
+|:---------------|-----------:|:----------|-------------:|----:|
+| readRDS        |   0.3112106| 200       |     642.65522|  308|
+| fread          |  17.2330203| 392       |      11.60569|  280|
+| **read.fst**   |   0.0610902| 133       |    3273.86553|  308|
+| read\_feather  |   0.2219555| 163       |     901.08681|  280|
+| saveRDS        |   0.3405369| 200       |     587.31114|  280|
+| fwrite         |   0.9786617| 392       |     204.36185|  280|
+| **write.fst**  |   0.1436382| 133       |    1392.39538|  308|
+| write\_feather |   0.7611664| 163       |     262.75612|  280|
+
+Parameter *speed* is calculated by dividing the in-memory size of the data frame by the measured time. The results are also visualized in the figure below.
+
+![](README-speedCode-1.png)
 
 Package `fst` outperforms the `feather` and `data.table` packages as well as the base `readRDS` / `writeRDS` functions for uncompressed reads and writes. But it also offers additional features such as very fast compression and random access (columns and rows) to the stored data.
 

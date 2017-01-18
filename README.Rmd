@@ -23,25 +23,47 @@ knitr::opts_chunk$set(
 
 Package `fst` [(code here)][fstRepo] provides a fast, easy and flexible way to serialize data frames. It allows for fast compression and decompression and has the ability to access stored frames randomly. With access speeds of above 1 GB/s, `fst` is specifically designed to unlock the potential of high speed solid state disks that can be found in most modern computers. The figure below compares the read and write performance of the `fst` package to various alternatives.
 
-```{r speedCode, echo=FALSE, message=FALSE, results='hide'}
+
+```{r speedTable, results='asis', message=FALSE, echo=FALSE}
 require(ggplot2)
 require(data.table)
 require(fst)
+require(knitr)
 
-speeds <- data.table(read.fst("speeds_ocz.fst"))
-
+speeds <- read.fst("speeds.fst", as.data.table = TRUE)
 memSize <- speeds[Compression == 0 & Package == "rds", Size[1]]
+speeds <- speeds[, Time := memSize / Speed]
 
-speeds[Package == "csv", Package := "fread - fwrite"]
-speeds[Package == "rds", Package := "readRDS - saveRDS"]
-speeds[, Factor := Size / memSize]
+speeds <- speeds[Package == "feather" & Mode == "Read", Function := "read_feather"]
+speeds <- speeds[Package == "feather" & Mode == "Write", Function := "write_feather"]
+speeds <- speeds[Package == "fst" & Mode == "Read", Function := "**read.fst**"]
+speeds <- speeds[Package == "fst" & Mode == "Write", Function := "**write.fst**"]
+speeds <- speeds[Package == "csv" & Mode == "Read", Function := "fread"]
+speeds <- speeds[Package == "csv" & Mode == "Write", Function := "fwrite"]
+speeds <- speeds[Package == "rds" & Mode == "Read", Function := "readRDS"]
+speeds <- speeds[Package == "rds" & Mode == "Write", Function := "saveRDS"]
 
-```{r speedFigure, echo=FALSE, message=FALSE}
+speeds <- speeds[Package == "feather", Package := "read_feather - write_feather"]
+speeds <- speeds[Package == "fst", Package := "read.fst - write.fst"]
+speeds <- speeds[Package == "csv", Package := "fread - fwrite"]
+speeds <- speeds[Package == "rds", Package := "readRDS - saveRDS"]
+
+speedNoCompress <- speeds[Compression == 0, list(Time = 1e-6 * median(Time), `Size (MB)` = format(1e-6*median(Size), digits = 2), `Speed (MB/s)` = median(Speed), N = .N), by = "Function"]
+
+
+kable(speedNoCompress)
+```
+
+Parameter *speed* is calculated by dividing the in-memory size of the data frame by the measured time. The results are also visualized in the figure below.
+
+```{r speedCode, echo=FALSE, message=FALSE, results='hide'}
 ggplot(speeds[Compression == 0]) +
   geom_violin(aes(Mode, Speed, colour = Mode)) +
   geom_jitter(aes(Mode, Speed, colour = Mode), size = 1, alpha = 0.15, width = 0.25) +
   facet_wrap(~ Package, 1) +
-  ylim(0, NA)
+  ylim(0, NA) +
+  ylab("Read or Write speed (MB/s)") +
+  xlab("")
 ```
 
 Package `fst` outperforms the `feather` and `data.table` packages as well as the base `readRDS` / `writeRDS` functions for uncompressed reads and writes. But it also offers additional features such as very fast compression and random access (columns and rows) to the stored data.
@@ -117,9 +139,7 @@ For compression the excellent and speedy [LZ4][lz4Repo] and [ZSTD][zstdRepo] com
 For this particular data frame the on-disk size of `x` is less than 35 percent of the in-memory size (`object.size(x)`) when full compression is used. The figure below shows the compression ratio depending on the settings used and compares them to the ratio's achieved by the `feather` and `data.table` packages (that offer no additional compression) and method `saveRDS` (gzip mode) from base R:
 
 ```{r plot, echo=FALSE, message=FALSE}
-require(ggplot2)
-require(data.table)
-require(reshape2)
+speeds <- speeds[, Factor := Size / memSize]
 
 ggplot(speeds) +
   geom_smooth(aes(Compression, 100 * Factor, colour = Package)) +
