@@ -9,16 +9,16 @@ Overview
 
 Package `fst` [(code here)](https://github.com/fstpackage/fst) provides a fast, easy and flexible way to serialize data frames. It allows for fast compression and decompression and has the ability to access stored frames randomly. With access speeds of above 1 GB/s, `fst` is specifically designed to unlock the potential of high speed solid state disks that can be found in most modern computers. The figure below compares the read and write performance of the `fst` package to various alternatives.
 
-| Function       |        Time| Size (MB) |  Speed (MB/s)|     N|
-|:---------------|-----------:|:----------|-------------:|-----:|
-| readRDS        |   0.3089175| 200       |     647.42561|  1397|
-| fread          |  17.1259319| 392       |      11.67826|  1270|
-| **read.fst**   |   0.0611263| 133       |    3271.93044|  1397|
-| read\_feather  |   0.2228486| 163       |     897.47523|  1270|
-| saveRDS        |   0.3406979| 200       |     587.03369|  1270|
-| fwrite         |   0.9813563| 392       |     203.80073|  1270|
-| **write.fst**  |   0.1427031| 133       |    1401.51894|  1397|
-| write\_feather |   0.7631548| 163       |     262.07150|  1270|
+| Method         | Format |    Time (s)| Size (MB) | Speed (MB/s)|    N|
+|:---------------|:-------|-----------:|:----------|------------:|-----:|
+| **read.fst**   | bin    |   0.0611263| 133       |       3271.9|  1397|
+| **write.fst**  | bin    |   0.1427031| 133       |       1401.5|  1397|
+| read\_feather  | bin    |   0.2228486| 163       |        897.5|  1270|
+| readRDS        | bin    |   0.3089175| 200       |        647.4|  1397|
+| saveRDS        | bin    |   0.3406979| 200       |        587.0|  1270|
+| write\_feather | bin    |   0.7631548| 163       |        262.1|  1270|
+| fwrite         | *csv*  |   0.9813563| 392       |        203.8|  1270|
+| fread          | *csv*  |  17.1259319| 392       |         11.7|  1270|
 
 These benchmarks were performed on a Xeon E5 CPU @2.5GHz (more systems will follow). Parameter *speed* was calculated by dividing the in-memory size of the data frame by the measured time. The results are also visualized in the figure below.
 
