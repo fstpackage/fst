@@ -124,7 +124,7 @@ read.fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
   if (as.data.table)
   {
     keyNames <- res$keyNames
-    res <- as.data.table(res$resTable)
+    res <- data.table::setDT(res$resTable)
     attr(res, "sorted") <- keyNames
     return(res)
   }
