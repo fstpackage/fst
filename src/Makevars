@@ -1,14 +1,14 @@
 
-PKG_CPPFLAGS = -I. -Ideprecated -ILZ4 -IZSTD -IZSTD/common -IZSTD/decompress -IZSTD/compress
+PKG_CPPFLAGS = -I. -Ifstcore -ILZ4 -IZSTD -IZSTD/common -IZSTD/decompress -IZSTD/compress
 CXX_STD      = CXX11
-PKG_LIBS     = -L. -lLZ4 -lZSTD -lFSTDEPR
+PKG_LIBS     = -L. -lLZ4 -lZSTD -lFSTCORE
 
 # libraries
 LIBLZ4  = LZ4/lz4.o
 LIBZSTD = ZSTD/common/entropy_common.o ZSTD/common/error_private.o ZSTD/common/fse_decompress.o ZSTD/compress/fse_compress.o ZSTD/decompress/huf_decompress.o ZSTD/compress/huf_compress.o ZSTD/decompress/zstd_decompress.o ZSTD/common/xxhash.o ZSTD/common/zstd_common.o ZSTD/compress/zstd_compress.o
-LIBFSTDEPR = deprecated/blockStore.o deprecated/boolStore.o deprecated/charStore.o deprecated/compression.o deprecated/compressor.o deprecated/doubleStore.o deprecated/factStore.o deprecated/intStore.o deprecated/lowerbound.o
+LIBFSTCORE = fstcore/blockStore.o fstcore/compression.o fstcore/compressor.o fstcore/lowerbound.o
 
-$(SHLIB): libLZ4.a libZSTD.a LIBFSTDEPR.a
+$(SHLIB): libLZ4.a libZSTD.a LIBFSTCORE.a
 
 libLZ4.a: $(LIBLZ4)
 	$(AR) rcs libLZ4.a $(LIBLZ4)
@@ -16,8 +16,8 @@ libLZ4.a: $(LIBLZ4)
 libZSTD.a: $(LIBZSTD)
 	$(AR) rcs libZSTD.a $(LIBZSTD)
 
-LIBFSTDEPR.a: $(LIBFSTDEPR)
-	$(AR) rcs LIBFSTDEPR.a $(LIBFSTDEPR)
+LIBFSTCORE.a: $(LIBFSTCORE)
+	$(AR) rcs LIBFSTCORE.a $(LIBFSTCORE)
 
 clean:
-	rm -f $(SHLIB) $(LIBLZ4) $(OBJECTS) libLZ4.a $(LIBZSTD) libZSTD.a $(LIBFSTDEPR) LIBFSTDEPR.a
+	rm -f $(SHLIB) $(LIBLZ4) $(OBJECTS) libLZ4.a $(LIBZSTD) libZSTD.a $(LIBFSTCORE) LIBFSTCORE.a

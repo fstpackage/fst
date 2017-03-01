@@ -1,5 +1,4 @@
 
-require(testthat)
 
 context("fst random access")
 

@@ -5,6 +5,28 @@
 
 using namespace Rcpp;
 
+// boolToInt
+SEXP boolToInt(SEXP logical);
+RcppExport SEXP fst_boolToInt(SEXP logicalSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type logical(logicalSEXP);
+    rcpp_result_gen = Rcpp::wrap(boolToInt(logical));
+    return rcpp_result_gen;
+END_RCPP
+}
+// intToBool
+SEXP intToBool(SEXP ints);
+RcppExport SEXP fst_intToBool(SEXP intsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type ints(intsSEXP);
+    rcpp_result_gen = Rcpp::wrap(intToBool(ints));
+    return rcpp_result_gen;
+END_RCPP
+}
 // fstStore
 SEXP fstStore(String fileName, SEXP table, SEXP compression);
 RcppExport SEXP fst_fstStore(SEXP fileNameSEXP, SEXP tableSEXP, SEXP compressionSEXP) {

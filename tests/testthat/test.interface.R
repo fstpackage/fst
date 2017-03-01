@@ -1,5 +1,4 @@
 
-require(testthat)
 require(data.table)
 
 # Clean testdata directory

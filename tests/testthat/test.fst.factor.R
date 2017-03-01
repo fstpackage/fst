@@ -1,8 +1,6 @@
 
 context("factor column")
 
-require(testthat)
-
 # Clean testdata directory
 if (!file.exists("FactorStore"))
 {
