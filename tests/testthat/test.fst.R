@@ -1,4 +1,5 @@
 
+require(testthat)
 
 context("fst random access")
 
@@ -24,6 +25,21 @@ dataTable <- data.frame(Xint=1:nrOfRows, Ylog=sample(c(TRUE, FALSE, NA), nrOfRow
   CharNA = charNA,
   stringsAsFactors = FALSE)
 
+# 
+# col = "Xint"
+# from = 1L
+# compress = 30L
+# to = totLength = 12
+# selColumns = NULL
+# 
+# dt <- dataTable[1:totLength, col, drop = FALSE]
+# fst:::fstStore("FactorStore/data1.fst", dt, compress, serialize)  # use compression
+# 
+# fst:::fstMeta("FactorStore/data1.fst")
+# read.fst("FactorStore/data1.fst")
+
+
+str(dt)
 
 TestWriteRead <- function(col, from = 1L, to = nrOfRows, selColumns = NULL, compress = 0L, totLength = nrOfRows)
 {

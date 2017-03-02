@@ -1,4 +1,5 @@
 
+require(testthat)
 require(data.table)
 
 # Clean testdata directory
@@ -11,6 +12,9 @@ if (!file.exists("testdata")) {
 context("package interface")
 
 x <- data.table(A = 1:10, B = sample(c(TRUE, FALSE, NA), 10, replace = TRUE))
+  # setkey(x, B)
+  # saveRDS(x, "testdata/keyedTable.rds")
+xKey <- readRDS("keyedTable.rds")  # import keyed table to avoid memory leaks in data.table (LeakSanitizer)
 
 test_that("From unkeyed data.table to data.table",
 {
@@ -24,12 +28,11 @@ test_that("From unkeyed data.table to data.table",
 })
 
 
+
 test_that("From keyed data.table to data.table",
 {
-  setkey(x, B)
+  write.fst(xKey, "testdata/key.fst")
   
-  write.fst(x, "testdata/key.fst")
-
   y <- read.fst("testdata/key.fst")
   expect_false(is.data.table(y))
   
@@ -37,5 +40,5 @@ test_that("From keyed data.table to data.table",
   expect_true(is.data.table(y))
   expect_equal(key(y), "B")
   
-  expect_equal(x, y)
+  expect_equal(xKey, y)
 })

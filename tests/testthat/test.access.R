@@ -1,4 +1,5 @@
 
+require(testthat)
 
 test_that("Reading non-existent file gives an error",
 {
