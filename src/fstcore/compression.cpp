@@ -1169,10 +1169,10 @@ unsigned int LZ4_C_SHUF4(char* dst, unsigned int dstCapacity, const char* src,  
 {
   int intSize = srcSize / 4;
   
-  int shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
-  // int shuffleBuf[intSize];
-
-  ShuffleInt2((int*) src, shuffleBuf, intSize);
+  unsigned long long shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_8];
+  // int shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
+  
+  ShuffleInt2((int*) src, (int*) shuffleBuf, intSize);
   return LZ4_compress_fast((char*) shuffleBuf, dst, srcSize, dstCapacity, 100 - compressionLevel);  // large acceleration
 }
 
@@ -1180,11 +1180,11 @@ unsigned int LZ4_D_SHUF4(char* dst, unsigned int dstCapacity, const char* src, u
 {
   int intSize = dstCapacity / 4;
   
-  int shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
-  // int shuffleBuf[intSize];
-
+  unsigned long long shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_8];
+  // int shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
+  
   int size = LZ4_decompress_fast(src, (char*) shuffleBuf, dstCapacity);
-  DeshuffleInt2(shuffleBuf, (int*) dst, intSize);
+  DeshuffleInt2((int*) shuffleBuf, (int*) dst, intSize);
 
   return size;
 }
@@ -1265,10 +1265,10 @@ unsigned int ZSTD_C_SHUF4(char* dst, unsigned int dstCapacity, const char* src, 
 {
   int intSize = srcSize / 4;
   
-  // int shuffleBuf[intSize];
-  int shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
+  unsigned long long shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_8];
+  // int shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
 
-  ShuffleInt2((int*) src, shuffleBuf, intSize);
+  ShuffleInt2((int*) src, (int*) shuffleBuf, intSize);
   return ZSTD_compress(dst, dstCapacity, (char*) shuffleBuf, srcSize, compressionLevel / 4.5);
 }
 
@@ -1276,11 +1276,11 @@ unsigned int ZSTD_D_SHUF4(char* dst, unsigned int dstCapacity, const char* src, 
 {
   int intSize = dstCapacity / 4;
 
-  // int shuffleBuf[intSize];
-  int shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
-
+  unsigned long long shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_8];
+  // int shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
+  
   int size = ZSTD_decompress((char*) shuffleBuf, dstCapacity, src, compressedSize);
-  DeshuffleInt2(shuffleBuf, (int*) dst, intSize);
+  DeshuffleInt2((int*) shuffleBuf, (int*) dst, intSize);
 
   return size;
 }
