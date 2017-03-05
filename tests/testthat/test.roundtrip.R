@@ -1,5 +1,7 @@
 
+require(testthat)
 context("roundtrip-vector")
+
 
 roundtrip_vector <- function(x)
 {
@@ -10,10 +12,10 @@ roundtrip_vector <- function(x)
 roundtrip <- function(df)
 {
   temp <- tempfile()
-  write.fst(df, temp)
+  fstwrite(df, temp)
   on.exit(unlink(temp))
 
-  read.fst(temp)
+  fstread(temp)
 }
 
 

@@ -33,8 +33,8 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef FASTSTORE_H
-#define FASTSTORE_H
+#ifndef FASTSTORE_V1_H
+#define FASTSTORE_V1_H
 
 #include <Rcpp.h>
 #include <iostream>
@@ -54,14 +54,9 @@
 // External libraries
 #include "lz4.h"
 
-// [[Rcpp::export]]
-SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer);
+List fstMeta_v1(String fileName);
 
-// [[Rcpp::export]]
-List fstMeta(String fileName);
-
-// [[Rcpp::export]]
-SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
+SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
 
 
-#endif  // FASTSTORE_H
+#endif  // FASTSTORE_V1_H

@@ -1,7 +1,7 @@
 
 require(testthat)
+context("factor column")
 
-context("fst random access")
 
 # Clean testdata directory
 if (!file.exists("FactorStore"))
@@ -25,30 +25,37 @@ dataTable <- data.frame(Xint=1:nrOfRows, Ylog=sample(c(TRUE, FALSE, NA), nrOfRow
   CharNA = charNA,
   stringsAsFactors = FALSE)
 
-# 
+
 # col = "Xint"
 # from = 1L
-# compress = 30L
-# to = totLength = 12
+# compress = 0L
+# to = totLength = nrOfRows
 # selColumns = NULL
 # 
 # dt <- dataTable[1:totLength, col, drop = FALSE]
-# fst:::fstStore("FactorStore/data1.fst", dt, compress, serialize)  # use compression
+# fstwrite(dt, "FactorStore/data1.fst", compress)  # use compression
+# 
+# fstversion1::write.fst(dt, "FactorStore/data1.fst", compress)  # use compression
+# 
+# fstversion1::fstread("FactorStore/data1.fst")
+# fst::fstread("FactorStore/data1.fst")
+# 
 # 
 # fst:::fstMeta("FactorStore/data1.fst")
-# read.fst("FactorStore/data1.fst")
+# fstread("FactorStore/data1.fst")
 
+# col = c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "CharNA")
 
-str(dt)
+# fst:::fstRead("FactorStore/data1.fst", selColumns, 1L, to)
 
 TestWriteRead <- function(col, from = 1L, to = nrOfRows, selColumns = NULL, compress = 0L, totLength = nrOfRows)
 {
   dt <- dataTable[1:totLength, col, drop = FALSE]
-  write.fst(dt, "FactorStore/data1.fst", compress)  # use compression
+  fstwrite(dt, "FactorStore/data1.fst", compress)  # use compression
 
   # Read full dataset
   to = min(to, nrOfRows)
-  data <- read.fst("FactorStore/data1.fst", columns = selColumns, from = from, to = to)
+  data <- fstread("FactorStore/data1.fst", columns = selColumns, from = from, to = to)
 
   if (is.null(selColumns))
   {
@@ -226,8 +233,8 @@ test_that("Select columns",
 
 test_that("Select unknown column",
 {
-  expect_error(data <- read.fst("FactorStore/data1.fds", columns = "bla"))
-  expect_error(data <- read.fst("FactorStore/data1.fds", columns = c("WFact", "bla")))
+  expect_error(data <- fstread("FactorStore/data1.fds", columns = "bla"))
+  expect_error(data <- fstread("FactorStore/data1.fds", columns = c("WFact", "bla")))
 })
 
 
@@ -235,6 +242,6 @@ test_that("Select out of range row number",
 {
   TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact"), from = 4, to = 7000)
   TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact"), from = 4, to = NULL)
-  expect_error(read.fst("FactorStore/data1.fst", from = 12000, to = NULL), "Row selection is out of range")
-  expect_error(read.fst("FactorStore/data1.fst", from = 0, to = NULL), "Parameter 'from' should have")
+  expect_error(fstread("FactorStore/data1.fst", from = 12000, to = NULL), "Row selection is out of range")
+  expect_error(fstread("FactorStore/data1.fst", from = 0, to = NULL), "Parameter 'from' should have")
 })

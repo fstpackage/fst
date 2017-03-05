@@ -32,7 +32,7 @@ write.fst <- function(x, path, compress = 0)
 
   if (!is.data.table(x) & !(is.data.frame(x))) stop("Please make sure 'x' is a data frame.")
 
-  fstStore(path, x, as.integer(compress))
+  fstStore(path, x, as.integer(compress), serialize)
 
   invisible(x)
 }
@@ -61,7 +61,8 @@ fst.metadata <- function(path)
 {
   metaData <- fstMeta(normalizePath(path, mustWork = TRUE))
 
-  colInfo <- list(Path = path, NrOfRows = metaData$blockPosVec[1], Keys = metaData$keyColVec, ColumnNames = metaData$colNames, ColumnTypes = metaData$colTypeVec)
+  colInfo <- list(Path = path, NrOfRows = metaData$nrOfRows, Keys = metaData$keyNames, ColumnNames = metaData$colNames,
+                  ColumnTypes = metaData$colTypeVec, KeyColIndex = metaData$keyColIndex)
   class(colInfo) <- "fst.metadata"
 
   colInfo
@@ -75,9 +76,17 @@ print.fst.metadata <- function(x, ...)
   cat(x$NrOfRows, " rows, ", length(x$ColumnNames), " columns (", x$Path, ")\n\n", sep = "")
 
   types <- c("character", "integer", "real", "logical", "factor")
-  colNames <- format(encodeString(x$ColumnNames, quote = "'"))
+  
+  y <- data.table(ColID = 0:(length(x$ColumnTypes) - 1), ColName = encodeString(x$ColumnNames, quote = "'"),
+    Type = encodeString(types[x$ColumnTypes]), key = "ColID")
+  
+  keyPos <- data.table(ColIndex = x$KeyColIndex, Key = paste("(key", 1:length(x$KeyColIndex), ")", sep = ""), key = "ColIndex")
+  
+  y <- keyPos[y]
+  y[is.na(Key), Key := ""]
 
-  cat(paste0("* ", colNames, ": ", types[x$ColumnTypes], "\n"), sep = "")
+
+  cat(y[, paste0("* ", format(ColName), ": ", Type, "  ", Key, "\n", sep = "")])
 }
 
 

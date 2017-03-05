@@ -28,15 +28,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // fstStore
-SEXP fstStore(String fileName, SEXP table, SEXP compression);
-RcppExport SEXP fst_fstStore(SEXP fileNameSEXP, SEXP tableSEXP, SEXP compressionSEXP) {
+SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer);
+RcppExport SEXP fst_fstStore(SEXP fileNameSEXP, SEXP tableSEXP, SEXP compressionSEXP, SEXP serializerSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< String >::type fileName(fileNameSEXP);
     Rcpp::traits::input_parameter< SEXP >::type table(tableSEXP);
     Rcpp::traits::input_parameter< SEXP >::type compression(compressionSEXP);
-    rcpp_result_gen = Rcpp::wrap(fstStore(fileName, table, compression));
+    Rcpp::traits::input_parameter< Function >::type serializer(serializerSEXP);
+    rcpp_result_gen = Rcpp::wrap(fstStore(fileName, table, compression, serializer));
     return rcpp_result_gen;
 END_RCPP
 }

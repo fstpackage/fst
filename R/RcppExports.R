@@ -9,8 +9,8 @@ intToBool <- function(ints) {
     .Call('fst_intToBool', PACKAGE = 'fst', ints)
 }
 
-fstStore <- function(fileName, table, compression) {
-    .Call('fst_fstStore', PACKAGE = 'fst', fileName, table, compression)
+fstStore <- function(fileName, table, compression, serializer) {
+    .Call('fst_fstStore', PACKAGE = 'fst', fileName, table, compression, serializer)
 }
 
 fstMeta <- function(fileName) {
