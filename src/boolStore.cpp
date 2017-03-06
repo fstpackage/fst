@@ -108,32 +108,6 @@ SEXP fdsReadLogicalVec(ifstream &myfile, SEXP &boolVec, unsigned long long block
   return fdsReadColumn(myfile, values, blockPos, startRow, length, size, 4);
 }
 
-//
-// SEXP fdsReadLogicalVec(ifstream &myfile, SEXP &boolVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size)
-// {
-//   // Compressed vector is stored in unsigned long long elements with 32 logicals each
-//   unsigned startLong = startRow / 32;
-//
-//   unsigned endRow = startRow + length - 1;
-//   unsigned endLong = endRow / 32;
-//   unsigned nrOfLongs = 1 + endLong - startLong;
-//
-//   // Jump to startRow size
-//   myfile.seekg(blockPos + 8 * startLong);
-//
-//   unsigned long long* buf = new unsigned long long[nrOfLongs];
-//
-//   // Read integer data
-//   myfile.read((char*) buf, 8 * nrOfLongs);
-//
-//   unsigned nrOfLogicals = 1 + endRow - startLong * 32;
-//   unsigned offset = startRow % 32;
-//
-//   LogicDecompr64((char*) LOGICAL(boolVec), buf, nrOfLogicals, offset);
-//
-//   return List::create(_["1"] = (int) 1);
-// }
-
 
 // [[Rcpp::export]]
 SEXP boolToInt(SEXP logical)
@@ -201,10 +175,7 @@ SEXP boolToInt(SEXP logical)
     compressVec.push_back(compress[i]);
   }
 
-  return List::create(
-    _["nrOfLogicals"] = nrOfLogicals,
-    _["nrOfBytes"] = nrOfBytes,
-    _["compressVec"] = compressVec);
+  return List::create(_["res"] = 0);  // TODO: return timings here
 }
 
 
@@ -245,8 +216,6 @@ SEXP intToBool(SEXP ints)
     logicalsVec.push_back(logicals[i]);
   }
 
-  return List::create(
-    _["logicalsVec"] = logicalsVec,
-    _["nrOfInts"] = nrOfInts);
+  return List::create(_["res"] = 0);  // TODO: return timings here
 }
 

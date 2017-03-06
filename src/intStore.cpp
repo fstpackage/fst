@@ -88,6 +88,7 @@ SEXP fdsWriteIntVec(ofstream &myfile, SEXP &intVec, unsigned size, unsigned int 
 }
 
 
+// SEXP fdsReadIntVec(ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size, unsigned int attrBlockSize)
 SEXP fdsReadIntVec(ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size)
 {
   char* values = (char*) INTEGER(intVec);  // output vector

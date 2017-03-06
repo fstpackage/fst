@@ -5,6 +5,19 @@
 
 using namespace Rcpp;
 
+// UnserializeObjectAttributes
+SEXP UnserializeObjectAttributes(SEXP rObject, RawVector rawVector, Function unserializer);
+RcppExport SEXP fst_UnserializeObjectAttributes(SEXP rObjectSEXP, SEXP rawVectorSEXP, SEXP unserializerSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type rObject(rObjectSEXP);
+    Rcpp::traits::input_parameter< RawVector >::type rawVector(rawVectorSEXP);
+    Rcpp::traits::input_parameter< Function >::type unserializer(unserializerSEXP);
+    rcpp_result_gen = Rcpp::wrap(UnserializeObjectAttributes(rObject, rawVector, unserializer));
+    return rcpp_result_gen;
+END_RCPP
+}
 // boolToInt
 SEXP boolToInt(SEXP logical);
 RcppExport SEXP fst_boolToInt(SEXP logicalSEXP) {
