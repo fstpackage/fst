@@ -76,17 +76,9 @@ print.fst.metadata <- function(x, ...)
   cat(x$NrOfRows, " rows, ", length(x$ColumnNames), " columns (", x$Path, ")\n\n", sep = "")
 
   types <- c("character", "integer", "real", "logical", "factor")
-  
-  y <- data.table(ColID = 0:(length(x$ColumnTypes) - 1), ColName = encodeString(x$ColumnNames, quote = "'"),
-    Type = encodeString(types[x$ColumnTypes]), key = "ColID")
-  
-  keyPos <- data.table(ColIndex = x$KeyColIndex, Key = paste("(key", 1:length(x$KeyColIndex), ")", sep = ""), key = "ColIndex")
-  
-  y <- keyPos[y]
-  y[is.na(Key), Key := ""]
+  colNames <- format(encodeString(x$ColumnNames, quote = "'"))
 
-
-  cat(y[, paste0("* ", format(ColName), ": ", Type, "  ", Key, "\n", sep = "")])
+  cat(paste0("* ", colNames, ": ", types[x$ColumnTypes], "\n"), sep = "")
 }
 
 
