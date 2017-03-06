@@ -48,8 +48,8 @@
 #include <compression.h>
 #include <compressor.h>
 
-#include <intStore.h>
-#include <charStore.h>
+#include <integer.h>
+#include <character.h>
 
 
 // External libraries

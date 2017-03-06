@@ -32,7 +32,7 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#include "charStore.h"
+#include <character.h>
 
 #include <Rcpp.h>
 #include <iostream>
@@ -120,7 +120,7 @@ inline unsigned int storeCharBlock(ofstream &myfile, unsigned int block, SEXP &s
   }
 
   char buf[MAX_CHAR_STACK_SIZE];
-  
+
   for (unsigned int count = startCount; count < endCount; ++count)
   {
     const char* str = CHAR(STRING_ELT(strVec, count));
@@ -130,7 +130,7 @@ inline unsigned int storeCharBlock(ofstream &myfile, unsigned int block, SEXP &s
   }
 
   myfile.write(buf, totSize);
-  
+
   return totSize + strSizesBufLength;
 }
 
@@ -281,7 +281,7 @@ SEXP fdsWriteCharVec(ofstream &myfile, SEXP &strVec, unsigned int vecLength, int
     myfile.seekp(curPos + fullSize);  // back to end of file
 
     delete[] meta;
-    
+
     return List::create(
       _["curPos"] = (int) curPos,
       _["fullSize"] = fullSize,
@@ -376,7 +376,7 @@ SEXP fdsWriteCharVec(ofstream &myfile, SEXP &strVec, unsigned int vecLength, int
   myfile.seekp(0, ios_base::end);
 
   delete[] meta;
-  
+
   return List::create(
     _["blockPos"] = (int) (*blockPos),
     _["algoInt"] = (int) (*algoInt),
@@ -552,7 +552,7 @@ inline void ReadDataBlock(ifstream &myfile, SEXP &strVec, unsigned long long blo
   myfile.read(buf, charDataSize);  // read string lengths
 
   ReadDataBlockInfo(strVec, blockSize, nrOfElements, startElem, endElem, vecOffset, sizeMeta, buf, nrOfNAInts);
-  
+
   delete[] sizeMeta;
 }
 
@@ -581,7 +581,7 @@ inline SEXP ReadDataBlockCompressed(ifstream &myfile, SEXP &strVec, unsigned lon
 
     decompressor.Decompress(algoInt, (char*)(&sizeMeta[nrOfNAInts]), nrOfElements * 4,
       strSizeBuf, intBlockSize);
-    
+
     delete[] strSizeBuf;
   }
 
@@ -795,7 +795,7 @@ List fdsReadCharVec(ifstream &myfile, SEXP &strVec, unsigned long long blockPos,
   if (startBlock == endBlock)  // subset start and end of block
   {
     delete[] blockInfo;
-    
+
     return List::create(
       _["res"] = res,
       _["vecLength"] = vecLength,

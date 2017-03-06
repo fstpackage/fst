@@ -1,14 +1,15 @@
 
-PKG_CPPFLAGS = -I. -Ifstcore -ILZ4 -IZSTD -IZSTD/common -IZSTD/decompress -IZSTD/compress
+PKG_CPPFLAGS = -I. -Ifstcore -ILZ4 -IZSTD -IZSTD/common -IZSTD/decompress -IZSTD/compress -Ilogical -Iinteger -Idouble -Icharacter -Ifactor
 CXX_STD      = CXX11
-PKG_LIBS     = -L. -lLZ4 -lZSTD -lFSTCORE
+PKG_LIBS     = -L. -lLZ4 -lZSTD -lFSTCORE -lTYPES
 
 # libraries
 LIBLZ4  = LZ4/lz4.o
 LIBZSTD = ZSTD/common/entropy_common.o ZSTD/common/error_private.o ZSTD/common/fse_decompress.o ZSTD/compress/fse_compress.o ZSTD/decompress/huf_decompress.o ZSTD/compress/huf_compress.o ZSTD/decompress/zstd_decompress.o ZSTD/common/xxhash.o ZSTD/common/zstd_common.o ZSTD/compress/zstd_compress.o
 LIBFSTCORE = fstcore/blockStore.o fstcore/compression.o fstcore/compressor.o fstcore/lowerbound.o
+LIBTYPES = logical/logical.o integer/integer.o double/double.o character/character.o factor/factor.o
 
-$(SHLIB): libLZ4.a libZSTD.a LIBFSTCORE.a
+$(SHLIB): libLZ4.a libZSTD.a libFSTCORE.a libTYPES.a
 
 libLZ4.a: $(LIBLZ4)
 	$(AR) rcs libLZ4.a $(LIBLZ4)
@@ -16,8 +17,11 @@ libLZ4.a: $(LIBLZ4)
 libZSTD.a: $(LIBZSTD)
 	$(AR) rcs libZSTD.a $(LIBZSTD)
 
-LIBFSTCORE.a: $(LIBFSTCORE)
+libFSTCORE.a: $(LIBFSTCORE)
 	$(AR) rcs LIBFSTCORE.a $(LIBFSTCORE)
 
+libTYPES.a: $(LIBTYPES)
+	$(AR) rcs libTYPES.a $(LIBTYPES)
+
 clean:
-	rm -f $(SHLIB) $(LIBLZ4) $(OBJECTS) libLZ4.a $(LIBZSTD) libZSTD.a $(LIBFSTCORE) LIBFSTCORE.a
+	rm -f $(SHLIB) $(LIBLZ4) $(OBJECTS) libLZ4.a $(LIBZSTD) libZSTD.a $(LIBFSTCORE) libFSTCORE.a $(LIBTYPES) libTYPES.a

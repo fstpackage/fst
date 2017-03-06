@@ -41,11 +41,11 @@
 #include <Rinternals.h>
 
 #include <lowerbound.h>
-#include <charStore.h>
-#include <factStore.h>
-#include <intStore.h>
-#include <doubleStore.h>
-#include <boolStore.h>
+#include <character.h>
+#include <factor.h>
+#include <integer.h>
+#include <double.h>
+#include <logical.h>
 #include <compression.h>
 #include <compressor.h>
 

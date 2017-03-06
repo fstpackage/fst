@@ -33,13 +33,13 @@
 */
 
 // Framework headers
-#include "factStore.h"
+#include "factor.h"
 #include "blockStore.h"
 #include "lowerbound.h"
 #include <compression.h>
 #include <compressor.h>
-#include <intStore.h>
-#include <charStore.h>
+#include <integer.h>
+#include <character.h>
 
 // Standard headers
 #include <iostream>

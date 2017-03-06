@@ -32,7 +32,7 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#include "intStore.h"
+#include "integer.h"
 
 // System libraries
 #include <ctime>

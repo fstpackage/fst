@@ -5,14 +5,6 @@ UnserializeObjectAttributes <- function(rObject, rawVector, unserializer) {
     .Call('fst_UnserializeObjectAttributes', PACKAGE = 'fst', rObject, rawVector, unserializer)
 }
 
-boolToInt <- function(logical) {
-    .Call('fst_boolToInt', PACKAGE = 'fst', logical)
-}
-
-intToBool <- function(ints) {
-    .Call('fst_intToBool', PACKAGE = 'fst', ints)
-}
-
 fstStore <- function(fileName, table, compression, serializer) {
     .Call('fst_fstStore', PACKAGE = 'fst', fileName, table, compression, serializer)
 }
