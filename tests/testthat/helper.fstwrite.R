@@ -1,5 +1,7 @@
 
-require(fstversion1)
+# require(fstversion1)
+# require(fst)
+
 
 # Set default writer for testing
 # To run all tests reading against an earlier version of the fst package, build that version with
@@ -16,3 +18,5 @@ fstread <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = F
 {
   fst::read.fst(path, columns, from, to, as.data.table)
 }
+
+

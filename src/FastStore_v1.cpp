@@ -59,16 +59,33 @@ using namespace Rcpp;
 #define BLOCKSIZE 16384  // number of bytes in default compression block
 
 
+// Scans further than necessary for safety!!!
 List fstMeta_v1(String fileName)
 {
   // Open file
   ifstream myfile;
   myfile.open(fileName.get_cstring(), ios::binary);
 
+  // Additional check compared to CRAN v0.7.2
+  if (myfile.fail())
+  {
+    myfile.close();
+    ::Rf_error("There was an error opening the fst file. Please check for a correct filename.");
+  }
+
 
   // Read column size
   short int colSizes[2];
   myfile.read((char*) &colSizes, 2 * sizeof(short int));
+
+
+  // Additional checks compared to CRAN v0.7.2
+  if ((colSizes[0] < 0) | (colSizes[1] < 0))
+  {
+    myfile.close();
+    ::Rf_error("Unrecognised file type, are you sure this is a fst file?");
+  }
+
   short int nrOfCols = colSizes[0];
   short int keyLength = colSizes[1] & 32767;
 
@@ -77,17 +94,39 @@ List fstMeta_v1(String fileName)
   short int *keyColumns = new short int[keyLength + 1];
   myfile.read((char*) keyColumns, keyLength * sizeof(short int));  // may be of length zero
 
-  // Convert to integer vector
-  IntegerVector keyColVec(keyLength);
-  for (int col = 0; col != keyLength; ++col)
+  // Additional checks compared to CRAN v0.7.2
+  if (keyLength > 0)
   {
-    keyColVec[col] = keyColumns[col];
+    for (int keyColCount = 0; keyColCount < keyLength; ++keyColCount)
+    {
+      if ((keyColumns[keyColCount] < 0) | (keyColumns[keyColCount] >= nrOfCols))
+      {
+        myfile.close();
+        delete[] keyColumns;
+        ::Rf_error("Error reading file header, are you sure this is a fst file?");
+      }
+    }
   }
 
 
   // Read column types
   short int *colTypes = new short int[nrOfCols];
   myfile.read((char*) colTypes, nrOfCols * sizeof(short int));
+
+  // Additional checks compared to CRAN v0.7.2
+  for (int colCount = 0; colCount < nrOfCols; ++colCount)
+  {
+    if ((colTypes[colCount] < 0) | (colTypes[colCount] > 5))
+    {
+      myfile.close();
+      delete[] colTypes;
+      delete[] keyColumns;
+      ::Rf_error("Error reading file header, are you sure this is a fst file?");
+    }
+  }
+
+
+
 
   // Convert to integer vector
   IntegerVector colTypeVec(nrOfCols);
@@ -100,6 +139,33 @@ List fstMeta_v1(String fileName)
   // Read block positions
   unsigned long long* allBlockPos = new unsigned long long[nrOfCols + 1];
   myfile.read((char*) allBlockPos, (nrOfCols + 1) * sizeof(unsigned long long));
+
+  // Additional checks compared to CRAN v0.7.2
+  for (int colCount = 2; colCount <= nrOfCols; ++colCount)
+  {
+    // block positions should be monotonically increasing
+    if (allBlockPos[colCount] < allBlockPos[colCount - 1])
+    {
+      myfile.close();
+      delete[] colTypes;
+      delete[] keyColumns;
+      delete[] allBlockPos;
+      ::Rf_error("Error reading file header (blockPos), are you sure this is a fst file?");
+    }
+  }
+
+  int nrOfRows = (int) allBlockPos[0];
+
+  // Additional checks compared to CRAN v0.7.2
+  if (nrOfRows <= 0)
+  {
+    myfile.close();
+    delete[] colTypes;
+    delete[] keyColumns;
+    delete[] allBlockPos;
+    ::Rf_error("Error reading file header (blockPos), are you sure this is a fst file?");
+  }
+
 
   // Convert to numeric vector
   NumericVector blockPosVec(nrOfCols + 1);
@@ -116,19 +182,51 @@ List fstMeta_v1(String fileName)
   fdsReadCharVec(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
 
   // cleanup
-  delete[] keyColumns;
   delete[] colTypes;
   delete[] allBlockPos;
   myfile.close();
+
+  if (keyLength > 0)
+  {
+    SEXP keyNames;
+    PROTECT(keyNames = Rf_allocVector(STRSXP, keyLength));
+    for (int i = 0; i < keyLength; ++i)
+    {
+      SET_STRING_ELT(keyNames, i, STRING_ELT(colNames, keyColumns[i]));
+    }
+
+    IntegerVector keyColIndex(keyLength);
+    for (int col = 0; col != keyLength; ++col)
+    {
+      keyColIndex[col] = keyColumns[col];
+    }
+
+    UNPROTECT(2);
+    delete[] keyColumns;
+
+    return List::create(
+      _["nrOfCols"]        = nrOfCols,
+      _["nrOfRows"]        = nrOfRows,
+      _["fstVersion"]      = 0,
+      _["colTypeVec"]      = colTypeVec,
+      _["keyColIndex"]     = keyColIndex,
+      _["keyLength"]       = keyLength,
+      _["keyNames"]        = keyNames,
+      _["colNames"]        = colNames,
+      _["nrOfChunks"]      = 1);
+  }
+
   UNPROTECT(1);
+  delete[] keyColumns;
 
   return List::create(
-    _["nrOfCols"]    = nrOfCols,
-    _["keyLength"]   = keyLength,
-    _["keyColVec"]   = keyColVec,
-    _["colTypeVec"]  = colTypeVec,
-    _["blockPosVec"] = blockPosVec,
-    _["colNames"] = colNames);
+    _["nrOfCols"]        = nrOfCols,
+    _["nrOfRows"]        = nrOfRows,
+    _["fstVersion"]      = 0,
+    _["keyLength"]       = keyLength,
+    _["colTypeVec"]      = colTypeVec,
+    _["colNames"]        = colNames,
+    _["nrOfChunks"]      = 1);
 }
 
 
@@ -144,20 +242,20 @@ SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
     myfile.close();
     ::Rf_error("There was an error opening the fst file. Please check for a correct filename.");
   }
-  
-  
+
+
   // Read column size
   short int colSizes[2];
   myfile.read((char*) &colSizes, 2 * sizeof(short int));
-  
-  
+
+
   // Additional checks compared to CRAN v0.7.2
   if ((colSizes[0] < 0) | (colSizes[1] < 0))
   {
     myfile.close();
     ::Rf_error("Unrecognised file type, are you sure this is a fst file?");
   }
-  
+
   short int nrOfCols = colSizes[0];
   short int keyLength = colSizes[1] & 32767;
 
@@ -214,7 +312,7 @@ SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
       ::Rf_error("Error reading file header (blockPos), are you sure this is a fst file?");
     }
   }
-  
+
   // Read column names
   SEXP colNames;
   PROTECT(colNames = Rf_allocVector(STRSXP, nrOfCols));
@@ -440,7 +538,7 @@ SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
     delete[] allBlockPos;
 
     Rf_warning("This fst file was created with a beta version of the fst package. Please re-write the data as this format will not be supported in future releases.");
-    
+
     return List::create(
       _["keyNames"] = keyNames,
       _["resTable"] = resTable,
@@ -456,7 +554,7 @@ SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 
   // add deprecated warning
   Rf_warning("This fst file was created with a beta version of the fst package. Please re-write the data as this format will not be supported in future releases.");
-  
+
   return List::create(
     _["keyNames"] = R_NilValue,
     _["selectedNames"] = selectedNames,

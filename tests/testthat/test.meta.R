@@ -48,8 +48,7 @@ test_that("Read meta of sorted file",
   y <- fst.metadata("testdata/meta.fst")
   expect_equal(y$Path, "testdata/meta.fst")
   expect_equal(y$NrOfRows, 10)
-  expect_equal(y$Keys, 1)
+  expect_equal(y$Keys, "B")
   expect_equal(y$ColumnNames, c("A", "B"))
   expect_equal(y$ColumnTypes, c(2, 4))
-
 })
