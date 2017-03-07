@@ -17,3 +17,27 @@ fstRead <- function(fileName, columnSelection, startRow, endRow) {
     .Call('fst_fstRead', PACKAGE = 'fst', fileName, columnSelection, startRow, endRow)
 }
 
+SType <- function(value) {
+    .Call('fst_SType', PACKAGE = 'fst', value)
+}
+
+compChar <- function(str1, str2) {
+    .Call('fst_compChar', PACKAGE = 'fst', str1, str2)
+}
+
+IsSortedTable <- function(table, key) {
+    .Call('fst_IsSortedTable', PACKAGE = 'fst', table, key)
+}
+
+FirstIntEqualHigher <- function(intVec, intKey, lower, upper) {
+    .Call('fst_FirstIntEqualHigher', PACKAGE = 'fst', intVec, intKey, lower, upper)
+}
+
+LastIntEqualLower <- function(intVec, intKey, lower, upper) {
+    .Call('fst_LastIntEqualLower', PACKAGE = 'fst', intVec, intKey, lower, upper)
+}
+
+LowerBoundIndex <- function(table, key, lower, upper) {
+    .Call('fst_LowerBoundIndex', PACKAGE = 'fst', table, key, lower, upper)
+}
+
