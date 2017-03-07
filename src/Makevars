@@ -18,7 +18,7 @@ libZSTD.a: $(LIBZSTD)
 	$(AR) rcs libZSTD.a $(LIBZSTD)
 
 libFSTCORE.a: $(LIBFSTCORE)
-	$(AR) rcs LIBFSTCORE.a $(LIBFSTCORE)
+	$(AR) rcs libFSTCORE.a $(LIBFSTCORE)
 
 libTYPES.a: $(LIBTYPES)
 	$(AR) rcs libTYPES.a $(LIBTYPES)
