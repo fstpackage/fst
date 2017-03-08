@@ -32,7 +32,7 @@ write.fst <- function(x, path, compress = 0)
 
   if (!is.data.table(x) & !(is.data.frame(x))) stop("Please make sure 'x' is a data frame.")
 
-  fstStore(path, x, as.integer(compress))
+  fstStore(normalizePath(path, mustWork = FALSE), x, as.integer(compress), serialize)
 
   invisible(x)
 }
@@ -61,7 +61,8 @@ fst.metadata <- function(path)
 {
   metaData <- fstMeta(normalizePath(path, mustWork = TRUE))
 
-  colInfo <- list(Path = path, NrOfRows = metaData$blockPosVec[1], Keys = metaData$keyColVec, ColumnNames = metaData$colNames, ColumnTypes = metaData$colTypeVec)
+  colInfo <- list(Path = path, NrOfRows = metaData$nrOfRows, Keys = metaData$keyNames, ColumnNames = metaData$colNames,
+                  ColumnTypes = metaData$colTypeVec, KeyColIndex = metaData$keyColIndex)
   class(colInfo) <- "fst.metadata"
 
   colInfo
