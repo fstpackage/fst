@@ -34,7 +34,7 @@
 
 // Framework headers
 #include "factor_v7.h"
-#include "blockstore_v2.h"
+#include "blockstreamer_v2.h"
 #include <integer_v8.h>
 #include <character_v6.h>
 

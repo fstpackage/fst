@@ -33,7 +33,7 @@
 */
 
 #include "logical_v4.h"
-#include "blockstore_v1.h"
+#include "blockstreamer_v1.h"
 
 // System libraries
 #include <ctime>

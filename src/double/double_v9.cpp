@@ -33,7 +33,7 @@
 */
 
 // Framework libraries
-#include "blockstore_v2.h"
+#include "blockstreamer_v2.h"
 #include <compression.h>
 #include <compressor.h>
 

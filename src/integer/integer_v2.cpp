@@ -33,7 +33,7 @@
 */
 
 #include "integer_v2.h"
-#include <blockstore_v1.h>
+#include <blockstreamer_v1.h>
 
 // System libraries
 #include <ctime>
