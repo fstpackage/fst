@@ -1,6 +1,5 @@
 /*
   fst - An R-package for ultra fast storage and retrieval of datasets.
-  Header File
   Copyright (C) 2017, Mark AJ Klik
 
   BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
@@ -33,25 +32,23 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef FASTSTORE_V1_H
-#define FASTSTORE_V1_H
-
-#include <Rcpp.h>
-#include <iostream>
-#include <fstream>
-#include <R.h>
-#include <Rinternals.h>
-
+// Framework libraries
+#include "blockStore_v1.h"
 #include <compression.h>
 #include <compressor.h>
 
 // External libraries
 #include "lz4.h"
 
+using namespace std;
+using namespace Rcpp;
 
-Rcpp::List fstMeta_v1(Rcpp::String fileName);
-
-SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
+#define BLOCKSIZE_REAL 2048  // number of doubles in default compression block
 
 
-#endif  // FASTSTORE_V1_H
+SEXP fdsReadRealVec_v3(ifstream &myfile, SEXP &realVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size)
+{
+  char* values = (char*) REAL(realVec);  // output vector
+
+  return fdsReadColumn(myfile, values, blockPos, startRow, length, size, 8);
+}

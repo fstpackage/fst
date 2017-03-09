@@ -6,7 +6,7 @@ PKG_LIBS     = -L. -lLZ4 -lZSTD -lTYPES
 # libraries
 LIBLZ4  = LZ4/lz4.o
 LIBZSTD = ZSTD/common/entropy_common.o ZSTD/common/error_private.o ZSTD/common/fse_decompress.o ZSTD/compress/fse_compress.o ZSTD/decompress/huf_decompress.o ZSTD/compress/huf_compress.o ZSTD/decompress/zstd_decompress.o ZSTD/common/xxhash.o ZSTD/common/zstd_common.o ZSTD/compress/zstd_compress.o
-LIBTYPES = logical/logical.o integer/integer.o double/double.o character/character.o factor/factor.o
+LIBTYPES = logical/logical_v4.o integer/integer_v2.o double/double_v3.o character/character_v1.o factor/factor_v5.o
 
 $(SHLIB): libLZ4.a libZSTD.a libTYPES.a
 

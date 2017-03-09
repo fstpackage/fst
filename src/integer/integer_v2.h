@@ -33,35 +33,13 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef FACTSTORE_H
-#define FACTSTORE_H
+#ifndef INTSTORE_H
+#define INTSTORE_H
 
+#include <Rcpp.h>  // Rcpp header
 
-#include <Rcpp.h>
-#include <iostream>
-#include <fstream>
-#include <R.h>
-#include <Rinternals.h>
+#define BLOCKSIZE_INT 4096  // number of integers in default compression block
 
-#include "lowerbound.h"
+SEXP fdsReadIntVec_v2(std::ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
 
-#include <compression.h>
-#include <compressor.h>
-
-#include <integer.h>
-#include <character.h>
-
-
-// External libraries
-#include "lz4.h"
-
-
-SEXP fdsWriteFactorVec(ofstream &myfile, SEXP &factVec, unsigned size, unsigned int compression);
-
-
-// Parameter 'startRow' is zero based.
-SEXP fdsReadFactorVec(ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned int startRow,
-  unsigned int length, unsigned int size);
-
-
-#endif  // FACTSTORE_H
+#endif // INTSTORE_H

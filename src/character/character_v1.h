@@ -33,8 +33,9 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef FASTSTORE_V1_H
-#define FASTSTORE_V1_H
+#ifndef CHARSTORE_H
+#define CHARSTORE_H
+
 
 #include <Rcpp.h>
 #include <iostream>
@@ -42,16 +43,18 @@
 #include <R.h>
 #include <Rinternals.h>
 
+#include "lowerbound.h"
 #include <compression.h>
 #include <compressor.h>
 
+
 // External libraries
 #include "lz4.h"
+// #include <boost/unordered_map.hpp>
 
 
-Rcpp::List fstMeta_v1(Rcpp::String fileName);
-
-SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
+List fdsReadCharVec_v1(ifstream &myfile, SEXP &strVec, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size);
 
 
-#endif  // FASTSTORE_V1_H
+#endif  // CHARSTORE_H
+

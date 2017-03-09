@@ -33,8 +33,9 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef FASTSTORE_V1_H
-#define FASTSTORE_V1_H
+#ifndef FACTSTORE_H
+#define FACTSTORE_H
+
 
 #include <Rcpp.h>
 #include <iostream>
@@ -45,13 +46,17 @@
 #include <compression.h>
 #include <compressor.h>
 
+
 // External libraries
 #include "lz4.h"
 
 
-Rcpp::List fstMeta_v1(Rcpp::String fileName);
-
-SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
+SEXP fdsWriteFactorVec(std::ofstream &myfile, SEXP &factVec, unsigned size, unsigned int compression);
 
 
-#endif  // FASTSTORE_V1_H
+// Parameter 'startRow' is zero based.
+SEXP fdsReadFactorVec(std::ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned int startRow,
+  unsigned int length, unsigned int size);
+
+
+#endif  // FACTSTORE_H

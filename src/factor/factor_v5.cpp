@@ -1,6 +1,5 @@
 /*
   fst - An R-package for ultra fast storage and retrieval of datasets.
-  Header File
   Copyright (C) 2017, Mark AJ Klik
 
   BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
@@ -33,21 +32,55 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef DOUBLESTORE_H
-#define DOUBLESTORE_H
+// Framework headers
+#include <character_v1.h>
+#include <integer_v2.h>
+#include "factor_v5.h"
 
-// System libraries
-#include <ctime>
-#include <ratio>
-
-// External libraries
-#include "lz4.h"
+#include "blockStore_v1.h"
+#include "lowerbound.h"
 #include <compression.h>
 #include <compressor.h>
 
+// Standard headers
+#include <iostream>
+#include <fstream>
 
-SEXP fdsWriteRealVec(ofstream &myfile, SEXP &realVec, unsigned size, unsigned int compression);
+// External libraries
+#include "lz4.h"
+// #include <boost/unordered_map.hpp>
 
-SEXP fdsReadRealVec(ifstream &myfile, SEXP &realVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
+using namespace std;
+using namespace Rcpp;
 
-#endif // DOUBLESTORE_H
+
+// Parameter 'startRow' is zero based.
+SEXP fdsReadFactorVec_v5(ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned int startRow,
+  unsigned int length, unsigned int size)
+{
+  // Jump to factor level
+  myfile.seekg(blockPos);
+
+  // Get vector meta data
+  char meta[12];
+  myfile.read(meta, 12);
+  unsigned int *nrOfLevels = (unsigned int*) meta;
+  unsigned long long* levelVecPos = (unsigned long long*) &meta[4];
+
+  // Read level strings
+  SEXP strVec;
+  PROTECT(strVec = Rf_allocVector(STRSXP, *nrOfLevels));
+  SEXP singleColInfo = fdsReadCharVec_v1(myfile, strVec, blockPos + 12, 0, *nrOfLevels, *nrOfLevels);  // get level strings
+
+  // Read level values
+  char* values = (char*) INTEGER(intVec);  // output vector
+  SEXP intVecInfo = fdsReadColumn(myfile, values, *levelVecPos, startRow, length, size, 4);
+
+  Rf_setAttrib(intVec, Rf_mkString("levels"), strVec);
+  Rf_setAttrib(intVec, Rf_mkString("class"), Rf_mkString("factor"));
+
+  return List::create(
+    _["singleColInfo"] = singleColInfo,
+    _["intVecInfo"] = intVecInfo,
+    _["strVec"] = strVec);
+}

@@ -41,12 +41,12 @@
 #include <R.h>
 #include <Rinternals.h>
 
-#include <lowerbound.h>
-#include <character.h>
-#include <factor.h>
-#include <integer.h>
-#include <double.h>
-#include <logical.h>
+#include <character_v6.h>
+#include <factor_v7.h>
+#include <integer_v8.h>
+#include <double_v9.h>
+#include <logical_v10.h>
+
 #include <compression.h>
 #include <compressor.h>
 
@@ -200,7 +200,7 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
   // Write table meta data
   myfile.write((char*)(metaDataBlock), metaDataSize);  // table meta data
   myfile.write((char*)(positionData), 8 * nrOfCols);   // file positions of column data
-  fdsWriteCharVec(myfile, colNames, nrOfCols, 0);      // column names
+  fdsWriteCharVec_v6(myfile, colNames, nrOfCols, 0);      // column names
 
     // Write table attributes here !!!!!!
 
@@ -218,30 +218,30 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
     switch (TYPEOF(colVec))
     {
       case STRSXP:
-        colTypes[colNr] = 1;
-        colResult = fdsWriteCharVec(myfile, colVec, nrOfRows, compress);
+        colTypes[colNr] = 6;
+        colResult = fdsWriteCharVec_v6(myfile, colVec, nrOfRows, compress);
         break;
 
       case INTSXP:
         if(Rf_isFactor(colVec))
         {
-          colTypes[colNr] = 5;
-          colResult = fdsWriteFactorVec(myfile, colVec, nrOfRows, compress);
+          colTypes[colNr] = 7;
+          colResult = fdsWriteFactorVec_v7(myfile, colVec, nrOfRows, compress);
           break;
         }
 
-        colTypes[colNr] = 2;
-        colResult = fdsWriteIntVec(myfile, colVec, nrOfRows, compress);
+        colTypes[colNr] = 8;
+        colResult = fdsWriteIntVec_8(myfile, colVec, nrOfRows, compress);
         break;
 
       case REALSXP:
-        colTypes[colNr] = 3;
-        colResult = fdsWriteRealVec(myfile, colVec, nrOfRows, compress);
+        colTypes[colNr] = 9;
+        colResult = fdsWriteRealVec_9(myfile, colVec, nrOfRows, compress);
         break;
 
       case LGLSXP:
-        colTypes[colNr] = 4;
-        colResult = fdsWriteLogicalVec(myfile, colVec, nrOfRows, compress);
+        colTypes[colNr] = 10;
+        colResult = fdsWriteLogicalVec_10(myfile, colVec, nrOfRows, compress);
         break;
 
       default:

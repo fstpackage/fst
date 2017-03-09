@@ -43,20 +43,18 @@
 #include <R.h>
 #include <Rinternals.h>
 
-#include "lowerbound.h"
 #include <compression.h>
 #include <compressor.h>
 
 
 // External libraries
 #include "lz4.h"
-// #include <boost/unordered_map.hpp>
 
 
-SEXP fdsWriteCharVec(ofstream &myfile, SEXP &strVec, unsigned int vecLength, int compression);
+SEXP fdsWriteCharVec_v6(std::ofstream &myfile, SEXP &strVec, unsigned int vecLength, int compression);
 
 
-List fdsReadCharVec(ifstream &myfile, SEXP &strVec, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size);
+Rcpp::List fdsReadCharVec_v6(std::ifstream &myfile, SEXP &strVec, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size);
 
 
 #endif  // CHARSTORE_H

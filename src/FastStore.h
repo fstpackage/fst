@@ -42,12 +42,6 @@
 #include <R.h>
 #include <Rinternals.h>
 
-#include <lowerbound.h>
-#include <character.h>
-#include <factor.h>
-#include <integer.h>
-#include <double.h>
-#include <logical.h>
 #include <compression.h>
 #include <compressor.h>
 
@@ -55,10 +49,10 @@
 #include "lz4.h"
 
 // [[Rcpp::export]]
-SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer);
+SEXP fstStore(Rcpp::String fileName, SEXP table, SEXP compression, Rcpp::Function serializer);
 
 // [[Rcpp::export]]
-List fstMeta(String fileName);
+Rcpp::List fstMeta(Rcpp::String fileName);
 
 // [[Rcpp::export]]
 SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);

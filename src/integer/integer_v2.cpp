@@ -32,7 +32,8 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#include "integer.h"
+#include "integer_v2.h"
+#include <blockStore_v1.h>
 
 // System libraries
 #include <ctime>
@@ -42,54 +43,12 @@
 #include "lz4.h"
 #include <compression.h>
 #include <compressor.h>
-#include <blockStore.h>
 
 using namespace std;
 using namespace Rcpp;
 
-
-SEXP fdsWriteIntVec(ofstream &myfile, SEXP &intVec, unsigned size, unsigned int compression)
-{
-  int* intP = INTEGER(intVec);  // data pointer
-  unsigned int nrOfRows = LENGTH(intVec);  // vector length
-
-  int blockSize = 4 * BLOCKSIZE_INT;  // block size in bytes
-
-  if (compression == 0)
-  {
-    return fdsStreamUncompressed(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, NULL);
-  }
-
-  SEXP res;  // timing information
-
-  if (compression <= 50)  // low compression: linear mix of uncompressed and LZ4_SHUF
-  {
-    Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4_SHUF4, 0);
-
-    StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, 2 * compression);
-
-    streamCompressor->CompressBufferSize(blockSize);
-    res = fdsStreamcompressed(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
-    delete compress1;
-    delete streamCompressor;
-    return res;
-  }
-
-  Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4_SHUF4, 0);
-  Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD_SHUF4, 0);
-  StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
-  streamCompressor->CompressBufferSize(blockSize);
-  res = fdsStreamcompressed(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
-  delete compress1;
-  delete compress2;
-  delete streamCompressor;
-
-  return res;
-}
-
-
 // SEXP fdsReadIntVec(ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size, unsigned int attrBlockSize)
-SEXP fdsReadIntVec(ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size)
+SEXP fdsReadIntVec_v2(ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size)
 {
   char* values = (char*) INTEGER(intVec);  // output vector
 

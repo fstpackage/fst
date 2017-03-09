@@ -32,7 +32,7 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#include <character.h>
+#include "charStore.h"
 
 #include <Rcpp.h>
 #include <iostream>
@@ -67,9 +67,9 @@ inline unsigned int storeCharBlock(ofstream &myfile, unsigned int block, SEXP &s
 
   unsigned int totSize = 0;
   unsigned int hasNA = 0;
-  int sizeCount = nrOfNAInts - 1;
+  int sizeCount = -1;
 
-  memset(strSizes, 0, nrOfNAInts * 4);  // clear NA bit metadata block
+  memset(&strSizes[nrOfElements], 0, nrOfNAInts * 4);  // clear NA bit metadata block (neccessary?)
 
   for (unsigned int count = startCount; count != endCount; ++count)
   {
@@ -78,7 +78,7 @@ inline unsigned int storeCharBlock(ofstream &myfile, unsigned int block, SEXP &s
     if (strElem == NA_STRING)  // set NA bit
     {
       ++hasNA;
-      unsigned int intPos = (count - startCount) / 32;
+      unsigned int intPos = nrOfElements + (count - startCount) / 32;
       unsigned int bitPos = (count - startCount) % 32;
       strSizes[intPos] |= 1 << bitPos;
     }
@@ -91,15 +91,17 @@ inline unsigned int storeCharBlock(ofstream &myfile, unsigned int block, SEXP &s
   {
     // set last bit
     int bitPos = nrOfElements % 32;
-    strSizes[nrOfNAInts - 1] |= 1 << bitPos;
+    strSizes[nrOfElements + nrOfNAInts - 1] |= 1 << bitPos;
   }
 
   unsigned int strSizesBufLength = (nrOfElements + nrOfNAInts) * 4;
   myfile.write((char*)(strSizes), strSizesBufLength);  // write string lengths
 
+
+  // Write string data
   unsigned int pos = 0;
   unsigned int lastPos = 0;
-  sizeCount = nrOfNAInts - 1;
+  sizeCount = -1;
 
   if (totSize > MAX_CHAR_STACK_SIZE)  // don't use cache memory
   {
@@ -146,9 +148,9 @@ inline unsigned int storeCharBlockCompressed(ofstream &myfile, unsigned int bloc
 
   unsigned int totSize = 0;
   unsigned int hasNA = 0;
-  int sizeCount = nrOfNAInts - 1;
+  int sizeCount = - 1;
 
-  memset(strSizes, 0, nrOfNAInts * 4);  // clear NA bit metadata block
+  memset(&strSizes[nrOfElements], 0, nrOfNAInts * 4);  // clear NA bit metadata block
 
   for (unsigned int count = startCount; count != endCount; ++count)
   {
@@ -157,7 +159,7 @@ inline unsigned int storeCharBlockCompressed(ofstream &myfile, unsigned int bloc
     if (strElem == NA_STRING)  // set NA bit
     {
       ++hasNA;
-      unsigned int intPos = (count - startCount) / 32;
+      unsigned int intPos = nrOfElements + (count - startCount) / 32;
       unsigned int bitPos = (count - startCount) % 32;
       strSizes[intPos] |= 1 << bitPos;
     }
@@ -170,29 +172,30 @@ inline unsigned int storeCharBlockCompressed(ofstream &myfile, unsigned int bloc
   {
     // set last bit
     int bitPos = nrOfElements % 32;
-    strSizes[nrOfNAInts - 1] |= 1 << bitPos;
+    strSizes[nrOfElements + nrOfNAInts - 1] |= 1 << bitPos;
   }
-
-
-  // Write NA bits uncompressed (add compression later ?)
-  myfile.write((char*)(strSizes), nrOfNAInts * 4);  // write string lengths
 
 
   // Compress string size vector
   unsigned int strSizesBufLength = nrOfElements * 4;
 
+
+  // 1) Use stack buffer here !!!!!!
+  // 2) compress to 1 or 2 bytes if possible with strSizesBufLength
   int bufSize = intCompressor->CompressBufferSize(strSizesBufLength);  // 1 integer per string
   char *intBuf = new char[bufSize];
 
   CompAlgo compAlgorithm;
-  intBufSize = intCompressor->Compress(myfile, (char*)(&strSizes[nrOfNAInts]), strSizesBufLength, intBuf, compAlgorithm);
-
+  intBufSize = intCompressor->Compress(myfile, (char*)(strSizes), strSizesBufLength, intBuf, compAlgorithm);
   algoInt = (unsigned short int) (compAlgorithm);  // store selected algorithm
+
+  // Write NA bits uncompressed (add compression later ?)
+  myfile.write((char*)(&strSizes[nrOfElements]), nrOfNAInts * 4);  // write string lengths
 
   int compBufSize = charCompressor->CompressBufferSize(totSize);
   unsigned int pos = 0;
   unsigned int lastPos = 0;
-  sizeCount = nrOfNAInts - 1;
+  sizeCount = -1;
   char* compBuf = new char[compBufSize];  // character buffer   check if reuse possible?
 
   if (totSize > MAX_CHAR_STACK_SIZE)  // don't use cache memory
@@ -242,7 +245,7 @@ inline unsigned int storeCharBlockCompressed(ofstream &myfile, unsigned int bloc
 }
 
 
-SEXP fdsWriteCharVec(ofstream &myfile, SEXP &strVec, unsigned int vecLength, int compression)
+SEXP fdsWriteCharVec_v6(ofstream &myfile, SEXP &strVec, unsigned int vecLength, int compression)
 {
   unsigned long long curPos = myfile.tellp();
   unsigned int nrOfBlocks = (vecLength - 1) / BLOCKSIZE_CHAR;  // number of blocks minus 1
@@ -282,12 +285,7 @@ SEXP fdsWriteCharVec(ofstream &myfile, SEXP &strVec, unsigned int vecLength, int
 
     delete[] meta;
 
-    return List::create(
-      _["curPos"] = (int) curPos,
-      _["fullSize"] = fullSize,
-      _["metaSize"] = metaSize,
-      _["nrOfBlocks"] = nrOfBlocks,
-      _["BLOCKSIZE_CHAR"] = (int) BLOCKSIZE_CHAR);
+    return List::create(_["res"] = 0);  // TODO: return timings here
   }
 
 
@@ -377,38 +375,28 @@ SEXP fdsWriteCharVec(ofstream &myfile, SEXP &strVec, unsigned int vecLength, int
 
   delete[] meta;
 
-  return List::create(
-    _["blockPos"] = (int) (*blockPos),
-    _["algoInt"] = (int) (*algoInt),
-    _["algoChar"] = (int) (*algoChar),
-    _["intBufSize"] = (int) (*intBufSize),
-    _["curPos"] = (int) curPos,
-    _["fullSize"] = fullSize,
-    _["totSize"] = totSize,
-    _["metaSize"] = metaSize,
-    _["nrOfBlocks"] = nrOfBlocks,
-    _["BLOCKSIZE_CHAR"] = (int) BLOCKSIZE_CHAR);
+  return List::create(_["res"] = 0);  // TODO: return timings here
 }
 
 
 inline void ReadDataBlockInfo(SEXP &strVec, unsigned long long blockSize, unsigned int nrOfElements,
   unsigned int startElem, unsigned int endElem, unsigned int vecOffset, unsigned int* sizeMeta, char* buf, unsigned int nrOfNAInts)
 {
-  unsigned int* strSizes = &sizeMeta[nrOfNAInts];
+  unsigned int* bitsNA = &sizeMeta[nrOfElements];
   unsigned int pos = 0;
 
   if (startElem != 0)
   {
-    pos = strSizes[startElem - 1];  // offset previous element
+    pos = sizeMeta[startElem - 1];  // offset previous element
   }
 
   // Test NA flag
-  unsigned int flagNA = sizeMeta[nrOfNAInts - 1] & (1 << (nrOfElements % 32));
+  unsigned int flagNA = bitsNA[nrOfNAInts - 1] & (1 << (nrOfElements % 32));
   if (flagNA == 0)  // no NA's in vector
   {
     for (unsigned int blockElem = startElem; blockElem <= endElem; ++blockElem)
     {
-      unsigned int newPos = strSizes[blockElem];
+      unsigned int newPos = sizeMeta[blockElem];
       SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
       SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
       pos = newPos;  // update to new string offset
@@ -421,7 +409,7 @@ inline void ReadDataBlockInfo(SEXP &strVec, unsigned long long blockSize, unsign
 
   unsigned int startCycle = startElem / 32;
   unsigned int endCycle = endElem / 32;
-  unsigned int cycleNAs = sizeMeta[startCycle];
+  unsigned int cycleNAs = bitsNA[startCycle];
 
   // A single 32 string cycle
 
@@ -434,13 +422,13 @@ inline void ReadDataBlockInfo(SEXP &strVec, unsigned long long blockSize, unsign
       if ((cycleNAs & bitMask) != 0)  // set string to NA
       {
         SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, NA_STRING);
-        pos = strSizes[blockElem];  // update to new string offset
+        pos = sizeMeta[blockElem];  // update to new string offset
         continue;
       }
 
       // Get string from data stream
 
-      unsigned int newPos = strSizes[blockElem];
+      unsigned int newPos = sizeMeta[blockElem];
       SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
       SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
       pos = newPos;  // update to new string offset
@@ -459,13 +447,13 @@ inline void ReadDataBlockInfo(SEXP &strVec, unsigned long long blockSize, unsign
     if ((cycleNAs & bitMask) != 0)  // set string to NA
     {
       SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, NA_STRING);
-      pos = strSizes[blockElem];  // update to new string offset
+      pos = sizeMeta[blockElem];  // update to new string offset
       continue;
     }
 
     // Get string from data stream
 
-    unsigned int newPos = strSizes[blockElem];
+    unsigned int newPos = sizeMeta[blockElem];
     SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
     SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
     pos = newPos;  // update to new string offset
@@ -475,14 +463,14 @@ inline void ReadDataBlockInfo(SEXP &strVec, unsigned long long blockSize, unsign
 
   for (unsigned int cycle = startCycle + 1; cycle != endCycle; ++cycle)
   {
-    unsigned int cycleNAs = sizeMeta[cycle];
+    unsigned int cycleNAs = bitsNA[cycle];
     unsigned int middleCycleEnd = cycle * 32 + 32;
 
     if (cycleNAs == 0)  // no NA's
     {
       for (unsigned int blockElem = cycle * 32; blockElem != middleCycleEnd; ++blockElem)
       {
-        unsigned int newPos = strSizes[blockElem];
+        unsigned int newPos = sizeMeta[blockElem];
         SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
         SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
         pos = newPos;  // update to new string offset
@@ -495,7 +483,7 @@ inline void ReadDataBlockInfo(SEXP &strVec, unsigned long long blockSize, unsign
     for (unsigned int blockElem = cycle * 32; blockElem != middleCycleEnd; ++blockElem)
     {
       unsigned int bitMask = 1 << (blockElem % 32);
-      unsigned int newPos = strSizes[blockElem];
+      unsigned int newPos = sizeMeta[blockElem];
 
       if ((cycleNAs & bitMask) != 0)  // set string to NA
       {
@@ -514,13 +502,13 @@ inline void ReadDataBlockInfo(SEXP &strVec, unsigned long long blockSize, unsign
 
   // Last cycle
 
-  cycleNAs = sizeMeta[endCycle];
+  cycleNAs = bitsNA[endCycle];
 
   ++endElem;
   for (unsigned int blockElem = endCycle * 32; blockElem != endElem; ++blockElem)
   {
     unsigned int bitMask = 1 << (blockElem % 32);
-    unsigned int newPos = strSizes[blockElem];
+    unsigned int newPos = sizeMeta[blockElem];
 
     if ((cycleNAs & bitMask) != 0)  // set string to NA
     {
@@ -544,7 +532,7 @@ inline void ReadDataBlock(ifstream &myfile, SEXP &strVec, unsigned long long blo
   unsigned int nrOfNAInts = 1 + nrOfElements / 32;  // last bit is NA flag
   unsigned int totElements = nrOfElements + nrOfNAInts;
   unsigned int *sizeMeta = new unsigned int[totElements];
-  myfile.read((char*) sizeMeta, totElements * 4);  // read cumulative string lengths
+  myfile.read((char*) sizeMeta, totElements * 4);  // read cumulative string lengths and NA bits
 
   unsigned int charDataSize = blockSize - totElements * 4;
 
@@ -554,6 +542,7 @@ inline void ReadDataBlock(ifstream &myfile, SEXP &strVec, unsigned long long blo
   ReadDataBlockInfo(strVec, blockSize, nrOfElements, startElem, endElem, vecOffset, sizeMeta, buf, nrOfNAInts);
 
   delete[] sizeMeta;
+  delete[] buf;
 }
 
 
@@ -572,20 +561,19 @@ inline SEXP ReadDataBlockCompressed(ifstream &myfile, SEXP &strVec, unsigned lon
   }
   else
   {
-    myfile.read((char*) sizeMeta, nrOfNAInts * 4);  // read cumulative string lengths
     unsigned int intBufSize = intBlockSize;
     char *strSizeBuf = new char[intBufSize];
     myfile.read(strSizeBuf, intBufSize);
+    myfile.read((char*) &sizeMeta[nrOfElements], nrOfNAInts * 4);  // read cumulative string lengths
 
     // Decompress size but not NA metadata (which is currently uncompressed)
 
-    decompressor.Decompress(algoInt, (char*)(&sizeMeta[nrOfNAInts]), nrOfElements * 4,
-      strSizeBuf, intBlockSize);
+    decompressor.Decompress(algoInt, (char*) sizeMeta, nrOfElements * 4, strSizeBuf, intBlockSize);
 
     delete[] strSizeBuf;
   }
 
-  unsigned int charDataSizeUncompressed = sizeMeta[nrOfNAInts + nrOfElements - 1];
+  unsigned int charDataSizeUncompressed = sizeMeta[nrOfElements - 1];
 
   // Read and uncompress string vector data, use stack if possible here !!!!!
   unsigned int charDataSize = blockSize - intBlockSize - nrOfNAInts * 4;
@@ -608,19 +596,11 @@ inline SEXP ReadDataBlockCompressed(ifstream &myfile, SEXP &strVec, unsigned lon
   delete[] buf;  // character vector buffer
   delete[] sizeMeta;
 
-  return List::create(
-    _["startElem"] = startElem,
-    _["endElem"] = endElem,
-    _["algoInt"] = algoInt,
-    _["charDataSize"] = charDataSize,
-    _["charDataSizeUncompressed"] = charDataSizeUncompressed,
-    _["algoChar"] = algoChar,
-    _["intBlockSize"] = intBlockSize,
-    _["nrOfElements"] = nrOfElements);
+  return List::create(_["res"] = 0);  // TODO: return timings here
 }
 
 
-List fdsReadCharVec(ifstream &myfile, SEXP &strVec, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size)
+List fdsReadCharVec_v6(ifstream &myfile, SEXP &strVec, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size)
 {
   // Jump to startRow size
   myfile.seekg(blockPos);
@@ -680,23 +660,7 @@ List fdsReadCharVec(ifstream &myfile, SEXP &strVec, unsigned long long blockPos,
     {
       delete[] blockOffset;
 
-      return List::create(
-        _["res"] = "uncompressed",
-        _["vecLength"] = vecLength,
-        _["meta[0]"] = meta[0],
-        _["meta[1]"] = meta[1],
-        _["totNrOfBlocks"] = totNrOfBlocks,
-        _["startBlock"] = startBlock,
-        _["endBlock"] = endBlock,
-        _["nrOfBlocks"] = nrOfBlocks,
-        _["nrOfElements"] = (int) nrOfElements,
-        _["endElem"] = (int) endElem,
-        _["startOffset"] = startOffset,
-        _["blockSize"] = blockSize,
-        _["blockPos"] = (int) blockPos,
-        _["blockOffset[0]"] = (int) blockOffset[0],
-        _["blockOffset[1]"] = (int) blockOffset[1],
-        _["blockOffset[2]"] = (int) blockOffset[2]);
+      return List::create(_["res"] = 0);  // TODO: return timings here
     }
 
     offset = blockOffset[1];
@@ -721,23 +685,7 @@ List fdsReadCharVec(ifstream &myfile, SEXP &strVec, unsigned long long blockPos,
 
     delete[] blockOffset;
 
-    return List::create(
-      _["res"] = "uncompressed",
-      _["vecLength"] = vecLength,
-      _["meta[0]"] = meta[0],
-      _["meta[1]"] = meta[1],
-      _["totNrOfBlocks"] = totNrOfBlocks,
-      _["startBlock"] = startBlock,
-      _["endBlock"] = endBlock,
-      _["nrOfBlocks"] = nrOfBlocks,
-      _["nrOfElements"] = (int) nrOfElements,
-      _["endElem"] = (int) endElem,
-      _["startOffset"] = startOffset,
-      _["blockSize"] = blockSize,
-      _["blockPos"] = (int) blockPos,
-      _["blockOffset[0]"] = (int) blockOffset[0],
-      _["blockOffset[1]"] = (int) blockOffset[1],
-      _["blockOffset[2]"] = (int) blockOffset[2]);
+    return List::create(_["res"] = 0);  // TODO: return timings here
   }
 
 
@@ -746,7 +694,6 @@ List fdsReadCharVec(ifstream &myfile, SEXP &strVec, unsigned long long blockPos,
   unsigned int bufLength = (nrOfBlocks + 1) * CHAR_INDEX_SIZE;  // 1 long and 2 unsigned int per block
   char *blockInfo = new char[bufLength + CHAR_INDEX_SIZE];  // add extra first element for convenience
 
-  // unsigned long long blockOffset[1 + nrOfBlocks];  // block positions, algorithm and size information
 
   if (startBlock > 0)  // include previous block offset
   {
@@ -789,32 +736,14 @@ List fdsReadCharVec(ifstream &myfile, SEXP &strVec, unsigned long long blockPos,
 
   Decompressor decompressor;  // uncompress all availble algorithms
 
-  SEXP res = ReadDataBlockCompressed(myfile, strVec, blockSize, nrOfElements, startOffset, endElem, 0, *intBufSize,
+  ReadDataBlockCompressed(myfile, strVec, blockSize, nrOfElements, startOffset, endElem, 0, *intBufSize,
     decompressor, *algoInt, *algoChar);
 
   if (startBlock == endBlock)  // subset start and end of block
   {
     delete[] blockInfo;
 
-    return List::create(
-      _["res"] = res,
-      _["vecLength"] = vecLength,
-      _["meta[0]"] = meta[0],
-      _["meta[1]"] = meta[1],
-      _["totNrOfBlocks"] = totNrOfBlocks,
-      _["startBlock"] = startBlock,
-      _["endBlock"] = endBlock,
-      _["nrOfBlocks"] = nrOfBlocks,
-      _["nrOfElements"] = (int) nrOfElements,
-      _["endElem"] = (int) endElem,
-      _["startOffset"] = startOffset,
-      _["blockSize"] = blockSize,
-      _["blockPos"] = (int) blockPos,
-      _["*intBufSize"] = *intBufSize,
-      _["*algoInt"] = *algoInt,
-      _["*algoChar"] = *algoChar,
-      _["*offset"] = *offset,
-      _["*curBlockPos"] = *curBlockPos);
+    return List::create(_["res"] = 0);  // TODO: return timings here
   }
 
   offset = curBlockPos;
@@ -852,9 +781,5 @@ List fdsReadCharVec(ifstream &myfile, SEXP &strVec, unsigned long long blockPos,
 
   delete[] blockInfo;
 
-  return List::create(
-    _["vecLength"] = vecLength,
-    _["meta[0]"] = meta[0],
-    _["meta[1]"] = meta[1],
-    _["meta[2]"] = meta[2]);
+  return List::create(_["res"] = 0);  // TODO: return timings here
 }

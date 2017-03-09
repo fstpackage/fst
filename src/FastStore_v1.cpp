@@ -40,12 +40,12 @@
 #include <R.h>
 #include <Rinternals.h>
 
-#include <lowerbound.h>
-#include <character.h>
-#include <factor.h>
-#include <integer.h>
-#include <double.h>
-#include <logical.h>
+#include <character_v1.h>
+#include <integer_v2.h>
+#include <double_v3.h>
+#include <logical_v4.h>
+#include <factor_v5.h>
+
 #include <compression.h>
 #include <compressor.h>
 
@@ -179,7 +179,7 @@ List fstMeta_v1(String fileName)
   SEXP colNames;
   PROTECT(colNames = Rf_allocVector(STRSXP, nrOfCols));
   unsigned long long offset = (nrOfCols + 1) * sizeof(unsigned long long) + (nrOfCols + keyLength + 2) * sizeof(short int);
-  fdsReadCharVec(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
+  fdsReadCharVec_v1(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
 
   // cleanup
   delete[] colTypes;
@@ -317,7 +317,7 @@ SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   SEXP colNames;
   PROTECT(colNames = Rf_allocVector(STRSXP, nrOfCols));
   unsigned long long offset = (nrOfCols + 1) * sizeof(unsigned long long) + (nrOfCols + keyLength + 2) * sizeof(short int);
-  fdsReadCharVec(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
+  fdsReadCharVec_v1(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
 
 
   // Determine column selection
@@ -449,7 +449,7 @@ SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
       case 1:
         SEXP strVec;
         PROTECT(strVec = Rf_allocVector(STRSXP, length));
-        singleColInfo = fdsReadCharVec(myfile, strVec, pos, firstRow, length, nrOfRows);
+        singleColInfo = fdsReadCharVec_v1(myfile, strVec, pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, strVec);
         UNPROTECT(1);
         break;
@@ -458,7 +458,7 @@ SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
       case 2:
         SEXP intVec;
         PROTECT(intVec = Rf_allocVector(INTSXP, length));
-        singleColInfo = fdsReadIntVec(myfile, intVec, pos, firstRow, length, nrOfRows);
+        singleColInfo = fdsReadIntVec_v2(myfile, intVec, pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, intVec);
         UNPROTECT(1);
         break;
@@ -467,7 +467,7 @@ SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
       case 3:
         SEXP realVec;
         PROTECT(realVec = Rf_allocVector(REALSXP, length));
-        singleColInfo = fdsReadRealVec(myfile, realVec, pos, firstRow, length, nrOfRows);
+        singleColInfo = fdsReadRealVec_v3(myfile, realVec, pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, realVec);
         UNPROTECT(1);
         break;
@@ -476,7 +476,7 @@ SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
       case 4:
         SEXP boolVec;
         PROTECT(boolVec = Rf_allocVector(LGLSXP, length));
-        singleColInfo = fdsReadLogicalVec(myfile, boolVec, pos, firstRow, length, nrOfRows);
+        singleColInfo = fdsReadLogicalVec_v4(myfile, boolVec, pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, boolVec);
         UNPROTECT(1);
         break;
@@ -485,7 +485,7 @@ SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
       case 5:
         SEXP facVec;
         PROTECT(facVec = Rf_allocVector(INTSXP, length));
-        singleColInfo = fdsReadFactorVec(myfile, facVec, pos, firstRow, length, nrOfRows);
+        singleColInfo = fdsReadFactorVec_v5(myfile, facVec, pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, facVec);
         UNPROTECT(2);  // level string was also generated
         break;

@@ -33,25 +33,12 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef FASTSTORE_V1_H
-#define FASTSTORE_V1_H
+#ifndef BOOLSTORE_H
+#define BOOLSTORE_H
 
-#include <Rcpp.h>
-#include <iostream>
-#include <fstream>
-#include <R.h>
-#include <Rinternals.h>
+#include <Rcpp.h>  // Rcpp header
 
-#include <compression.h>
-#include <compressor.h>
+SEXP fdsReadLogicalVec_v4(std::ifstream &myfile, SEXP &boolVec, unsigned long long blockPos, unsigned int startRow,
+  unsigned int length, unsigned int size);
 
-// External libraries
-#include "lz4.h"
-
-
-Rcpp::List fstMeta_v1(Rcpp::String fileName);
-
-SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
-
-
-#endif  // FASTSTORE_V1_H
+#endif // BOOLSTORE_H

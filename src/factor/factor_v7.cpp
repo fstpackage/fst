@@ -38,7 +38,7 @@
 #include "lowerbound.h"
 #include <compression.h>
 #include <compressor.h>
-#include <integer.h>
+#include <intStore.h>
 #include <character.h>
 
 // Standard headers
@@ -52,6 +52,8 @@
 using namespace std;
 using namespace Rcpp;
 
+#define HEADER_SIZE_FACTOR 16
+#define VERSION_NUMBER_FACTOR 1
 
 SEXP fdsWriteFactorVec(ofstream &myfile, SEXP &factVec, unsigned size, unsigned int compression)
 {
@@ -59,10 +61,12 @@ SEXP fdsWriteFactorVec(ofstream &myfile, SEXP &factVec, unsigned size, unsigned 
   unsigned long long blockPos = myfile.tellp();  // offset for factor
 
   // Vector meta data
-  char meta[12];
-  unsigned int* nrOfLevels = (unsigned int*) &meta;
-  unsigned long long* levelVecPos = (unsigned long long*) &meta[4];
-  myfile.write(meta, 12);  // number of levels
+  char meta[HEADER_SIZE_FACTOR];
+  unsigned int* versionNr = (unsigned int*) &meta;
+  unsigned int* nrOfLevels = (unsigned int*) &meta[4];
+  unsigned long long* levelVecPos = (unsigned long long*) &meta[8];
+
+  myfile.write(meta, HEADER_SIZE_FACTOR);  // number of levels
 
   SEXP levelVec = Rf_getAttrib(factVec, Rf_mkString("levels"));
   *nrOfLevels = LENGTH(levelVec);
@@ -72,10 +76,11 @@ SEXP fdsWriteFactorVec(ofstream &myfile, SEXP &factVec, unsigned size, unsigned 
   fdsWriteCharVec(myfile, levelVec, *nrOfLevels, compression);
 
   // Rewrite meta-data
+  *versionNr = VERSION_NUMBER_FACTOR;
   *levelVecPos = myfile.tellp();  // offset for level vector
 
   myfile.seekp(blockPos);
-  myfile.write(meta, 12);  // number of levels
+  myfile.write(meta, HEADER_SIZE_FACTOR);  // number of levels
   myfile.seekp(*levelVecPos);  // return to end of file
 
   // Store factor vector here
@@ -91,18 +96,10 @@ SEXP fdsWriteFactorVec(ofstream &myfile, SEXP &factVec, unsigned size, unsigned 
     {
       FixedRatioCompressor* compressor = new FixedRatioCompressor(CompAlgo::INT_TO_BYTE);  // compression level not relevant here
       res = fdsStreamUncompressed(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, compressor);
+
       delete compressor;
 
-      // Error here in output file?
-
-      return List::create(
-        _["*nrOfLevels"] = *nrOfLevels,
-        _["*levelVecPos"] = *levelVecPos,
-        _["*levelVec"] = levelVec,
-        _["compression"] = compression,
-        _["blockPos"] = blockPos,
-        _["nrOfRows"] = nrOfRows,
-        _["res"] = res);
+      return List::create(_["res"] = 0);  // TODO: return timings here
     }
 
     if (*nrOfLevels < 32768)
@@ -183,25 +180,29 @@ SEXP fdsReadFactorVec(ifstream &myfile, SEXP &intVec, unsigned long long blockPo
   myfile.seekg(blockPos);
 
   // Get vector meta data
-  char meta[12];
-  myfile.read(meta, 12);
-  unsigned int *nrOfLevels = (unsigned int*) meta;
-  unsigned long long* levelVecPos = (unsigned long long*) &meta[4];
+  char meta[HEADER_SIZE_FACTOR];
+  myfile.read(meta, HEADER_SIZE_FACTOR);
+  unsigned int* versionNr = (unsigned int*) &meta;
+
+  if (*versionNr > VERSION_NUMBER_FACTOR)
+  {
+    Rf_error("Incompatible fst file.");
+  }
+
+  unsigned int* nrOfLevels = (unsigned int*) &meta[4];
+  unsigned long long* levelVecPos = (unsigned long long*) &meta[8];
 
   // Read level strings
   SEXP strVec;
   PROTECT(strVec = Rf_allocVector(STRSXP, *nrOfLevels));
-  SEXP singleColInfo = fdsReadCharVec(myfile, strVec, blockPos + 12, 0, *nrOfLevels, *nrOfLevels);  // get level strings
+  fdsReadCharVec(myfile, strVec, blockPos + HEADER_SIZE_FACTOR, 0, *nrOfLevels, *nrOfLevels);  // get level strings
 
   // Read level values
   char* values = (char*) INTEGER(intVec);  // output vector
-  SEXP intVecInfo = fdsReadColumn(myfile, values, *levelVecPos, startRow, length, size, 4);
+  fdsReadColumn(myfile, values, *levelVecPos, startRow, length, size, 4);
 
   Rf_setAttrib(intVec, Rf_mkString("levels"), strVec);
   Rf_setAttrib(intVec, Rf_mkString("class"), Rf_mkString("factor"));
 
-  return List::create(
-    _["singleColInfo"] = singleColInfo,
-    _["intVecInfo"] = intVecInfo,
-    _["strVec"] = strVec);
+  return List::create(_["res"] = 0);  // TODO: return timings here
 }
