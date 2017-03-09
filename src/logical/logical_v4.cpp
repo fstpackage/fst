@@ -55,7 +55,7 @@ SEXP fdsReadLogicalVec_v4(ifstream &myfile, SEXP &boolVec, unsigned long long bl
   unsigned int length, unsigned int size)
 {
   char* values = (char*) LOGICAL(boolVec);  // output vector
-  return fdsReadColumn(myfile, values, blockPos, startRow, length, size, 4);
+  return fdsReadColumn_v1(myfile, values, blockPos, startRow, length, size, 4);
 }
 
 

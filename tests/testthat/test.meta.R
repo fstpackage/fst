@@ -25,7 +25,7 @@ test_that("Read meta of uncompressed file",
   expect_equal(y$NrOfRows, 10)
   expect_equal(y$Keys, NULL)
   expect_equal(y$ColumnNames, c("A", "B"))
-  expect_equal(y$ColumnTypes, c(2, 4))
+  expect_equal(y$ColumnTypes, c(8, 10))
 })
 
 
@@ -38,7 +38,7 @@ test_that("Read meta of compressed file",
   expect_equal(y$NrOfRows, 10)
   expect_equal(y$Keys, NULL)
   expect_equal(y$ColumnNames, c("A", "B"))
-  expect_equal(y$ColumnTypes, c(2, 4))
+  expect_equal(y$ColumnTypes, c(8, 10))
 })
 
 
@@ -50,5 +50,5 @@ test_that("Read meta of sorted file",
   expect_equal(y$NrOfRows, 10)
   expect_equal(y$Keys, "B")
   expect_equal(y$ColumnNames, c("A", "B"))
-  expect_equal(y$ColumnTypes, c(2, 4))
+  expect_equal(y$ColumnTypes, c(8, 10))
 })

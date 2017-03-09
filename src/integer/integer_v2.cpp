@@ -52,5 +52,5 @@ SEXP fdsReadIntVec_v2(ifstream &myfile, SEXP &intVec, unsigned long long blockPo
 {
   char* values = (char*) INTEGER(intVec);  // output vector
 
-  return fdsReadColumn(myfile, values, blockPos, startRow, length, size, 4);
+  return fdsReadColumn_v1(myfile, values, blockPos, startRow, length, size, 4);
 }

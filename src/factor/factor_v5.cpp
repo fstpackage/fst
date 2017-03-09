@@ -74,7 +74,7 @@ SEXP fdsReadFactorVec_v5(ifstream &myfile, SEXP &intVec, unsigned long long bloc
 
   // Read level values
   char* values = (char*) INTEGER(intVec);  // output vector
-  SEXP intVecInfo = fdsReadColumn(myfile, values, *levelVecPos, startRow, length, size, 4);
+  SEXP intVecInfo = fdsReadColumn_v1(myfile, values, *levelVecPos, startRow, length, size, 4);
 
   Rf_setAttrib(intVec, Rf_mkString("levels"), strVec);
   Rf_setAttrib(intVec, Rf_mkString("class"), Rf_mkString("factor"));

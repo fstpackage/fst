@@ -33,8 +33,8 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef CHARSTORE_H
-#define CHARSTORE_H
+#ifndef CHARACTER_V1_H
+#define CHARACTER_V1_H
 
 
 #include <Rcpp.h>
@@ -56,5 +56,4 @@
 List fdsReadCharVec_v1(ifstream &myfile, SEXP &strVec, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size);
 
 
-#endif  // CHARSTORE_H
-
+#endif  // CHARACTER_V1_H

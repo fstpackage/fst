@@ -33,8 +33,8 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef FACTSTORE_H
-#define FACTSTORE_H
+#ifndef FACTOR_V5_H
+#define FACTOR_V5_H
 
 
 #include <Rcpp.h>
@@ -58,4 +58,4 @@ SEXP fdsReadFactorVec_v5(ifstream &myfile, SEXP &intVec, unsigned long long bloc
   unsigned int length, unsigned int size);
 
 
-#endif  // FACTSTORE_H
+#endif  // FACTOR_V5_H

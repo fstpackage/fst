@@ -33,8 +33,8 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef FACTSTORE_H
-#define FACTSTORE_H
+#ifndef FACTOR_v7_H
+#define FACTOR_v7_H
 
 
 #include <Rcpp.h>
@@ -51,12 +51,12 @@
 #include "lz4.h"
 
 
-SEXP fdsWriteFactorVec(std::ofstream &myfile, SEXP &factVec, unsigned size, unsigned int compression);
+SEXP fdsWriteFactorVec_v7(std::ofstream &myfile, SEXP &factVec, unsigned size, unsigned int compression);
 
 
 // Parameter 'startRow' is zero based.
-SEXP fdsReadFactorVec(std::ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned int startRow,
+SEXP fdsReadFactorVec_v7(std::ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned int startRow,
   unsigned int length, unsigned int size);
 
 
-#endif  // FACTSTORE_H
+#endif  // FACTOR_v7_H

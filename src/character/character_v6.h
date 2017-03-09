@@ -33,8 +33,8 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef CHARSTORE_H
-#define CHARSTORE_H
+#ifndef CHARACTER_V6_H
+#define CHARACTER_V6_H
 
 
 #include <Rcpp.h>
@@ -57,5 +57,5 @@ SEXP fdsWriteCharVec_v6(std::ofstream &myfile, SEXP &strVec, unsigned int vecLen
 Rcpp::List fdsReadCharVec_v6(std::ifstream &myfile, SEXP &strVec, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size);
 
 
-#endif  // CHARSTORE_H
+#endif  // CHARACTER_V6_H
 

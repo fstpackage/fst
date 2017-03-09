@@ -231,17 +231,17 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
         }
 
         colTypes[colNr] = 8;
-        colResult = fdsWriteIntVec_8(myfile, colVec, nrOfRows, compress);
+        colResult = fdsWriteIntVec_v8(myfile, colVec, nrOfRows, compress);
         break;
 
       case REALSXP:
         colTypes[colNr] = 9;
-        colResult = fdsWriteRealVec_9(myfile, colVec, nrOfRows, compress);
+        colResult = fdsWriteRealVec_v9(myfile, colVec, nrOfRows, compress);
         break;
 
       case LGLSXP:
         colTypes[colNr] = 10;
-        colResult = fdsWriteLogicalVec_10(myfile, colVec, nrOfRows, compress);
+        colResult = fdsWriteLogicalVec_v10(myfile, colVec, nrOfRows, compress);
         break;
 
       default:
@@ -372,7 +372,7 @@ List fstMeta(String fileName)
   SEXP colNames;
   PROTECT(colNames = Rf_allocVector(STRSXP, nrOfCols));
   unsigned long long offset = dataMetaSize + TABLE_META_SIZE + nrOfCols * 8;
-  fdsReadCharVec(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
+  fdsReadCharVec_v6(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
 
   // cleanup
   delete[] blockPos;
@@ -495,7 +495,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   SEXP colNames;
   PROTECT(colNames = Rf_allocVector(STRSXP, nrOfCols));
   unsigned long long offset = dataMetaSize + TABLE_META_SIZE + nrOfCols * 8;
-  fdsReadCharVec(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
+  fdsReadCharVec_v6(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
 
 
   // Read table attributes here !!!!
@@ -624,46 +624,46 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
     switch (colTypes[colNr])
     {
     // Character vector
-      case 1:
+      case 6:
         SEXP strVec;
         PROTECT(strVec = Rf_allocVector(STRSXP, length));
-        singleColInfo = fdsReadCharVec(myfile, strVec, pos, firstRow, length, nrOfRows);
+        singleColInfo = fdsReadCharVec_v6(myfile, strVec, pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, strVec);
         UNPROTECT(1);
         break;
 
       // Integer vector
-      case 2:
+      case 8:
         SEXP intVec;
         PROTECT(intVec = Rf_allocVector(INTSXP, length));
-        singleColInfo = fdsReadIntVec(myfile, intVec, pos, firstRow, length, nrOfRows);
+        singleColInfo = fdsReadIntVec_v8(myfile, intVec, pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, intVec);
         UNPROTECT(1);
         break;
 
       // Real vector
-      case 3:
+      case 9:
         SEXP realVec;
         PROTECT(realVec = Rf_allocVector(REALSXP, length));
-        singleColInfo = fdsReadRealVec(myfile, realVec, pos, firstRow, length, nrOfRows);
+        singleColInfo = fdsReadRealVec_v9(myfile, realVec, pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, realVec);
         UNPROTECT(1);
         break;
 
       // Logical vector
-      case 4:
+      case 10:
         SEXP boolVec;
         PROTECT(boolVec = Rf_allocVector(LGLSXP, length));
-        singleColInfo = fdsReadLogicalVec(myfile, boolVec, pos, firstRow, length, nrOfRows);
+        singleColInfo = fdsReadLogicalVec_v10(myfile, boolVec, pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, boolVec);
         UNPROTECT(1);
         break;
 
       // Factor vector
-      case 5:
+      case 7:
         SEXP facVec;
         PROTECT(facVec = Rf_allocVector(INTSXP, length));
-        singleColInfo = fdsReadFactorVec(myfile, facVec, pos, firstRow, length, nrOfRows);
+        singleColInfo = fdsReadFactorVec_v7(myfile, facVec, pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, facVec);
         UNPROTECT(2);  // level string was also generated
         break;

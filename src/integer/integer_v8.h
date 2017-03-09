@@ -33,15 +33,15 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef INTSTORE_H
-#define INTSTORE_H
+#ifndef INTEGER_V8_H
+#define INTEGER_V8_H
 
 #include <Rcpp.h>  // Rcpp header
 
 #define BLOCKSIZE_INT 4096  // number of integers in default compression block
 
-SEXP fdsWriteIntVec(std::ofstream &myfile, SEXP &intVec, unsigned size, unsigned int compression);
+SEXP fdsWriteIntVec_v8(std::ofstream &myfile, SEXP &intVec, unsigned size, unsigned int compression);
 
-SEXP fdsReadIntVec(std::ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
+SEXP fdsReadIntVec_v8(std::ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
 
-#endif // INTSTORE_H
+#endif // INTEGER_V8_H

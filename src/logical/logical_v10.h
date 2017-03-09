@@ -33,17 +33,17 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef BOOLSTORE_H
-#define BOOLSTORE_H
+#ifndef LOGICAL_v10_H
+#define LOGICAL_v10_H
 
 #include <Rcpp.h>  // Rcpp header
 
 // Logical vectors are always compressed to fill all available bits (factor 16 compression).
 // On top of that, we can compress the resulting bytes with a custom compressor.
-SEXP fdsWriteLogicalVec(std::ofstream &myfile, SEXP &boolVec, unsigned nrOfLogicals, int compression);
+SEXP fdsWriteLogicalVec_v10(std::ofstream &myfile, SEXP &boolVec, unsigned nrOfLogicals, int compression);
 
 
-SEXP fdsReadLogicalVec(std::ifstream &myfile, SEXP &boolVec, unsigned long long blockPos, unsigned int startRow,
+SEXP fdsReadLogicalVec_v10(std::ifstream &myfile, SEXP &boolVec, unsigned long long blockPos, unsigned int startRow,
   unsigned int length, unsigned int size);
 
-#endif // BOOLSTORE_H
+#endif // LOGICAL_v10_H

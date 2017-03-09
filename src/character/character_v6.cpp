@@ -32,7 +32,7 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#include "charStore.h"
+#include "character_v6.h"
 
 #include <Rcpp.h>
 #include <iostream>
@@ -58,7 +58,7 @@ using namespace Rcpp;
 
 
 
-inline unsigned int storeCharBlock(ofstream &myfile, unsigned int block, SEXP &strVec, unsigned int* strSizes, unsigned int endCount)
+inline unsigned int storeCharBlock_v6(ofstream &myfile, unsigned int block, SEXP &strVec, unsigned int* strSizes, unsigned int endCount)
 {
   // Determine string lengths
   unsigned int startCount = block * BLOCKSIZE_CHAR;
@@ -137,7 +137,7 @@ inline unsigned int storeCharBlock(ofstream &myfile, unsigned int block, SEXP &s
 }
 
 
-inline unsigned int storeCharBlockCompressed(ofstream &myfile, unsigned int block, SEXP &strVec, unsigned int* strSizes,
+inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, unsigned int block, SEXP &strVec, unsigned int* strSizes,
   unsigned int endCount, StreamCompressor* intCompressor, StreamCompressor* charCompressor, unsigned short int &algoInt,
   unsigned short int &algoChar, int &intBufSize)
 {
@@ -270,12 +270,12 @@ SEXP fdsWriteCharVec_v6(ofstream &myfile, SEXP &strVec, unsigned int vecLength, 
 
     for (unsigned int block = 0; block < nrOfBlocks; ++block)
     {
-      unsigned int totSize = storeCharBlock(myfile, block, strVec, strSizes, (block + 1) * BLOCKSIZE_CHAR);
+      unsigned int totSize = storeCharBlock_v6(myfile, block, strVec, strSizes, (block + 1) * BLOCKSIZE_CHAR);
       fullSize += totSize;
       blockPos[block] = fullSize;
     }
 
-    unsigned int totSize = storeCharBlock(myfile, nrOfBlocks, strVec, strSizes, vecLength);
+    unsigned int totSize = storeCharBlock_v6(myfile, nrOfBlocks, strVec, strSizes, vecLength);
     fullSize += totSize;
     blockPos[nrOfBlocks] = fullSize;
 
@@ -344,7 +344,7 @@ SEXP fdsWriteCharVec_v6(ofstream &myfile, SEXP &strVec, unsigned int vecLength, 
     unsigned short int* algoChar = (unsigned short int*) (blockP + 10);
     int* intBufSize = (int*) (blockP + 12);
 
-    unsigned int totSize = storeCharBlockCompressed(myfile, block, strVec, strSizes, (block + 1) * BLOCKSIZE_CHAR,
+    unsigned int totSize = storeCharBlockCompressed_v6(myfile, block, strVec, strSizes, (block + 1) * BLOCKSIZE_CHAR,
       streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize);
 
     fullSize += totSize;
@@ -357,7 +357,7 @@ SEXP fdsWriteCharVec_v6(ofstream &myfile, SEXP &strVec, unsigned int vecLength, 
   unsigned short int* algoChar = (unsigned short int*) (blockP + 10);
   int* intBufSize = (int*) (blockP + 12);
 
-  unsigned int totSize = storeCharBlockCompressed(myfile, nrOfBlocks, strVec, strSizes, vecLength,
+  unsigned int totSize = storeCharBlockCompressed_v6(myfile, nrOfBlocks, strVec, strSizes, vecLength,
       streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize);
   fullSize += totSize;
   *blockPos = fullSize;
@@ -379,7 +379,7 @@ SEXP fdsWriteCharVec_v6(ofstream &myfile, SEXP &strVec, unsigned int vecLength, 
 }
 
 
-inline void ReadDataBlockInfo(SEXP &strVec, unsigned long long blockSize, unsigned int nrOfElements,
+inline void ReadDataBlockInfo_v6(SEXP &strVec, unsigned long long blockSize, unsigned int nrOfElements,
   unsigned int startElem, unsigned int endElem, unsigned int vecOffset, unsigned int* sizeMeta, char* buf, unsigned int nrOfNAInts)
 {
   unsigned int* bitsNA = &sizeMeta[nrOfElements];
@@ -526,7 +526,7 @@ inline void ReadDataBlockInfo(SEXP &strVec, unsigned long long blockSize, unsign
 }
 
 
-inline void ReadDataBlock(ifstream &myfile, SEXP &strVec, unsigned long long blockSize, unsigned int nrOfElements,
+inline void ReadDataBlock_v6(ifstream &myfile, SEXP &strVec, unsigned long long blockSize, unsigned int nrOfElements,
   unsigned int startElem, unsigned int endElem, unsigned int vecOffset)
 {
   unsigned int nrOfNAInts = 1 + nrOfElements / 32;  // last bit is NA flag
@@ -539,14 +539,14 @@ inline void ReadDataBlock(ifstream &myfile, SEXP &strVec, unsigned long long blo
   char* buf = new char[charDataSize];
   myfile.read(buf, charDataSize);  // read string lengths
 
-  ReadDataBlockInfo(strVec, blockSize, nrOfElements, startElem, endElem, vecOffset, sizeMeta, buf, nrOfNAInts);
+  ReadDataBlockInfo_v6(strVec, blockSize, nrOfElements, startElem, endElem, vecOffset, sizeMeta, buf, nrOfNAInts);
 
   delete[] sizeMeta;
   delete[] buf;
 }
 
 
-inline SEXP ReadDataBlockCompressed(ifstream &myfile, SEXP &strVec, unsigned long long blockSize, unsigned int nrOfElements,
+inline SEXP ReadDataBlockCompressed_v6(ifstream &myfile, SEXP &strVec, unsigned long long blockSize, unsigned int nrOfElements,
   unsigned int startElem, unsigned int endElem, unsigned int vecOffset,
   unsigned int intBlockSize, Decompressor &decompressor, unsigned short int &algoInt, unsigned short int &algoChar)
 {
@@ -591,7 +591,7 @@ inline SEXP ReadDataBlockCompressed(ifstream &myfile, SEXP &strVec, unsigned lon
     delete[] bufCompressed;
   }
 
-  ReadDataBlockInfo(strVec, blockSize, nrOfElements, startElem, endElem, vecOffset, sizeMeta, buf, nrOfNAInts);
+  ReadDataBlockInfo_v6(strVec, blockSize, nrOfElements, startElem, endElem, vecOffset, sizeMeta, buf, nrOfNAInts);
 
   delete[] buf;  // character vector buffer
   delete[] sizeMeta;
@@ -654,7 +654,7 @@ List fdsReadCharVec_v6(ifstream &myfile, SEXP &strVec, unsigned long long blockP
     // Read first block with offset
     unsigned long long blockSize = blockOffset[1] - offset;  // size of data block
 
-    ReadDataBlock(myfile, strVec, blockSize, nrOfElements, startOffset, endElem, 0);
+    ReadDataBlock_v6(myfile, strVec, blockSize, nrOfElements, startOffset, endElem, 0);
 
     if (startBlock == endBlock)  // subset start and end of block
     {
@@ -675,13 +675,13 @@ List fdsReadCharVec_v6(ifstream &myfile, SEXP &strVec, unsigned long long blockP
     for (unsigned int block = 1; block < nrOfBlocks; ++block)
     {
       unsigned long long newPos = blockOffset[block + 1];
-      ReadDataBlock(myfile, strVec, newPos - offset, blockSizeChar, 0, blockSizeChar - 1, vecPos);
+      ReadDataBlock_v6(myfile, strVec, newPos - offset, blockSizeChar, 0, blockSizeChar - 1, vecPos);
       vecPos += blockSizeChar;
       offset = newPos;
     }
 
     unsigned long long newPos = blockOffset[nrOfBlocks + 1];
-    ReadDataBlock(myfile, strVec, newPos - offset, nrOfElements, 0, endOffset, vecPos);
+    ReadDataBlock_v6(myfile, strVec, newPos - offset, nrOfElements, 0, endOffset, vecPos);
 
     delete[] blockOffset;
 
@@ -736,7 +736,7 @@ List fdsReadCharVec_v6(ifstream &myfile, SEXP &strVec, unsigned long long blockP
 
   Decompressor decompressor;  // uncompress all availble algorithms
 
-  ReadDataBlockCompressed(myfile, strVec, blockSize, nrOfElements, startOffset, endElem, 0, *intBufSize,
+  ReadDataBlockCompressed_v6(myfile, strVec, blockSize, nrOfElements, startOffset, endElem, 0, *intBufSize,
     decompressor, *algoInt, *algoChar);
 
   if (startBlock == endBlock)  // subset start and end of block
@@ -764,7 +764,7 @@ List fdsReadCharVec_v6(ifstream &myfile, SEXP &strVec, unsigned long long blockP
     unsigned short int* algoChar = (unsigned short int*) (blockP + 10);
     int* intBufSize = (int*) (blockP + 12);
 
-    ReadDataBlockCompressed(myfile, strVec, *curBlockPos - *offset, blockSizeChar, 0, blockSizeChar - 1, vecPos, *intBufSize,
+    ReadDataBlockCompressed_v6(myfile, strVec, *curBlockPos - *offset, blockSizeChar, 0, blockSizeChar - 1, vecPos, *intBufSize,
       decompressor, *algoInt, *algoChar);
     vecPos += blockSizeChar;
     offset = curBlockPos;
@@ -776,7 +776,7 @@ List fdsReadCharVec_v6(ifstream &myfile, SEXP &strVec, unsigned long long blockP
   algoChar = (unsigned short int*) (blockP + 10);
   intBufSize = (int*) (blockP + 12);
 
-  ReadDataBlockCompressed(myfile, strVec, *curBlockPos - *offset, nrOfElements, 0, endOffset, vecPos, *intBufSize,
+  ReadDataBlockCompressed_v6(myfile, strVec, *curBlockPos - *offset, nrOfElements, 0, endOffset, vecPos, *intBufSize,
       decompressor, *algoInt, *algoChar);
 
   delete[] blockInfo;

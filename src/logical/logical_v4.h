@@ -33,12 +33,12 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef BOOLSTORE_H
-#define BOOLSTORE_H
+#ifndef LOGICAL_V4_H
+#define LOGICAL_V4_H
 
 #include <Rcpp.h>  // Rcpp header
 
 SEXP fdsReadLogicalVec_v4(std::ifstream &myfile, SEXP &boolVec, unsigned long long blockPos, unsigned int startRow,
   unsigned int length, unsigned int size);
 
-#endif // BOOLSTORE_H
+#endif // LOGICAL_V4_H

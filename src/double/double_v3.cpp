@@ -50,5 +50,5 @@ SEXP fdsReadRealVec_v3(ifstream &myfile, SEXP &realVec, unsigned long long block
 {
   char* values = (char*) REAL(realVec);  // output vector
 
-  return fdsReadColumn(myfile, values, blockPos, startRow, length, size, 8);
+  return fdsReadColumn_v1(myfile, values, blockPos, startRow, length, size, 8);
 }

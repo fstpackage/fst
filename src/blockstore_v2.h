@@ -42,16 +42,16 @@
 #include "compressor.h"
 
 // Method for writing column data of any type to a ofstream.
-SEXP fdsStreamUncompressed(std::ofstream &myfile, char* vec, unsigned int vecLength, int elementSize, int blockSizeElems,
+SEXP fdsStreamUncompressed_v2(std::ofstream &myfile, char* vec, unsigned int vecLength, int elementSize, int blockSizeElems,
   FixedRatioCompressor* fixedRatioCompressor);
 
 
 // Method for writing column data of any type to a stream.
-SEXP fdsStreamcompressed(std::ofstream &myfile, char* colVec, unsigned int nrOfRows, int elementSize,
+SEXP fdsStreamcompressed_v2(std::ofstream &myfile, char* colVec, unsigned int nrOfRows, int elementSize,
   StreamCompressor* streamCompressor, int blockSizeElems);
 
 
-SEXP fdsReadColumn(std::ifstream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size, int elementSize);
+SEXP fdsReadColumn_v2(std::ifstream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size, int elementSize);
 
 
 #endif // BLOCKSTORE_H

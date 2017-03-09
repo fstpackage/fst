@@ -32,7 +32,8 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#include "intStore.h"
+#include "integer_v8.h"
+#include <blockStore_v2.h>
 
 // System libraries
 #include <ctime>
@@ -42,13 +43,12 @@
 #include "lz4.h"
 #include <compression.h>
 #include <compressor.h>
-#include <blockStore.h>
 
 using namespace std;
 using namespace Rcpp;
 
 
-SEXP fdsWriteIntVec(ofstream &myfile, SEXP &intVec, unsigned size, unsigned int compression)
+SEXP fdsWriteIntVec_v8(ofstream &myfile, SEXP &intVec, unsigned size, unsigned int compression)
 {
   int* intP = INTEGER(intVec);  // data pointer
   unsigned int nrOfRows = LENGTH(intVec);  // vector length
@@ -57,7 +57,7 @@ SEXP fdsWriteIntVec(ofstream &myfile, SEXP &intVec, unsigned size, unsigned int 
 
   if (compression == 0)
   {
-    return fdsStreamUncompressed(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, NULL);
+    return fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, NULL);
   }
 
   SEXP res;  // timing information
@@ -69,7 +69,7 @@ SEXP fdsWriteIntVec(ofstream &myfile, SEXP &intVec, unsigned size, unsigned int 
     StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, 2 * compression);
 
     streamCompressor->CompressBufferSize(blockSize);
-    res = fdsStreamcompressed(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
+    res = fdsStreamcompressed_v2(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
     delete compress1;
     delete streamCompressor;
     return res;
@@ -79,7 +79,7 @@ SEXP fdsWriteIntVec(ofstream &myfile, SEXP &intVec, unsigned size, unsigned int 
   Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD_SHUF4, 0);
   StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
   streamCompressor->CompressBufferSize(blockSize);
-  res = fdsStreamcompressed(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
+  res = fdsStreamcompressed_v2(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
   delete compress1;
   delete compress2;
   delete streamCompressor;
@@ -89,9 +89,9 @@ SEXP fdsWriteIntVec(ofstream &myfile, SEXP &intVec, unsigned size, unsigned int 
 
 
 // SEXP fdsReadIntVec(ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size, unsigned int attrBlockSize)
-SEXP fdsReadIntVec(ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size)
+SEXP fdsReadIntVec_v8(ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size)
 {
   char* values = (char*) INTEGER(intVec);  // output vector
 
-  return fdsReadColumn(myfile, values, blockPos, startRow, length, size, 4);
+  return fdsReadColumn_v2(myfile, values, blockPos, startRow, length, size, 4);
 }

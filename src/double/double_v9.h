@@ -33,8 +33,8 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef DOUBLESTORE_H
-#define DOUBLESTORE_H
+#ifndef DOUBLE_v9_H
+#define DOUBLE_v9_H
 
 // System libraries
 #include <ctime>
@@ -46,8 +46,8 @@
 #include <compressor.h>
 
 
-SEXP fdsWriteRealVec(std::ofstream &myfile, SEXP &realVec, unsigned size, unsigned int compression);
+SEXP fdsWriteRealVec_v9(std::ofstream &myfile, SEXP &realVec, unsigned size, unsigned int compression);
 
-SEXP fdsReadRealVec(std::ifstream &myfile, SEXP &realVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
+SEXP fdsReadRealVec_v9(std::ifstream &myfile, SEXP &realVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
 
-#endif // DOUBLESTORE_H
+#endif // DOUBLE_v9_H

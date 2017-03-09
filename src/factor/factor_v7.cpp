@@ -33,13 +33,13 @@
 */
 
 // Framework headers
-#include "factor.h"
-#include "blockStore.h"
-#include "lowerbound.h"
+#include "factor_v7.h"
+#include "blockstore_v2.h"
+#include <integer_v8.h>
+#include <character_v6.h>
+
 #include <compression.h>
 #include <compressor.h>
-#include <intStore.h>
-#include <character.h>
 
 // Standard headers
 #include <iostream>
@@ -55,7 +55,7 @@ using namespace Rcpp;
 #define HEADER_SIZE_FACTOR 16
 #define VERSION_NUMBER_FACTOR 1
 
-SEXP fdsWriteFactorVec(ofstream &myfile, SEXP &factVec, unsigned size, unsigned int compression)
+SEXP fdsWriteFactorVec_v7(ofstream &myfile, SEXP &factVec, unsigned size, unsigned int compression)
 {
   SEXP res;  // timing information
   unsigned long long blockPos = myfile.tellp();  // offset for factor
@@ -73,7 +73,7 @@ SEXP fdsWriteFactorVec(ofstream &myfile, SEXP &factVec, unsigned size, unsigned 
 
   // Store levels here
 
-  fdsWriteCharVec(myfile, levelVec, *nrOfLevels, compression);
+  fdsWriteCharVec_v6(myfile, levelVec, *nrOfLevels, compression);
 
   // Rewrite meta-data
   *versionNr = VERSION_NUMBER_FACTOR;
@@ -95,7 +95,7 @@ SEXP fdsWriteFactorVec(ofstream &myfile, SEXP &factVec, unsigned size, unsigned 
     if (*nrOfLevels < 128)
     {
       FixedRatioCompressor* compressor = new FixedRatioCompressor(CompAlgo::INT_TO_BYTE);  // compression level not relevant here
-      res = fdsStreamUncompressed(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, compressor);
+      res = fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, compressor);
 
       delete compressor;
 
@@ -105,13 +105,13 @@ SEXP fdsWriteFactorVec(ofstream &myfile, SEXP &factVec, unsigned size, unsigned 
     if (*nrOfLevels < 32768)
     {
       FixedRatioCompressor* compressor = new FixedRatioCompressor(CompAlgo::INT_TO_SHORT);  // compression level not relevant here
-      res = fdsStreamUncompressed(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, compressor);
+      res = fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, compressor);
       delete compressor;
 
       return res;
     }
 
-    return fdsStreamUncompressed(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, NULL);
+    return fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, NULL);
   }
 
   int blockSize = 4 * BLOCKSIZE_INT;  // block size in bytes
@@ -137,7 +137,7 @@ SEXP fdsWriteFactorVec(ofstream &myfile, SEXP &factVec, unsigned size, unsigned 
 
     streamCompressor->CompressBufferSize(blockSize);
 
-    res = fdsStreamcompressed(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
+    res = fdsStreamcompressed_v2(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
     delete defaultCompress;
     delete compress2;
     delete streamCompressor;
@@ -152,7 +152,7 @@ SEXP fdsWriteFactorVec(ofstream &myfile, SEXP &factVec, unsigned size, unsigned 
     StreamCompressor* streamCompressor = new StreamCompositeCompressor(defaultCompress, compress2, compression);
     streamCompressor->CompressBufferSize(blockSize);
 
-    res = fdsStreamcompressed(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
+    res = fdsStreamcompressed_v2(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
     delete defaultCompress;
     delete compress2;
     delete streamCompressor;
@@ -165,7 +165,7 @@ SEXP fdsWriteFactorVec(ofstream &myfile, SEXP &factVec, unsigned size, unsigned 
   Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4_SHUF4, 0);
   StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, compression);
   streamCompressor->CompressBufferSize(blockSize);
-  res = fdsStreamcompressed(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
+  res = fdsStreamcompressed_v2(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
   delete compress1;
   delete streamCompressor;
   return res;
@@ -173,7 +173,7 @@ SEXP fdsWriteFactorVec(ofstream &myfile, SEXP &factVec, unsigned size, unsigned 
 
 
 // Parameter 'startRow' is zero based.
-SEXP fdsReadFactorVec(ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned int startRow,
+SEXP fdsReadFactorVec_v7(ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned int startRow,
   unsigned int length, unsigned int size)
 {
   // Jump to factor level
@@ -195,11 +195,11 @@ SEXP fdsReadFactorVec(ifstream &myfile, SEXP &intVec, unsigned long long blockPo
   // Read level strings
   SEXP strVec;
   PROTECT(strVec = Rf_allocVector(STRSXP, *nrOfLevels));
-  fdsReadCharVec(myfile, strVec, blockPos + HEADER_SIZE_FACTOR, 0, *nrOfLevels, *nrOfLevels);  // get level strings
+  fdsReadCharVec_v6(myfile, strVec, blockPos + HEADER_SIZE_FACTOR, 0, *nrOfLevels, *nrOfLevels);  // get level strings
 
   // Read level values
   char* values = (char*) INTEGER(intVec);  // output vector
-  fdsReadColumn(myfile, values, *levelVecPos, startRow, length, size, 4);
+  fdsReadColumn_v2(myfile, values, *levelVecPos, startRow, length, size, 4);
 
   Rf_setAttrib(intVec, Rf_mkString("levels"), strVec);
   Rf_setAttrib(intVec, Rf_mkString("class"), Rf_mkString("factor"));

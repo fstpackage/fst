@@ -33,8 +33,8 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef DOUBLESTORE_H
-#define DOUBLESTORE_H
+#ifndef DOUBLE_V3_H
+#define DOUBLE_V3_H
 
 // System libraries
 #include <ctime>
@@ -48,4 +48,4 @@
 
 SEXP fdsReadRealVec_v3(ifstream &myfile, SEXP &realVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
 
-#endif // DOUBLESTORE_H
+#endif // DOUBLE_V3_H

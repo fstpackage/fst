@@ -33,8 +33,8 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef INTSTORE_H
-#define INTSTORE_H
+#ifndef INTEGER_V2_H
+#define INTEGER_V2_H
 
 #include <Rcpp.h>  // Rcpp header
 
@@ -42,4 +42,4 @@
 
 SEXP fdsReadIntVec_v2(std::ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
 
-#endif // INTSTORE_H
+#endif // INTEGER_V2_H

@@ -32,7 +32,7 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#include <character.h>
+#include <character_v1.h>
 
 #include <Rcpp.h>
 #include <iostream>
