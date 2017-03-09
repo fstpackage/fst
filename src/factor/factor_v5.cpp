@@ -37,7 +37,7 @@
 #include <integer_v2.h>
 #include "factor_v5.h"
 
-#include "blockStore_v1.h"
+#include "blockstore_v1.h"
 #include "lowerbound.h"
 #include <compression.h>
 #include <compressor.h>

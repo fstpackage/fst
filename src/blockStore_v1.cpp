@@ -32,7 +32,7 @@ You can contact the author at :
 - fst source repository : https://github.com/fstPackage/fst
 */
 
-#include "blockStore_v1.h"
+#include "blockstore_v1.h"
 
 // System libraries
 #include <ctime>
