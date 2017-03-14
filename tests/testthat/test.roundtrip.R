@@ -3,6 +3,9 @@ require(testthat)
 context("roundtrip-vector")
 
 
+source("helper.fstwrite.R")
+
+
 roundtrip_vector <- function(x)
 {
   df <- data.frame(x = x, stringsAsFactors = FALSE)
@@ -63,7 +66,7 @@ test_that("can have NA on end of string", {
 # test_that("always coerces to UTF-8", {
 #   x <- iconv("é", to = "latin1")
 #   y <- roundtrip_vector(x)
-# 
+#
 #   expect_identical(x, y) # string comparison always re-encodes first
 # })
 

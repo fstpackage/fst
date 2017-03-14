@@ -2,6 +2,8 @@
 require(testthat)
 context("factor column")
 
+source("helper.fstwrite.R")
+
 
 # Clean testdata directory
 if (!file.exists("FactorStore"))
@@ -31,16 +33,16 @@ dataTable <- data.frame(Xint=1:nrOfRows, Ylog=sample(c(TRUE, FALSE, NA), nrOfRow
 # compress = 0L
 # to = totLength = nrOfRows
 # selColumns = NULL
-# 
+#
 # dt <- dataTable[1:totLength, col, drop = FALSE]
 # fstwrite(dt, "FactorStore/data1.fst", compress)  # use compression
-# 
+#
 # fstversion1::write.fst(dt, "FactorStore/data1.fst", compress)  # use compression
-# 
+#
 # fstversion1::fstread("FactorStore/data1.fst")
 # fst::fstread("FactorStore/data1.fst")
-# 
-# 
+#
+#
 # fst:::fstMeta("FactorStore/data1.fst")
 # fstread("FactorStore/data1.fst")
 
@@ -71,7 +73,7 @@ TestWriteRead <- function(col, from = 1L, to = nrOfRows, selColumns = NULL, comp
   diffTable <- subDT
   diffTable$Row <- 1:nrow(diffTable)
   diffTable$Other <- data[, 1]
-  
+
   message <- paste(
     "args: col:", col, "| from:", from, "| to:", to, "| setColumns:", selColumns,
     "| compress:", compress, "| totLength", totLength, " cols subDT:", ncol(subDT), ", rows subDT:", nrow(subDT),

@@ -2,6 +2,8 @@
 require(testthat)
 context("factor column")
 
+source("helper.fstwrite.R")
+
 
 # Clean testdata directory
 if (!file.exists("FactorStore"))

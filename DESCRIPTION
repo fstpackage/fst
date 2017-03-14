@@ -8,7 +8,7 @@ Maintainer: Mark Klik <markklik@gmail.com>
 Description: Read and write data frames at high speed. Compress your data with fast and efficient type-optimized algorithms that allow for random access of stored data frames (columns and rows).
 LazyData: true
 Depends: R (>= 3.0.0)
-Imports: data.table, Rcpp
+Imports: data.table, Rcpp, fstversion1
 LinkingTo: Rcpp
 SystemRequirements: little-endian platform
 RoxygenNote: 6.0.1

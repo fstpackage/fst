@@ -4,6 +4,9 @@ require(data.table)
 context("metadata")
 
 
+source("helper.fstwrite.R")
+
+
 # Clean testdata directory
 if (!file.exists("testdata")) {
   dir.create("testdata")

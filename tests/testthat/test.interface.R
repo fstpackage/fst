@@ -4,6 +4,9 @@ require(data.table)
 context("package interface")
 
 
+source("helper.fstwrite.R")
+
+
 # Clean testdata directory
 if (!file.exists("testdata")) {
   dir.create("testdata")

@@ -87,14 +87,14 @@ inline int FindKey(StringVector colNameList, String item)
 //  4                      | int                | nrOfCols
 //  4                      | int                | keyLength
 //  4                      | unsigned int       | FST_VERSION
-//  4                      | unsigned int       | nrOfChunksReserved
+//  4                      | unsigned int       | nrOfChunksPerIndexRow
 //
 //  8                      | unsigned long long | FST_FILE_ID
-//  8 * nrOfChunksReserved | unsigned long long | chunkPos
-//  4 * nrOfChunksReserved | unsigned int       | chunkRows
-//  4                      | unsigned int       | nrOfChunks
+//  8 * 8 (index rows)     | unsigned long long | chunkPos
+//  8 * 8 (index rows)     | unsigned long long | chunkRows
 //
-//  4 * keyLength          | unsigned int       | keyColPos
+//  4                      | unsigned int       | nrOfChunks
+//  4 * keyLength          | int                | keyColPos
 //  2 * nrOfCols           | unsigned short int | colTypes
 //
 //  Table columnar position data
@@ -134,19 +134,22 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
 
 
   // Table meta information
-  unsigned long long metaDataSize        = 40 + 4 * keyLength + 2 * nrOfCols;
+  unsigned long long metaDataSize        = 156 + 4 * keyLength + 2 * nrOfCols;  // see index above
   char* metaDataBlock                    = new char[metaDataSize];
+
   int* p_nrOfCols                        = (int*) metaDataBlock;
   int* p_keyLength                       = (int*) &metaDataBlock[4];
   unsigned int* p_version                = (unsigned int*) &metaDataBlock[8];
-  unsigned int* p_nrOfChunksReserved     = (unsigned int*) &metaDataBlock[12];
+  unsigned int* p_nrOfChunksPerIndexRow  = (unsigned int*) &metaDataBlock[12];
   unsigned long long* fstFileID          = (unsigned long long*) &metaDataBlock[16];
 
+  // chunk index
   unsigned long long* chunkPos           = (unsigned long long*) &metaDataBlock[24];
-  int* chunkRows                         = (int*) &metaDataBlock[32];
-  unsigned int* nrOfChunks               = (unsigned int*) &metaDataBlock[36];
-  int*  keyColPos                        = (int*) &metaDataBlock[40];
-  unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[40 + 4 * keyLength];
+  unsigned long long* chunkRows          = (unsigned long long*) &metaDataBlock[88];
+
+  unsigned int* p_nrOfChunks             = (unsigned int*) &metaDataBlock[152];
+  int*  keyColPos                        = (int*) &metaDataBlock[156];
+  unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[156 + 4 * keyLength];
 
 
   // Find key column index numbers, if any
@@ -160,28 +163,25 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
     }
   }
 
-  *p_nrOfCols           = nrOfCols;
-  *p_keyLength          = keyLength;
-  *p_version            = FST_VERSION;
-  *p_nrOfChunksReserved = 1;
-  *fstFileID            = FST_FILE_ID;
-  *chunkPos             = 0;  // not used at the moment, set to new chunk after an append
-  *nrOfChunks           = 1;  // set to 0 if all reserved slots are used
+  *p_nrOfCols              = nrOfCols;
+  *p_keyLength             = keyLength;
+  *p_version               = FST_VERSION;
+  *p_nrOfChunksPerIndexRow = 1;
+  *fstFileID               = FST_FILE_ID;
+  *p_nrOfChunks            = 1;  // set to 0 if all reserved slots are used
 
 
-  // Row and column meta data
-  unsigned long long *positionData = new unsigned long long[nrOfCols];  // column position index
-
+  // data.frame code here for stability!
   SEXP firstCol = VECTOR_ELT(table, 0);
   int nrOfRows = LENGTH(firstCol);
-  *chunkRows = nrOfRows;
+  *chunkRows = (unsigned long long) nrOfRows;
 
   if (nrOfRows == 0)
   {
     delete[] metaDataBlock;
-    delete[] positionData;
     ::Rf_error("The dataset contains no data.");
   }
+
 
   // Create file, set fast local buffer and open
   ofstream myfile;
@@ -192,17 +192,29 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
   if (myfile.fail())
   {
     delete[] metaDataBlock;
-    delete[] positionData;
     myfile.close();
     ::Rf_error("There was an error creating the file. Please check for a correct filename.");
   }
 
+
   // Write table meta data
   myfile.write((char*)(metaDataBlock), metaDataSize);  // table meta data
-  myfile.write((char*)(positionData), 8 * nrOfCols);   // file positions of column data
-  fdsWriteCharVec_v6(myfile, colNames, nrOfCols, 0);      // column names
+  fdsWriteCharVec_v6(myfile, colNames, nrOfCols, 0);   // column names
 
-    // Write table attributes here !!!!!!
+
+  // TODO: Write table attributes here
+
+
+  // TODO: Write column attributes here
+
+
+  // Start writing chunk here
+
+
+  // Row and column meta data
+  unsigned long long *positionData = new unsigned long long[nrOfCols];  // column position index
+  myfile.write((char*)(positionData), 8 * nrOfCols);   // file positions of column data
+
 
   SEXP colResult = NULL;
 
@@ -253,9 +265,14 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
   }
 
 
-  myfile.seekp(40 + 4 * keyLength);
-  myfile.write((char*)(colTypes), 2 * nrOfCols);
-  myfile.write((char*)(positionData), sizeof(unsigned long long) * (nrOfCols));
+  // update chunk position data
+  *chunkPos = positionData[0] - 8 * nrOfCols;
+
+  myfile.seekp(0);
+  myfile.write((char*)(metaDataBlock), metaDataSize);  // table header
+
+  myfile.seekp(*chunkPos);
+  myfile.write((char*)(positionData), 8 * nrOfCols);  // chunk column index
 
   myfile.close();
 
@@ -272,7 +289,7 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
 
 
 // Read header information
-inline unsigned int ReadHeader(ifstream &myfile, int &nrOfCols, int &keyLength, unsigned int &nrOfChunksReserved)
+inline unsigned int ReadHeader(ifstream &myfile, int &nrOfCols, int &keyLength, unsigned int &nrOfChunksPerIndexRow)
 {
   // Get meta-information for table
   char tableMeta[TABLE_META_SIZE];
@@ -284,17 +301,17 @@ inline unsigned int ReadHeader(ifstream &myfile, int &nrOfCols, int &keyLength, 
     ::Rf_error("Error reading file header, your fst file is incomplete or damaged.");
   }
 
-  int* p_nrOfCols                     = (int*) tableMeta;
-  int* p_keyLength                    = (int*) &tableMeta[4];
-  unsigned int* p_version             = (unsigned int*) &tableMeta[8];
-  unsigned int* p_nrOfChunksReserved  = (unsigned int*) &tableMeta[12];
-  unsigned long long* p_fstFileID     = (unsigned long long*) &tableMeta[16];
+  int* p_nrOfCols                       = (int*) tableMeta;
+  int* p_keyLength                      = (int*) &tableMeta[4];
+  unsigned int* p_version               = (unsigned int*) &tableMeta[8];
+  unsigned int* p_nrOfChunksPerIndexRow = (unsigned int*) &tableMeta[12];
+  unsigned long long* p_fstFileID       = (unsigned long long*) &tableMeta[16];
 
   // faster access
   nrOfCols                      = *p_nrOfCols;
   keyLength                     = *p_keyLength;
   unsigned int version          = *p_version;  // return parameter
-  nrOfChunksReserved            = *p_nrOfChunksReserved;
+  nrOfChunksPerIndexRow         = *p_nrOfChunksPerIndexRow;
 
   // Without a proper file ID, we may be looking at a fst v0.7.2 file format
   if (*p_fstFileID != FST_FILE_ID)
@@ -324,7 +341,7 @@ List fstMeta(String fileName)
   if (myfile.fail())
   {
     myfile.close();
-    ::Rf_error("There was an error opening the fst file.");
+    ::Rf_error("There was an error opening the fst file, please check for a correct path.");
   }
 
   // Read variables from fst file header
@@ -342,18 +359,22 @@ List fstMeta(String fileName)
     return fstMeta_v1(fileName);  // scans further for safety
   }
 
-  unsigned int dataMetaSize = nrOfChunksReserved * 12 + 4 + keyLength * 4 + nrOfCols * 2;
+
+  // Read table metadata
+  unsigned long long dataMetaSize = 132 + 4 * keyLength + 2 * nrOfCols;  // see index above
   char* dataMeta = new char[dataMetaSize];
   myfile.read(dataMeta, dataMetaSize);
 
+  // chunk index
+  unsigned long long* chunkPos           = (unsigned long long*) dataMeta;
+  unsigned long long* chunkRows          = (unsigned long long*) &dataMeta[64];
+  unsigned int* p_nrOfChunks             = (unsigned int*) &dataMeta[128];
+  int*  keyColPos                        = (int*) &dataMeta[132];
+  unsigned short int* colTypes           = (unsigned short int*) &dataMeta[132 + 4 * keyLength];
 
-  // unsigned long long* chunkPos = (unsigned long long*) dataMeta;
-  int* chunkRows               = (int*) &dataMeta[nrOfChunksReserved * 8];
-  unsigned int  nrOfChunks     = *((unsigned int*) &dataMeta[nrOfChunksReserved * 12]);
-  int*  keyColPos              = (int*) &dataMeta[nrOfChunksReserved * 12 + 4];
-  unsigned short int* colTypes = (unsigned short int*) &dataMeta[nrOfChunksReserved * 12 + 4 + 4 * keyLength];
 
   int nrOfRows = chunkRows[0];
+
 
   // Convert to integer vector
   IntegerVector colTypeVec(nrOfCols);
@@ -363,20 +384,22 @@ List fstMeta(String fileName)
   }
 
 
+  // Read column names
+  SEXP colNames;
+  PROTECT(colNames = Rf_allocVector(STRSXP, nrOfCols));
+  unsigned long long offset = dataMetaSize + TABLE_META_SIZE;
+  fdsReadCharVec_v6(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
+
+
   // Read block positions
   unsigned long long* blockPos = new unsigned long long[nrOfCols];
   myfile.read((char*) blockPos, nrOfCols * 8);  // nrOfCols file positions
 
 
-  // Read column names
-  SEXP colNames;
-  PROTECT(colNames = Rf_allocVector(STRSXP, nrOfCols));
-  unsigned long long offset = dataMetaSize + TABLE_META_SIZE + nrOfCols * 8;
-  fdsReadCharVec_v6(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
-
   // cleanup
   delete[] blockPos;
   myfile.close();
+
 
   if (keyLength > 0)
   {
@@ -405,7 +428,7 @@ List fstMeta(String fileName)
       _["keyLength"]       = keyLength,
       _["keyNames"]        = keyNames,
       _["colNames"]        = colNames,
-      _["nrOfChunks"]      = nrOfChunks);
+      _["nrOfChunks"]      = *p_nrOfChunks);
   }
 
   UNPROTECT(1);
@@ -418,7 +441,7 @@ List fstMeta(String fileName)
     _["keyLength"]       = keyLength,
     _["colTypeVec"]      = colTypeVec,
     _["colNames"]        = colNames,
-    _["nrOfChunks"]      = nrOfChunks);
+    _["nrOfChunks"]      = *p_nrOfChunks);
 }
 
 
@@ -433,72 +456,69 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   if (myfile.fail())
   {
     myfile.close();
-    ::Rf_error("There was an error opening the fst file.");
+    ::Rf_error("There was an error opening the fst file, please check for a correct path.");
   }
 
-  // Get meta-information for table
-  char tableMeta[TABLE_META_SIZE];
-  myfile.read(tableMeta, TABLE_META_SIZE);
 
-  // if (!myfile)
-  // {
-  //   myfile.close();
-  //   ::Rf_error("Error reading file header, your fst file is incomplete.");
-  // }
+  // Read variables from fst file header
+  int nrOfCols;
+  int keyLength;
+  unsigned int nrOfChunksPerIndexRow;
 
-  int* p_nrOfCols                     = (int*) tableMeta;
-  int* p_keyLength                    = (int*) &tableMeta[4];
-  unsigned int* p_version             = (unsigned int*) &tableMeta[8];
-  unsigned int* p_nrOfChunksReserved  = (unsigned int*) &tableMeta[12];
-  unsigned long long* p_fstFileID     = (unsigned long long*) &tableMeta[16];
+  unsigned int version = ReadHeader(myfile, nrOfCols, keyLength, nrOfChunksPerIndexRow);
 
-  // faster access
-  int nrOfCols                        = *p_nrOfCols;
-  int keyLength                       = *p_keyLength;
-  unsigned int version                = *p_version;
-  unsigned int nrOfChunksReserved     = *p_nrOfChunksReserved;
-  unsigned long long fstFileID        = *p_fstFileID;
-
-  // Without a proper file ID, we may be looking at a fst v0.7.2 file format
-  if (fstFileID != FST_FILE_ID)
+  // We may be looking at a fst v0.7.2 file format
+  if (version == 0)
   {
-    // Close and reopen (slow and fst file should be resaved to avoid)
+    // Close and reopen (slow: fst file should be resaved to avoid this overhead)
     myfile.close();
     return fstRead_v1(fileName, columnSelection, startRow, endRow);
   }
 
-  // Compare file version with current
-  if (version > FST_VERSION)
-  {
-    myfile.close();
-    ::Rf_error("Incompatible fst file: file was created by a newer version of the fst package.");
-  }
 
-
-  unsigned int dataMetaSize = nrOfChunksReserved * 12 + 4 + keyLength * 4 + nrOfCols * 2;
+  // Read table metadata
+  unsigned long long dataMetaSize = 132 + 4 * keyLength + 2 * nrOfCols;  // see index above
   char* dataMeta = new char[dataMetaSize];
   myfile.read(dataMeta, dataMetaSize);
 
-  // unsigned long long* chunkPos = (unsigned long long*) dataMeta;
-  int* chunkRows               = (int*) &dataMeta[nrOfChunksReserved * 8];
-  // unsigned int  nrOfChunks     = *((unsigned int*) &dataMeta[nrOfChunksReserved * 12]);
-  int*  keyColPos              = (int*) &dataMeta[nrOfChunksReserved * 12 + 4];
-  unsigned short int* colTypes = (unsigned short int*) &dataMeta[nrOfChunksReserved * 12 + 4 + 4 * keyLength];
+  // chunk index
+  unsigned long long* chunkPos           = (unsigned long long*) dataMeta;
+  unsigned long long* chunkRows          = (unsigned long long*) &dataMeta[64];
+  unsigned int* p_nrOfChunks             = (unsigned int*) &dataMeta[128];
+  int*  keyColPos                        = (int*) &dataMeta[132];
+  unsigned short int* colTypes           = (unsigned short int*) &dataMeta[132 + 4 * keyLength];
+
+
+  // Check nrOfChunks
+  if (*p_nrOfChunks > 1)
+  {
+    myfile.close();
+    delete[] dataMeta;
+    ::Rf_error("Multiple chunk read not implemented yet.");
+  }
+
+
+  // Read column names
+  SEXP colNames;
+  PROTECT(colNames = Rf_allocVector(STRSXP, nrOfCols));
+  unsigned long long offset = dataMetaSize + TABLE_META_SIZE;
+  fdsReadCharVec_v6(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
+
+
+
+  // TODO: read table attributes here
+
+
+  // TODO: read column attributes here
+
+
+  // Start reading chunk here. TODO: loop over chunks
 
 
   // Read block positions
   unsigned long long* blockPos = new unsigned long long[nrOfCols];
   myfile.read((char*) blockPos, nrOfCols * 8);  // nrOfCols file positions
 
-
-  // Read column names
-  SEXP colNames;
-  PROTECT(colNames = Rf_allocVector(STRSXP, nrOfCols));
-  unsigned long long offset = dataMetaSize + TABLE_META_SIZE + nrOfCols * 8;
-  fdsReadCharVec_v6(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
-
-
-  // Read table attributes here !!!!
 
 
   // Determine column selection
@@ -570,6 +590,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   }
 
   int length = nrOfRows - firstRow;
+
 
   // Determine vector length
   if (!Rf_isNull(endRow))
@@ -733,6 +754,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   {
     keyColVec[col] = keyColPos[col];
   }
+
 
   return List::create(
     _["keyNames"] = R_NilValue,
