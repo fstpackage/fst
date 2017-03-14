@@ -1,10 +1,5 @@
 
-require(testthat)
-require(data.table)
 context("metadata")
-
-
-source("helper.fstwrite.R")
 
 
 # Clean testdata directory

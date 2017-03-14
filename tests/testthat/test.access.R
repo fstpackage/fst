@@ -1,8 +1,6 @@
 
 require(testthat)
 
-source("helper.fstwrite.R")
-
 
 test_that("Reading non-existent file gives an error",
 {

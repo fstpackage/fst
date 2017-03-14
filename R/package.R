@@ -8,5 +8,4 @@ NULL
 .onUnload <- function (libpath)
 {
   library.dynam.unload("fst", libpath)
-  data.table:::`[.data.table`
 }

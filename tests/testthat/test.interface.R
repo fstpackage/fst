@@ -1,6 +1,4 @@
 
-require(testthat)
-require(data.table)
 context("package interface")
 
 

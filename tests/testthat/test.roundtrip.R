@@ -1,9 +1,5 @@
 
-require(testthat)
 context("roundtrip-vector")
-
-
-source("helper.fstwrite.R")
 
 
 roundtrip_vector <- function(x)

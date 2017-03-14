@@ -85,6 +85,7 @@ print.fst.metadata <- function(x, ...)
     return(invisible(NULL))
   }
 
+  K = C = Count = KeyLab = O = NULL  # avoid R CMD check note
 
   # Table has key columns
   keys <- data.table(K = x$Keys, Count = 1:length(x$Keys))
