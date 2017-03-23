@@ -101,7 +101,7 @@ int FstMetaData::Collect(istream &fstfile, uint64_t filePointer)
 
   nrOfRows = 0;
 
-  CollectRecursive(fstfile, filePointer);
+  return CollectRecursive(fstfile, filePointer);
 }
 
 
