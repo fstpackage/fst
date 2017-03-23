@@ -1,6 +1,5 @@
 /*
   fst - An R-package for ultra fast storage and retrieval of datasets.
-  Header File
   Copyright (C) 2017, Mark AJ Klik
 
   BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
@@ -33,33 +32,21 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef FASTSTORE_H
-#define FASTSTORE_H
+
+#ifndef FSTDEFINES_H
+#define FSTDEFINES_H
 
 
-#define FST_VERSION     1                   // version number of the fst package
+#define FST_VERSION      1                  // version of fst codebase
+#define TABLE_META_SIZE  24                 // size of table meta-data block
+#define BLOCKSIZE        16384              // number of bytes in default compression block
+#define FST_FILE_ID      0xa91c12f8b245a71d // identifies a fst file
+#define CHUNK_INDEX_SIZE 144                // size of fixed component of vertical chunk index
 
 
-#include <Rcpp.h>
-#include <iostream>
-#include <fstream>
-#include <R.h>
-#include <Rinternals.h>
+enum FstErrors
+{
+  NOT_IMPLEMENTED
+};
 
-#include <compression.h>
-#include <compressor.h>
-
-// External libraries
-#include "lz4.h"
-
-// [[Rcpp::export]]
-SEXP fstStore(Rcpp::String fileName, SEXP table, SEXP compression, Rcpp::Function serializer);
-
-// [[Rcpp::export]]
-Rcpp::List fstMeta(Rcpp::String fileName);
-
-// [[Rcpp::export]]
-SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
-
-
-#endif  // FASTSTORE_H
+#endif // FSTDEFINES_H

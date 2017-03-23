@@ -2,6 +2,7 @@
 
 S3method(print,fst.metadata)
 export(fst.metadata)
+export(fst.rbind)
 export(read.fst)
 export(write.fst)
 import(data.table)

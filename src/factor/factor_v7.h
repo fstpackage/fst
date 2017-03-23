@@ -55,7 +55,7 @@ SEXP fdsWriteFactorVec_v7(std::ofstream &myfile, SEXP &factVec, unsigned size, u
 
 
 // Parameter 'startRow' is zero based.
-SEXP fdsReadFactorVec_v7(std::ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned int startRow,
+SEXP fdsReadFactorVec_v7(std::istream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned int startRow,
   unsigned int length, unsigned int size);
 
 

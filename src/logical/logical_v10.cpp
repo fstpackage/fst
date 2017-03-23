@@ -101,7 +101,7 @@ SEXP fdsWriteLogicalVec_v10(ofstream &myfile, SEXP &boolVec, unsigned nrOfLogica
 }
 
 
-SEXP fdsReadLogicalVec_v10(ifstream &myfile, SEXP &boolVec, unsigned long long blockPos, unsigned int startRow,
+SEXP fdsReadLogicalVec_v10(istream &myfile, SEXP &boolVec, unsigned long long blockPos, unsigned int startRow,
   unsigned int length, unsigned int size)
 {
   char* values = (char*) LOGICAL(boolVec);  // output vector

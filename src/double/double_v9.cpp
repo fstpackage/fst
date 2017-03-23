@@ -83,7 +83,7 @@ SEXP fdsWriteRealVec_v9(ofstream &myfile, SEXP &realVec, unsigned size, unsigned
 }
 
 
-SEXP fdsReadRealVec_v9(ifstream &myfile, SEXP &realVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size)
+SEXP fdsReadRealVec_v9(istream &myfile, SEXP &realVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size)
 {
   char* values = (char*) REAL(realVec);  // output vector
 

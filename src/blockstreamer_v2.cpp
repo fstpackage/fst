@@ -212,7 +212,7 @@ SEXP fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRow
 
 // Read data compressed with a fixed ratio compressor from a stream
 // Note that repSize is assumed to be a multiple of elementSize
-inline SEXP fdsReadFixedCompStream_v2(ifstream &myfile, char* outVec, unsigned long long blockPos,
+inline SEXP fdsReadFixedCompStream_v2(istream &myfile, char* outVec, unsigned long long blockPos,
   unsigned int* meta, unsigned int startRow, int elementSize, unsigned int vecLength)
 {
   unsigned int compAlgo = meta[1];  // identifier of the fixed ratio compressor
@@ -332,7 +332,7 @@ inline SEXP fdsReadFixedCompStream_v2(ifstream &myfile, char* outVec, unsigned l
 }
 
 
-SEXP fdsReadColumn_v2(ifstream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size, int elementSize)
+SEXP fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size, int elementSize)
 {
   // Read header
   unsigned int compress[2];

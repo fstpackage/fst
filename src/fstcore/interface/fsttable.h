@@ -1,6 +1,5 @@
 /*
   fst - An R-package for ultra fast storage and retrieval of datasets.
-  Header File
   Copyright (C) 2017, Mark AJ Klik
 
   BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
@@ -33,33 +32,26 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef FASTSTORE_H
-#define FASTSTORE_H
+
+#ifndef FST_TABLE_H
+#define FST_TABLE_H
 
 
-#define FST_VERSION     1                   // version number of the fst package
+class FstColumnInt32
+{
+  public:
+    Get
+
+};
 
 
-#include <Rcpp.h>
-#include <iostream>
-#include <fstream>
-#include <R.h>
-#include <Rinternals.h>
-
-#include <compression.h>
-#include <compressor.h>
-
-// External libraries
-#include "lz4.h"
-
-// [[Rcpp::export]]
-SEXP fstStore(Rcpp::String fileName, SEXP table, SEXP compression, Rcpp::Function serializer);
-
-// [[Rcpp::export]]
-Rcpp::List fstMeta(Rcpp::String fileName);
-
-// [[Rcpp::export]]
-SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
+/**
+ Interface to a fst file.
+*/
+class FstTable
+{
+  std::vector<int> fstTypes;
+};
 
 
-#endif  // FASTSTORE_H
+#endif FST_TABLE_H

@@ -173,7 +173,7 @@ SEXP fdsWriteFactorVec_v7(ofstream &myfile, SEXP &factVec, unsigned size, unsign
 
 
 // Parameter 'startRow' is zero based.
-SEXP fdsReadFactorVec_v7(ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned int startRow,
+SEXP fdsReadFactorVec_v7(istream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned int startRow,
   unsigned int length, unsigned int size)
 {
   // Jump to factor level

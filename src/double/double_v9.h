@@ -48,6 +48,6 @@
 
 SEXP fdsWriteRealVec_v9(std::ofstream &myfile, SEXP &realVec, unsigned size, unsigned int compression);
 
-SEXP fdsReadRealVec_v9(std::ifstream &myfile, SEXP &realVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
+SEXP fdsReadRealVec_v9(std::istream &myfile, SEXP &realVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
 
 #endif // DOUBLE_v9_H

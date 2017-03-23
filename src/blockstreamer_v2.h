@@ -51,7 +51,7 @@ SEXP fdsStreamcompressed_v2(std::ofstream &myfile, char* colVec, unsigned int nr
   StreamCompressor* streamCompressor, int blockSizeElems);
 
 
-SEXP fdsReadColumn_v2(std::ifstream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size, int elementSize);
+SEXP fdsReadColumn_v2(std::istream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size, int elementSize);
 
 
 #endif // BLOCKSTORE_H

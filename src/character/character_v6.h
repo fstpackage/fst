@@ -54,7 +54,7 @@
 SEXP fdsWriteCharVec_v6(std::ofstream &myfile, SEXP &strVec, unsigned int vecLength, int compression);
 
 
-Rcpp::List fdsReadCharVec_v6(std::ifstream &myfile, SEXP &strVec, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size);
+Rcpp::List fdsReadCharVec_v6(std::istream &myfile, SEXP &strVec, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size);
 
 
 #endif  // CHARACTER_V6_H

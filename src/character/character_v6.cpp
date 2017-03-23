@@ -526,7 +526,7 @@ inline void ReadDataBlockInfo_v6(SEXP &strVec, unsigned long long blockSize, uns
 }
 
 
-inline void ReadDataBlock_v6(ifstream &myfile, SEXP &strVec, unsigned long long blockSize, unsigned int nrOfElements,
+inline void ReadDataBlock_v6(istream &myfile, SEXP &strVec, unsigned long long blockSize, unsigned int nrOfElements,
   unsigned int startElem, unsigned int endElem, unsigned int vecOffset)
 {
   unsigned int nrOfNAInts = 1 + nrOfElements / 32;  // last bit is NA flag
@@ -546,7 +546,7 @@ inline void ReadDataBlock_v6(ifstream &myfile, SEXP &strVec, unsigned long long 
 }
 
 
-inline SEXP ReadDataBlockCompressed_v6(ifstream &myfile, SEXP &strVec, unsigned long long blockSize, unsigned int nrOfElements,
+inline SEXP ReadDataBlockCompressed_v6(istream &myfile, SEXP &strVec, unsigned long long blockSize, unsigned int nrOfElements,
   unsigned int startElem, unsigned int endElem, unsigned int vecOffset,
   unsigned int intBlockSize, Decompressor &decompressor, unsigned short int &algoInt, unsigned short int &algoChar)
 {
@@ -600,7 +600,7 @@ inline SEXP ReadDataBlockCompressed_v6(ifstream &myfile, SEXP &strVec, unsigned 
 }
 
 
-List fdsReadCharVec_v6(ifstream &myfile, SEXP &strVec, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size)
+List fdsReadCharVec_v6(istream &myfile, SEXP &strVec, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size)
 {
   // Jump to startRow size
   myfile.seekg(blockPos);

@@ -43,7 +43,7 @@
 SEXP fdsWriteLogicalVec_v10(std::ofstream &myfile, SEXP &boolVec, unsigned nrOfLogicals, int compression);
 
 
-SEXP fdsReadLogicalVec_v10(std::ifstream &myfile, SEXP &boolVec, unsigned long long blockPos, unsigned int startRow,
+SEXP fdsReadLogicalVec_v10(std::istream &myfile, SEXP &boolVec, unsigned long long blockPos, unsigned int startRow,
   unsigned int length, unsigned int size);
 
 #endif // LOGICAL_v10_H

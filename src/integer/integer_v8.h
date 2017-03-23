@@ -42,6 +42,6 @@
 
 SEXP fdsWriteIntVec_v8(std::ofstream &myfile, SEXP &intVec, unsigned size, unsigned int compression);
 
-SEXP fdsReadIntVec_v8(std::ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
+SEXP fdsReadIntVec_v8(std::istream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
 
 #endif // INTEGER_V8_H

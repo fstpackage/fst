@@ -1,6 +1,5 @@
 /*
   fst - An R-package for ultra fast storage and retrieval of datasets.
-  Header File
   Copyright (C) 2017, Mark AJ Klik
 
   BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
@@ -33,33 +32,38 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef FASTSTORE_H
-#define FASTSTORE_H
+
+#ifndef FSTMETADATA_H
+#define FSTMETADATA_H
 
 
-#define FST_VERSION     1                   // version number of the fst package
-
-
-#include <Rcpp.h>
-#include <iostream>
+#include <stdint.h>
+#include <vector>
+#include <string>
 #include <fstream>
-#include <R.h>
-#include <Rinternals.h>
-
-#include <compression.h>
-#include <compressor.h>
-
-// External libraries
-#include "lz4.h"
-
-// [[Rcpp::export]]
-SEXP fstStore(Rcpp::String fileName, SEXP table, SEXP compression, Rcpp::Function serializer);
-
-// [[Rcpp::export]]
-Rcpp::List fstMeta(Rcpp::String fileName);
-
-// [[Rcpp::export]]
-SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
 
 
-#endif  // FASTSTORE_H
+/**
+ Meta data class for a fst file.
+*/
+class FstMetaData
+{
+  public:
+    std::vector<std::string> colNameVec;
+    std::vector<uint16_t> colAttrVec;
+    std::vector<uint16_t> colTypeVec;
+
+    uint64_t nrOfRows;
+    uint64_t lastHorzChunkPointer;
+
+    int Collect(std::istream &fstfile, uint64_t filePointer);
+
+    unsigned int ReadHeader(std::istream &myfile, unsigned int &tableClassType, int &keyLength, int &nrOfColsFirstChunk);
+
+  private:
+    int CollectRecursive(std::istream &fstfile, uint64_t filePointer);
+
+};
+
+
+#endif  // FSTMETADATA_H

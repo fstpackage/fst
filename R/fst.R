@@ -30,7 +30,7 @@ write.fst <- function(x, path, compress = 0)
 {
   if (!is.character(path)) stop("Please specify a correct path.")
 
-  if (!is.data.table(x) & !(is.data.frame(x))) stop("Please make sure 'x' is a data frame.")
+  if (!is.data.frame(x)) stop("Please make sure 'x' is a data frame.")
 
   fstStore(path, x, as.integer(compress), serialize)
 

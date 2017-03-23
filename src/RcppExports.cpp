@@ -57,6 +57,31 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// BytesConvert
+SEXP BytesConvert(SEXP integer);
+RcppExport SEXP fst_BytesConvert(SEXP integerSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type integer(integerSEXP);
+    rcpp_result_gen = Rcpp::wrap(BytesConvert(integer));
+    return rcpp_result_gen;
+END_RCPP
+}
+// fstrbind
+SEXP fstrbind(Rcpp::String fileName, SEXP table, SEXP compression, Rcpp::Function serializer);
+RcppExport SEXP fst_fstrbind(SEXP fileNameSEXP, SEXP tableSEXP, SEXP compressionSEXP, SEXP serializerSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::String >::type fileName(fileNameSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type table(tableSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type compression(compressionSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Function >::type serializer(serializerSEXP);
+    rcpp_result_gen = Rcpp::wrap(fstrbind(fileName, table, compression, serializer));
+    return rcpp_result_gen;
+END_RCPP
+}
 // SType
 int SType(SEXP value);
 RcppExport SEXP fst_SType(SEXP valueSEXP) {
