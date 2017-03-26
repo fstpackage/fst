@@ -32,7 +32,7 @@ write.fst <- function(x, path, compress = 0)
 
   if (!is.data.table(x) & !(is.data.frame(x))) stop("Please make sure 'x' is a data frame.")
 
-  fstStore(path, x, as.integer(compress))
+  fstStore(normalizePath(path, mustWork = FALSE), x, as.integer(compress))
 
   invisible(x)
 }
