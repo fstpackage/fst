@@ -61,7 +61,7 @@ unsigned int FstMetaData::ReadHeader(istream &fstfile, unsigned int &tableClassT
 
   if (!fstfile)
   {
-    throw "Error reading file header, your fst file is incomplete or damaged.";
+    throw std::runtime_error(FSTERROR_DAMAGED_HEADER);
   }
 
 
@@ -163,7 +163,7 @@ int FstMetaData::CollectRecursive(std::istream &fstfile, uint64_t filePointer)
   if (*p_nextVertChunkSet != 0)
   {
     // count total number of rows for all data chunks
-    throw FstErrors::NOT_IMPLEMENTED;
+    throw std::runtime_error(FSTERROR_NOT_IMPLEMENTED);
   }
 
   lastHorzChunkPointer = filePointer;

@@ -33,83 +33,28 @@
 */
 
 
-#ifndef FST_TABLE_H
-#define FST_TABLE_H
+#ifndef FST_STORE_H
+#define FST_STORE_H
+
 
 #include <iostream>
 #include <vector>
+#include <fsttable.h>
+#include <fststore.h>
 
 
-enum FstColumnType
+class FstStore
 {
-  INT32_32,
-  UINT32_16,
-  UINT32_8,
-  DOUBLE,
-  CHARACTER,
-  FACTOR
-};
-
-
-class FstColumn
-{
-public:
-  FstColumnType colType;
-
-  // virtual void Serialize(std::ostream fstStream);
-  // virtual void DeSerialize(std::istream fstStream);
-
-  virtual ~FstColumn() = 0;
-};
-
-
-class FstZipper
-{
-  public:
-    FstZipper();
-};
-
-
-class FstColumn_int32 : public FstColumn
-{
-  int* colData;  // buffer lifetime is managed outside the fst framework
+  std::string fstFile;
+  bool append;
 
   public:
-    ~FstColumn_int32() {}  // cleanup
+    FstStore(std::string fstFile);
+    FstStore(std::string fstFile, bool append);
 
-    FstColumn_int32(int* colData, uint64_t colSize)
-    {
-      colType = FstColumnType::INT32_32;
-    }
-
-    FstColumn_int32(int* colData, uint64_t colSize, int minValue, int maxValue)
-    {
-      colType = FstColumnType::INT32_32;
-    }
+    void RowBind(FstTable table);
+    void ColBind(FstTable table);
 };
 
 
-/**
-  Interface to a fst table. A fst table is a temporary wrapper around an array of columnar data buffers.
-  The table only exists to facilitate serialization and deserialization of data.
-*/
-class FstTable
-{
-  uint64_t nrOfRows;
-  std::vector<FstColumn*> columns;
-
-  public:
-    FstTable(uint64_t nrOfRows);
-    ~FstTable();
-
-    // Access to private members
-    const std::vector<FstColumn*>& Columns() const { return columns; }
-    uint64_t NrOfRows() { return nrOfRows; }
-
-    // Add columns of specific types
-    void AddColumnInt32(int* colData);
-    void AddColumnInt32(int* colData, int minValue, int maxValue);  // helpers for compression
-};
-
-
-#endif  // FST_TABLE_H
+#endif  // FST_STORE_H

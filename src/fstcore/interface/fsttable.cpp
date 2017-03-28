@@ -33,83 +33,41 @@
 */
 
 
-#ifndef FST_TABLE_H
-#define FST_TABLE_H
-
-#include <iostream>
-#include <vector>
+#include <fsttable.h>
 
 
-enum FstColumnType
+using namespace std;
+
+
+FstColumn::~FstColumn() {}
+
+
+// Read header information
+FstTable::FstTable(uint64_t nrOfRows)
 {
-  INT32_32,
-  UINT32_16,
-  UINT32_8,
-  DOUBLE,
-  CHARACTER,
-  FACTOR
-};
+  this->nrOfRows = nrOfRows;
+}
 
 
-class FstColumn
+FstTable::~FstTable()
 {
-public:
-  FstColumnType colType;
-
-  // virtual void Serialize(std::ostream fstStream);
-  // virtual void DeSerialize(std::istream fstStream);
-
-  virtual ~FstColumn() = 0;
-};
+  // delete column wrappers
+  for (vector<FstColumn*>::iterator it = columns.begin(); it != columns.end(); ++it)
+  {
+    delete *it;
+  }
+}
 
 
-class FstZipper
+void FstTable::AddColumnInt32(int* colData)
 {
-  public:
-    FstZipper();
-};
+  FstColumn* column = new FstColumn_int32(colData, nrOfRows);
+  this->columns.push_back(column);
+}
 
 
-class FstColumn_int32 : public FstColumn
+void FstTable::AddColumnInt32(int* colData, int minValue, int maxValue)
 {
-  int* colData;  // buffer lifetime is managed outside the fst framework
+  this->columns.push_back(new FstColumn_int32(colData, nrOfRows, minValue, maxValue));
+}
 
-  public:
-    ~FstColumn_int32() {}  // cleanup
-
-    FstColumn_int32(int* colData, uint64_t colSize)
-    {
-      colType = FstColumnType::INT32_32;
-    }
-
-    FstColumn_int32(int* colData, uint64_t colSize, int minValue, int maxValue)
-    {
-      colType = FstColumnType::INT32_32;
-    }
-};
-
-
-/**
-  Interface to a fst table. A fst table is a temporary wrapper around an array of columnar data buffers.
-  The table only exists to facilitate serialization and deserialization of data.
-*/
-class FstTable
-{
-  uint64_t nrOfRows;
-  std::vector<FstColumn*> columns;
-
-  public:
-    FstTable(uint64_t nrOfRows);
-    ~FstTable();
-
-    // Access to private members
-    const std::vector<FstColumn*>& Columns() const { return columns; }
-    uint64_t NrOfRows() { return nrOfRows; }
-
-    // Add columns of specific types
-    void AddColumnInt32(int* colData);
-    void AddColumnInt32(int* colData, int minValue, int maxValue);  // helpers for compression
-};
-
-
-#endif  // FST_TABLE_H
