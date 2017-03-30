@@ -86,6 +86,7 @@ SEXP fstrbind(String fileName, SEXP table, SEXP compression, Function serializer
 
   SEXP firstColumn = VECTOR_ELT(table, 0);  // column vector
   uint64_t nrOfRows = Rf_xlength(firstColumn);
+  uint64_t nrOfRows = Rf_xlength(firstColumn);
 
 
   // Create a FstTable wrapper around an R data frame
