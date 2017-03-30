@@ -44,9 +44,12 @@
 #define CHUNK_INDEX_SIZE 144                // size of fixed component of vertical chunk index
 
 
-enum FstErrors
-{
-  NOT_IMPLEMENTED
-};
+// fst specific errors
+#define FSTERROR_NOT_IMPLEMENTED     "Feature not implemented yet"
+#define FSTERROR_ERROR_OPENING_FILE  "Error opening fst stream"
+#define FSTERROR_NO_APPEND           "This version of the fst file format does not allow appending data"
+#define FSTERROR_DAMAGED_HEADER      "Error reading file header, your fst file is incomplete or damaged"
+#define FSTERROR_INCORRECT_COL_COUNT "Data frame has an incorrect amount of columns"
+
 
 #endif // FSTDEFINES_H

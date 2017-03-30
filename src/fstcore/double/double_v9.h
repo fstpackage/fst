@@ -33,17 +33,22 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef LOGICAL_v10_H
-#define LOGICAL_v10_H
+#ifndef DOUBLE_v9_H
+#define DOUBLE_v9_H
 
-#include <Rcpp.h>  // Rcpp header
-
-// Logical vectors are always compressed to fill all available bits (factor 16 compression).
-// On top of that, we can compress the resulting bytes with a custom compressor.
-SEXP fdsWriteLogicalVec_v10(std::ofstream &myfile, SEXP &boolVec, unsigned nrOfLogicals, int compression);
+// System libraries
+#include <ostream>
+#include <istream>
 
 
-SEXP fdsReadLogicalVec_v10(std::istream &myfile, SEXP &boolVec, unsigned long long blockPos, unsigned int startRow,
-  unsigned int length, unsigned int size);
+// External libraries
+#include "lz4.h"
+#include <compression.h>
+#include <compressor.h>
 
-#endif // LOGICAL_v10_H
+
+void fdsWriteRealVec_v9(std::ofstream &myfile, double* doubleVector, unsigned int nrOfRows, unsigned int compression);
+
+void fdsReadRealVec_v9(std::istream &myfile, double* doubleVector, unsigned long long blockPos, unsigned int startRow, unsigned int length, unsigned int size);
+
+#endif // DOUBLE_v9_H

@@ -1,6 +1,5 @@
 /*
   fst - An R-package for ultra fast storage and retrieval of datasets.
-  Header File
   Copyright (C) 2017, Mark AJ Klik
 
   BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
@@ -33,21 +32,29 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef DOUBLE_v9_H
-#define DOUBLE_v9_H
 
-// System libraries
-#include <ctime>
-#include <ratio>
-
-// External libraries
-#include "lz4.h"
-#include <compression.h>
-#include <compressor.h>
+#ifndef FST_STORE_H
+#define FST_STORE_H
 
 
-SEXP fdsWriteRealVec_v9(std::ofstream &myfile, SEXP &realVec, unsigned size, unsigned int compression);
+#include <iostream>
+#include <vector>
+#include <fsttable.h>
+#include <fststore.h>
 
-SEXP fdsReadRealVec_v9(std::istream &myfile, SEXP &realVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
 
-#endif // DOUBLE_v9_H
+class FstStore
+{
+  std::string fstFile;
+  bool append;
+
+  public:
+    FstStore(std::string fstFile);
+    FstStore(std::string fstFile, bool append);
+
+    void RowBind(FstTable table);
+    void ColBind(FstTable table);
+};
+
+
+#endif  // FST_STORE_H

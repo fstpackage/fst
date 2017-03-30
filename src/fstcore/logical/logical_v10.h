@@ -1,5 +1,6 @@
 /*
   fst - An R-package for ultra fast storage and retrieval of datasets.
+  Header File
   Copyright (C) 2017, Mark AJ Klik
 
   BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
@@ -32,84 +33,20 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-
-#ifndef FST_TABLE_H
-#define FST_TABLE_H
-
-#include <iostream>
-#include <vector>
+#ifndef LOGICAL_v10_H
+#define LOGICAL_v10_H
 
 
-enum FstColumnType
-{
-  INT_32,
-  BOOL_32,
-  DOUBLE_64,
-  CHARACTER,
-  FACTOR
-};
+#include <istream>
+#include <ostream>
 
 
-class FstColumn
-{
-public:
-  FstColumnType colType;
-
-  // virtual void Serialize(std::ostream fstStream);
-  // virtual void DeSerialize(std::istream fstStream);
-
-  virtual ~FstColumn() = 0;
-};
+// Logical vectors are always compressed to fill all available bits (factor 16 compression).
+// On top of that, we can compress the resulting bytes with a custom compressor.
+void fdsWriteLogicalVec_v10(std::ofstream &myfile, int* boolVector, unsigned nrOfLogicals, int compression);
 
 
-class FstZipper
-{
-  public:
-    FstZipper();
-};
+void fdsReadLogicalVec_v10(std::istream &myfile, int* boolVector, unsigned long long blockPos, unsigned int startRow,
+  unsigned int length, unsigned int size);
 
-
-class FstColumn_int32 : public FstColumn
-{
-  int* colData;  // buffer lifetime is managed outside the fst framework
-
-  public:
-    ~FstColumn_int32() {}  // cleanup
-
-    FstColumn_int32(int* colData, uint64_t colSize)
-    {
-      colType = FstColumnType::INT_32;
-    }
-
-    // Select algorithm here
-    FstColumn_int32(int* colData, uint64_t colSize, int minValue, int maxValue)
-    {
-      colType = FstColumnType::INT_32;
-    }
-};
-
-
-/**
-  Interface to a fst table. A fst table is a temporary wrapper around an array of columnar data buffers.
-  The table only exists to facilitate serialization and deserialization of data.
-*/
-class FstTable
-{
-  uint64_t nrOfRows;
-  std::vector<FstColumn*> columns;
-
-  public:
-    FstTable(uint64_t nrOfRows);
-    ~FstTable();
-
-    // Access to private members
-    const std::vector<FstColumn*>& Columns() const { return columns; }
-    uint64_t NrOfRows() { return nrOfRows; }
-
-    // Add columns of specific types
-    void AddColumnInt32(int* colData);
-    void AddColumnInt32(int* colData, int minValue, int maxValue);  // helpers for compression
-};
-
-
-#endif  // FST_TABLE_H
+#endif // LOGICAL_v10_H

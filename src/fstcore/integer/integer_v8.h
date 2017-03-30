@@ -36,12 +36,16 @@
 #ifndef INTEGER_V8_H
 #define INTEGER_V8_H
 
-#include <Rcpp.h>  // Rcpp header
+
+#include <ostream>
+#include <istream>
+
 
 #define BLOCKSIZE_INT 4096  // number of integers in default compression block
 
-SEXP fdsWriteIntVec_v8(std::ofstream &myfile, SEXP &intVec, unsigned size, unsigned int compression);
 
-SEXP fdsReadIntVec_v8(std::istream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
+void fdsWriteIntVec_v8(std::ofstream &myfile, int* integerVector, unsigned int nrOfRows, unsigned int compression);
+
+void fdsReadIntVec_v8(std::istream &myfile, int* integerVector, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
 
 #endif // INTEGER_V8_H

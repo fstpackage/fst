@@ -35,38 +35,30 @@
 #include "logical_v10.h"
 #include "blockstreamer_v2.h"
 
-// System libraries
-#include <ctime>
-#include <ratio>
 
 // External libraries
 #include "lz4.h"
 #include <compression.h>
 #include <compressor.h>
 
-using namespace std;
-using namespace Rcpp;
-// using namespace std::chrono;
-
 #define BLOCKSIZE_LOGICAL 4096  // number of logicals in default compression block
+
+
+using namespace std;
 
 
 // Logical vectors are always compressed to fill all available bits (factor 16 compression).
 // On top of that, we can compress the resulting bytes with a custom compressor.
-SEXP fdsWriteLogicalVec_v10(ofstream &myfile, SEXP &boolVec, unsigned nrOfLogicals, int compression)
+void fdsWriteLogicalVec_v10(ofstream &myfile, int* boolVector, unsigned nrOfLogicals, int compression)
 {
-  int* logicP = LOGICAL(boolVec);  // data pointer
-  unsigned int nrOfRows = LENGTH(boolVec);  // vector length
-
-  SEXP res = NULL;
-
   if (compression == 0)
   {
     FixedRatioCompressor* compressor = new FixedRatioCompressor(CompAlgo::LOGIC64);  // compression level not relevant here
-    res = fdsStreamUncompressed_v2(myfile, (char*) logicP, nrOfRows, 4, BLOCKSIZE_LOGICAL, compressor);
+    fdsStreamUncompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, BLOCKSIZE_LOGICAL, compressor);
+
     delete compressor;
 
-    return res;
+    return;
   }
 
   int blockSize = 4 * BLOCKSIZE_LOGICAL;  // block size in bytes
@@ -78,12 +70,13 @@ SEXP fdsWriteLogicalVec_v10(ofstream &myfile, SEXP &boolVec, unsigned nrOfLogica
     StreamCompressor* streamCompressor = new StreamCompositeCompressor(defaultCompress, compress2, 2 * compression);
     streamCompressor->CompressBufferSize(blockSize);
 
-    res = fdsStreamcompressed_v2(myfile, (char*) logicP, nrOfRows, 4, streamCompressor, BLOCKSIZE_LOGICAL);
+    fdsStreamcompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, streamCompressor, BLOCKSIZE_LOGICAL);
+
     delete defaultCompress;
     delete compress2;
     delete streamCompressor;
 
-    return res;
+    return;
   }
   else if (compression <= 100)  // compress 51 - 100
   {
@@ -91,19 +84,19 @@ SEXP fdsWriteLogicalVec_v10(ofstream &myfile, SEXP &boolVec, unsigned nrOfLogica
     Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD_LOGIC64, 30 + 7 * (compression - 50) / 5);
     StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
     streamCompressor->CompressBufferSize(blockSize);
-    res = fdsStreamcompressed_v2(myfile, (char*) logicP, nrOfRows, 4, streamCompressor, BLOCKSIZE_LOGICAL);
+    fdsStreamcompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, streamCompressor, BLOCKSIZE_LOGICAL);
+
     delete compress1;
     delete compress2;
     delete streamCompressor;
   }
 
-  return res;
+  return;
 }
 
 
-SEXP fdsReadLogicalVec_v10(istream &myfile, SEXP &boolVec, unsigned long long blockPos, unsigned int startRow,
+void fdsReadLogicalVec_v10(istream &myfile, int* boolVector, unsigned long long blockPos, unsigned int startRow,
   unsigned int length, unsigned int size)
 {
-  char* values = (char*) LOGICAL(boolVec);  // output vector
-  return fdsReadColumn_v2(myfile, values, blockPos, startRow, length, size, 4);
+  return fdsReadColumn_v2(myfile, (char*) boolVector, blockPos, startRow, length, size, 4);
 }

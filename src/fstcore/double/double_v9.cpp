@@ -41,22 +41,21 @@
 #include "lz4.h"
 
 using namespace std;
-using namespace Rcpp;
+
 
 #define BLOCKSIZE_REAL 2048  // number of doubles in default compression block
 
 
-SEXP fdsWriteRealVec_v9(ofstream &myfile, SEXP &realVec, unsigned size, unsigned int compression)
+void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned int nrOfRows, unsigned int compression)
 {
-  double* realP = REAL(realVec);
-  unsigned int nrOfRows = LENGTH(realVec);  // vector length
+  // double* realP = REAL(realVec);
+  // unsigned int nrOfRows = LENGTH(realVec);  // vector length
 
-  SEXP res;
   int blockSize = 8 * BLOCKSIZE_REAL;  // block size in bytes
 
   if (compression == 0)
   {
-    return fdsStreamUncompressed_v2(myfile, (char*) realP, nrOfRows, 8, BLOCKSIZE_REAL, NULL);
+    return fdsStreamUncompressed_v2(myfile, (char*) doubleVector, nrOfRows, 8, BLOCKSIZE_REAL, NULL);
   }
 
   if (compression <= 50)  // low compression: linear mix of uncompressed and LZ4_SHUF
@@ -64,28 +63,28 @@ SEXP fdsWriteRealVec_v9(ofstream &myfile, SEXP &realVec, unsigned size, unsigned
     Compressor* compress1 = new DualCompressor(CompAlgo::LZ4_SHUF8, CompAlgo::LZ4, 0, 2 * compression);
     StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, 2 * compression);
     streamCompressor->CompressBufferSize(blockSize);
-    res = fdsStreamcompressed_v2(myfile, (char*) realP, nrOfRows, 8, streamCompressor, BLOCKSIZE_REAL);
+    fdsStreamcompressed_v2(myfile, (char*) doubleVector, nrOfRows, 8, streamCompressor, BLOCKSIZE_REAL);
+
     delete compress1;
     delete streamCompressor;
-    return res;
+    return;
   }
 
   Compressor* compress1 = new DualCompressor(CompAlgo::LZ4_SHUF8, CompAlgo::LZ4, 0, 100);
   Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD, 20);
   StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
   streamCompressor->CompressBufferSize(blockSize);
-  res = fdsStreamcompressed_v2(myfile, (char*) realP, nrOfRows, 8, streamCompressor, BLOCKSIZE_REAL);
+  fdsStreamcompressed_v2(myfile, (char*) doubleVector, nrOfRows, 8, streamCompressor, BLOCKSIZE_REAL);
+
   delete compress1;
   delete compress2;
   delete streamCompressor;
 
-  return res;
+  return;
 }
 
 
-SEXP fdsReadRealVec_v9(istream &myfile, SEXP &realVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size)
+void fdsReadRealVec_v9(istream &myfile, double* doubleVector, unsigned long long blockPos, unsigned int startRow, unsigned int length, unsigned int size)
 {
-  char* values = (char*) REAL(realVec);  // output vector
-
-  return fdsReadColumn_v2(myfile, values, blockPos, startRow, length, size, 8);
+  return fdsReadColumn_v2(myfile, (char*) doubleVector, blockPos, startRow, length, size, 8);
 }

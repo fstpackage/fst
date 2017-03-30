@@ -43,8 +43,6 @@ You can contact the author at :
 #include <compression.h>
 #include <compressor.h>
 
-using namespace std;
-using namespace Rcpp;
 
 #define COL_META_SIZE 8
 #define PREF_BLOCK_SIZE 16384
@@ -52,6 +50,10 @@ using namespace Rcpp;
 #define MAX_COMPRESSBOUND_PLUS_META_SIZE 17044
 #define BLOCK_ALGO_MASK 0xffff000000000000
 #define BLOCK_POS_MASK 0x0000ffffffffffff
+
+
+using namespace std;
+using namespace Rcpp;
 
 
 inline unsigned long long CompressBlock_v2(StreamCompressor* streamCompressor, ofstream &myfile, char* vecP, char* compBuf, char* blockIndex,
@@ -75,7 +77,7 @@ inline unsigned long long CompressBlock_v2(StreamCompressor* streamCompressor, o
 
 
 // Method for writing column data of any type to a ofstream.
-SEXP fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLength, int elementSize, int blockSizeElems,
+void fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLength, int elementSize, int blockSizeElems,
   FixedRatioCompressor* fixedRatioCompressor)
 {
   int nrOfBlocks = 1 + (vecLength - 1) / blockSizeElems;  // number of compressed / uncompressed blocks
@@ -97,7 +99,7 @@ SEXP fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLengt
     }
     myfile.write(&vec[nrOfBlocks * blockSize], remain * elementSize);
 
-    return List::create(_["res"] = 0);  // TODO: return timings here
+    return;
   }
 
 
@@ -120,7 +122,7 @@ SEXP fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLengt
     compress[1] = (unsigned int) compAlgo;  // set fixed-ratio compression algorithm
     myfile.write(compBuf, compressBufSizeRemain + COL_META_SIZE);
 
-    return List::create(_["res"] = 0);  // TODO: return timings here
+    return;
   }
 
   // More than one block
@@ -150,13 +152,11 @@ SEXP fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLengt
 
   fixedRatioCompressor->Compress(compBuf, compressBufSizeRemain, &vec[nrOfBlocks * blockSize], remainBlock, compAlgo);
   myfile.write(compBuf, compressBufSizeRemain);
-
-  return List::create(_["res"] = 0);  // TODO: return timings here
 }
 
 
 // Method for writing column data of any type to a stream.
-SEXP fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRows, int elementSize,
+void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRows, int elementSize,
   StreamCompressor* streamCompressor, int blockSizeElems)
 {
   int nrOfBlocks = 1 + (nrOfRows - 1) / blockSizeElems;  // number of compressed / uncompressed blocks
@@ -205,14 +205,12 @@ SEXP fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRow
   myfile.seekp(0, ios_base::end);
 
   delete[] blockIndex;
-
-  return List::create(_["res"] = 0);  // TODO: return timings here
 }
 
 
 // Read data compressed with a fixed ratio compressor from a stream
 // Note that repSize is assumed to be a multiple of elementSize
-inline SEXP fdsReadFixedCompStream_v2(istream &myfile, char* outVec, unsigned long long blockPos,
+inline void fdsReadFixedCompStream_v2(istream &myfile, char* outVec, unsigned long long blockPos,
   unsigned int* meta, unsigned int startRow, int elementSize, unsigned int vecLength)
 {
   unsigned int compAlgo = meta[1];  // identifier of the fixed ratio compressor
@@ -256,7 +254,7 @@ inline SEXP fdsReadFixedCompStream_v2(istream &myfile, char* outVec, unsigned lo
       // Skip first startOffset elements
       memcpy(outVec, &buf[elementSize * startOffset], elementSize * vecLength);  // data range
 
-      return List::create(_["res"] = 0);  // TODO: return timings here
+      return;
     }
 
     int length = repSizeElement - startOffset;  // remaining elements
@@ -327,12 +325,10 @@ inline SEXP fdsReadFixedCompStream_v2(istream &myfile, char* outVec, unsigned lo
 
   decompressor.Decompress(compAlgo, buf, repSize, &repBuf[lastTargetBlockSize - targetRepSize], targetRepSize);  // decompress repetition block
   memcpy(&outP[nrOfFullBlocks * blockSize + lastBlockSize - repSize], buf, elementSize * nrOfElemsLastRep);  // skip last elements if required
-
-  return List::create(_["res"] = 0);  // TODO: return timings here
 }
 
 
-SEXP fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size, int elementSize)
+void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size, int elementSize)
 {
   // Read header
   unsigned int compress[2];
@@ -350,14 +346,14 @@ SEXP fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
       // Read data
       myfile.read((char*) outVec, elementSize * length);
 
-      return List::create(_["res"] = 0);  // TODO: return timings here
+      return;
     }
 
     // Stream uses a fixed-ratio compressor
 
     fdsReadFixedCompStream_v2(myfile, outVec, blockPos, compress, startRow, elementSize, length);
 
-    return List::create(_["res"] = 0);  // TODO: return timings here
+    return;
   }
 
   // Data is compressed
@@ -410,7 +406,8 @@ SEXP fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
       myfile.read((char*) outVec, length * elementSize);
 
       delete[] blockIndex;
-      return List::create(_["res"] = "algo0");  // TODO: return timings here
+
+      return;
     }
 
     // Data is compressed
@@ -435,14 +432,7 @@ SEXP fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
 
     delete[] blockIndex;
 
-    return List::create(
-      _["algo"] = algo,
-      _["compbuf1"] = (int) compBuf[0],
-      _["blockPosStart"] = blockPosStart,
-      _["blockPosEnd"] = blockPosEnd,
-      _["blockPos"] = blockPos,
-      _["compSize"] = compSize
-    );  // TODO: return timings here
+    return;
   }
 
   // Calculations span at least two block
@@ -536,7 +526,7 @@ SEXP fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
   {
     delete[] blockIndex;
 
-    return List::create(_["res"] = 0);  // TODO: return timings here
+    return;
   }
 
   // Process last block
@@ -584,7 +574,5 @@ SEXP fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
   }
 
   delete[] blockIndex;
-
-  return List::create(_["res"] = 0);  // TODO: return timings here
 }
 

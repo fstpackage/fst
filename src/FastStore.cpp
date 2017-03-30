@@ -97,6 +97,7 @@ inline int FindKey(StringVector colNameList, String item)
 //  4                      | int                | nrOfCols
 //  2 * nrOfCols           | unsigned short int | colAttributesType (not implemented yet)
 //  2 * nrOfCols           | unsigned short int | colTypes
+//  2 * nrOfCols           | unsigned short int | colBaseTypes
 //  ?                      | char               | colNames
 //
 // Data chunkset index
@@ -143,7 +144,7 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
 
 
   // Table meta information
-  unsigned long long metaDataSize        = 56 + 4 * keyLength + 4 * nrOfCols;  // see index above
+  unsigned long long metaDataSize        = 56 + 4 * keyLength + 6 * nrOfCols;  // see index above
   char* metaDataBlock                    = new char[metaDataSize];
 
   unsigned long long* fstFileID          = (unsigned long long*) metaDataBlock;
@@ -162,6 +163,7 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
   int* p_nrOfCols                        = (int*) &metaDataBlock[offset + 28];
   unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[offset + 32];
   unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[offset + 32 + 2 * nrOfCols];
+  unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[offset + 32 + 4 * nrOfCols];
 
 
   // Find key column index numbers, if any
@@ -239,8 +241,6 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
   myfile.write((char*)(chunkIndex), CHUNK_INDEX_SIZE + 8 * nrOfCols);   // file positions of column data
 
 
-  SEXP colResult = NULL;
-
   // column data
   for (int colNr = 0; colNr < nrOfCols; ++colNr)
   {
@@ -254,29 +254,34 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
     {
       case STRSXP:
         colTypes[colNr] = 6;
-        colResult = fdsWriteCharVec_v6(myfile, colVec, nrOfRows, compress);
+        colBaseTypes[colNr] = 1;
+         fdsWriteCharVec_v6(myfile, colVec, nrOfRows, compress);
         break;
 
       case INTSXP:
         if(Rf_isFactor(colVec))
         {
           colTypes[colNr] = 7;
-          colResult = fdsWriteFactorVec_v7(myfile, colVec, nrOfRows, compress);
+        colBaseTypes[colNr] = 2;
+          fdsWriteFactorVec_v7(myfile, colVec, nrOfRows, compress);
           break;
         }
 
         colTypes[colNr] = 8;
-        colResult = fdsWriteIntVec_v8(myfile, colVec, nrOfRows, compress);
+        colBaseTypes[colNr] = 3;
+        fdsWriteIntVec_v8(myfile, INTEGER(colVec), nrOfRows, compress);
         break;
 
       case REALSXP:
         colTypes[colNr] = 9;
-        colResult = fdsWriteRealVec_v9(myfile, colVec, nrOfRows, compress);
+        colBaseTypes[colNr] = 4;
+        fdsWriteRealVec_v9(myfile, REAL(colVec), nrOfRows, compress);
         break;
 
       case LGLSXP:
         colTypes[colNr] = 10;
-        colResult = fdsWriteLogicalVec_v10(myfile, colVec, nrOfRows, compress);
+        colBaseTypes[colNr] = 5;
+        fdsWriteLogicalVec_v10(myfile, LOGICAL(colVec), nrOfRows, compress);
         break;
 
       default:
@@ -306,7 +311,6 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
   return List::create(
     _["keyNames"] = keyNames,
     _["keyLength"] = keyLength,
-    _["colResult"] = colResult,
     _["metaDataSize"] = metaDataSize);
 }
 
@@ -381,7 +385,7 @@ List fstMeta(String fileName)
 
 
   // Continue reading table metadata
-  int metaSize = 32 + 4 * keyLength + 4 * nrOfColsFirstChunk;
+  int metaSize = 32 + 4 * keyLength + 6 * nrOfColsFirstChunk;
   char* metaDataBlock = new char[metaSize];
   myfile.read(metaDataBlock, metaSize);
 
@@ -395,6 +399,7 @@ List fstMeta(String fileName)
   int* p_nrOfCols                        = (int*) &metaDataBlock[tmpOffset + 28];
   unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[tmpOffset + 32];
   unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 2 * nrOfColsFirstChunk];
+  unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 4 * nrOfColsFirstChunk];
 
 
   int nrOfCols = *p_nrOfCols;
@@ -488,7 +493,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 
 
   // Continue reading table metadata
-  int metaSize = 32 + 4 * keyLength + 4 * nrOfColsFirstChunk;
+  int metaSize = 32 + 4 * keyLength + 6 * nrOfColsFirstChunk;
   char* metaDataBlock = new char[metaSize];
   myfile.read(metaDataBlock, metaSize);
 
@@ -504,6 +509,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   int* p_nrOfCols                        = (int*) &metaDataBlock[tmpOffset + 28];
   unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[tmpOffset + 32];
   unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 2 * nrOfColsFirstChunk];
+  unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 4 * nrOfColsFirstChunk];
 
   int nrOfCols = *p_nrOfCols;
 
@@ -638,9 +644,6 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   SEXP resTable;
   PROTECT(resTable = Rf_allocVector(VECSXP, nrOfSelect));
 
-  SEXP colInfo;
-  PROTECT(colInfo = Rf_allocVector(VECSXP, nrOfSelect));
-
   for (int colSel = 0; colSel < nrOfSelect; ++colSel)
   {
     int colNr = colIndex[colSel];
@@ -668,7 +671,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
       case 6:
         SEXP strVec;
         PROTECT(strVec = Rf_allocVector(STRSXP, length));
-        singleColInfo = fdsReadCharVec_v6(myfile, strVec, pos, firstRow, length, nrOfRows);
+        fdsReadCharVec_v6(myfile, strVec, pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, strVec);
         UNPROTECT(1);
         break;
@@ -677,7 +680,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
       case 8:
         SEXP intVec;
         PROTECT(intVec = Rf_allocVector(INTSXP, length));
-        singleColInfo = fdsReadIntVec_v8(myfile, intVec, pos, firstRow, length, nrOfRows);
+        fdsReadIntVec_v8(myfile, INTEGER(intVec), pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, intVec);
         UNPROTECT(1);
         break;
@@ -686,7 +689,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
       case 9:
         SEXP realVec;
         PROTECT(realVec = Rf_allocVector(REALSXP, length));
-        singleColInfo = fdsReadRealVec_v9(myfile, realVec, pos, firstRow, length, nrOfRows);
+        fdsReadRealVec_v9(myfile, REAL(realVec), pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, realVec);
         UNPROTECT(1);
         break;
@@ -695,7 +698,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
       case 10:
         SEXP boolVec;
         PROTECT(boolVec = Rf_allocVector(LGLSXP, length));
-        singleColInfo = fdsReadLogicalVec_v10(myfile, boolVec, pos, firstRow, length, nrOfRows);
+        fdsReadLogicalVec_v10(myfile, LOGICAL(boolVec), pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, boolVec);
         UNPROTECT(1);
         break;
@@ -704,7 +707,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
       case 7:
         SEXP facVec;
         PROTECT(facVec = Rf_allocVector(INTSXP, length));
-        singleColInfo = fdsReadFactorVec_v7(myfile, facVec, pos, firstRow, length, nrOfRows);
+        fdsReadFactorVec_v7(myfile, facVec, pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, facVec);
         UNPROTECT(2);  // level string was also generated
         break;
@@ -716,8 +719,6 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
         myfile.close();
         ::Rf_error("Unknown type found in column.");
     }
-
-    SET_VECTOR_ELT(colInfo, colSel, singleColInfo);
   }
 
   myfile.close();
@@ -749,7 +750,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
     }
 
     // cleanup
-    UNPROTECT(5);
+    UNPROTECT(4);
     delete[] metaDataBlock;
     delete[] blockPos;
 
@@ -757,11 +758,10 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
       _["keyNames"] = keyNames,
       _["found"] = found,
       _["resTable"] = resTable,
-      _["selectedNames"] = selectedNames,
-      _["colInfo"] = colInfo);
+      _["selectedNames"] = selectedNames);
   }
 
-  UNPROTECT(4);
+  UNPROTECT(3);
   delete[] metaDataBlock;
   delete[] blockPos;
 
@@ -779,6 +779,5 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
     _["keyLength"] = keyLength,
     _["nrOfSelect"] = nrOfSelect,
     _["selectedNames"] = selectedNames,
-    _["resTable"] = resTable,
-    _["colInfo"] = colInfo);
+    _["resTable"] = resTable);
 }
