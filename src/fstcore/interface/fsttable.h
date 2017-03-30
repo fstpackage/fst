@@ -86,10 +86,6 @@ class FstColumn_int32 : public FstColumn
     {
       colType = FstColumnType::INT_32;
     }
-    FstColumn_int32(int* colData, uint64_t colSize, int minValue, int maxValue)
-    {
-      colType = FstColumnType::INT32_32;
-    }
 };
 
 
