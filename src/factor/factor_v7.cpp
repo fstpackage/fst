@@ -55,7 +55,7 @@ using namespace Rcpp;
 #define HEADER_SIZE_FACTOR 16
 #define VERSION_NUMBER_FACTOR 1
 
-SEXP fdsWriteFactorVec_v7(ofstream &myfile, SEXP &factVec, unsigned size, unsigned int compression)
+void fdsWriteFactorVec_v7(ofstream &myfile, SEXP &factVec, unsigned size, unsigned int compression)
 {
   SEXP res;  // timing information
   unsigned long long blockPos = myfile.tellp();  // offset for factor
@@ -95,23 +95,25 @@ SEXP fdsWriteFactorVec_v7(ofstream &myfile, SEXP &factVec, unsigned size, unsign
     if (*nrOfLevels < 128)
     {
       FixedRatioCompressor* compressor = new FixedRatioCompressor(CompAlgo::INT_TO_BYTE);  // compression level not relevant here
-      res = fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, compressor);
+      fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, compressor);
 
       delete compressor;
 
-      return List::create(_["res"] = 0);  // TODO: return timings here
+      return;
     }
 
     if (*nrOfLevels < 32768)
     {
       FixedRatioCompressor* compressor = new FixedRatioCompressor(CompAlgo::INT_TO_SHORT);  // compression level not relevant here
-      res = fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, compressor);
+      fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, compressor);
       delete compressor;
 
-      return res;
+      return;
     }
 
-    return fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, NULL);
+    fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, NULL);
+
+    return;
   }
 
   int blockSize = 4 * BLOCKSIZE_INT;  // block size in bytes
@@ -137,12 +139,12 @@ SEXP fdsWriteFactorVec_v7(ofstream &myfile, SEXP &factVec, unsigned size, unsign
 
     streamCompressor->CompressBufferSize(blockSize);
 
-    res = fdsStreamcompressed_v2(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
+    fdsStreamcompressed_v2(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
     delete defaultCompress;
     delete compress2;
     delete streamCompressor;
 
-    return res;
+    return;
   }
 
   if (*nrOfLevels < 32768)  // use 2 bytes per int
@@ -152,12 +154,12 @@ SEXP fdsWriteFactorVec_v7(ofstream &myfile, SEXP &factVec, unsigned size, unsign
     StreamCompressor* streamCompressor = new StreamCompositeCompressor(defaultCompress, compress2, compression);
     streamCompressor->CompressBufferSize(blockSize);
 
-    res = fdsStreamcompressed_v2(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
+    fdsStreamcompressed_v2(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
     delete defaultCompress;
     delete compress2;
     delete streamCompressor;
 
-    return res;
+    return;
   }
 
   // use default integer compression with shuffle
@@ -165,15 +167,16 @@ SEXP fdsWriteFactorVec_v7(ofstream &myfile, SEXP &factVec, unsigned size, unsign
   Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4_SHUF4, 0);
   StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, compression);
   streamCompressor->CompressBufferSize(blockSize);
-  res = fdsStreamcompressed_v2(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
+  fdsStreamcompressed_v2(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
   delete compress1;
   delete streamCompressor;
-  return res;
+
+  return;
 }
 
 
 // Parameter 'startRow' is zero based.
-SEXP fdsReadFactorVec_v7(istream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned int startRow,
+void fdsReadFactorVec_v7(istream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned int startRow,
   unsigned int length, unsigned int size)
 {
   // Jump to factor level
@@ -204,5 +207,5 @@ SEXP fdsReadFactorVec_v7(istream &myfile, SEXP &intVec, unsigned long long block
   Rf_setAttrib(intVec, Rf_mkString("levels"), strVec);
   Rf_setAttrib(intVec, Rf_mkString("class"), Rf_mkString("factor"));
 
-  return List::create(_["res"] = 0);  // TODO: return timings here
+  return;
 }

@@ -245,7 +245,7 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, unsigned int b
 }
 
 
-SEXP fdsWriteCharVec_v6(ofstream &myfile, SEXP &strVec, unsigned int vecLength, int compression)
+void fdsWriteCharVec_v6(ofstream &myfile, SEXP &strVec, unsigned int vecLength, int compression)
 {
   unsigned long long curPos = myfile.tellp();
   unsigned int nrOfBlocks = (vecLength - 1) / BLOCKSIZE_CHAR;  // number of blocks minus 1
@@ -285,7 +285,7 @@ SEXP fdsWriteCharVec_v6(ofstream &myfile, SEXP &strVec, unsigned int vecLength, 
 
     delete[] meta;
 
-    return List::create(_["res"] = 0);  // TODO: return timings here
+    return;
   }
 
 
@@ -375,7 +375,7 @@ SEXP fdsWriteCharVec_v6(ofstream &myfile, SEXP &strVec, unsigned int vecLength, 
 
   delete[] meta;
 
-  return List::create(_["res"] = 0);  // TODO: return timings here
+  return;
 }
 
 
@@ -600,7 +600,7 @@ inline SEXP ReadDataBlockCompressed_v6(istream &myfile, SEXP &strVec, unsigned l
 }
 
 
-List fdsReadCharVec_v6(istream &myfile, SEXP &strVec, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size)
+void fdsReadCharVec_v6(istream &myfile, SEXP &strVec, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size)
 {
   // Jump to startRow size
   myfile.seekg(blockPos);
@@ -660,7 +660,7 @@ List fdsReadCharVec_v6(istream &myfile, SEXP &strVec, unsigned long long blockPo
     {
       delete[] blockOffset;
 
-      return List::create(_["res"] = 0);  // TODO: return timings here
+      return;
     }
 
     offset = blockOffset[1];
@@ -685,7 +685,7 @@ List fdsReadCharVec_v6(istream &myfile, SEXP &strVec, unsigned long long blockPo
 
     delete[] blockOffset;
 
-    return List::create(_["res"] = 0);  // TODO: return timings here
+    return;
   }
 
 
@@ -743,7 +743,7 @@ List fdsReadCharVec_v6(istream &myfile, SEXP &strVec, unsigned long long blockPo
   {
     delete[] blockInfo;
 
-    return List::create(_["res"] = 0);  // TODO: return timings here
+    return;
   }
 
   offset = curBlockPos;
@@ -781,5 +781,5 @@ List fdsReadCharVec_v6(istream &myfile, SEXP &strVec, unsigned long long blockPo
 
   delete[] blockInfo;
 
-  return List::create(_["res"] = 0);  // TODO: return timings here
+  return;
 }
