@@ -161,7 +161,7 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
   unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[offset + 16];
   unsigned int* p_version                = (unsigned int*) &metaDataBlock[offset + 24];
   int* p_nrOfCols                        = (int*) &metaDataBlock[offset + 28];
-  unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[offset + 32];
+  // unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[offset + 32];
   unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[offset + 32 + 2 * nrOfCols];
   unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[offset + 32 + 4 * nrOfCols];
 
@@ -331,7 +331,7 @@ inline unsigned int ReadHeader(ifstream &myfile, unsigned int &tableClassType, i
 
   unsigned long long* p_fstFileID = (unsigned long long*) tableMeta;
   unsigned int* p_table_version   = (unsigned int*) &tableMeta[8];
-  unsigned int* p_tableClassType  = (unsigned int*) &tableMeta[12];
+  // unsigned int* p_tableClassType  = (unsigned int*) &tableMeta[12];
   int* p_keyLength                = (int*) &tableMeta[16];
   int* p_nrOfColsFirstChunk       = (int*) &tableMeta[20];
 
@@ -392,14 +392,14 @@ List fstMeta(String fileName)
   unsigned int tmpOffset = 4 * keyLength;
 
   int* keyColPos                         = (int*) metaDataBlock;
-  unsigned long long* p_nextHorzChunkSet = (unsigned long long*) &metaDataBlock[tmpOffset];
-  unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[tmpOffset + 8];
+  // unsigned long long* p_nextHorzChunkSet = (unsigned long long*) &metaDataBlock[tmpOffset];
+  // unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[tmpOffset + 8];
   unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[tmpOffset + 16];
-  unsigned int* p_version                = (unsigned int*) &metaDataBlock[tmpOffset + 24];
+  // unsigned int* p_version                = (unsigned int*) &metaDataBlock[tmpOffset + 24];
   int* p_nrOfCols                        = (int*) &metaDataBlock[tmpOffset + 28];
-  unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[tmpOffset + 32];
+  // unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[tmpOffset + 32];
   unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 2 * nrOfColsFirstChunk];
-  unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 4 * nrOfColsFirstChunk];
+  // unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 4 * nrOfColsFirstChunk];
 
 
   int nrOfCols = *p_nrOfCols;
@@ -502,14 +502,14 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 
   unsigned int tmpOffset = 4 * keyLength;
 
-  unsigned long long* p_nextHorzChunkSet = (unsigned long long*) &metaDataBlock[tmpOffset];
-  unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[tmpOffset + 8];
-  unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[tmpOffset + 16];
-  unsigned int* p_version                = (unsigned int*) &metaDataBlock[tmpOffset + 24];
+  // unsigned long long* p_nextHorzChunkSet = (unsigned long long*) &metaDataBlock[tmpOffset];
+  // unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[tmpOffset + 8];
+  // unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[tmpOffset + 16];
+  // unsigned int* p_version                = (unsigned int*) &metaDataBlock[tmpOffset + 24];
   int* p_nrOfCols                        = (int*) &metaDataBlock[tmpOffset + 28];
-  unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[tmpOffset + 32];
+  // unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[tmpOffset + 32];
   unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 2 * nrOfColsFirstChunk];
-  unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 4 * nrOfColsFirstChunk];
+  // unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 4 * nrOfColsFirstChunk];
 
   int nrOfCols = *p_nrOfCols;
 
@@ -529,9 +529,9 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   char chunkIndex[CHUNK_INDEX_SIZE];
   myfile.read(chunkIndex, CHUNK_INDEX_SIZE);
 
-  unsigned long long* chunkPos                = (unsigned long long*) chunkIndex;
+  // unsigned long long* chunkPos                = (unsigned long long*) chunkIndex;
   unsigned long long* chunkRows               = (unsigned long long*) &chunkIndex[64];
-  unsigned long long* p_nrOfChunksPerIndexRow = (unsigned long long*) &chunkIndex[128];
+  // unsigned long long* p_nrOfChunksPerIndexRow = (unsigned long long*) &chunkIndex[128];
   unsigned long long* p_nrOfChunks            = (unsigned long long*) &chunkIndex[136];
 
   // Check nrOfChunks
@@ -662,8 +662,6 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
     SET_STRING_ELT(selectedNames, colSel, selName);
 
     unsigned long long pos = blockPos[colNr];
-
-    SEXP singleColInfo;
 
     switch (colTypes[colNr])
     {
