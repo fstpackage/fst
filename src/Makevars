@@ -1,13 +1,15 @@
 
-PKG_CPPFLAGS = -I. -ILZ4 -IZSTD -IZSTD/common -IZSTD/decompress -IZSTD/compress
+PKG_CPPFLAGS = -I. -Ifstcore -ILZ4 -IZSTD -IZSTD/common -IZSTD/decompress -IZSTD/compress -Ifstcore/logical -Ifstcore/integer -Ifstcore/double -Icharacter -Ifactor -Ifstcore/interface
 CXX_STD      = CXX11
-PKG_LIBS     = -L. -lLZ4 -lZSTD
+PKG_LIBS     = -L. -lLZ4 -lZSTD -lFRAME -lTYPES
 
 # libraries
 LIBLZ4  = LZ4/lz4.o
 LIBZSTD = ZSTD/common/entropy_common.o ZSTD/common/error_private.o ZSTD/common/fse_decompress.o ZSTD/compress/fse_compress.o ZSTD/decompress/huf_decompress.o ZSTD/compress/huf_compress.o ZSTD/decompress/zstd_decompress.o ZSTD/common/xxhash.o ZSTD/common/zstd_common.o ZSTD/compress/zstd_compress.o
+LIBFRAME = fstcore/interface/fstmetadata.o fstcore/interface/fsttable.o fstcore/interface/fststore.o
+LIBTYPES = fstcore/logical/logical_v4.o fstcore/logical/logical_v10.o fstcore/integer/integer_v2.o fstcore/integer/integer_v8.o fstcore/double/double_v3.o fstcore/double/double_v9.o character/character_v1.o character/character_v6.o factor/factor_v5.o factor/factor_v7.o
 
-$(SHLIB): libLZ4.a libZSTD.a
+$(SHLIB): libLZ4.a libZSTD.a libFRAME.a libTYPES.a
 
 libLZ4.a: $(LIBLZ4)
 	$(AR) rcs libLZ4.a $(LIBLZ4)
@@ -15,5 +17,11 @@ libLZ4.a: $(LIBLZ4)
 libZSTD.a: $(LIBZSTD)
 	$(AR) rcs libZSTD.a $(LIBZSTD)
 
+libFRAME.a: $(LIBFRAME)
+	$(AR) rcs libFRAME.a $(LIBFRAME)
+
+libTYPES.a: $(LIBTYPES)
+	$(AR) rcs libTYPES.a $(LIBTYPES)
+
 clean:
-	rm -f $(SHLIB) $(LIBLZ4) $(OBJECTS) libLZ4.a $(LIBZSTD) libZSTD.a
+	rm -f $(SHLIB) $(LIBLZ4) $(OBJECTS) libLZ4.a $(LIBZSTD) libZSTD.a $(LIBFRAME) libFRAME.a $(LIBTYPES) libTYPES.a

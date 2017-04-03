@@ -1,6 +1,5 @@
 /*
   fst - An R-package for ultra fast storage and retrieval of datasets.
-  Header File
   Copyright (C) 2017, Mark AJ Klik
 
   BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
@@ -33,25 +32,38 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef BLOCKSTORE_H
-#define BLOCKSTORE_H
 
-#include <Rcpp.h>  // Rcpp header
-
-// Framework headers
-#include "compressor.h"
-
-// Method for writing column data of any type to a ofstream.
-SEXP fdsStreamUncompressed(std::ofstream &myfile, char* vec, unsigned int vecLength, int elementSize, int blockSizeElems,
-  FixedRatioCompressor* fixedRatioCompressor);
+#ifndef FSTMETADATA_H
+#define FSTMETADATA_H
 
 
-// Method for writing column data of any type to a stream.
-SEXP fdsStreamcompressed(std::ofstream &myfile, char* colVec, unsigned int nrOfRows, int elementSize,
-  StreamCompressor* streamCompressor, int blockSizeElems);
+#include <stdint.h>
+#include <vector>
+#include <string>
+#include <fstream>
 
 
-SEXP fdsReadColumn(std::ifstream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size, int elementSize);
+/**
+ Meta data class for a fst file.
+*/
+class FstMetaData
+{
+  public:
+    std::vector<std::string> colNameVec;
+    std::vector<uint16_t> colAttrVec;
+    std::vector<uint16_t> colTypeVec;
+
+    uint64_t nrOfRows;
+    uint64_t lastHorzChunkPointer;
+
+    int Collect(std::istream &fstfile, uint64_t filePointer);
+
+    unsigned int ReadHeader(std::istream &myfile, unsigned int &tableClassType, int &keyLength, int &nrOfColsFirstChunk);
+
+  private:
+    int CollectRecursive(std::istream &fstfile, uint64_t filePointer);
+
+};
 
 
-#endif // BLOCKSTORE_H
+#endif  // FSTMETADATA_H

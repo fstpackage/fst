@@ -1,7 +1,7 @@
 
 #' @useDynLib fst
 #' @importFrom Rcpp sourceCpp
-#' @importFrom data.table is.data.table setDT
+#' @import data.table
 NULL
 
 

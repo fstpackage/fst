@@ -43,7 +43,7 @@
 #define NR_OF_ALGORITHMS 15
 #define MAX_TARGET_REP_SIZE 8
 #define MAX_SOURCE_REP_SIZE 128
-#define MAX_TARGET_BUFFER 8192  // 16384  / 2 
+#define MAX_TARGET_BUFFER 8192  // 16384  / 2
 
 // Compression algorithm types. Used for determining the maximum compression buffer size.
 enum CompAlgoType
@@ -92,15 +92,6 @@ extern unsigned int fixedRatioTargetRepSize[NR_OF_ALGORITHMS];
 class Decompressor
 {
 public:
-
-  /**
-   Constructor for a compressor with two competing compression algorithms.
-
-   @param algo1 First decompression algorithm.
-   @param algo2 Second decompression algorithm.
-   @param algo3 Thirth decompression algorithm.
-   @param algo4 Fourth decompression algorithm.
-   */
   Decompressor() {};
 
   ~Decompressor() { };

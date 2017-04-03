@@ -5,48 +5,40 @@
 
 using namespace Rcpp;
 
-// boolToInt
-SEXP boolToInt(SEXP logical);
-RcppExport SEXP fst_boolToInt(SEXP logicalSEXP) {
+// UnserializeObjectAttributes
+SEXP UnserializeObjectAttributes(SEXP rObject, RawVector rawVector, Function unserializer);
+RcppExport SEXP fst_UnserializeObjectAttributes(SEXP rObjectSEXP, SEXP rawVectorSEXP, SEXP unserializerSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type logical(logicalSEXP);
-    rcpp_result_gen = Rcpp::wrap(boolToInt(logical));
-    return rcpp_result_gen;
-END_RCPP
-}
-// intToBool
-SEXP intToBool(SEXP ints);
-RcppExport SEXP fst_intToBool(SEXP intsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type ints(intsSEXP);
-    rcpp_result_gen = Rcpp::wrap(intToBool(ints));
+    Rcpp::traits::input_parameter< SEXP >::type rObject(rObjectSEXP);
+    Rcpp::traits::input_parameter< RawVector >::type rawVector(rawVectorSEXP);
+    Rcpp::traits::input_parameter< Function >::type unserializer(unserializerSEXP);
+    rcpp_result_gen = Rcpp::wrap(UnserializeObjectAttributes(rObject, rawVector, unserializer));
     return rcpp_result_gen;
 END_RCPP
 }
 // fstStore
-SEXP fstStore(String fileName, SEXP table, SEXP compression);
-RcppExport SEXP fst_fstStore(SEXP fileNameSEXP, SEXP tableSEXP, SEXP compressionSEXP) {
+SEXP fstStore(Rcpp::String fileName, SEXP table, SEXP compression, Rcpp::Function serializer);
+RcppExport SEXP fst_fstStore(SEXP fileNameSEXP, SEXP tableSEXP, SEXP compressionSEXP, SEXP serializerSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< String >::type fileName(fileNameSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type fileName(fileNameSEXP);
     Rcpp::traits::input_parameter< SEXP >::type table(tableSEXP);
     Rcpp::traits::input_parameter< SEXP >::type compression(compressionSEXP);
-    rcpp_result_gen = Rcpp::wrap(fstStore(fileName, table, compression));
+    Rcpp::traits::input_parameter< Rcpp::Function >::type serializer(serializerSEXP);
+    rcpp_result_gen = Rcpp::wrap(fstStore(fileName, table, compression, serializer));
     return rcpp_result_gen;
 END_RCPP
 }
 // fstMeta
-List fstMeta(String fileName);
+Rcpp::List fstMeta(Rcpp::String fileName);
 RcppExport SEXP fst_fstMeta(SEXP fileNameSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< String >::type fileName(fileNameSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type fileName(fileNameSEXP);
     rcpp_result_gen = Rcpp::wrap(fstMeta(fileName));
     return rcpp_result_gen;
 END_RCPP
@@ -62,6 +54,31 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< SEXP >::type startRow(startRowSEXP);
     Rcpp::traits::input_parameter< SEXP >::type endRow(endRowSEXP);
     rcpp_result_gen = Rcpp::wrap(fstRead(fileName, columnSelection, startRow, endRow));
+    return rcpp_result_gen;
+END_RCPP
+}
+// BytesConvert
+SEXP BytesConvert(SEXP integer);
+RcppExport SEXP fst_BytesConvert(SEXP integerSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type integer(integerSEXP);
+    rcpp_result_gen = Rcpp::wrap(BytesConvert(integer));
+    return rcpp_result_gen;
+END_RCPP
+}
+// fstrbind
+SEXP fstrbind(Rcpp::String fileName, SEXP table, SEXP compression, Rcpp::Function serializer);
+RcppExport SEXP fst_fstrbind(SEXP fileNameSEXP, SEXP tableSEXP, SEXP compressionSEXP, SEXP serializerSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::String >::type fileName(fileNameSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type table(tableSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type compression(compressionSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Function >::type serializer(serializerSEXP);
+    rcpp_result_gen = Rcpp::wrap(fstrbind(fileName, table, compression, serializer));
     return rcpp_result_gen;
 END_RCPP
 }

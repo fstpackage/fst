@@ -1,6 +1,5 @@
 /*
   fst - An R-package for ultra fast storage and retrieval of datasets.
-  Header File
   Copyright (C) 2017, Mark AJ Klik
 
   BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
@@ -33,17 +32,30 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef BOOLSTORE_H
-#define BOOLSTORE_H
 
-#include <Rcpp.h>  // Rcpp header
-
-// Logical vectors are always compressed to fill all available bits (factor 16 compression).
-// On top of that, we can compress the resulting bytes with a custom compressor.
-SEXP fdsWriteLogicalVec(std::ofstream &myfile, SEXP &boolVec, unsigned nrOfLogicals, int compression);
+#ifndef FSTSTREAMER_H
+#define FSTSTREAMER_H
 
 
-SEXP fdsReadLogicalVec(std::ifstream &myfile, SEXP &boolVec, unsigned long long blockPos, unsigned int startRow,
-  unsigned int length, unsigned int size);
 
-#endif // BOOLSTORE_H
+/**
+ Interface to a fst file.
+*/
+class FstStreamer
+{
+  FstStreamer();
+
+  // Open connection to an existing fst file
+  int open(std::string filename, std::string mode);
+
+  int close();
+
+  FstMetaData metaData();
+
+  int cbindChunk(FstChunk chunk);
+
+  int rbindChunk(FstChunk chunk);
+};
+
+
+#endif FSTSTREAMER_H

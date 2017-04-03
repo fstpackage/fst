@@ -1,6 +1,7 @@
 
 require(testthat)
 
+
 test_that("Reading non-existent file gives an error",
 {
   expect_error(read.fst("AccessStore/non-existent.fst"))

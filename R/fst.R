@@ -30,9 +30,9 @@ write.fst <- function(x, path, compress = 0)
 {
   if (!is.character(path)) stop("Please specify a correct path.")
 
-  if (!is.data.table(x) & !(is.data.frame(x))) stop("Please make sure 'x' is a data frame.")
+  if (!is.data.frame(x)) stop("Please make sure 'x' is a data frame.")
 
-  fstStore(normalizePath(path, mustWork = FALSE), x, as.integer(compress))
+  fstStore(normalizePath(path, mustWork = FALSE), x, as.integer(compress), serialize)
 
   invisible(x)
 }
@@ -75,10 +75,31 @@ print.fst.metadata <- function(x, ...)
   cat("<fst file>\n")
   cat(x$NrOfRows, " rows, ", length(x$ColumnNames), " columns (", x$Path, ")\n\n", sep = "")
 
-  types <- c("character", "integer", "real", "logical", "factor")
+  types <- c("character", "integer", "double", "logical", "factor", "character", "factor", "integer", "double", "logical")
   colNames <- format(encodeString(x$ColumnNames, quote = "'"))
 
-  cat(paste0("* ", colNames, ": ", types[x$ColumnTypes], "\n"), sep = "")
+  # Table has no key columns
+  if (is.null(x$Keys))
+  {
+    cat(paste0("* ", colNames, ": ", types[x$ColumnTypes], "\n"), sep = "")
+    return(invisible(NULL))
+  }
+
+  K = C = Count = KeyLab = O = NULL  # avoid R CMD check note
+
+  # Table has key columns
+  keys <- data.table(K = x$Keys, Count = 1:length(x$Keys))
+  setkey(keys, K)
+
+  colTab <- data.table(C = x$ColumnNames, O = 1:length(x$ColumnNames))
+  setkey(colTab, C)
+
+  colTab <- keys[colTab]
+  colTab[!is.na(Count), KeyLab := paste0(" (key ", Count, ")")]
+  colTab[is.na(Count), KeyLab := ""]
+  setkey(colTab, O)
+
+  cat(paste0("* ", colNames, ": ", types[x$ColumnTypes], colTab$KeyLab, "\n"), sep = "")
 }
 
 

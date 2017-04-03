@@ -33,21 +33,25 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef DOUBLESTORE_H
-#define DOUBLESTORE_H
+#ifndef FASTSTORE_V1_H
+#define FASTSTORE_V1_H
 
-// System libraries
-#include <ctime>
-#include <ratio>
+#include <Rcpp.h>
+#include <iostream>
+#include <fstream>
+#include <R.h>
+#include <Rinternals.h>
 
-// External libraries
-#include "lz4.h"
 #include <compression.h>
 #include <compressor.h>
 
+// External libraries
+#include "lz4.h"
 
-SEXP fdsWriteRealVec(ofstream &myfile, SEXP &realVec, unsigned size, unsigned int compression);
 
-SEXP fdsReadRealVec(ifstream &myfile, SEXP &realVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
+Rcpp::List fstMeta_v1(Rcpp::String fileName);
 
-#endif // DOUBLESTORE_H
+SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
+
+
+#endif  // FASTSTORE_V1_H

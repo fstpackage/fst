@@ -32,20 +32,22 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#include <FastStore.h>
-
 #include <Rcpp.h>
 #include <iostream>
 #include <fstream>
 #include <R.h>
 #include <Rinternals.h>
 
-#include <lowerbound.h>
-#include <charStore.h>
-#include <factStore.h>
-#include <intStore.h>
-#include <doubleStore.h>
-#include <boolStore.h>
+#include <fstdefines.h>
+#include <FastStore.h>
+#include <FastStore_v1.h>
+
+#include <character_v6.h>
+#include <factor_v7.h>
+#include <integer_v8.h>
+#include <double_v9.h>
+#include <logical_v10.h>
+
 #include <compression.h>
 #include <compressor.h>
 
@@ -56,187 +58,359 @@
 using namespace std;
 using namespace Rcpp;
 
-#define BLOCKSIZE 16384  // number of bytes in default compression block
 
-
-SEXP fstStore(String fileName, SEXP table, SEXP compression)
+inline int FindKey(StringVector colNameList, String item)
 {
-  // Create file before using it (speed up)
-  ofstream myfile;
-  myfile.open(fileName.get_cstring(), ios::binary);
-
-  if (myfile.fail())
+  int index = -1;
+  int found = 0;
+  for (Rcpp::StringVector::iterator it = colNameList.begin(); it != colNameList.end(); ++it)
   {
-    myfile.close();
-    ::Rf_error("There was an error creating the file. Please check for a correct filename.");
+    if (*it == item)
+    {
+      index = found;
+      break;
+    }
+    ++found;
   }
 
+  return index;
+}
+
+
+// Table metadata
+//
+//  NR OF BYTES            | TYPE               | VARIABLE NAME
+//
+//  8                      | unsigned long long | FST_FILE_ID
+//  4                      | unsigned int       | FST_VERSION
+//  4                      | int                | tableClassType
+//  4                      | int                | keyLength
+//  4                      | int                | nrOfCols  (duplicate for fast access)
+//  4 * keyLength          | int                | keyColPos
+//
+// Column chunkset info
+//
+//  8                      | unsigned long long | nextHorzChunkSet
+//  8                      | unsigned long long | nextVertChunkSet
+//  8                      | unsigned long long | nrOfRows
+//  4                      | unsigned int       | FST_VERSION
+//  4                      | int                | nrOfCols
+//  2 * nrOfCols           | unsigned short int | colAttributesType (not implemented yet)
+//  2 * nrOfCols           | unsigned short int | colTypes
+//  2 * nrOfCols           | unsigned short int | colBaseTypes
+//  ?                      | char               | colNames
+//
+// Data chunkset index
+//
+//  8 * 8 (index rows)     | unsigned long long | chunkPos
+//  8 * 8 (index rows)     | unsigned long long | chunkRows
+//  8                      | unsigned long long | nrOfChunksPerIndexRow
+//  8                      | unsigned long long | nrOfChunks
+//
+// Data chunk columnar position data
+//
+//  8 * nrOfCols           | unsigned long long | positionData
+//
+
+SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer)
+{
   SEXP colNames = Rf_getAttrib(table, R_NamesSymbol);
   SEXP keyNames = Rf_getAttrib(table, Rf_mkString("sorted"));
 
+
   if (!Rf_isInteger(compression))
   {
-    myfile.close();
     ::Rf_error("Parameter compression should be an integer value between 0 and 100");
   }
 
   int compress = *INTEGER(compression);
   if ((compress < 0) | (compress > 100))
   {
-    myfile.close();
     ::Rf_error("Parameter compression should be an integer value between 0 and 100");
   }
 
   // Meta on dataset
+  int nrOfCols =  LENGTH(colNames);
   int keyLength = 0;
-  short int nrOfCols = LENGTH(colNames);
-
-  if (nrOfCols == 0)
-  {
-    myfile.close();
-    ::Rf_error("Your dataset needs at least one column.");
-  }
-
-  short int *metaData = new short int[nrOfCols + keyLength + 2];
-
-  metaData[0] = nrOfCols;
-
   if (!Rf_isNull(keyNames))
   {
     keyLength = LENGTH(keyNames);
+  }
 
-    // Determine key column indexes
-    int equal;
+  if (nrOfCols == 0)
+  {
+    ::Rf_error("Your dataset needs at least one column.");
+  }
+
+
+  // Table meta information
+  unsigned long long metaDataSize        = 56 + 4 * keyLength + 6 * nrOfCols;  // see index above
+  char* metaDataBlock                    = new char[metaDataSize];
+
+  unsigned long long* fstFileID          = (unsigned long long*) metaDataBlock;
+  unsigned int* p_table_version          = (unsigned int*) &metaDataBlock[8];
+  unsigned int* p_tableClassType         = (unsigned int*) &metaDataBlock[12];
+  int* p_keyLength                       = (int*) &metaDataBlock[16];
+  int* p_nrOfColsFirstChunk              = (int*) &metaDataBlock[20];
+  int* keyColPos                         = (int*) &metaDataBlock[24];
+
+  unsigned int offset = 24 + 4 * keyLength;
+
+  unsigned long long* p_nextHorzChunkSet = (unsigned long long*) &metaDataBlock[offset];
+  unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[offset + 8];
+  unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[offset + 16];
+  unsigned int* p_version                = (unsigned int*) &metaDataBlock[offset + 24];
+  int* p_nrOfCols                        = (int*) &metaDataBlock[offset + 28];
+  // unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[offset + 32];
+  unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[offset + 32 + 2 * nrOfCols];
+  unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[offset + 32 + 4 * nrOfCols];
+
+
+  // Find key column index numbers, if any
+  if (keyLength != 0)
+  {
+    StringVector keyList(keyNames);
+
     for (int colSel = 0; colSel < keyLength; ++colSel)
     {
-      equal = -1;
-      const char* str1 = CHAR(STRING_ELT(keyNames, colSel));
-
-      for (int colNr = 0; colNr < nrOfCols; ++colNr)
-      {
-        const char* str2 = CHAR(STRING_ELT(colNames, colNr));
-        if (strcmp(str1, str2) == 0)
-        {
-          equal = colNr;
-          break;
-        }
-      }
-      metaData[2 + colSel] = equal;
+      keyColPos[colSel] = FindKey(colNames, keyList[colSel]);
     }
   }
 
-  metaData[1] = keyLength;
+  *fstFileID            = FST_FILE_ID;
+  *p_table_version      = FST_VERSION;
+  *p_tableClassType     = 1;  // default table
+  *p_keyLength          = keyLength;
+  *p_nrOfColsFirstChunk = nrOfCols;
 
-  // Pointers to column file positions
-  unsigned long long *positionData = new unsigned long long[nrOfCols + 1];
+  *p_nextHorzChunkSet   = 0;
+  *p_nextVertChunkSet   = 0;
+  *p_version            = FST_VERSION;
+  *p_nrOfCols           = nrOfCols;
 
+
+  // data.frame code here for stability!
   SEXP firstCol = VECTOR_ELT(table, 0);
   int nrOfRows = LENGTH(firstCol);
-  positionData[0] = nrOfRows;
+  *p_nrOfRows = nrOfRows;
 
-  myfile.write((char*)(metaData), sizeof(short int) * (nrOfCols + keyLength + 2));
-  myfile.write((char*)(positionData), sizeof(unsigned long long) * (nrOfCols + 1));  // chunk column positions
-  fdsWriteCharVec(myfile, colNames, nrOfCols, 0);  // column names
 
   if (nrOfRows == 0)
   {
-    delete[] metaData;
-    delete[] positionData;
-    myfile.close();
+    delete[] metaDataBlock;
     ::Rf_error("The dataset contains no data.");
   }
 
-  SEXP colResult = NULL;
+
+  // Create file, set fast local buffer and open
+  ofstream myfile;
+  char ioBuf[4096];
+  myfile.rdbuf()->pubsetbuf(ioBuf, 4096);  // workaround for memory leak in ofstream
+  myfile.open(fileName.get_cstring(), ios::binary);
+
+  if (myfile.fail())
+  {
+    delete[] metaDataBlock;
+    myfile.close();
+    ::Rf_error("There was an error creating the file. Please check for a correct filename.");
+  }
+
+
+  // Write table meta information
+  myfile.write((char*)(metaDataBlock), metaDataSize);  // table meta data
+  fdsWriteCharVec_v6(myfile, colNames, nrOfCols, 0);   // column names
+  // TODO: Write column attributes here
+
+
+  // Vertical chunkset index or index of index
+  char* chunkIndex = new char[CHUNK_INDEX_SIZE + 8 * nrOfCols];
+
+  unsigned long long* chunkPos                = (unsigned long long*) chunkIndex;
+  unsigned long long* chunkRows               = (unsigned long long*) &chunkIndex[64];
+  unsigned long long* p_nrOfChunksPerIndexRow = (unsigned long long*) &chunkIndex[128];
+  unsigned long long* p_nrOfChunks            = (unsigned long long*) &chunkIndex[136];
+  unsigned long long *positionData            = (unsigned long long*) &chunkIndex[144];  // column position index
+
+
+  *p_nrOfChunksPerIndexRow = 1;
+  *p_nrOfChunks            = 1;  // set to 0 if all reserved slots are used
+  *chunkRows               = (unsigned long long) nrOfRows;
+
+
+  // Row and column meta data
+  myfile.write((char*)(chunkIndex), CHUNK_INDEX_SIZE + 8 * nrOfCols);   // file positions of column data
+
 
   // column data
   for (int colNr = 0; colNr < nrOfCols; ++colNr)
   {
-    positionData[colNr + 1] = myfile.tellp();  // current location
-    SEXP colVec = VECTOR_ELT(table, colNr);
+    positionData[colNr] = myfile.tellp();  // current location
+    SEXP colVec = VECTOR_ELT(table, colNr);  // column vector
+
+    // Store attributes here if any
+    // unsigned int attrBlockSize = SerializeObjectAttributes(ofstream &myfile, RObject rObject, serializer);
 
     switch (TYPEOF(colVec))
     {
       case STRSXP:
-        metaData[2 + keyLength + colNr] = 1;
-        colResult = fdsWriteCharVec(myfile, colVec, nrOfRows, compress);
+        colTypes[colNr] = 6;
+        colBaseTypes[colNr] = 1;
+         fdsWriteCharVec_v6(myfile, colVec, nrOfRows, compress);
         break;
 
       case INTSXP:
         if(Rf_isFactor(colVec))
         {
-          metaData[2 + keyLength + colNr] = 5;
-          colResult = fdsWriteFactorVec(myfile, colVec, nrOfRows, compress);
+          colTypes[colNr] = 7;
+        colBaseTypes[colNr] = 2;
+          fdsWriteFactorVec_v7(myfile, colVec, nrOfRows, compress);
           break;
         }
 
-        metaData[2 + keyLength + colNr] = 2;
-        colResult = fdsWriteIntVec(myfile, colVec, nrOfRows, compress);
+        colTypes[colNr] = 8;
+        colBaseTypes[colNr] = 3;
+        fdsWriteIntVec_v8(myfile, INTEGER(colVec), nrOfRows, compress);
         break;
 
       case REALSXP:
-        metaData[2 + keyLength + colNr] = 3;
-        colResult = fdsWriteRealVec(myfile, colVec, nrOfRows, compress);
+        colTypes[colNr] = 9;
+        colBaseTypes[colNr] = 4;
+        fdsWriteRealVec_v9(myfile, REAL(colVec), nrOfRows, compress);
         break;
 
       case LGLSXP:
-        metaData[2 + keyLength + colNr] = 4;
-        colResult = fdsWriteLogicalVec(myfile, colVec, nrOfRows, compress);
+        colTypes[colNr] = 10;
+        colBaseTypes[colNr] = 5;
+        fdsWriteLogicalVec_v10(myfile, LOGICAL(colVec), nrOfRows, compress);
         break;
 
       default:
-        delete[] metaData;
-        delete[] positionData;
+        delete[] metaDataBlock;
+        delete[] chunkIndex;
         myfile.close();
         ::Rf_error("Unknown type found in column.");
     }
   }
 
+
+  // update chunk position data
+  *chunkPos = positionData[0] - 8 * nrOfCols;
+
   myfile.seekp(0);
-  myfile.write((char*)(metaData), sizeof(short int) * (nrOfCols + keyLength + 2));
-  myfile.write((char*)(positionData), sizeof(unsigned long long) * (nrOfCols + 1));
+  myfile.write((char*)(metaDataBlock), metaDataSize);  // table header
+
+  myfile.seekp(*chunkPos - CHUNK_INDEX_SIZE);
+  myfile.write((char*)(chunkIndex), CHUNK_INDEX_SIZE + 8 * nrOfCols);  // vertical chunkset index and positiondata
 
   myfile.close();
 
   // cleanup
-  delete[] metaData;
-  delete[] positionData;
+  delete[] metaDataBlock;
+  delete[] chunkIndex;
 
   return List::create(
     _["keyNames"] = keyNames,
     _["keyLength"] = keyLength,
-    _["colResult"] = colResult);
+    _["metaDataSize"] = metaDataSize);
+}
+
+
+// Read header information
+inline unsigned int ReadHeader(ifstream &myfile, unsigned int &tableClassType, int &keyLength, int &nrOfColsFirstChunk)
+{
+  // Get meta-information for table
+  char tableMeta[TABLE_META_SIZE];
+  myfile.read(tableMeta, TABLE_META_SIZE);
+
+  if (!myfile)
+  {
+    myfile.close();
+    ::Rf_error("Error reading file header, your fst file is incomplete or damaged.");
+  }
+
+
+  unsigned long long* p_fstFileID = (unsigned long long*) tableMeta;
+  unsigned int* p_table_version   = (unsigned int*) &tableMeta[8];
+  // unsigned int* p_tableClassType  = (unsigned int*) &tableMeta[12];
+  int* p_keyLength                = (int*) &tableMeta[16];
+  int* p_nrOfColsFirstChunk       = (int*) &tableMeta[20];
+
+
+  keyLength          = *p_keyLength;
+  nrOfColsFirstChunk = *p_nrOfColsFirstChunk;
+
+  // Without a proper file ID, we may be looking at a fst v0.7.2 file format
+  if (*p_fstFileID != FST_FILE_ID)
+  {
+    return 0;
+  }
+
+  // Compare file version with current
+  if (*p_table_version > FST_VERSION)
+  {
+    myfile.close();
+    ::Rf_error("Incompatible fst file: file was created by a newer version of the fst package.");
+  }
+
+  return *p_table_version;
 }
 
 
 List fstMeta(String fileName)
 {
-  // Open file
+  // fst file stream using a stack buffer
   ifstream myfile;
+  char ioBuf[4096];
+  myfile.rdbuf()->pubsetbuf(ioBuf, 4096);
   myfile.open(fileName.get_cstring(), ios::binary);
 
-
-  // Read column size
-  short int colSizes[2];
-  myfile.read((char*) &colSizes, 2 * sizeof(short int));
-  short int nrOfCols = colSizes[0];
-  short int keyLength = colSizes[1] & 32767;
-
-
-  // Read key column index
-  short int *keyColumns = new short int[keyLength + 1];
-  myfile.read((char*) keyColumns, keyLength * sizeof(short int));  // may be of length zero
-
-  // Convert to integer vector
-  IntegerVector keyColVec(keyLength);
-  for (int col = 0; col != keyLength; ++col)
+  if (myfile.fail())
   {
-    keyColVec[col] = keyColumns[col];
+    myfile.close();
+    ::Rf_error("There was an error opening the fst file, please check for a correct path.");
+  }
+
+  // Read variables from fst file header
+  unsigned int tableClassType;
+  int keyLength, nrOfColsFirstChunk;
+  unsigned int version = ReadHeader(myfile, tableClassType, keyLength, nrOfColsFirstChunk);
+
+  // We may be looking at a fst v0.7.2 file format
+  if (version == 0)
+  {
+    // Close and reopen (slow: fst file should be resaved to avoid)
+    myfile.close();
+    return fstMeta_v1(fileName);  // scans further for safety
   }
 
 
-  // Read column types
-  short int *colTypes = new short int[nrOfCols];
-  myfile.read((char*) colTypes, nrOfCols * sizeof(short int));
+  // Continue reading table metadata
+  int metaSize = 32 + 4 * keyLength + 6 * nrOfColsFirstChunk;
+  char* metaDataBlock = new char[metaSize];
+  myfile.read(metaDataBlock, metaSize);
+
+  unsigned int tmpOffset = 4 * keyLength;
+
+  int* keyColPos                         = (int*) metaDataBlock;
+  // unsigned long long* p_nextHorzChunkSet = (unsigned long long*) &metaDataBlock[tmpOffset];
+  // unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[tmpOffset + 8];
+  unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[tmpOffset + 16];
+  // unsigned int* p_version                = (unsigned int*) &metaDataBlock[tmpOffset + 24];
+  int* p_nrOfCols                        = (int*) &metaDataBlock[tmpOffset + 28];
+  // unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[tmpOffset + 32];
+  unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 2 * nrOfColsFirstChunk];
+  // unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 4 * nrOfColsFirstChunk];
+
+
+  int nrOfCols = *p_nrOfCols;
+
+
+  // Read column names
+  SEXP colNames;
+  PROTECT(colNames = Rf_allocVector(STRSXP, nrOfCols));
+  unsigned long long offset = metaSize + TABLE_META_SIZE;
+  fdsReadCharVec_v6(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
+
 
   // Convert to integer vector
   IntegerVector colTypeVec(nrOfCols);
@@ -246,83 +420,145 @@ List fstMeta(String fileName)
   }
 
 
-  // Read block positions
-  unsigned long long* allBlockPos = new unsigned long long[nrOfCols + 1];
-  myfile.read((char*) allBlockPos, (nrOfCols + 1) * sizeof(unsigned long long));
+  // cleanup
+  myfile.close();
 
-  // Convert to numeric vector
-  NumericVector blockPosVec(nrOfCols + 1);
-  for (int col = 0; col != nrOfCols + 1; ++col)
+
+  if (keyLength > 0)
   {
-    blockPosVec[col] = (double) allBlockPos[col];
+    SEXP keyNames;
+    PROTECT(keyNames = Rf_allocVector(STRSXP, keyLength));
+    for (int i = 0; i < keyLength; ++i)
+    {
+      SET_STRING_ELT(keyNames, i, STRING_ELT(colNames, keyColPos[i]));
+    }
+
+    IntegerVector keyColIndex(keyLength);
+    for (int col = 0; col != keyLength; ++col)
+    {
+      keyColIndex[col] = keyColPos[col];
+    }
+
+    UNPROTECT(2);
+
+    return List::create(
+      _["nrOfCols"]        = nrOfCols,
+      _["nrOfRows"]        = *p_nrOfRows,
+      _["fstVersion"]      = version,
+      _["colTypeVec"]      = colTypeVec,
+      _["keyColIndex"]     = keyColIndex,
+      _["keyLength"]       = keyLength,
+      _["keyNames"]        = keyNames,
+      _["colNames"]        = colNames);
   }
 
-
-  // Read column names
-  SEXP colNames;
-  PROTECT(colNames = Rf_allocVector(STRSXP, nrOfCols));
-  unsigned long long offset = (nrOfCols + 1) * sizeof(unsigned long long) + (nrOfCols + keyLength + 2) * sizeof(short int);
-  fdsReadCharVec(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
-
-  // cleanup
-  delete[] keyColumns;
-  delete[] colTypes;
-  delete[] allBlockPos;
-  myfile.close();
   UNPROTECT(1);
 
   return List::create(
-    _["nrOfCols"]    = nrOfCols,
-    _["keyLength"]   = keyLength,
-    _["keyColVec"]   = keyColVec,
-    _["colTypeVec"]  = colTypeVec,
-    _["blockPosVec"] = blockPosVec,
-    _["colNames"] = colNames);
+    _["nrOfCols"]        = nrOfCols,
+    _["nrOfRows"]        = *p_nrOfRows,
+    _["fstVersion"]      = version,
+    _["keyLength"]       = keyLength,
+    _["colTypeVec"]      = colTypeVec,
+    _["colNames"]        = colNames);
 }
 
 
 SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 {
-  // Open file
+  // fst file stream using a stack buffer
   ifstream myfile;
+  char ioBuf[4096];
+  myfile.rdbuf()->pubsetbuf(ioBuf, 4096);
   myfile.open(CHAR(STRING_ELT(fileName, 0)), ios::binary);
 
-
-  // Read column size
-  short int colSizes[2];
-  myfile.read((char*) &colSizes, 2 * sizeof(short int));
-  short int nrOfCols = colSizes[0];
-  short int keyLength = colSizes[1] & 32767;
-
-
-  // Read key column index
-  short int *keyColumns = new short int[keyLength + 1];
-  myfile.read((char*) keyColumns, keyLength * sizeof(short int));  // may be of length zero
+  if (myfile.fail())
+  {
+    myfile.close();
+    ::Rf_error("There was an error opening the fst file, please check for a correct path.");
+  }
 
 
-  // Read column types
-  short int *colTypes = new short int[nrOfCols];
-  myfile.read((char*) colTypes, nrOfCols * sizeof(short int));
+  unsigned int tableClassType;
+  int keyLength, nrOfColsFirstChunk;
+  unsigned int version = ReadHeader(myfile, tableClassType, keyLength, nrOfColsFirstChunk);
+
+  // We may be looking at a fst v0.7.2 file format
+  if (version == 0)
+  {
+    // Close and reopen (slow: fst file should be resaved to avoid this overhead)
+    myfile.close();
+    return fstRead_v1(fileName, columnSelection, startRow, endRow);
+  }
 
 
-  // Read block positions
-  unsigned long long* allBlockPos = new unsigned long long[nrOfCols + 1];
-  myfile.read((char*) allBlockPos, (nrOfCols + 1) * sizeof(unsigned long long));
+  // Continue reading table metadata
+  int metaSize = 32 + 4 * keyLength + 6 * nrOfColsFirstChunk;
+  char* metaDataBlock = new char[metaSize];
+  myfile.read(metaDataBlock, metaSize);
 
+
+  int* keyColPos                         = (int*) metaDataBlock;
+
+  unsigned int tmpOffset = 4 * keyLength;
+
+  // unsigned long long* p_nextHorzChunkSet = (unsigned long long*) &metaDataBlock[tmpOffset];
+  // unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[tmpOffset + 8];
+  // unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[tmpOffset + 16];
+  // unsigned int* p_version                = (unsigned int*) &metaDataBlock[tmpOffset + 24];
+  int* p_nrOfCols                        = (int*) &metaDataBlock[tmpOffset + 28];
+  // unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[tmpOffset + 32];
+  unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 2 * nrOfColsFirstChunk];
+  // unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 4 * nrOfColsFirstChunk];
+
+  int nrOfCols = *p_nrOfCols;
+
+
+  // TODO: read table attributes here
 
   // Read column names
   SEXP colNames;
   PROTECT(colNames = Rf_allocVector(STRSXP, nrOfCols));
-  unsigned long long offset = (nrOfCols + 1) * sizeof(unsigned long long) + (nrOfCols + keyLength + 2) * sizeof(short int);
-  fdsReadCharVec(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
+  unsigned long long offset = metaSize + TABLE_META_SIZE;
+  fdsReadCharVec_v6(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
+
+  // TODO: read column attributes here
+
+
+  // Vertical chunkset index or index of index
+  char chunkIndex[CHUNK_INDEX_SIZE];
+  myfile.read(chunkIndex, CHUNK_INDEX_SIZE);
+
+  // unsigned long long* chunkPos                = (unsigned long long*) chunkIndex;
+  unsigned long long* chunkRows               = (unsigned long long*) &chunkIndex[64];
+  // unsigned long long* p_nrOfChunksPerIndexRow = (unsigned long long*) &chunkIndex[128];
+  unsigned long long* p_nrOfChunks            = (unsigned long long*) &chunkIndex[136];
+
+  // Check nrOfChunks
+  if (*p_nrOfChunks > 1)
+  {
+    myfile.close();
+    delete[] metaDataBlock;
+    ::Rf_error("Multiple chunk read not implemented yet.");
+  }
+
+
+  // Start reading chunk here. TODO: loop over chunks
+
+
+  // Read block positions
+  unsigned long long* blockPos = new unsigned long long[nrOfCols];
+  myfile.read((char*) blockPos, nrOfCols * 8);  // nrOfCols file positions
 
 
   // Determine column selection
-  int *colIndex = new int[nrOfCols];
+  int *colIndex;
   int nrOfSelect = LENGTH(columnSelection);
 
   if (Rf_isNull(columnSelection))
   {
+    colIndex = new int[nrOfCols];
+
     for (int colNr = 0; colNr < nrOfCols; ++colNr)
     {
       colIndex[colNr] = colNr;
@@ -331,6 +567,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   }
   else  // determine column numbers of column names
   {
+    colIndex = new int[nrOfSelect];
     int equal;
     for (int colSel = 0; colSel < nrOfSelect; ++colSel)
     {
@@ -349,10 +586,8 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 
       if (equal == -1)
       {
-        delete[] colIndex;
-        delete[] colTypes;
-        delete[] keyColumns;
-        delete[] allBlockPos;
+        delete[] metaDataBlock;
+        delete[] blockPos;
         myfile.close();
         UNPROTECT(1);
         ::Rf_error("Selected column not found.");
@@ -365,14 +600,12 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 
   // Check range of selected rows
   int firstRow = INTEGER(startRow)[0] - 1;
-  int nrOfRows = (int) allBlockPos[0];
+  int nrOfRows = *chunkRows;  // TODO: check for row numbers > INT_MAX !!!
 
   if (firstRow >= nrOfRows || firstRow < 0)
   {
-    delete[] colIndex;
-    delete[] colTypes;
-    delete[] keyColumns;
-    delete[] allBlockPos;
+    delete[] metaDataBlock;
+    delete[] blockPos;
     myfile.close();
     UNPROTECT(1);
 
@@ -386,6 +619,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 
   int length = nrOfRows - firstRow;
 
+
   // Determine vector length
   if (!Rf_isNull(endRow))
   {
@@ -393,10 +627,8 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 
     if (lastRow <= firstRow)
     {
-      delete[] colIndex;
-      delete[] colTypes;
-      delete[] keyColumns;
-      delete[] allBlockPos;
+      delete[] metaDataBlock;
+      delete[] blockPos;
       myfile.close();
       UNPROTECT(1);
       ::Rf_error("Parameter 'lastRow' should be equal to or larger than parameter 'fromRow'.");
@@ -405,8 +637,6 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
     length = min(lastRow - firstRow, nrOfRows - firstRow);
   }
 
-  unsigned long long* blockPos = allBlockPos + 1;
-
   // Vector of selected column names
   SEXP selectedNames;
   PROTECT(selectedNames = Rf_allocVector(STRSXP, nrOfSelect));
@@ -414,19 +644,14 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   SEXP resTable;
   PROTECT(resTable = Rf_allocVector(VECSXP, nrOfSelect));
 
-  SEXP colInfo;
-  PROTECT(colInfo = Rf_allocVector(VECSXP, nrOfSelect));
-
   for (int colSel = 0; colSel < nrOfSelect; ++colSel)
   {
     int colNr = colIndex[colSel];
 
     if (colNr < 0 || colNr >= nrOfCols)
     {
-      delete[] colIndex;
-      delete[] colTypes;
-      delete[] keyColumns;
-      delete[] allBlockPos;
+      delete[] metaDataBlock;
+      delete[] blockPos;
       myfile.close();
       UNPROTECT(4);
       ::Rf_error("Column selection is out of range.");
@@ -438,70 +663,65 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 
     unsigned long long pos = blockPos[colNr];
 
-    SEXP singleColInfo;
-
     switch (colTypes[colNr])
     {
     // Character vector
-      case 1:
+      case 6:
         SEXP strVec;
         PROTECT(strVec = Rf_allocVector(STRSXP, length));
-        singleColInfo = fdsReadCharVec(myfile, strVec, pos, firstRow, length, nrOfRows);
+        fdsReadCharVec_v6(myfile, strVec, pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, strVec);
         UNPROTECT(1);
         break;
 
       // Integer vector
-      case 2:
+      case 8:
         SEXP intVec;
         PROTECT(intVec = Rf_allocVector(INTSXP, length));
-        singleColInfo = fdsReadIntVec(myfile, intVec, pos, firstRow, length, nrOfRows);
+        fdsReadIntVec_v8(myfile, INTEGER(intVec), pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, intVec);
         UNPROTECT(1);
         break;
 
       // Real vector
-      case 3:
+      case 9:
         SEXP realVec;
         PROTECT(realVec = Rf_allocVector(REALSXP, length));
-        singleColInfo = fdsReadRealVec(myfile, realVec, pos, firstRow, length, nrOfRows);
+        fdsReadRealVec_v9(myfile, REAL(realVec), pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, realVec);
         UNPROTECT(1);
         break;
 
       // Logical vector
-      case 4:
+      case 10:
         SEXP boolVec;
         PROTECT(boolVec = Rf_allocVector(LGLSXP, length));
-        singleColInfo = fdsReadLogicalVec(myfile, boolVec, pos, firstRow, length, nrOfRows);
+        fdsReadLogicalVec_v10(myfile, LOGICAL(boolVec), pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, boolVec);
         UNPROTECT(1);
         break;
 
       // Factor vector
-      case 5:
+      case 7:
         SEXP facVec;
         PROTECT(facVec = Rf_allocVector(INTSXP, length));
-        singleColInfo = fdsReadFactorVec(myfile, facVec, pos, firstRow, length, nrOfRows);
+        fdsReadFactorVec_v7(myfile, facVec, pos, firstRow, length, nrOfRows);
         SET_VECTOR_ELT(resTable, colSel, facVec);
         UNPROTECT(2);  // level string was also generated
         break;
 
 
       default:
-        delete[] colIndex;
-        delete[] colTypes;
-        delete[] keyColumns;
-        delete[] allBlockPos;
+        delete[] metaDataBlock;
+        delete[] blockPos;
         myfile.close();
         ::Rf_error("Unknown type found in column.");
     }
-
-    SET_VECTOR_ELT(colInfo, colSel, singleColInfo);
   }
 
   myfile.close();
 
+  // Generalize to full atributes
   Rf_setAttrib(resTable, R_NamesSymbol, selectedNames);
 
   int found = 0;
@@ -509,7 +729,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   {
     for (int colSel = 0; colSel < nrOfSelect; ++colSel)
     {
-      if (keyColumns[i] == colIndex[colSel])  // key present in result
+      if (keyColPos[i] == colIndex[colSel])  // key present in result
       {
         ++found;
         break;
@@ -517,39 +737,45 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
     }
   }
 
-  // Only keys present in result set
+  // Only when keys are present in result set
   if (found > 0)
   {
     SEXP keyNames;
     PROTECT(keyNames = Rf_allocVector(STRSXP, found));
     for (int i = 0; i < found; ++i)
     {
-      SET_STRING_ELT(keyNames, i, STRING_ELT(colNames, keyColumns[i]));
+      SET_STRING_ELT(keyNames, i, STRING_ELT(colNames, keyColPos[i]));
     }
 
     // cleanup
-    UNPROTECT(5);
-    delete[] colIndex;
-    delete[] colTypes;
-    delete[] keyColumns;
-    delete[] allBlockPos;
+    UNPROTECT(4);
+    delete[] metaDataBlock;
+    delete[] blockPos;
 
     return List::create(
       _["keyNames"] = keyNames,
+      _["found"] = found,
       _["resTable"] = resTable,
-      _["selectedNames"] = selectedNames,
-      _["colInfo"] = colInfo);
+      _["selectedNames"] = selectedNames);
   }
 
-  UNPROTECT(4);
-  delete[] colIndex;
-  delete[] colTypes;
-  delete[] keyColumns;
-  delete[] allBlockPos;
+  UNPROTECT(3);
+  delete[] metaDataBlock;
+  delete[] blockPos;
+
+  // Convert to integer vector
+  IntegerVector keyColVec(keyLength + 1);
+  for (int col = 0; col != keyLength; ++col)
+  {
+    keyColVec[col] = keyColPos[col];
+  }
 
   return List::create(
     _["keyNames"] = R_NilValue,
+    _["found"] = found,
+    _["keyColVec"] = keyColVec,
+    _["keyLength"] = keyLength,
+    _["nrOfSelect"] = nrOfSelect,
     _["selectedNames"] = selectedNames,
-    _["resTable"] = resTable,
-    _["colInfo"] = colInfo);
+    _["resTable"] = resTable);
 }

@@ -1,6 +1,7 @@
 
 context("roundtrip-vector")
 
+
 roundtrip_vector <- function(x)
 {
   df <- data.frame(x = x, stringsAsFactors = FALSE)
@@ -10,10 +11,10 @@ roundtrip_vector <- function(x)
 roundtrip <- function(df)
 {
   temp <- tempfile()
-  write.fst(df, temp)
+  fstwrite(df, temp)
   on.exit(unlink(temp))
 
-  read.fst(temp)
+  fstread(temp)
 }
 
 
@@ -61,7 +62,7 @@ test_that("can have NA on end of string", {
 # test_that("always coerces to UTF-8", {
 #   x <- iconv("é", to = "latin1")
 #   y <- roundtrip_vector(x)
-# 
+#
 #   expect_identical(x, y) # string comparison always re-encodes first
 # })
 

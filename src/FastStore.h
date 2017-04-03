@@ -36,18 +36,16 @@
 #ifndef FASTSTORE_H
 #define FASTSTORE_H
 
+
+#define FST_VERSION     1                   // version number of the fst package
+
+
 #include <Rcpp.h>
 #include <iostream>
 #include <fstream>
 #include <R.h>
 #include <Rinternals.h>
 
-#include <lowerbound.h>
-#include <charStore.h>
-#include <factStore.h>
-#include <intStore.h>
-#include <doubleStore.h>
-#include <boolStore.h>
 #include <compression.h>
 #include <compressor.h>
 
@@ -55,10 +53,10 @@
 #include "lz4.h"
 
 // [[Rcpp::export]]
-SEXP fstStore(String fileName, SEXP table, SEXP compression);
+SEXP fstStore(Rcpp::String fileName, SEXP table, SEXP compression, Rcpp::Function serializer);
 
 // [[Rcpp::export]]
-List fstMeta(String fileName);
+Rcpp::List fstMeta(Rcpp::String fileName);
 
 // [[Rcpp::export]]
 SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
