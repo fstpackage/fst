@@ -70,7 +70,7 @@ class BlockRunner
 
   unsigned int heapBufSize = 1048576;
   char* buf;
-  char *heapBuf = new char[heapBufSize];
+  char *heapBuf;
 
   public:
     unsigned int* strSizes;
@@ -91,6 +91,8 @@ BlockRunner::BlockRunner(SEXP &strVec, unsigned int* strSizes, unsigned int* naI
   this->strSizes = strSizes;
   this->buf = stackBuf;
   this->stackBufSize = stackBufSize;
+
+  heapBuf = new char[heapBufSize];
 }
 
 
