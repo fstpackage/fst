@@ -1,5 +1,6 @@
 /*
   fst - An R-package for ultra fast storage and retrieval of datasets.
+  Header File
   Copyright (C) 2017, Mark AJ Klik
 
   BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
@@ -32,29 +33,29 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-
-#ifndef FSTDEFINES_H
-#define FSTDEFINES_H
-
-
-#define FST_VERSION         1                  // version of fst codebase
-#define TABLE_META_SIZE     24                 // size of table meta-data block
-#define BLOCKSIZE           16384              // number of bytes in default compression block
-#define FST_FILE_ID         0xa91c12f8b245a71d // identifies a fst file
-#define CHUNK_INDEX_SIZE    144                // size of fixed component of vertical chunk index
-#define MAX_CHAR_STACK_SIZE 32768              // number of characters in default compression block
-#define BLOCKSIZE_CHAR      2047               // number of characters in default compression block
-#define CHAR_HEADER_SIZE    8                  // meta data header size
-#define CHAR_INDEX_SIZE     16                 // size of 1 index entry
-#define BASIC_HEAP_SIZE     1048576            // starting size of heap buffer
+#ifndef BLOCKRUNNER_CHAR_H
+#define BLOCKRUNNER_CHAR_H
 
 
-// fst specific errors
-#define FSTERROR_NOT_IMPLEMENTED     "Feature not implemented yet"
-#define FSTERROR_ERROR_OPENING_FILE  "Error opening fst stream"
-#define FSTERROR_NO_APPEND           "This version of the fst file format does not allow appending data"
-#define FSTERROR_DAMAGED_HEADER      "Error reading file header, your fst file is incomplete or damaged"
-#define FSTERROR_INCORRECT_COL_COUNT "Data frame has an incorrect amount of columns"
+#include <Rcpp.h>
 
 
-#endif // FSTDEFINES_H
+class BlockRunner : public IBlockRunner
+{
+  SEXP* strVec;
+  unsigned int  stackBufSize;
+
+  unsigned int heapBufSize;
+  char* buf;
+  char *heapBuf;
+
+  public:
+    BlockRunner(SEXP &strVec, unsigned int* strSizes, unsigned int* naInts, char* stackBuf, unsigned int stackBufSize);
+    ~BlockRunner();
+
+    void RetrieveBlock(unsigned int startCount, unsigned int endCount);
+};
+
+
+
+#endif  // BLOCKRUNNER_CHAR_H

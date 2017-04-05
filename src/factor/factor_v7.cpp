@@ -33,8 +33,11 @@
 */
 
 // Framework headers
-#include "factor_v7.h"
-#include "blockstreamer_v2.h"
+#include <fstdefines.h>
+#include <iblockrunner.h>
+#include <blockrunner_char.h>
+#include <factor_v7.h>
+#include <blockstreamer_v2.h>
 #include <integer_v8.h>
 #include <character_v6.h>
 
@@ -57,7 +60,6 @@ using namespace Rcpp;
 
 void fdsWriteFactorVec_v7(ofstream &myfile, SEXP &factVec, unsigned size, unsigned int compression)
 {
-  SEXP res;  // timing information
   unsigned long long blockPos = myfile.tellp();  // offset for factor
 
   // Vector meta data
@@ -73,7 +75,15 @@ void fdsWriteFactorVec_v7(ofstream &myfile, SEXP &factVec, unsigned size, unsign
 
   // Store levels here
 
-  fdsWriteCharVec_v6(myfile, levelVec, *nrOfLevels, compression);
+  // Create buffers for blockRunner
+  unsigned int naInts[1 + BLOCKSIZE_CHAR / 32];  // we have 32 NA bits per integer
+  unsigned int strSizes[BLOCKSIZE_CHAR];  // we have 32 NA bits per integer
+  char buf[MAX_CHAR_STACK_SIZE];
+
+  // Create blockrunner for character vector conversion
+  IBlockRunner* blockRunner = new BlockRunner(levelVec, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);
+  fdsWriteCharVec_v6(myfile, blockRunner, *nrOfLevels, compression);   // column names
+  delete blockRunner;
 
   // Rewrite meta-data
   *versionNr = VERSION_NUMBER_FACTOR;

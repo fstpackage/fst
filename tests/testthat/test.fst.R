@@ -26,8 +26,7 @@ dataTable <- data.frame(Xint=1:nrOfRows, Ylog=sample(c(TRUE, FALSE, NA), nrOfRow
   CharLong = CharVecLong(nrOfRows),
   stringsAsFactors = FALSE)
 
-
-# col = "Xint"
+# col = "Qchar"
 # from = 1L
 # compress = 0L
 # to = totLength = nrOfRows

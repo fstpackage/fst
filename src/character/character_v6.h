@@ -43,15 +43,14 @@
 #include <R.h>
 #include <Rinternals.h>
 
-#include <compression.h>
-#include <compressor.h>
+#include <iblockrunner.h>
 
 
 // External libraries
 #include "lz4.h"
 
 
-void fdsWriteCharVec_v6(std::ofstream &myfile, SEXP &strVec, unsigned int vecLength, int compression);
+void fdsWriteCharVec_v6(std::ofstream &myfile, IBlockRunner* blockRunner, unsigned int vecLength, int compression);
 
 
 void fdsReadCharVec_v6(std::istream &myfile, SEXP &strVec, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size);

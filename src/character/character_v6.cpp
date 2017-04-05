@@ -33,6 +33,9 @@
 */
 
 #include "character_v6.h"
+#include "iblockrunner.h"
+#include "blockrunner_char.h"
+#include "fstdefines.h"
 
 #include <Rcpp.h>
 #include <iostream>
@@ -51,186 +54,38 @@ using namespace std;
 using namespace Rcpp;
 
 
-#define BLOCKSIZE_CHAR 2047  // number of characters in default compression block
-#define MAX_CHAR_STACK_SIZE 32768  // number of characters in default compression block
-#define CHAR_HEADER_SIZE 8  // meta data header size
-#define CHAR_INDEX_SIZE 16  // size of 1 index entry
-
-
-class IBlockRunner
+inline unsigned int StoreCharBlock_v6(ofstream &myfile, IBlockRunner* blockRunner, unsigned int startCount, unsigned int endCount)
 {
-public:
-  unsigned int StoreBlock(ofstream &myfile, unsigned int block, unsigned int endCount);
-};
-
-class BlockRunner
-{
-  SEXP* strVec;
-  unsigned int  stackBufSize;
-
-  unsigned int heapBufSize = 1048576;
-  char* buf;
-  char *heapBuf;
-
-  public:
-    unsigned int* strSizes;
-    unsigned int* naInts;
-    unsigned int bufSize;
-    char* activeBuf;
-    BlockRunner(SEXP &strVec, unsigned int* strSizes, unsigned int* naInts, char* stackBuf, unsigned int stackBufSize);
-    ~BlockRunner();
-
-    void RetrieveBlock(unsigned int startCount, unsigned int endCount);
-};
-
-
-BlockRunner::BlockRunner(SEXP &strVec, unsigned int* strSizes, unsigned int* naInts, char* stackBuf, unsigned int stackBufSize)
-{
-  this->strVec = &strVec;
-  this->naInts = naInts;
-  this->strSizes = strSizes;
-  this->buf = stackBuf;
-  this->stackBufSize = stackBufSize;
-
-  heapBuf = new char[heapBufSize];
-}
-
-
-BlockRunner::~BlockRunner()
-{
-  delete[] heapBuf;
-}
-
-
-void BlockRunner::RetrieveBlock(unsigned int startCount, unsigned int endCount)
-{
-  // Determine string lengths
-  // unsigned int startCount = block * BLOCKSIZE_CHAR;
-  unsigned int nrOfElements = endCount - startCount;  // the string at position endCount is not included
-  unsigned int nrOfNAInts = 1 + nrOfElements / 32;  // add 1 bit for NA present flag
-
-  unsigned int totSize = 0;
-  unsigned int hasNA = 0;
-  int sizeCount = -1;
-
-  memset(naInts, 0, nrOfNAInts * 4);  // clear NA bit metadata block (neccessary?)
-
-  for (unsigned int count = startCount; count != endCount; ++count)
-  {
-    SEXP strElem = STRING_ELT(*strVec, count);
-
-    if (strElem == NA_STRING)  // set NA bit
-    {
-      ++hasNA;
-      unsigned int intPos = (count - startCount) / 32;
-      unsigned int bitPos = (count - startCount) % 32;
-      naInts[intPos] |= 1 << bitPos;
-    }
-
-    totSize += LENGTH(strElem);
-    strSizes[++sizeCount] = totSize;
-  }
-
-  if (hasNA != 0)  // NA's present in vector
-  {
-    // set last bit
-    int bitPos = nrOfElements % 32;
-    naInts[nrOfNAInts - 1] |= 1 << bitPos;
-  }
-
-
-  // Write string data
-  unsigned int pos = 0;
-  unsigned int lastPos = 0;
-  sizeCount = -1;
-
-  activeBuf = buf;
-
-  if (totSize > stackBufSize)  // don't use cache memory
-  {
-    if (totSize > heapBufSize)
-    {
-      delete[] heapBuf;
-      heapBufSize = totSize * 1.1;
-      heapBuf = new char[heapBufSize];
-    }
-
-    activeBuf = heapBuf;
-  }
-
-  for (unsigned int count = startCount; count < endCount; ++count)
-  {
-    const char* str = CHAR(STRING_ELT(*strVec, count));
-    pos = strSizes[++sizeCount];
-    strncpy(activeBuf + lastPos, str, pos - lastPos);
-    lastPos = pos;
-  }
-
-  bufSize = totSize;
-}
-
-
-inline unsigned int StoreCharBlock(ofstream &myfile, BlockRunner &blockRunner, unsigned int startCount, unsigned int endCount)
-{
-  blockRunner.RetrieveBlock(startCount, endCount);
+  blockRunner->RetrieveBlock(startCount, endCount);
 
   unsigned int nrOfElements = endCount - startCount;  // the string at position endCount is not included
   unsigned int nrOfNAInts = 1 + nrOfElements / 32;  // add 1 bit for NA present flag
 
-  myfile.write((char*)(blockRunner.strSizes), nrOfElements * 4);  // write string lengths
-  myfile.write((char*)(blockRunner.naInts), nrOfNAInts * 4);  // write string lengths
+  myfile.write((char*)(blockRunner->strSizes), nrOfElements * 4);  // write string lengths
+  myfile.write((char*)(blockRunner->naInts), nrOfNAInts * 4);  // write string lengths
 
-  unsigned int totSize = blockRunner.bufSize;
+  unsigned int totSize = blockRunner->bufSize;
 
-  myfile.write(blockRunner.activeBuf, totSize);
+  myfile.write(blockRunner->activeBuf, totSize);
 
   return totSize + (nrOfElements + nrOfNAInts) * 4;
 
 }
 
 
-inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, unsigned int block, SEXP &strVec, unsigned int* strSizes,
+inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IBlockRunner* blockRunner, unsigned int startCount,
   unsigned int endCount, StreamCompressor* intCompressor, StreamCompressor* charCompressor, unsigned short int &algoInt,
   unsigned short int &algoChar, int &intBufSize)
 {
+  blockRunner->RetrieveBlock(startCount, endCount);
+
   // Determine string lengths
-  unsigned int startCount = block * BLOCKSIZE_CHAR;
   unsigned int nrOfElements = endCount - startCount;  // the string at position endCount is not included
   unsigned int nrOfNAInts = 1 + nrOfElements / 32;  // add 1 bit for NA present flag
-
-  unsigned int totSize = 0;
-  unsigned int hasNA = 0;
-  int sizeCount = - 1;
-
-  memset(&strSizes[nrOfElements], 0, nrOfNAInts * 4);  // clear NA bit metadata block
-
-  for (unsigned int count = startCount; count != endCount; ++count)
-  {
-    SEXP strElem = STRING_ELT(strVec, count);
-
-    if (strElem == NA_STRING)  // set NA bit
-    {
-      ++hasNA;
-      unsigned int intPos = nrOfElements + (count - startCount) / 32;
-      unsigned int bitPos = (count - startCount) % 32;
-      strSizes[intPos] |= 1 << bitPos;
-    }
-
-    totSize += LENGTH(strElem);
-    strSizes[++sizeCount] = totSize;
-  }
-
-  if (hasNA != 0)  // bit indicating if NA's are present
-  {
-    // set last bit
-    int bitPos = nrOfElements % 32;
-    strSizes[nrOfElements + nrOfNAInts - 1] |= 1 << bitPos;
-  }
 
 
   // Compress string size vector
   unsigned int strSizesBufLength = nrOfElements * 4;
-
 
   // 1) Use stack buffer here !!!!!!
   // 2) compress to 1 or 2 bytes if possible with strSizesBufLength
@@ -238,76 +93,37 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, unsigned int b
   char *intBuf = new char[bufSize];
 
   CompAlgo compAlgorithm;
-  intBufSize = intCompressor->Compress(myfile, (char*)(strSizes), strSizesBufLength, intBuf, compAlgorithm);
+  intBufSize = intCompressor->Compress(myfile, (char*)(blockRunner->strSizes), strSizesBufLength, intBuf, compAlgorithm);
   algoInt = (unsigned short int) (compAlgorithm);  // store selected algorithm
 
   // Write NA bits uncompressed (add compression later ?)
-  myfile.write((char*)(&strSizes[nrOfElements]), nrOfNAInts * 4);  // write string lengths
+  myfile.write((char*)(blockRunner->naInts), nrOfNAInts * 4);  // write string lengths
+
+  unsigned int totSize = blockRunner->bufSize;
 
   int compBufSize = charCompressor->CompressBufferSize(totSize);
   unsigned int pos = 0;
   unsigned int lastPos = 0;
-  sizeCount = -1;
+  int sizeCount = -1;
   char* compBuf = new char[compBufSize];  // character buffer   check if reuse possible?
 
-  if (totSize > MAX_CHAR_STACK_SIZE)  // don't use cache memory
-  {
-    // Copy string elements to buffer
-    char* buf = new char[totSize];  // character buffer   check if reuse possible?
-    for (unsigned int count = startCount; count != endCount; ++count)
-    {
-      const char* str = CHAR(STRING_ELT(strVec, count));
-      pos = strSizes[++sizeCount];
-      strncpy(buf + lastPos, str, pos - lastPos);
-      lastPos = pos;
-    }
-
-    // Compress buffer
-    int resSize = charCompressor->Compress(myfile, buf, totSize, compBuf, compAlgorithm);
-
-    algoChar = (unsigned short int) (compAlgorithm);  // store selected algorithm
-
-    delete[] buf;
-    delete[] compBuf;
-    delete[] intBuf;
-
-    return nrOfNAInts * 4 + resSize + intBufSize;
-  }
-
-  // Small total size
-  char buf[MAX_CHAR_STACK_SIZE];  // character buffer in cache memory
-
-  for (unsigned int count = startCount; count != endCount; ++count)
-  {
-    const char* str = CHAR(STRING_ELT(strVec, count));
-    pos = strSizes[++sizeCount];
-    strncpy(buf + lastPos, str, pos - lastPos);
-    lastPos = pos;
-  }
 
   // Compress buffer
-  int resSize = charCompressor->Compress(myfile, buf, totSize, compBuf, compAlgorithm);
+  int resSize = charCompressor->Compress(myfile, blockRunner->activeBuf, totSize, compBuf, compAlgorithm);
 
   algoChar = (unsigned short int) (compAlgorithm);  // store selected algorithm
 
-  delete[] intBuf;
   delete[] compBuf;
+  delete[] intBuf;
 
   return nrOfNAInts * 4 + resSize + intBufSize;
 }
 
 
-void fdsWriteCharVec_v6(ofstream &myfile, SEXP &strVec, unsigned int vecLength, int compression)
+void fdsWriteCharVec_v6(ofstream &myfile, IBlockRunner* blockRunner, unsigned int vecLength, int compression)
 {
   unsigned long long curPos = myfile.tellp();
   unsigned int nrOfBlocks = (vecLength - 1) / BLOCKSIZE_CHAR;  // number of blocks minus 1
-
-  unsigned int naInts[1 + BLOCKSIZE_CHAR / 32];  // we have 32 NA bits per integer
-  unsigned int strSizes[BLOCKSIZE_CHAR];  // we have 32 NA bits per integer
-
-  char buf[MAX_CHAR_STACK_SIZE];
-
-  BlockRunner blockRunner(strVec, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);
 
   if (compression == 0)
   {
@@ -327,12 +143,12 @@ void fdsWriteCharVec_v6(ofstream &myfile, SEXP &strVec, unsigned int vecLength, 
 
     for (unsigned int block = 0; block < nrOfBlocks; ++block)
     {
-      unsigned int totSize = StoreCharBlock(myfile, blockRunner, block * BLOCKSIZE_CHAR, (block + 1) * BLOCKSIZE_CHAR);
+      unsigned int totSize = StoreCharBlock_v6(myfile, blockRunner, block * BLOCKSIZE_CHAR, (block + 1) * BLOCKSIZE_CHAR);
       fullSize += totSize;
       blockPos[block] = fullSize;
     }
 
-    unsigned int totSize = StoreCharBlock(myfile, blockRunner, nrOfBlocks * BLOCKSIZE_CHAR, vecLength);
+    unsigned int totSize = StoreCharBlock_v6(myfile, blockRunner, nrOfBlocks * BLOCKSIZE_CHAR, vecLength);
     fullSize += totSize;
     blockPos[nrOfBlocks] = fullSize;
 
@@ -401,8 +217,8 @@ void fdsWriteCharVec_v6(ofstream &myfile, SEXP &strVec, unsigned int vecLength, 
     unsigned short int* algoChar = (unsigned short int*) (blockP + 10);
     int* intBufSize = (int*) (blockP + 12);
 
-    unsigned int totSize = storeCharBlockCompressed_v6(myfile, block, strVec, strSizes, (block + 1) * BLOCKSIZE_CHAR,
-      streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize);
+    unsigned int totSize = storeCharBlockCompressed_v6(myfile, blockRunner, block * BLOCKSIZE_CHAR,
+      (block + 1) * BLOCKSIZE_CHAR, streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize);
 
     fullSize += totSize;
     *blockPos = fullSize;
@@ -414,8 +230,8 @@ void fdsWriteCharVec_v6(ofstream &myfile, SEXP &strVec, unsigned int vecLength, 
   unsigned short int* algoChar = (unsigned short int*) (blockP + 10);
   int* intBufSize = (int*) (blockP + 12);
 
-  unsigned int totSize = storeCharBlockCompressed_v6(myfile, nrOfBlocks, strVec, strSizes, vecLength,
-      streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize);
+  unsigned int totSize = storeCharBlockCompressed_v6(myfile, blockRunner, nrOfBlocks * BLOCKSIZE_CHAR,
+      vecLength, streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize);
   fullSize += totSize;
   *blockPos = fullSize;
 
