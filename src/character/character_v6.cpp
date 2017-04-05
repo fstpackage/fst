@@ -57,11 +57,53 @@ using namespace Rcpp;
 #define CHAR_INDEX_SIZE 16  // size of 1 index entry
 
 
+class IBlockRunner
+{
+public:
+  unsigned int StoreBlock(ofstream &myfile, unsigned int block, unsigned int endCount);
+};
 
-inline unsigned int storeCharBlock_v6(ofstream &myfile, unsigned int block, SEXP &strVec, unsigned int* strSizes, unsigned int endCount)
+class BlockRunner
+{
+  SEXP* strVec;
+  unsigned int  stackBufSize;
+
+  unsigned int heapBufSize = 1048576;
+  char* buf;
+  char *heapBuf = new char[heapBufSize];
+
+  public:
+    unsigned int* strSizes;
+    unsigned int* naInts;
+    unsigned int bufSize;
+    char* activeBuf;
+    BlockRunner(SEXP &strVec, unsigned int* strSizes, unsigned int* naInts, char* stackBuf, unsigned int stackBufSize);
+    ~BlockRunner();
+
+    void RetrieveBlock(unsigned int startCount, unsigned int endCount);
+};
+
+
+BlockRunner::BlockRunner(SEXP &strVec, unsigned int* strSizes, unsigned int* naInts, char* stackBuf, unsigned int stackBufSize)
+{
+  this->strVec = &strVec;
+  this->naInts = naInts;
+  this->strSizes = strSizes;
+  this->buf = stackBuf;
+  this->stackBufSize = stackBufSize;
+}
+
+
+BlockRunner::~BlockRunner()
+{
+  delete[] heapBuf;
+}
+
+
+void BlockRunner::RetrieveBlock(unsigned int startCount, unsigned int endCount)
 {
   // Determine string lengths
-  unsigned int startCount = block * BLOCKSIZE_CHAR;
+  // unsigned int startCount = block * BLOCKSIZE_CHAR;
   unsigned int nrOfElements = endCount - startCount;  // the string at position endCount is not included
   unsigned int nrOfNAInts = 1 + nrOfElements / 32;  // add 1 bit for NA present flag
 
@@ -69,18 +111,18 @@ inline unsigned int storeCharBlock_v6(ofstream &myfile, unsigned int block, SEXP
   unsigned int hasNA = 0;
   int sizeCount = -1;
 
-  memset(&strSizes[nrOfElements], 0, nrOfNAInts * 4);  // clear NA bit metadata block (neccessary?)
+  memset(naInts, 0, nrOfNAInts * 4);  // clear NA bit metadata block (neccessary?)
 
   for (unsigned int count = startCount; count != endCount; ++count)
   {
-    SEXP strElem = STRING_ELT(strVec, count);
+    SEXP strElem = STRING_ELT(*strVec, count);
 
     if (strElem == NA_STRING)  // set NA bit
     {
       ++hasNA;
-      unsigned int intPos = nrOfElements + (count - startCount) / 32;
+      unsigned int intPos = (count - startCount) / 32;
       unsigned int bitPos = (count - startCount) % 32;
-      strSizes[intPos] |= 1 << bitPos;
+      naInts[intPos] |= 1 << bitPos;
     }
 
     totSize += LENGTH(strElem);
@@ -91,11 +133,8 @@ inline unsigned int storeCharBlock_v6(ofstream &myfile, unsigned int block, SEXP
   {
     // set last bit
     int bitPos = nrOfElements % 32;
-    strSizes[nrOfElements + nrOfNAInts - 1] |= 1 << bitPos;
+    naInts[nrOfNAInts - 1] |= 1 << bitPos;
   }
-
-  unsigned int strSizesBufLength = (nrOfElements + nrOfNAInts) * 4;
-  myfile.write((char*)(strSizes), strSizesBufLength);  // write string lengths
 
 
   // Write string data
@@ -103,37 +142,48 @@ inline unsigned int storeCharBlock_v6(ofstream &myfile, unsigned int block, SEXP
   unsigned int lastPos = 0;
   sizeCount = -1;
 
-  if (totSize > MAX_CHAR_STACK_SIZE)  // don't use cache memory
-  {
-    char* buf = new char[totSize];  // character buffer   check if reuse possible?
+  activeBuf = buf;
 
-    for (unsigned int count = startCount; count != endCount; ++count)
+  if (totSize > stackBufSize)  // don't use cache memory
+  {
+    if (totSize > heapBufSize)
     {
-      const char* str = CHAR(STRING_ELT(strVec, count));
-      pos = strSizes[++sizeCount];
-      strncpy(buf + lastPos, str, pos - lastPos);
-      lastPos = pos;
+      delete[] heapBuf;
+      heapBufSize = totSize * 1.1;
+      heapBuf = new char[heapBufSize];
     }
 
-    myfile.write(buf, totSize);
-    delete[] buf;
-
-    return totSize + strSizesBufLength;
+    activeBuf = heapBuf;
   }
-
-  char buf[MAX_CHAR_STACK_SIZE];
 
   for (unsigned int count = startCount; count < endCount; ++count)
   {
-    const char* str = CHAR(STRING_ELT(strVec, count));
+    const char* str = CHAR(STRING_ELT(*strVec, count));
     pos = strSizes[++sizeCount];
-    strncpy(buf + lastPos, str, pos - lastPos);
+    strncpy(activeBuf + lastPos, str, pos - lastPos);
     lastPos = pos;
   }
 
-  myfile.write(buf, totSize);
+  bufSize = totSize;
+}
 
-  return totSize + strSizesBufLength;
+
+inline unsigned int StoreCharBlock(ofstream &myfile, BlockRunner &blockRunner, unsigned int startCount, unsigned int endCount)
+{
+  blockRunner.RetrieveBlock(startCount, endCount);
+
+  unsigned int nrOfElements = endCount - startCount;  // the string at position endCount is not included
+  unsigned int nrOfNAInts = 1 + nrOfElements / 32;  // add 1 bit for NA present flag
+
+  myfile.write((char*)(blockRunner.strSizes), nrOfElements * 4);  // write string lengths
+  myfile.write((char*)(blockRunner.naInts), nrOfNAInts * 4);  // write string lengths
+
+  unsigned int totSize = blockRunner.bufSize;
+
+  myfile.write(blockRunner.activeBuf, totSize);
+
+  return totSize + (nrOfElements + nrOfNAInts) * 4;
+
 }
 
 
@@ -250,7 +300,12 @@ void fdsWriteCharVec_v6(ofstream &myfile, SEXP &strVec, unsigned int vecLength, 
   unsigned long long curPos = myfile.tellp();
   unsigned int nrOfBlocks = (vecLength - 1) / BLOCKSIZE_CHAR;  // number of blocks minus 1
 
-  unsigned int strSizes[BLOCKSIZE_CHAR + 1 + BLOCKSIZE_CHAR / 32];  // we have 32 NA bits per integer
+  unsigned int naInts[1 + BLOCKSIZE_CHAR / 32];  // we have 32 NA bits per integer
+  unsigned int strSizes[BLOCKSIZE_CHAR];  // we have 32 NA bits per integer
+
+  char buf[MAX_CHAR_STACK_SIZE];
+
+  BlockRunner blockRunner(strVec, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);
 
   if (compression == 0)
   {
@@ -270,12 +325,12 @@ void fdsWriteCharVec_v6(ofstream &myfile, SEXP &strVec, unsigned int vecLength, 
 
     for (unsigned int block = 0; block < nrOfBlocks; ++block)
     {
-      unsigned int totSize = storeCharBlock_v6(myfile, block, strVec, strSizes, (block + 1) * BLOCKSIZE_CHAR);
+      unsigned int totSize = StoreCharBlock(myfile, blockRunner, block * BLOCKSIZE_CHAR, (block + 1) * BLOCKSIZE_CHAR);
       fullSize += totSize;
       blockPos[block] = fullSize;
     }
 
-    unsigned int totSize = storeCharBlock_v6(myfile, nrOfBlocks, strVec, strSizes, vecLength);
+    unsigned int totSize = StoreCharBlock(myfile, blockRunner, nrOfBlocks * BLOCKSIZE_CHAR, vecLength);
     fullSize += totSize;
     blockPos[nrOfBlocks] = fullSize;
 
