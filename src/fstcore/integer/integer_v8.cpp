@@ -32,15 +32,11 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
+
 #include "integer_v8.h"
 #include <blockstreamer_v2.h>
 
-// System libraries
-#include <ctime>
-#include <ratio>
-
 // External libraries
-#include "lz4.h"
 #include <compression.h>
 #include <compressor.h>
 

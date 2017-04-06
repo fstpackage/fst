@@ -37,11 +37,16 @@
 #define FSTDEFINES_H
 
 
-#define FST_VERSION      1                  // version of fst codebase
-#define TABLE_META_SIZE  24                 // size of table meta-data block
-#define BLOCKSIZE        16384              // number of bytes in default compression block
-#define FST_FILE_ID      0xa91c12f8b245a71d // identifies a fst file
-#define CHUNK_INDEX_SIZE 144                // size of fixed component of vertical chunk index
+#define FST_VERSION         1                  // version of fst codebase
+#define TABLE_META_SIZE     24                 // size of table meta-data block
+#define BLOCKSIZE           16384              // number of bytes in default compression block
+#define FST_FILE_ID         0xa91c12f8b245a71d // identifies a fst file
+#define CHUNK_INDEX_SIZE    144                // size of fixed component of vertical chunk index
+#define MAX_CHAR_STACK_SIZE 32768              // number of characters in default compression block
+#define BLOCKSIZE_CHAR      2047               // number of characters in default compression block
+#define CHAR_HEADER_SIZE    8                  // meta data header size
+#define CHAR_INDEX_SIZE     16                 // size of 1 index entry
+#define BASIC_HEAP_SIZE     1048576            // starting size of heap buffer
 
 
 // fst specific errors

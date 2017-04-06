@@ -14,6 +14,7 @@ if (!file.exists("FactorStore"))
 # Create a pool of strings
 nrOfLevels <- 8
 CharVec <- function(nrOfRows) { sapply(1:nrOfRows, function(x) { paste(sample(LETTERS, sample(1:4)), collapse="") }) }
+CharVecLong <- function(nrOfRows) { sapply(1:nrOfRows, function(x) { paste(sample(LETTERS, sample(20:25)), collapse="") }) }
 
 # Sample data
 nrOfRows <- 10000L
@@ -22,10 +23,10 @@ charNA[sample(1:nrOfRows, 10)] <- NA
 dataTable <- data.frame(Xint=1:nrOfRows, Ylog=sample(c(TRUE, FALSE, NA), nrOfRows, replace=TRUE),
   Zdoub=rnorm(nrOfRows), Qchar=CharVec(nrOfRows), WFact=factor(sample(CharVec(nrOfLevels), nrOfRows, replace = TRUE)),
   CharNA = charNA,
+  CharLong = CharVecLong(nrOfRows),
   stringsAsFactors = FALSE)
 
-
-# col = "Xint"
+# col = "Qchar"
 # from = 1L
 # compress = 0L
 # to = totLength = nrOfRows

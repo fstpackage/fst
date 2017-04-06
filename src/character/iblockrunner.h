@@ -33,16 +33,24 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef DOUBLE_v9_H
-#define DOUBLE_v9_H
 
-// System libraries
-#include <ostream>
-#include <istream>
+#ifndef IBLOCKRUNNER_H
+#define IBLOCKRUNNER_H
 
 
-void fdsWriteRealVec_v9(std::ofstream &myfile, double* doubleVector, unsigned int nrOfRows, unsigned int compression);
+class IBlockRunner
+{
+public:
+  unsigned int* strSizes;
+  unsigned int* naInts;
+  unsigned int bufSize;
+  char* activeBuf;
 
-void fdsReadRealVec_v9(std::istream &myfile, double* doubleVector, unsigned long long blockPos, unsigned int startRow, unsigned int length, unsigned int size);
+  virtual ~IBlockRunner() {};
 
-#endif // DOUBLE_v9_H
+  virtual void RetrieveBlock(unsigned int startCount, unsigned int endCount) = 0;
+};
+
+
+#endif  // IBLOCKRUNNER_H
+

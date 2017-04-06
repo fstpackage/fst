@@ -42,6 +42,8 @@
 #include <FastStore.h>
 #include <FastStore_v1.h>
 
+#include <iblockrunner.h>
+#include <blockrunner_char.h>
 #include <character_v6.h>
 #include <factor_v7.h>
 #include <integer_v8.h>
@@ -218,7 +220,17 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
 
   // Write table meta information
   myfile.write((char*)(metaDataBlock), metaDataSize);  // table meta data
-  fdsWriteCharVec_v6(myfile, colNames, nrOfCols, 0);   // column names
+
+  // Create buffers for blockRunner
+  unsigned int naInts[1 + BLOCKSIZE_CHAR / 32];  // we have 32 NA bits per integer
+  unsigned int strSizes[BLOCKSIZE_CHAR];  // we have 32 NA bits per integer
+  char buf[MAX_CHAR_STACK_SIZE];
+
+  // Create blockrunner for character vector conversion
+  // BlockRunner blockRunnerR(colNames, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);
+  IBlockRunner* blockRunner = new BlockRunner(colNames, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);
+
+  fdsWriteCharVec_v6(myfile, blockRunner, nrOfCols, 0);   // column names
   // TODO: Write column attributes here
 
 
@@ -255,14 +267,18 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
       case STRSXP:
         colTypes[colNr] = 6;
         colBaseTypes[colNr] = 1;
-         fdsWriteCharVec_v6(myfile, colVec, nrOfRows, compress);
+
+        // Create blockrunner for character vector conversion
+        delete blockRunner;
+        blockRunner = new BlockRunner(colVec, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);  // reuse buffers
+        fdsWriteCharVec_v6(myfile, blockRunner, nrOfRows, compress);   // column names
         break;
 
       case INTSXP:
         if(Rf_isFactor(colVec))
         {
           colTypes[colNr] = 7;
-        colBaseTypes[colNr] = 2;
+          colBaseTypes[colNr] = 2;
           fdsWriteFactorVec_v7(myfile, colVec, nrOfRows, compress);
           break;
         }
@@ -307,6 +323,8 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
   // cleanup
   delete[] metaDataBlock;
   delete[] chunkIndex;
+  delete blockRunner;
+
 
   return List::create(
     _["keyNames"] = keyNames,
