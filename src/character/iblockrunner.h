@@ -48,7 +48,7 @@ public:
 
   virtual ~IBlockRunner() {};
 
-  virtual void RetrieveBlock(unsigned int block, unsigned int endCount) = 0;
+  virtual void RetrieveBlock(unsigned int startCount, unsigned int endCount) = 0;
 };
 
 

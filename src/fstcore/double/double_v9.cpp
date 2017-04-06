@@ -37,9 +37,6 @@
 #include <compression.h>
 #include <compressor.h>
 
-// External libraries
-#include "lz4.h"
-
 using namespace std;
 
 

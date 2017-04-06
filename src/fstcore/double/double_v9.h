@@ -41,12 +41,6 @@
 #include <istream>
 
 
-// External libraries
-#include "lz4.h"
-#include <compression.h>
-#include <compressor.h>
-
-
 void fdsWriteRealVec_v9(std::ofstream &myfile, double* doubleVector, unsigned int nrOfRows, unsigned int compression);
 
 void fdsReadRealVec_v9(std::istream &myfile, double* doubleVector, unsigned long long blockPos, unsigned int startRow, unsigned int length, unsigned int size);
