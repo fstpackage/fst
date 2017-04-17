@@ -39,7 +39,7 @@ You can also use the development version from GitHub:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("fstPackage/fst")
+devtools::install_github("fstPackage/fst", ref = "develop")
 ```
 
 Basic usage
