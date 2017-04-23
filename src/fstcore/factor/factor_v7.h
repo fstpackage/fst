@@ -37,25 +37,18 @@
 #define FACTOR_v7_H
 
 
-#include <Rcpp.h>
 #include <iostream>
 #include <fstream>
-#include <R.h>
-#include <Rinternals.h>
 
 #include <compression.h>
 #include <compressor.h>
 
 
-// External libraries
-#include "lz4.h"
-
-
-void fdsWriteFactorVec_v7(std::ofstream &myfile, SEXP &factVec, unsigned size, unsigned int compression);
+void fdsWriteFactorVec_v7(std::ofstream &myfile, int* intP, IBlockWriter* blockRunner, unsigned int size, unsigned int nrOfFactorLevels, unsigned int compression);
 
 
 // Parameter 'startRow' is zero based.
-void fdsReadFactorVec_v7(std::istream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned int startRow,
+void fdsReadFactorVec_v7(std::istream &myfile, IBlockReader* blockReader, int* intP, unsigned long long blockPos, unsigned int startRow,
   unsigned int length, unsigned int size);
 
 

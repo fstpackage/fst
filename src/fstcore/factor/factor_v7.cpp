@@ -48,17 +48,15 @@
 #include <iostream>
 #include <fstream>
 
-// External libraries
-#include "lz4.h"
 // #include <boost/unordered_map.hpp>
 
 using namespace std;
-using namespace Rcpp;
+
 
 #define HEADER_SIZE_FACTOR 16
 #define VERSION_NUMBER_FACTOR 1
 
-void fdsWriteFactorVec_v7(ofstream &myfile, SEXP &factVec, unsigned size, unsigned int compression)
+void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IBlockWriter* blockRunner, unsigned int size, unsigned int nrOfFactorLevels, unsigned int compression)
 {
   unsigned long long blockPos = myfile.tellp();  // offset for factor
 
@@ -70,20 +68,17 @@ void fdsWriteFactorVec_v7(ofstream &myfile, SEXP &factVec, unsigned size, unsign
 
   myfile.write(meta, HEADER_SIZE_FACTOR);  // number of levels
 
-  SEXP levelVec = Rf_getAttrib(factVec, Rf_mkString("levels"));
-  *nrOfLevels = LENGTH(levelVec);
+  *nrOfLevels = nrOfFactorLevels;
 
   // Store levels here
 
-  // Create buffers for blockRunner
-  unsigned int naInts[1 + BLOCKSIZE_CHAR / 32];  // we have 32 NA bits per integer
-  unsigned int strSizes[BLOCKSIZE_CHAR];  // we have 32 NA bits per integer
-  char buf[MAX_CHAR_STACK_SIZE];
+  // // Create buffers for blockRunner
+  // unsigned int naInts[1 + BLOCKSIZE_CHAR / 32];  // we have 32 NA bits per integer
+  // unsigned int strSizes[BLOCKSIZE_CHAR];  // we have 32 NA bits per integer
+  // char buf[MAX_CHAR_STACK_SIZE];
 
   // Create blockrunner for character vector conversion
-  IBlockRunner* blockRunner = new BlockRunner(levelVec, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);
   fdsWriteCharVec_v6(myfile, blockRunner, *nrOfLevels, compression);   // column names
-  delete blockRunner;
 
   // Rewrite meta-data
   *versionNr = VERSION_NUMBER_FACTOR;
@@ -95,8 +90,7 @@ void fdsWriteFactorVec_v7(ofstream &myfile, SEXP &factVec, unsigned size, unsign
 
   // Store factor vector here
 
-  int* intP = INTEGER(factVec);  // data pointer
-  unsigned int nrOfRows = LENGTH(factVec);  // vector length
+  unsigned int nrOfRows = size;  // vector length
 
   // With zero compression only a fixed width compactor is used (int to byte or int to short)
 
@@ -186,7 +180,7 @@ void fdsWriteFactorVec_v7(ofstream &myfile, SEXP &factVec, unsigned size, unsign
 
 
 // Parameter 'startRow' is zero based.
-void fdsReadFactorVec_v7(istream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned int startRow,
+void fdsReadFactorVec_v7(istream &myfile, IBlockReader* blockReader, int* intP, unsigned long long blockPos, unsigned int startRow,
   unsigned int length, unsigned int size)
 {
   // Jump to factor level
@@ -206,16 +200,11 @@ void fdsReadFactorVec_v7(istream &myfile, SEXP &intVec, unsigned long long block
   unsigned long long* levelVecPos = (unsigned long long*) &meta[8];
 
   // Read level strings
-  SEXP strVec;
-  PROTECT(strVec = Rf_allocVector(STRSXP, *nrOfLevels));
-  fdsReadCharVec_v6(myfile, strVec, blockPos + HEADER_SIZE_FACTOR, 0, *nrOfLevels, *nrOfLevels);  // get level strings
+
+  fdsReadCharVec_v6(myfile, blockReader, blockPos + HEADER_SIZE_FACTOR, 0, *nrOfLevels, *nrOfLevels);  // get level strings
 
   // Read level values
-  char* values = (char*) INTEGER(intVec);  // output vector
-  fdsReadColumn_v2(myfile, values, *levelVecPos, startRow, length, size, 4);
-
-  Rf_setAttrib(intVec, Rf_mkString("levels"), strVec);
-  Rf_setAttrib(intVec, Rf_mkString("class"), Rf_mkString("factor"));
+  fdsReadColumn_v2(myfile, (char*) intP, *levelVecPos, startRow, length, size, 4);
 
   return;
 }

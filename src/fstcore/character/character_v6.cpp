@@ -1,35 +1,35 @@
 /*
-  fst - An R-package for ultra fast storage and retrieval of datasets.
-  Copyright (C) 2017, Mark AJ Klik
+ fst - An R-package for ultra fast storage and retrieval of datasets.
+ Copyright (C) 2017, Mark AJ Klik
 
-  BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
+BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
 
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
 
-  * Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
+* Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
 
-  * Redistributions in binary form must reproduce the above
-    copyright notice, this list of conditions and the following disclaimer
-    in the documentation and/or other materials provided with the
-    distribution.
+* Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
 
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-    A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-    OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-  You can contact the author at :
-  - fst source repository : https://github.com/fstPackage/fst
+You can contact the author at :
+- fst source repository : https://github.com/fstPackage/fst
 */
 
 #include "character_v6.h"
@@ -37,7 +37,6 @@
 #include "blockrunner_char.h"
 #include "fstdefines.h"
 
-#include <Rcpp.h>
 #include <iostream>
 #include <fstream>
 
@@ -46,17 +45,14 @@
 #include <compressor.h>
 
 
-// External libraries
-#include "lz4.h"
 // #include <boost/unordered_map.hpp>
 
 using namespace std;
-using namespace Rcpp;
 
 
-inline unsigned int StoreCharBlock_v6(ofstream &myfile, IBlockRunner* blockRunner, unsigned int startCount, unsigned int endCount)
+inline unsigned int StoreCharBlock_v6(ofstream &myfile, IBlockWriter* blockRunner, unsigned int startCount, unsigned int endCount)
 {
-  blockRunner->RetrieveBlock(startCount, endCount);
+  blockRunner->SetBuffersFromVec(startCount, endCount);
 
   unsigned int nrOfElements = endCount - startCount;  // the string at position endCount is not included
   unsigned int nrOfNAInts = 1 + nrOfElements / 32;  // add 1 bit for NA present flag
@@ -73,11 +69,11 @@ inline unsigned int StoreCharBlock_v6(ofstream &myfile, IBlockRunner* blockRunne
 }
 
 
-inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IBlockRunner* blockRunner, unsigned int startCount,
+inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IBlockWriter* blockRunner, unsigned int startCount,
   unsigned int endCount, StreamCompressor* intCompressor, StreamCompressor* charCompressor, unsigned short int &algoInt,
   unsigned short int &algoChar, int &intBufSize)
 {
-  blockRunner->RetrieveBlock(startCount, endCount);
+  blockRunner->SetBuffersFromVec(startCount, endCount);
 
   // Determine string lengths
   unsigned int nrOfElements = endCount - startCount;  // the string at position endCount is not included
@@ -102,9 +98,9 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IBlockRunner* 
   unsigned int totSize = blockRunner->bufSize;
 
   int compBufSize = charCompressor->CompressBufferSize(totSize);
-  unsigned int pos = 0;
-  unsigned int lastPos = 0;
-  int sizeCount = -1;
+  // unsigned int pos = 0;
+  // unsigned int lastPos = 0;
+  // int sizeCount = -1;
   char* compBuf = new char[compBufSize];  // character buffer   check if reuse possible?
 
 
@@ -120,7 +116,7 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IBlockRunner* 
 }
 
 
-void fdsWriteCharVec_v6(ofstream &myfile, IBlockRunner* blockRunner, unsigned int vecLength, int compression)
+void fdsWriteCharVec_v6(ofstream &myfile, IBlockWriter* blockRunner, unsigned int vecLength, int compression)
 {
   unsigned long long curPos = myfile.tellp();
   unsigned int nrOfBlocks = (vecLength - 1) / BLOCKSIZE_CHAR;  // number of blocks minus 1
@@ -218,7 +214,7 @@ void fdsWriteCharVec_v6(ofstream &myfile, IBlockRunner* blockRunner, unsigned in
     int* intBufSize = (int*) (blockP + 12);
 
     unsigned int totSize = storeCharBlockCompressed_v6(myfile, blockRunner, block * BLOCKSIZE_CHAR,
-      (block + 1) * BLOCKSIZE_CHAR, streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize);
+                                                       (block + 1) * BLOCKSIZE_CHAR, streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize);
 
     fullSize += totSize;
     *blockPos = fullSize;
@@ -231,7 +227,7 @@ void fdsWriteCharVec_v6(ofstream &myfile, IBlockRunner* blockRunner, unsigned in
   int* intBufSize = (int*) (blockP + 12);
 
   unsigned int totSize = storeCharBlockCompressed_v6(myfile, blockRunner, nrOfBlocks * BLOCKSIZE_CHAR,
-      vecLength, streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize);
+                                                     vecLength, streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize);
   fullSize += totSize;
   *blockPos = fullSize;
 
@@ -252,154 +248,7 @@ void fdsWriteCharVec_v6(ofstream &myfile, IBlockRunner* blockRunner, unsigned in
 }
 
 
-inline void ReadDataBlockInfo_v6(SEXP &strVec, unsigned long long blockSize, unsigned int nrOfElements,
-  unsigned int startElem, unsigned int endElem, unsigned int vecOffset, unsigned int* sizeMeta, char* buf, unsigned int nrOfNAInts)
-{
-  unsigned int* bitsNA = &sizeMeta[nrOfElements];
-  unsigned int pos = 0;
-
-  if (startElem != 0)
-  {
-    pos = sizeMeta[startElem - 1];  // offset previous element
-  }
-
-  // Test NA flag
-  unsigned int flagNA = bitsNA[nrOfNAInts - 1] & (1 << (nrOfElements % 32));
-  if (flagNA == 0)  // no NA's in vector
-  {
-    for (unsigned int blockElem = startElem; blockElem <= endElem; ++blockElem)
-    {
-      unsigned int newPos = sizeMeta[blockElem];
-      SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
-      SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
-      pos = newPos;  // update to new string offset
-    }
-
-    return;
-  }
-
-  // We process the datablock in cycles of 32 strings. This minimizes the impact of NA testing for vectors with a small number of NA's
-
-  unsigned int startCycle = startElem / 32;
-  unsigned int endCycle = endElem / 32;
-  unsigned int cycleNAs = bitsNA[startCycle];
-
-  // A single 32 string cycle
-
-  if (startCycle == endCycle)
-  {
-    for (unsigned int blockElem = startElem; blockElem <= endElem; ++blockElem)
-    {
-      unsigned int bitMask = 1 << (blockElem % 32);
-
-      if ((cycleNAs & bitMask) != 0)  // set string to NA
-      {
-        SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, NA_STRING);
-        pos = sizeMeta[blockElem];  // update to new string offset
-        continue;
-      }
-
-      // Get string from data stream
-
-      unsigned int newPos = sizeMeta[blockElem];
-      SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
-      SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
-      pos = newPos;  // update to new string offset
-    }
-
-    return;
-  }
-
-  // Get possibly partial first cycle
-
-  unsigned int firstCylceEnd = startCycle * 32 + 31;
-  for (unsigned int blockElem = startElem; blockElem <= firstCylceEnd; ++blockElem)
-  {
-    unsigned int bitMask = 1 << (blockElem % 32);
-
-    if ((cycleNAs & bitMask) != 0)  // set string to NA
-    {
-      SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, NA_STRING);
-      pos = sizeMeta[blockElem];  // update to new string offset
-      continue;
-    }
-
-    // Get string from data stream
-
-    unsigned int newPos = sizeMeta[blockElem];
-    SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
-    SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
-    pos = newPos;  // update to new string offset
-  }
-
-  // Get all but last cycle with fast NA test
-
-  for (unsigned int cycle = startCycle + 1; cycle != endCycle; ++cycle)
-  {
-    unsigned int cycleNAs = bitsNA[cycle];
-    unsigned int middleCycleEnd = cycle * 32 + 32;
-
-    if (cycleNAs == 0)  // no NA's
-    {
-      for (unsigned int blockElem = cycle * 32; blockElem != middleCycleEnd; ++blockElem)
-      {
-        unsigned int newPos = sizeMeta[blockElem];
-        SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
-        SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
-        pos = newPos;  // update to new string offset
-      }
-      continue;
-    }
-
-    // Cycle contains one or more NA's
-
-    for (unsigned int blockElem = cycle * 32; blockElem != middleCycleEnd; ++blockElem)
-    {
-      unsigned int bitMask = 1 << (blockElem % 32);
-      unsigned int newPos = sizeMeta[blockElem];
-
-      if ((cycleNAs & bitMask) != 0)  // set string to NA
-      {
-        SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, NA_STRING);
-        pos = newPos;  // update to new string offset
-        continue;
-      }
-
-      // Get string from data stream
-
-      SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
-      SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
-      pos = newPos;  // update to new string offset
-    }
-  }
-
-  // Last cycle
-
-  cycleNAs = bitsNA[endCycle];
-
-  ++endElem;
-  for (unsigned int blockElem = endCycle * 32; blockElem != endElem; ++blockElem)
-  {
-    unsigned int bitMask = 1 << (blockElem % 32);
-    unsigned int newPos = sizeMeta[blockElem];
-
-    if ((cycleNAs & bitMask) != 0)  // set string to NA
-    {
-      SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, NA_STRING);
-      pos = newPos;  // update to new string offset
-      continue;
-    }
-
-    // Get string from data stream
-
-    SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
-    SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
-    pos = newPos;  // update to new string offset
-  }
-}
-
-
-inline void ReadDataBlock_v6(istream &myfile, SEXP &strVec, unsigned long long blockSize, unsigned int nrOfElements,
+inline void ReadDataBlock_v6(istream &myfile, IBlockReader* blockReader, unsigned long long blockSize, unsigned int nrOfElements,
   unsigned int startElem, unsigned int endElem, unsigned int vecOffset)
 {
   unsigned int nrOfNAInts = 1 + nrOfElements / 32;  // last bit is NA flag
@@ -412,14 +261,19 @@ inline void ReadDataBlock_v6(istream &myfile, SEXP &strVec, unsigned long long b
   char* buf = new char[charDataSize];
   myfile.read(buf, charDataSize);  // read string lengths
 
-  ReadDataBlockInfo_v6(strVec, blockSize, nrOfElements, startElem, endElem, vecOffset, sizeMeta, buf, nrOfNAInts);
+  // Create IBlockReader
+  // IBlockReader* blockReader = new BlockReaderChar(strVec);
+  blockReader->BufferToVec(nrOfElements, startElem, endElem, vecOffset, sizeMeta, buf);
+  // delete blockReader;
+
+  // ReadDataBlockInfo_v6(strVec, nrOfElements, startElem, endElem, vecOffset, sizeMeta, buf);
 
   delete[] sizeMeta;
   delete[] buf;
 }
 
 
-inline SEXP ReadDataBlockCompressed_v6(istream &myfile, SEXP &strVec, unsigned long long blockSize, unsigned int nrOfElements,
+inline SEXP ReadDataBlockCompressed_v6(istream &myfile, IBlockReader* blockReader, unsigned long long blockSize, unsigned int nrOfElements,
   unsigned int startElem, unsigned int endElem, unsigned int vecOffset,
   unsigned int intBlockSize, Decompressor &decompressor, unsigned short int &algoInt, unsigned short int &algoChar)
 {
@@ -464,7 +318,7 @@ inline SEXP ReadDataBlockCompressed_v6(istream &myfile, SEXP &strVec, unsigned l
     delete[] bufCompressed;
   }
 
-  ReadDataBlockInfo_v6(strVec, blockSize, nrOfElements, startElem, endElem, vecOffset, sizeMeta, buf, nrOfNAInts);
+  blockReader->BufferToVec(nrOfElements, startElem, endElem, vecOffset, sizeMeta, buf);
 
   delete[] buf;  // character vector buffer
   delete[] sizeMeta;
@@ -473,7 +327,7 @@ inline SEXP ReadDataBlockCompressed_v6(istream &myfile, SEXP &strVec, unsigned l
 }
 
 
-void fdsReadCharVec_v6(istream &myfile, SEXP &strVec, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size)
+void fdsReadCharVec_v6(istream &myfile, IBlockReader* blockReader, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size)
 {
   // Jump to startRow size
   myfile.seekg(blockPos);
@@ -489,6 +343,9 @@ void fdsReadCharVec_v6(istream &myfile, SEXP &strVec, unsigned long long blockPo
   unsigned int endBlock = (startRow + vecLength - 1)  / blockSizeChar;
   unsigned int endOffset = (startRow + vecLength - 1)  -  endBlock *blockSizeChar;
   unsigned int nrOfBlocks = 1 + endBlock - startBlock;  // total number of blocks to read
+
+  // Create result vector
+  blockReader->AllocateVec(vecLength);
 
   // Vector data is uncompressed
 
@@ -527,7 +384,7 @@ void fdsReadCharVec_v6(istream &myfile, SEXP &strVec, unsigned long long blockPo
     // Read first block with offset
     unsigned long long blockSize = blockOffset[1] - offset;  // size of data block
 
-    ReadDataBlock_v6(myfile, strVec, blockSize, nrOfElements, startOffset, endElem, 0);
+    ReadDataBlock_v6(myfile, blockReader, blockSize, nrOfElements, startOffset, endElem, 0);
 
     if (startBlock == endBlock)  // subset start and end of block
     {
@@ -548,13 +405,15 @@ void fdsReadCharVec_v6(istream &myfile, SEXP &strVec, unsigned long long blockPo
     for (unsigned int block = 1; block < nrOfBlocks; ++block)
     {
       unsigned long long newPos = blockOffset[block + 1];
-      ReadDataBlock_v6(myfile, strVec, newPos - offset, blockSizeChar, 0, blockSizeChar - 1, vecPos);
+
+      ReadDataBlock_v6(myfile, blockReader, newPos - offset, blockSizeChar, 0, blockSizeChar - 1, vecPos);
+
       vecPos += blockSizeChar;
       offset = newPos;
     }
 
     unsigned long long newPos = blockOffset[nrOfBlocks + 1];
-    ReadDataBlock_v6(myfile, strVec, newPos - offset, nrOfElements, 0, endOffset, vecPos);
+    ReadDataBlock_v6(myfile, blockReader, newPos - offset, nrOfElements, 0, endOffset, vecPos);
 
     delete[] blockOffset;
 
@@ -609,8 +468,9 @@ void fdsReadCharVec_v6(istream &myfile, SEXP &strVec, unsigned long long blockPo
 
   Decompressor decompressor;  // uncompress all availble algorithms
 
-  ReadDataBlockCompressed_v6(myfile, strVec, blockSize, nrOfElements, startOffset, endElem, 0, *intBufSize,
-    decompressor, *algoInt, *algoChar);
+  ReadDataBlockCompressed_v6(myfile, blockReader, blockSize, nrOfElements, startOffset, endElem, 0, *intBufSize,
+                             decompressor, *algoInt, *algoChar);
+
 
   if (startBlock == endBlock)  // subset start and end of block
   {
@@ -637,8 +497,9 @@ void fdsReadCharVec_v6(istream &myfile, SEXP &strVec, unsigned long long blockPo
     unsigned short int* algoChar = (unsigned short int*) (blockP + 10);
     int* intBufSize = (int*) (blockP + 12);
 
-    ReadDataBlockCompressed_v6(myfile, strVec, *curBlockPos - *offset, blockSizeChar, 0, blockSizeChar - 1, vecPos, *intBufSize,
+    ReadDataBlockCompressed_v6(myfile, blockReader, *curBlockPos - *offset, blockSizeChar, 0, blockSizeChar - 1, vecPos, *intBufSize,
       decompressor, *algoInt, *algoChar);
+
     vecPos += blockSizeChar;
     offset = curBlockPos;
     blockP += CHAR_INDEX_SIZE;  // move to next index element
@@ -649,8 +510,8 @@ void fdsReadCharVec_v6(istream &myfile, SEXP &strVec, unsigned long long blockPo
   algoChar = (unsigned short int*) (blockP + 10);
   intBufSize = (int*) (blockP + 12);
 
-  ReadDataBlockCompressed_v6(myfile, strVec, *curBlockPos - *offset, nrOfElements, 0, endOffset, vecPos, *intBufSize,
-      decompressor, *algoInt, *algoChar);
+  ReadDataBlockCompressed_v6(myfile, blockReader, *curBlockPos - *offset, nrOfElements, 0, endOffset, vecPos, *intBufSize,
+    decompressor, *algoInt, *algoChar);
 
   delete[] blockInfo;
 

@@ -37,23 +37,15 @@
 #define CHARACTER_V6_H
 
 
-#include <Rcpp.h>
 #include <iostream>
 #include <fstream>
-#include <R.h>
-#include <Rinternals.h>
-
 #include <iblockrunner.h>
 
 
-// External libraries
-#include "lz4.h"
+void fdsWriteCharVec_v6(std::ofstream &myfile, IBlockWriter* blockRunner, unsigned int vecLength, int compression);
 
 
-void fdsWriteCharVec_v6(std::ofstream &myfile, IBlockRunner* blockRunner, unsigned int vecLength, int compression);
-
-
-void fdsReadCharVec_v6(std::istream &myfile, SEXP &strVec, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size);
+void fdsReadCharVec_v6(std::istream &myfile, IBlockReader* blockReader, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size);
 
 
 #endif  // CHARACTER_V6_H

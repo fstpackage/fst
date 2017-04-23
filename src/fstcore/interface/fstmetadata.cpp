@@ -35,9 +35,13 @@
 
 #include <fstream>
 
+#include <iblockrunner.h>
 #include <fstmetadata.h>
 #include <fstdefines.h>
 #include "character_v6.h"
+
+// Refactor!
+#include "blockrunner_char.h"
 
 
 //  8                      | unsigned long long | nextHorzChunkSet
@@ -67,7 +71,7 @@ unsigned int FstMetaData::ReadHeader(istream &fstfile, unsigned int &tableClassT
 
   unsigned long long* p_fstFileID = (unsigned long long*) tableMeta;
   unsigned int* p_table_version   = (unsigned int*) &tableMeta[8];
-  unsigned int* p_tableClassType  = (unsigned int*) &tableMeta[12];
+  // unsigned int* p_tableClassType  = (unsigned int*) &tableMeta[12];
   int* p_keyLength                = (int*) &tableMeta[16];
   int* p_nrOfColsFirstChunk       = (int*) &tableMeta[20];
 
@@ -134,10 +138,14 @@ int FstMetaData::CollectRecursive(std::istream &fstfile, uint64_t filePointer)
   unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[2 * nrOfCols];
 
   // Column names TODO: this method should return a vector<string>
-  SEXP colNames;
-  PROTECT(colNames = Rf_allocVector(STRSXP, nrOfCols));
+  // SEXP colNames;
+  // PROTECT(colNames = Rf_allocVector(STRSXP, nrOfCols));
   unsigned long long offset = filePointer + headerSize + 4 * nrOfCols;
-  fdsReadCharVec_v6(fstfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
+
+  BlockReaderChar* blockReader = new BlockReaderChar();
+  fdsReadCharVec_v6(fstfile, (IBlockReader*) blockReader, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
+  SEXP colNames = blockReader->StrVector();
+  delete blockReader;
 
   // Populate meta data (with left to right column data)
   for (int colCount = 0; colCount < nrOfCols; ++colCount)

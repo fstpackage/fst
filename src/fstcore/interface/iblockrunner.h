@@ -38,7 +38,7 @@
 #define IBLOCKRUNNER_H
 
 
-class IBlockRunner
+class IBlockWriter
 {
 public:
   unsigned int* strSizes;
@@ -46,9 +46,22 @@ public:
   unsigned int bufSize;
   char* activeBuf;
 
-  virtual ~IBlockRunner() {};
+  virtual ~IBlockWriter() {};
 
-  virtual void RetrieveBlock(unsigned int startCount, unsigned int endCount) = 0;
+  virtual void SetBuffersFromVec(unsigned int startCount, unsigned int endCount) = 0;
+};
+
+
+class IBlockReader
+{
+public:
+
+  virtual ~IBlockReader() {};
+
+  virtual void AllocateVec(unsigned int vecLength) = 0;
+
+  virtual void BufferToVec(unsigned int nrOfElements, unsigned int startElem, unsigned int endElem,
+    unsigned int vecOffset, unsigned int* sizeMeta, char* buf) = 0;
 };
 
 

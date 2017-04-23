@@ -40,20 +40,35 @@
 #include <Rcpp.h>
 
 
-class BlockRunner : public IBlockRunner
+class BlockWriterChar : public IBlockWriter
 {
   SEXP* strVec;
-  unsigned int  stackBufSize;
-
+  unsigned int stackBufSize;
   unsigned int heapBufSize;
   char* buf;
   char *heapBuf;
 
   public:
-    BlockRunner(SEXP &strVec, unsigned int* strSizes, unsigned int* naInts, char* stackBuf, unsigned int stackBufSize);
-    ~BlockRunner();
+    BlockWriterChar(SEXP &strVec, unsigned int* strSizes, unsigned int* naInts, char* stackBuf, unsigned int stackBufSize);
+    ~BlockWriterChar();
 
-    void RetrieveBlock(unsigned int startCount, unsigned int endCount);
+    void SetBuffersFromVec(unsigned int startCount, unsigned int endCount);
+};
+
+
+class BlockReaderChar : public IBlockReader
+{
+  SEXP strVec;
+
+public:
+  ~BlockReaderChar();
+
+  void AllocateVec(unsigned int vecLength);
+
+  void BufferToVec(unsigned int nrOfElements, unsigned int startElem, unsigned int endElem,
+    unsigned int vecOffset, unsigned int* sizeMeta, char* buf);
+
+  SEXP StrVector() { return strVec; }
 };
 
 

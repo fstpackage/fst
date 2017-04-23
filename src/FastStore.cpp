@@ -226,9 +226,10 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
   unsigned int strSizes[BLOCKSIZE_CHAR];  // we have 32 NA bits per integer
   char buf[MAX_CHAR_STACK_SIZE];
 
+
   // Create blockrunner for character vector conversion
   // BlockRunner blockRunnerR(colNames, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);
-  IBlockRunner* blockRunner = new BlockRunner(colNames, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);
+  IBlockWriter* blockRunner = new BlockWriterChar(colNames, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);
 
   fdsWriteCharVec_v6(myfile, blockRunner, nrOfCols, 0);   // column names
   // TODO: Write column attributes here
@@ -270,7 +271,7 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
 
         // Create blockrunner for character vector conversion
         delete blockRunner;
-        blockRunner = new BlockRunner(colVec, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);  // reuse buffers
+        blockRunner = new BlockWriterChar(colVec, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);  // reuse buffers
         fdsWriteCharVec_v6(myfile, blockRunner, nrOfRows, compress);   // column names
         break;
 
@@ -279,7 +280,14 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
         {
           colTypes[colNr] = 7;
           colBaseTypes[colNr] = 2;
-          fdsWriteFactorVec_v7(myfile, colVec, nrOfRows, compress);
+
+          delete blockRunner;
+          SEXP levelVec = Rf_getAttrib(colVec, Rf_mkString("levels"));
+          int* intP = INTEGER(colVec);  // data pointer
+          unsigned int nrOfFactorLevels = LENGTH(levelVec);
+          blockRunner = new BlockWriterChar(levelVec, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);
+          fdsWriteFactorVec_v7(myfile, intP, blockRunner, nrOfRows, nrOfFactorLevels, compress);
+
           break;
         }
 
@@ -303,11 +311,13 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
       default:
         delete[] metaDataBlock;
         delete[] chunkIndex;
+        delete blockRunner;
         myfile.close();
         ::Rf_error("Unknown type found in column.");
     }
   }
 
+  delete blockRunner;
 
   // update chunk position data
   *chunkPos = positionData[0] - 8 * nrOfCols;
@@ -323,7 +333,6 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
   // cleanup
   delete[] metaDataBlock;
   delete[] chunkIndex;
-  delete blockRunner;
 
 
   return List::create(
@@ -424,11 +433,11 @@ List fstMeta(String fileName)
 
 
   // Read column names
-  SEXP colNames;
-  PROTECT(colNames = Rf_allocVector(STRSXP, nrOfCols));
   unsigned long long offset = metaSize + TABLE_META_SIZE;
-  fdsReadCharVec_v6(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
-
+  BlockReaderChar* blockReader = new BlockReaderChar();
+  fdsReadCharVec_v6(myfile, (IBlockReader*) blockReader, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
+  SEXP colNames = blockReader->StrVector();
+  delete blockReader;
 
   // Convert to integer vector
   IntegerVector colTypeVec(nrOfCols);
@@ -535,10 +544,13 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   // TODO: read table attributes here
 
   // Read column names
-  SEXP colNames;
-  PROTECT(colNames = Rf_allocVector(STRSXP, nrOfCols));
+  // SEXP colNames;
+  // PROTECT(colNames = Rf_allocVector(STRSXP, nrOfCols));
   unsigned long long offset = metaSize + TABLE_META_SIZE;
-  fdsReadCharVec_v6(myfile, colNames, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
+  BlockReaderChar* blockReader = new BlockReaderChar();
+  fdsReadCharVec_v6(myfile, (IBlockReader*) blockReader, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
+  SEXP colNames = blockReader->StrVector();
+  delete blockReader;
 
   // TODO: read column attributes here
 
@@ -662,6 +674,8 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   SEXP resTable;
   PROTECT(resTable = Rf_allocVector(VECSXP, nrOfSelect));
 
+  BlockReaderChar* blockReaderStrVec = new BlockReaderChar();
+
   for (int colSel = 0; colSel < nrOfSelect; ++colSel)
   {
     int colNr = colIndex[colSel];
@@ -685,10 +699,11 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
     {
     // Character vector
       case 6:
-        SEXP strVec;
-        PROTECT(strVec = Rf_allocVector(STRSXP, length));
-        fdsReadCharVec_v6(myfile, strVec, pos, firstRow, length, nrOfRows);
-        SET_VECTOR_ELT(resTable, colSel, strVec);
+        // PROTECT(strVec = Rf_allocVector(STRSXP, length));
+        // blockReaderStrVec = new BlockReaderChar();
+        fdsReadCharVec_v6(myfile, (IBlockReader*) blockReaderStrVec, pos, firstRow, length, nrOfRows);
+
+        SET_VECTOR_ELT(resTable, colSel, blockReaderStrVec->StrVector());
         UNPROTECT(1);
         break;
 
@@ -723,7 +738,12 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
       case 7:
         SEXP facVec;
         PROTECT(facVec = Rf_allocVector(INTSXP, length));
-        fdsReadFactorVec_v7(myfile, facVec, pos, firstRow, length, nrOfRows);
+
+        fdsReadFactorVec_v7(myfile, (IBlockReader*) blockReaderStrVec, INTEGER(facVec), pos, firstRow, length, nrOfRows);
+
+        Rf_setAttrib(facVec, Rf_mkString("levels"), blockReaderStrVec->StrVector());
+        Rf_setAttrib(facVec, Rf_mkString("class"), Rf_mkString("factor"));
+
         SET_VECTOR_ELT(resTable, colSel, facVec);
         UNPROTECT(2);  // level string was also generated
         break;
@@ -732,10 +752,13 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
       default:
         delete[] metaDataBlock;
         delete[] blockPos;
+
         myfile.close();
         ::Rf_error("Unknown type found in column.");
     }
   }
+
+  delete blockReaderStrVec;
 
   myfile.close();
 

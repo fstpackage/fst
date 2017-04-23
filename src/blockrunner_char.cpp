@@ -46,7 +46,7 @@ using namespace std;
 using namespace Rcpp;
 
 
-BlockRunner::BlockRunner(SEXP &strVec, unsigned int* strSizes, unsigned int* naInts, char* stackBuf, unsigned int stackBufSize)
+BlockWriterChar::BlockWriterChar(SEXP &strVec, unsigned int* strSizes, unsigned int* naInts, char* stackBuf, unsigned int stackBufSize)
 {
   this->strVec = &strVec;
   this->naInts = naInts;
@@ -59,13 +59,13 @@ BlockRunner::BlockRunner(SEXP &strVec, unsigned int* strSizes, unsigned int* naI
 }
 
 
-BlockRunner::~BlockRunner()
+BlockWriterChar::~BlockWriterChar()
 {
   delete[] heapBuf;
 }
 
 
-void BlockRunner::RetrieveBlock(unsigned int startCount, unsigned int endCount)
+void BlockWriterChar::SetBuffersFromVec(unsigned int startCount, unsigned int endCount)
 {
   // Determine string lengths
   // unsigned int startCount = block * BLOCKSIZE_CHAR;
@@ -130,4 +130,169 @@ void BlockRunner::RetrieveBlock(unsigned int startCount, unsigned int endCount)
   }
 
   bufSize = totSize;
+}
+
+
+// BlockReaderChar::BlockReaderChar(SEXP &strVec)
+// {
+//   this->strVec = &strVec;
+// }
+
+
+void BlockReaderChar::AllocateVec(unsigned int vecLength)
+{
+  PROTECT(this->strVec = Rf_allocVector(STRSXP, vecLength));
+}
+
+void BlockReaderChar::BufferToVec(unsigned int nrOfElements, unsigned int startElem, unsigned int endElem,
+  unsigned int vecOffset, unsigned int* sizeMeta, char* buf)
+{
+  unsigned int nrOfNAInts = 1 + nrOfElements / 32;  // last bit is NA flag
+  unsigned int* bitsNA = &sizeMeta[nrOfElements];
+  unsigned int pos = 0;
+
+  if (startElem != 0)
+  {
+    pos = sizeMeta[startElem - 1];  // offset previous element
+  }
+
+  // Test NA flag TODO: set as first flag and remove parameter nrOfNAInts
+  unsigned int flagNA = bitsNA[nrOfNAInts - 1] & (1 << (nrOfElements % 32));
+  if (flagNA == 0)  // no NA's in vector
+  {
+    for (unsigned int blockElem = startElem; blockElem <= endElem; ++blockElem)
+    {
+      unsigned int newPos = sizeMeta[blockElem];
+      SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
+      SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
+      pos = newPos;  // update to new string offset
+    }
+
+    return;
+  }
+
+  // We process the datablock in cycles of 32 strings. This minimizes the impact of NA testing for vectors with a small number of NA's
+
+  unsigned int startCycle = startElem / 32;
+  unsigned int endCycle = endElem / 32;
+  unsigned int cycleNAs = bitsNA[startCycle];
+
+  // A single 32 string cycle
+
+  if (startCycle == endCycle)
+  {
+    for (unsigned int blockElem = startElem; blockElem <= endElem; ++blockElem)
+    {
+      unsigned int bitMask = 1 << (blockElem % 32);
+
+      if ((cycleNAs & bitMask) != 0)  // set string to NA
+      {
+        SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, NA_STRING);
+        pos = sizeMeta[blockElem];  // update to new string offset
+        continue;
+      }
+
+      // Get string from data stream
+
+      unsigned int newPos = sizeMeta[blockElem];
+      SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
+      SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
+      pos = newPos;  // update to new string offset
+    }
+
+    return;
+  }
+
+  // Get possibly partial first cycle
+
+  unsigned int firstCylceEnd = startCycle * 32 + 31;
+  for (unsigned int blockElem = startElem; blockElem <= firstCylceEnd; ++blockElem)
+  {
+    unsigned int bitMask = 1 << (blockElem % 32);
+
+    if ((cycleNAs & bitMask) != 0)  // set string to NA
+    {
+      SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, NA_STRING);
+      pos = sizeMeta[blockElem];  // update to new string offset
+      continue;
+    }
+
+    // Get string from data stream
+
+    unsigned int newPos = sizeMeta[blockElem];
+    SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
+    SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
+    pos = newPos;  // update to new string offset
+  }
+
+  // Get all but last cycle with fast NA test
+
+  for (unsigned int cycle = startCycle + 1; cycle != endCycle; ++cycle)
+  {
+    unsigned int cycleNAs = bitsNA[cycle];
+    unsigned int middleCycleEnd = cycle * 32 + 32;
+
+    if (cycleNAs == 0)  // no NA's
+    {
+      for (unsigned int blockElem = cycle * 32; blockElem != middleCycleEnd; ++blockElem)
+      {
+        unsigned int newPos = sizeMeta[blockElem];
+        SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
+        SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
+        pos = newPos;  // update to new string offset
+      }
+      continue;
+    }
+
+    // Cycle contains one or more NA's
+
+    for (unsigned int blockElem = cycle * 32; blockElem != middleCycleEnd; ++blockElem)
+    {
+      unsigned int bitMask = 1 << (blockElem % 32);
+      unsigned int newPos = sizeMeta[blockElem];
+
+      if ((cycleNAs & bitMask) != 0)  // set string to NA
+      {
+        SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, NA_STRING);
+        pos = newPos;  // update to new string offset
+        continue;
+      }
+
+      // Get string from data stream
+
+      SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
+      SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
+      pos = newPos;  // update to new string offset
+    }
+  }
+
+  // Last cycle
+
+  cycleNAs = bitsNA[endCycle];
+
+  ++endElem;
+  for (unsigned int blockElem = endCycle * 32; blockElem != endElem; ++blockElem)
+  {
+    unsigned int bitMask = 1 << (blockElem % 32);
+    unsigned int newPos = sizeMeta[blockElem];
+
+    if ((cycleNAs & bitMask) != 0)  // set string to NA
+    {
+      SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, NA_STRING);
+      pos = newPos;  // update to new string offset
+      continue;
+    }
+
+    // Get string from data stream
+
+    SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
+    SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
+    pos = newPos;  // update to new string offset
+  }
+}
+
+
+BlockReaderChar::~BlockReaderChar()
+{
+
 }
