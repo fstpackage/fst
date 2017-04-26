@@ -114,22 +114,10 @@ inline int FindKey(StringVector colNameList, String item)
 //  8 * nrOfCols           | unsigned long long | positionData
 //
 
-SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer)
+SEXP fstWrite(const char* fileName, SEXP table, int compress, Function serializer)
 {
   SEXP colNames = Rf_getAttrib(table, R_NamesSymbol);
   SEXP keyNames = Rf_getAttrib(table, Rf_mkString("sorted"));
-
-
-  if (!Rf_isInteger(compression))
-  {
-    ::Rf_error("Parameter compression should be an integer value between 0 and 100");
-  }
-
-  int compress = *INTEGER(compression);
-  if ((compress < 0) | (compress > 100))
-  {
-    ::Rf_error("Parameter compression should be an integer value between 0 and 100");
-  }
 
   // Meta on dataset
   int nrOfCols =  LENGTH(colNames);
@@ -208,7 +196,7 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
   ofstream myfile;
   char ioBuf[4096];
   myfile.rdbuf()->pubsetbuf(ioBuf, 4096);  // workaround for memory leak in ofstream
-  myfile.open(fileName.get_cstring(), ios::binary);
+  myfile.open(fileName, ios::binary);
 
   if (myfile.fail())
   {
@@ -230,7 +218,6 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
   // Create blockrunner for character vector conversion
   // BlockRunner blockRunnerR(colNames, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);
   IBlockWriter* blockRunner = new BlockWriterChar(colNames, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);
-
   fdsWriteCharVec_v6(myfile, blockRunner, nrOfCols, 0);   // column names
   // TODO: Write column attributes here
 
@@ -339,6 +326,23 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
     _["keyNames"] = keyNames,
     _["keyLength"] = keyLength,
     _["metaDataSize"] = metaDataSize);
+}
+
+
+SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer)
+{
+  if (!Rf_isInteger(compression))
+  {
+    ::Rf_error("Parameter compression should be an integer value between 0 and 100");
+  }
+
+  int compress = *INTEGER(compression);
+  if ((compress < 0) | (compress > 100))
+  {
+    ::Rf_error("Parameter compression should be an integer value between 0 and 100");
+  }
+
+  return fstWrite(fileName.get_cstring(), table, compress, serializer);
 }
 
 

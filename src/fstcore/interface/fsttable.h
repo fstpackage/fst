@@ -62,12 +62,6 @@ public:
 };
 
 
-class FstZipper
-{
-  public:
-    FstZipper();
-};
-
 
 class FstColumn_int32 : public FstColumn
 {

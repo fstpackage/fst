@@ -1,7 +1,7 @@
 
-PKG_CPPFLAGS = -I. -Ifstcore -ILZ4 -IZSTD -IZSTD/common -IZSTD/decompress -IZSTD/compress -Ifstcore/logical -Ifstcore/integer -Ifstcore/double -Ifstcore/factor -Ifstcore/interface -Ifstcore/character
+PKG_CPPFLAGS = $(SHLIB_OPENMP_CFLAGS) -I. -Ifstcore -ILZ4 -IZSTD -IZSTD/common -IZSTD/decompress -IZSTD/compress -Ifstcore/logical -Ifstcore/integer -Ifstcore/double -Ifstcore/factor -Ifstcore/interface -Ifstcore/character
 CXX_STD      = CXX11
-PKG_LIBS     = -L. -lLZ4 -lZSTD -lFRAME -lTYPES
+PKG_LIBS     = $(SHLIB_OPENMP_CFLAGS) -L. -lLZ4 -lZSTD -lFRAME -lTYPES
 
 # libraries
 LIBLZ4  = LZ4/lz4.o
