@@ -36,7 +36,7 @@
 #ifndef COMPRESSOR_H
 #define COMPRESSOR_H
 
-#include <Rcpp.h>
+#include <fstream>
 
 #include <compression.h>
 

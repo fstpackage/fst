@@ -37,7 +37,7 @@
 #define FASTSTORE_H
 
 
-#define FST_VERSION     1                   // version number of the fst package
+#define FST_VERSION 1  // version number of the fst package
 
 
 #include <Rcpp.h>
@@ -53,7 +53,7 @@
 #include "lz4.h"
 
 // [[Rcpp::export]]
-SEXP fstStore(Rcpp::String fileName, SEXP table, SEXP compression, Rcpp::Function serializer);
+SEXP fstStore(Rcpp::String fileName, SEXP table, SEXP compression);
 
 // [[Rcpp::export]]
 Rcpp::List fstMeta(Rcpp::String fileName);

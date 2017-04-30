@@ -7,7 +7,6 @@
 #' @param x A data frame to append to an existing \code{fst} file.
 #' @param compress Value in the range 0 to 100, indicating the amount of compression to use for the appended data frame.
 #' If \code{NULL}, the compression setting of the existing \code{fst} file will be used.
-#' @export
 fst.rbind <- function(path, x, compress = NULL)
 {
   fileName <- normalizePath(path, mustWork = TRUE)

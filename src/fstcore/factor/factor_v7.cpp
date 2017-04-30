@@ -56,9 +56,10 @@ using namespace std;
 #define HEADER_SIZE_FACTOR 16
 #define VERSION_NUMBER_FACTOR 1
 
-void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IBlockWriter* blockRunner, unsigned int size, unsigned int nrOfFactorLevels, unsigned int compression)
+void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IBlockWriter* blockRunner, unsigned int size, unsigned int compression)
 {
   unsigned long long blockPos = myfile.tellp();  // offset for factor
+  unsigned int nrOfFactorLevels = blockRunner->vecLength;
 
   // Vector meta data
   char meta[HEADER_SIZE_FACTOR];
@@ -70,15 +71,8 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IBlockWriter* blockRunner
 
   *nrOfLevels = nrOfFactorLevels;
 
-  // Store levels here
-
-  // // Create buffers for blockRunner
-  // unsigned int naInts[1 + BLOCKSIZE_CHAR / 32];  // we have 32 NA bits per integer
-  // unsigned int strSizes[BLOCKSIZE_CHAR];  // we have 32 NA bits per integer
-  // char buf[MAX_CHAR_STACK_SIZE];
-
-  // Create blockrunner for character vector conversion
-  fdsWriteCharVec_v6(myfile, blockRunner, *nrOfLevels, compression);   // column names
+  // Use blockrunner to store factor levels
+  fdsWriteCharVec_v6(myfile, blockRunner, compression);   // factor levels
 
   // Rewrite meta-data
   *versionNr = VERSION_NUMBER_FACTOR;

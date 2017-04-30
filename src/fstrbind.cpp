@@ -72,62 +72,62 @@ SEXP BytesConvert(SEXP integer)
 }
 
 
-SEXP fstrbind(String fileName, SEXP table, SEXP compression, Function serializer)
-{
-  SEXP colNames = Rf_getAttrib(table, R_NamesSymbol);
-  SEXP keyNames = Rf_getAttrib(table, Rf_mkString("sorted"));
-  int nrOfCols = LENGTH(colNames);
-
-
-  // Assume a data.table
-
-
-  // Create FstTable proxy object
-
-  SEXP firstColumn = VECTOR_ELT(table, 0);  // column vector
-  uint64_t nrOfRows = Rf_xlength(firstColumn);
-
-
-  // Create a FstTable wrapper around an R data frame
-  FstTable fstTable(nrOfRows);
-
-  // Add FstColumns
-  for (int colNr = 0; colNr < nrOfCols; ++colNr)
-  {
-    SEXP colVec = VECTOR_ELT(table, colNr);  // column vector
-
-    switch (TYPEOF(colVec))
-    {
-      case INTSXP:
-        if(!Rf_isFactor(colVec))
-        {
-          fstTable.AddColumnInt32(INTEGER(colVec));
-
-          break;
-        }
-
-      default:
-        ::Rf_error("Column type not implemented in rbind yet.");
-    }
-  }
-
-
-  // Access to fst file
-  FstStore fstStore(fileName, true);
-
-  try
-  {
-    fstStore.ColBind(fstTable);
-  }
-  catch (std::exception &e)
-  {
-    // caught exeption
-    ::Rf_error(e.what());
-  }
-
-
-  return List::create(
-    _["colNames"] = colNames,
-    _["keyNames"] = keyNames);
-}
+// SEXP fstrbind(String fileName, SEXP table, SEXP compression, Function serializer)
+// {
+//   SEXP colNames = Rf_getAttrib(table, R_NamesSymbol);
+//   SEXP keyNames = Rf_getAttrib(table, Rf_mkString("sorted"));
+//   int nrOfCols = LENGTH(colNames);
+//
+//
+//   // Assume a data.table
+//
+//
+//   // Create FstTable proxy object
+//
+//   SEXP firstColumn = VECTOR_ELT(table, 0);  // column vector
+//   uint64_t nrOfRows = Rf_xlength(firstColumn);
+//
+//
+//   // Create a FstTable wrapper around an R data frame
+//   FstTable fstTable(nrOfRows);
+//
+//   // Add FstColumns
+//   for (int colNr = 0; colNr < nrOfCols; ++colNr)
+//   {
+//     SEXP colVec = VECTOR_ELT(table, colNr);  // column vector
+//
+//     switch (TYPEOF(colVec))
+//     {
+//       case INTSXP:
+//         if(!Rf_isFactor(colVec))
+//         {
+//           fstTable.AddColumnInt32(INTEGER(colVec));
+//
+//           break;
+//         }
+//
+//       default:
+//         ::Rf_error("Column type not implemented in rbind yet.");
+//     }
+//   }
+//
+//
+//   // Access to fst file
+//   FstStore fstStore(fileName, true);
+//
+//   try
+//   {
+//     fstStore.ColBind(fstTable);
+//   }
+//   catch (std::exception &e)
+//   {
+//     // caught exeption
+//     ::Rf_error(e.what());
+//   }
+//
+//
+//   return List::create(
+//     _["colNames"] = colNames,
+//     _["keyNames"] = keyNames);
+// }
 

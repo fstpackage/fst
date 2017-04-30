@@ -32,16 +32,15 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
+#include <fstream>
+
 #include "compressor.h"
 #include "compression.h"
 
 #include "lz4.h"
 #include "zstd.h"
 
-#include <Rcpp.h>
 
-
-using namespace Rcpp;
 using namespace std;
 
 

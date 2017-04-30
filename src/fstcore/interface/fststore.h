@@ -52,8 +52,8 @@ class FstStore
     FstStore(std::string fstFile);
     FstStore(std::string fstFile, bool append);
 
-    void RowBind(FstTable table);
-    void ColBind(FstTable table);
+    // void RowBind(FstTable table);
+    // void ColBind(FstTable table);
 };
 
 

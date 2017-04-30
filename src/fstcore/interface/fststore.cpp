@@ -59,73 +59,65 @@ FstStore::FstStore(std::string fstFile, bool append)
   this->append = append;
 }
 
-
-void FstStore::ColBind(FstTable table)
-{
-  // fst file stream using a stack buffer
-  ifstream myfile;
-  char ioBuf[4096];
-  myfile.rdbuf()->pubsetbuf(ioBuf, 4096);
-  myfile.open(fstFile.c_str(), ios::binary);
-
-  const std::vector<FstColumn*> columns = table.Columns();
-
-  if (myfile.fail())
-  {
-    myfile.close();
-    throw std::runtime_error(FSTERROR_ERROR_OPENING_FILE);
-  }
-
-  // Read fst file header
-  FstMetaData metaData;
-
-  unsigned int tableClassType;
-  int keyLength, nrOfColsFirstChunk;
-  unsigned int version = metaData.ReadHeader(myfile, tableClassType, keyLength, nrOfColsFirstChunk);
-
-  // We can't append to a fst file with version lower than 1
-  if (version == 0)
-  {
-    myfile.close();
-    throw std::runtime_error(FSTERROR_NO_APPEND);
-  }
-
-
-  // Collect meta data from horizontal chunk headers and last vertical chunk set
-  uint64_t firstHorzChunkPos = 24 + 4 * keyLength;  // hard-coded offset: beware of format changes
-  istream* fstfile  = static_cast<istream*>(&myfile);
-  metaData.Collect(*fstfile, firstHorzChunkPos);
-
-  vector<uint16_t> colTypeVec = metaData.colTypeVec;
-  uint64_t nrOfRowsPrev = metaData.nrOfRows;
-
-  // We can only append an equal amount of columns
-  if (colTypeVec.size() != columns.size())
-  {
-    myfile.close();
-    throw std::runtime_error(FSTERROR_INCORRECT_COL_COUNT);
-  }
-
-
-  // std::vector<FstColumn*>::iterator colIt = columns.begin();
-  // for (vector<uint16_t>::iterator it = colTypeVec.begin(); it != colTypeVec.end(); ++it)
-  // {
-  //   if (*it != (*colIt)->colType)
-  //   ++colIt;
-  // }
-
-   // check for equal column types
-
-  // set compression or copy from existing meta data
-
-  // Seek to last horizontal chunk index
-
-  // Seek to last vertical chunk
-
-  // Add chunk
-
-  // Update vertical chunk index of lat horizontal chunk
-
-}
-
+//
+// void FstStore::ColBind(FstTable table)
+// {
+//   // fst file stream using a stack buffer
+//   ifstream myfile;
+//   char ioBuf[4096];
+//   myfile.rdbuf()->pubsetbuf(ioBuf, 4096);
+//   myfile.open(fstFile.c_str(), ios::binary);
+//
+//   const std::vector<FstColumn*> columns = table.Columns();
+//
+//   if (myfile.fail())
+//   {
+//     myfile.close();
+//     throw std::runtime_error(FSTERROR_ERROR_OPENING_FILE);
+//   }
+//
+//   // Read fst file header
+//   FstMetaData metaData;
+//
+//   unsigned int tableClassType;
+//   int keyLength, nrOfColsFirstChunk;
+//   unsigned int version = metaData.ReadHeader(myfile, tableClassType, keyLength, nrOfColsFirstChunk);
+//
+//   // We can't append to a fst file with version lower than 1
+//   if (version == 0)
+//   {
+//     myfile.close();
+//     throw std::runtime_error(FSTERROR_NO_APPEND);
+//   }
+//
+//
+//   // Collect meta data from horizontal chunk headers and last vertical chunk set
+//   uint64_t firstHorzChunkPos = 24 + 4 * keyLength;  // hard-coded offset: beware of format changes
+//   istream* fstfile  = static_cast<istream*>(&myfile);
+//   metaData.Collect(*fstfile, firstHorzChunkPos);
+//
+//   vector<uint16_t> colTypeVec = metaData.colTypeVec;
+//   uint64_t nrOfRowsPrev = metaData.nrOfRows;
+//
+//   // We can only append an equal amount of columns
+//   if (colTypeVec.size() != columns.size())
+//   {
+//     myfile.close();
+//     throw std::runtime_error(FSTERROR_INCORRECT_COL_COUNT);
+//   }
+//
+//    // check for equal column types
+//
+//   // set compression or copy from existing meta data
+//
+//   // Seek to last horizontal chunk index
+//
+//   // Seek to last vertical chunk
+//
+//   // Add chunk
+//
+//   // Update vertical chunk index of lat horizontal chunk
+//
+// }
+//
 

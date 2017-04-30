@@ -37,9 +37,12 @@ You can contact the author at :
 // System libraries
 #include <ctime>
 #include <ratio>
+#include <fstream>
+
+// R libraries
+#include <Rcpp.h>
 
 // External libraries
-#include "lz4.h"
 #include <compression.h>
 #include <compressor.h>
 

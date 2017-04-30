@@ -42,7 +42,7 @@
 #include <iblockrunner.h>
 
 
-void fdsWriteCharVec_v6(std::ofstream &myfile, IBlockWriter* blockRunner, unsigned int vecLength, int compression);
+void fdsWriteCharVec_v6(std::ofstream &myfile, IBlockWriter* blockRunner, int compression);
 
 
 void fdsReadCharVec_v6(std::istream &myfile, IBlockReader* blockReader, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size);

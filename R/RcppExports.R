@@ -5,8 +5,8 @@ UnserializeObjectAttributes <- function(rObject, rawVector, unserializer) {
     .Call('fst_UnserializeObjectAttributes', PACKAGE = 'fst', rObject, rawVector, unserializer)
 }
 
-fstStore <- function(fileName, table, compression, serializer) {
-    .Call('fst_fstStore', PACKAGE = 'fst', fileName, table, compression, serializer)
+fstStore <- function(fileName, table, compression) {
+    .Call('fst_fstStore', PACKAGE = 'fst', fileName, table, compression)
 }
 
 fstMeta <- function(fileName) {
@@ -19,10 +19,6 @@ fstRead <- function(fileName, columnSelection, startRow, endRow) {
 
 BytesConvert <- function(integer) {
     .Call('fst_BytesConvert', PACKAGE = 'fst', integer)
-}
-
-fstrbind <- function(fileName, table, compression, serializer) {
-    .Call('fst_fstrbind', PACKAGE = 'fst', fileName, table, compression, serializer)
 }
 
 SType <- function(value) {

@@ -2,15 +2,5 @@ language: R
 cache: packages
 sudo: false
 
-before_install:
-  - test -n $CC  && unset CC
-  - test -n $CXX && unset CXX
- 
 os:
   - linux
-  - osx
-  
-compiler:
-  - clang
-  - gcc
-  

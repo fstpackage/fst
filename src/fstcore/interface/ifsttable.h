@@ -33,77 +33,59 @@
 */
 
 
-#ifndef FST_TABLE_H
-#define FST_TABLE_H
+#ifndef IFST_TABLE_H
+#define IFST_TABLE_H
 
 #include <iostream>
 #include <vector>
 
+#include <Rcpp.h>
+
+#include <iblockrunner.h>
 
 enum FstColumnType
 {
+  CHARACTER = 1,
+  FACTOR,
   INT_32,
-  BOOL_32,
   DOUBLE_64,
-  CHARACTER,
-  FACTOR
+  BOOL_32,
+  UNKNOWN
 };
 
-
-class FstColumn
-{
-public:
-  FstColumnType colType;
-
-  // virtual void Serialize(std::ostream fstStream);
-  // virtual void DeSerialize(std::istream fstStream);
-
-  virtual ~FstColumn() = 0;
-};
-
-
-
-class FstColumn_int32 : public FstColumn
-{
-  int* colData;  // buffer lifetime is managed outside the fst framework
-
-  public:
-    ~FstColumn_int32() {}  // cleanup
-
-    FstColumn_int32(int* colData, uint64_t colSize)
-    {
-      colType = FstColumnType::INT_32;
-    }
-
-    // Select algorithm here
-    FstColumn_int32(int* colData, uint64_t colSize, int minValue, int maxValue)
-    {
-      colType = FstColumnType::INT_32;
-    }
-};
 
 
 /**
   Interface to a fst table. A fst table is a temporary wrapper around an array of columnar data buffers.
   The table only exists to facilitate serialization and deserialization of data.
 */
-class FstTable
+class IFstTable
 {
-  uint64_t nrOfRows;
-  std::vector<FstColumn*> columns;
-
   public:
-    FstTable(uint64_t nrOfRows);
-    ~FstTable();
+    virtual ~IFstTable() {};
 
-    // Access to private members
-    const std::vector<FstColumn*>& Columns() const { return columns; }
-    uint64_t NrOfRows() { return nrOfRows; }
+    virtual FstColumnType GetColumnType(unsigned int colNr) = 0;
 
-    // Add columns of specific types
-    void AddColumnInt32(int* colData);
-    void AddColumnInt32(int* colData, int minValue, int maxValue);  // helpers for compression
+    virtual IBlockWriter* GetCharWriter(unsigned int colNr) = 0;
+
+    virtual int* GetLogicalWriter(unsigned int colNr) = 0;
+
+    virtual int* GetIntWriter(unsigned int colNr) = 0;
+
+    virtual double* GetDoubleWriter(unsigned int colNr) = 0;
+
+    virtual IBlockWriter* GetLevelWriter(unsigned int colNr) = 0;
+
+    virtual IBlockWriter* GetColNameWriter() = 0;
+
+    virtual void GetKeyColumns(int* keyColPos) = 0;
+
+    virtual unsigned int NrOfKeys() = 0;
+
+    virtual unsigned int NrOfColumns() = 0;
+
+    virtual unsigned int NrOfRows() = 0;
 };
 
 
-#endif  // FST_TABLE_H
+#endif  // IFST_TABLE_H

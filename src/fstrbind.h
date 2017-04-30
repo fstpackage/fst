@@ -39,8 +39,8 @@
 #include <Rcpp.h>
 
 
-// [[Rcpp::export]]
-SEXP fstrbind(Rcpp::String fileName, SEXP table, SEXP compression, Rcpp::Function serializer);
+// // [[Rcpp::export]]
+// SEXP fstrbind(Rcpp::String fileName, SEXP table, SEXP compression, Rcpp::Function serializer);
 
 
 #endif  // FSTRBIND_H

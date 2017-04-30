@@ -44,7 +44,7 @@
 #include <compressor.h>
 
 
-void fdsWriteFactorVec_v7(std::ofstream &myfile, int* intP, IBlockWriter* blockRunner, unsigned int size, unsigned int nrOfFactorLevels, unsigned int compression);
+void fdsWriteFactorVec_v7(std::ofstream &myfile, int* intP, IBlockWriter* blockRunner, unsigned int size, unsigned int compression);
 
 
 // Parameter 'startRow' is zero based.

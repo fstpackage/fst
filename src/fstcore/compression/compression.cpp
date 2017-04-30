@@ -40,16 +40,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <Rcpp.h>
 #include <iostream>
 #include <fstream>
-#include <R.h>
-#include <Rinternals.h>
 
 // #include <unordered_map>
 // #include <boost/unordered_map.hpp>
 
-#include <zstd.h>
+#include "zstd.h"
 #include "lz4.h"
 
 
@@ -1168,10 +1165,10 @@ unsigned int ZSTD_LOGIC64_D(char* dst, unsigned int dstCapacity, const char* src
 unsigned int LZ4_C_SHUF4(char* dst, unsigned int dstCapacity, const char* src,  unsigned int srcSize, int compressionLevel)
 {
   int intSize = srcSize / 4;
-  
+
   unsigned long long shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_8];
   // int shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
-  
+
   ShuffleInt2((int*) src, (int*) shuffleBuf, intSize);
   return LZ4_compress_fast((char*) shuffleBuf, dst, srcSize, dstCapacity, 100 - compressionLevel);  // large acceleration
 }
@@ -1179,10 +1176,10 @@ unsigned int LZ4_C_SHUF4(char* dst, unsigned int dstCapacity, const char* src,  
 unsigned int LZ4_D_SHUF4(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize)
 {
   int intSize = dstCapacity / 4;
-  
+
   unsigned long long shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_8];
   // int shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
-  
+
   int size = LZ4_decompress_fast(src, (char*) shuffleBuf, dstCapacity);
   DeshuffleInt2((int*) shuffleBuf, (int*) dst, intSize);
 
@@ -1197,7 +1194,7 @@ unsigned int LZ4_D_SHUF4(char* dst, unsigned int dstCapacity, const char* src, u
 unsigned int LZ4_C_SHUF8(char* dst, unsigned int dstCapacity, const char* src,  unsigned int srcSize, int compressionLevel)
 {
   int doubleSize = srcSize / 8;
-  
+
   // double shuffleBuf[doubleSize];
   double shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_8];
 
@@ -1208,7 +1205,7 @@ unsigned int LZ4_C_SHUF8(char* dst, unsigned int dstCapacity, const char* src,  
 unsigned int LZ4_D_SHUF8(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize)
 {
   int doubleSize = dstCapacity / 8;
-  
+
   // double shuffleBuf[doubleSize];
   double shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_8];
 
@@ -1224,7 +1221,7 @@ unsigned int LZ4_D_SHUF8(char* dst, unsigned int dstCapacity, const char* src, u
 unsigned int ZSTD_C_SHUF8(char* dst, unsigned int dstCapacity, const char* src,  unsigned int srcSize, int compressionLevel)
 {
   int doubleSize = srcSize / 8;
-  
+
   // double shuffleBuf[doubleSize];
   double shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_8];
 
@@ -1235,7 +1232,7 @@ unsigned int ZSTD_C_SHUF8(char* dst, unsigned int dstCapacity, const char* src, 
 unsigned int ZSTD_D_SHUF8(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize)
 {
   int doubleSize = dstCapacity / 8;
-  
+
   // double shuffleBuf[doubleSize];
   double shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_8];
 
@@ -1264,7 +1261,7 @@ unsigned int ZSTD_D(char* dst, unsigned int dstCapacity, const char* src, unsign
 unsigned int ZSTD_C_SHUF4(char* dst, unsigned int dstCapacity, const char* src,  unsigned int srcSize, int compressionLevel)
 {
   int intSize = srcSize / 4;
-  
+
   unsigned long long shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_8];
   // int shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
 
@@ -1278,7 +1275,7 @@ unsigned int ZSTD_D_SHUF4(char* dst, unsigned int dstCapacity, const char* src, 
 
   unsigned long long shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_8];
   // int shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
-  
+
   int size = ZSTD_decompress((char*) shuffleBuf, dstCapacity, src, compressedSize);
   DeshuffleInt2((int*) shuffleBuf, (int*) dst, intSize);
 

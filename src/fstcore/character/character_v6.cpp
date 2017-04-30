@@ -73,8 +73,6 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IBlockWriter* 
   unsigned int endCount, StreamCompressor* intCompressor, StreamCompressor* charCompressor, unsigned short int &algoInt,
   unsigned short int &algoChar, int &intBufSize)
 {
-  blockRunner->SetBuffersFromVec(startCount, endCount);
-
   // Determine string lengths
   unsigned int nrOfElements = endCount - startCount;  // the string at position endCount is not included
   unsigned int nrOfNAInts = 1 + nrOfElements / 32;  // add 1 bit for NA present flag
@@ -116,8 +114,10 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IBlockWriter* 
 }
 
 
-void fdsWriteCharVec_v6(ofstream &myfile, IBlockWriter* blockRunner, unsigned int vecLength, int compression)
+void fdsWriteCharVec_v6(ofstream &myfile, IBlockWriter* blockRunner, int compression)
 {
+  unsigned int vecLength = blockRunner->vecLength;
+
   unsigned long long curPos = myfile.tellp();
   unsigned int nrOfBlocks = (vecLength - 1) / BLOCKSIZE_CHAR;  // number of blocks minus 1
 
@@ -213,8 +213,9 @@ void fdsWriteCharVec_v6(ofstream &myfile, IBlockWriter* blockRunner, unsigned in
     unsigned short int* algoChar = (unsigned short int*) (blockP + 10);
     int* intBufSize = (int*) (blockP + 12);
 
+    blockRunner->SetBuffersFromVec(block * BLOCKSIZE_CHAR, (block + 1) * BLOCKSIZE_CHAR);
     unsigned int totSize = storeCharBlockCompressed_v6(myfile, blockRunner, block * BLOCKSIZE_CHAR,
-                                                       (block + 1) * BLOCKSIZE_CHAR, streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize);
+      (block + 1) * BLOCKSIZE_CHAR, streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize);
 
     fullSize += totSize;
     *blockPos = fullSize;
@@ -226,8 +227,10 @@ void fdsWriteCharVec_v6(ofstream &myfile, IBlockWriter* blockRunner, unsigned in
   unsigned short int* algoChar = (unsigned short int*) (blockP + 10);
   int* intBufSize = (int*) (blockP + 12);
 
+  blockRunner->SetBuffersFromVec(nrOfBlocks * BLOCKSIZE_CHAR, vecLength);
   unsigned int totSize = storeCharBlockCompressed_v6(myfile, blockRunner, nrOfBlocks * BLOCKSIZE_CHAR,
-                                                     vecLength, streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize);
+    vecLength, streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize);
+
   fullSize += totSize;
   *blockPos = fullSize;
 

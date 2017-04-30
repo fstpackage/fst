@@ -33,41 +33,64 @@
 */
 
 
-#include <fsttable.h>
+#ifndef FST_TABLE_H
+#define FST_TABLE_H
+
+#include <iostream>
+#include <vector>
+
+#include <Rcpp.h>
+
+#include <fstdefines.h>
+#include <iblockrunner.h>
+#include <ifsttable.h>
 
 
-using namespace std;
-
-
-FstColumn::~FstColumn() {}
-
-
-// Read header information
-FstTable::FstTable(uint64_t nrOfRows)
+/**
+  Interface to a fst table. A fst table is a temporary wrapper around an array of columnar data buffers.
+  The table only exists to facilitate serialization and deserialization of data.
+*/
+class FstTable : public IFstTable
 {
-  this->nrOfRows = nrOfRows;
-}
+  // References to R objects
+  SEXP* rTable;
+  SEXP  cols;
+  SEXP levelVec;
+
+  // Buffers for blockRunner
+  unsigned int naInts[1 + BLOCKSIZE_CHAR / 32];  // we have 32 NA bits per integer
+  unsigned int strSizes[BLOCKSIZE_CHAR];  // we have 32 NA bits per integer
+  char buf[MAX_CHAR_STACK_SIZE];
+
+  // Table metadata
+  unsigned int nrOfCols = 0;
+
+  public:
+    FstTable(SEXP &table);
+    ~FstTable() {};
+
+    FstColumnType GetColumnType(unsigned int colNr);
+
+    IBlockWriter* GetCharWriter(unsigned int colNr);
+
+    int* GetLogicalWriter(unsigned int colNr);
+
+    int* GetIntWriter(unsigned int colNr);
+
+    double* GetDoubleWriter(unsigned int colNr);
+
+    IBlockWriter* GetLevelWriter(unsigned int colNr);
+
+    IBlockWriter* GetColNameWriter();
+
+    void GetKeyColumns(int* keyColPos);
+
+    unsigned int NrOfKeys();
+
+    unsigned int NrOfColumns();
+
+    unsigned int NrOfRows();
+};
 
 
-FstTable::~FstTable()
-{
-  // delete column wrappers
-  for (vector<FstColumn*>::iterator it = columns.begin(); it != columns.end(); ++it)
-  {
-    delete *it;
-  }
-}
-
-
-void FstTable::AddColumnInt32(int* colData)
-{
-  FstColumn* column = new FstColumn_int32(colData, nrOfRows);
-  this->columns.push_back(column);
-}
-
-
-void FstTable::AddColumnInt32(int* colData, int minValue, int maxValue)
-{
-  this->columns.push_back(new FstColumn_int32(colData, nrOfRows, minValue, maxValue));
-}
-
+#endif  // FST_TABLE_H

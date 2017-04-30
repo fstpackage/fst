@@ -33,44 +33,21 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef BLOCKRUNNER_CHAR_H
-#define BLOCKRUNNER_CHAR_H
+
+#ifndef IBLOCKWRITERFACTORY_H
+#define IBLOCKWRITERFACTORY_H
 
 
-#include <Rcpp.h>
+#include "iblockrunner.h"
 
 
-class BlockWriterChar : public IBlockWriter
+class IBlockWriterFactory
 {
-  SEXP* strVec;
-  unsigned int stackBufSize;
-  unsigned int heapBufSize;
-  char* buf;
-  char *heapBuf;
-
-  public:
-    BlockWriterChar(SEXP &strVec, unsigned int vecLength, unsigned int* strSizes, unsigned int* naInts, char* stackBuf, unsigned int stackBufSize);
-    ~BlockWriterChar();
-
-    void SetBuffersFromVec(unsigned int startCount, unsigned int endCount);
-};
-
-
-class BlockReaderChar : public IBlockReader
-{
-  SEXP strVec;
-
 public:
-  ~BlockReaderChar();
+  virtual ~IBlockWriterFactory() {};
 
-  void AllocateVec(unsigned int vecLength);
-
-  void BufferToVec(unsigned int nrOfElements, unsigned int startElem, unsigned int endElem,
-    unsigned int vecOffset, unsigned int* sizeMeta, char* buf);
-
-  SEXP StrVector() { return strVec; }
+  virtual IBlockWriter* GetStrVecWriter() = 0;
 };
 
 
-
-#endif  // BLOCKRUNNER_CHAR_H
+#endif  // IBLOCKWRITERFACTORY_H

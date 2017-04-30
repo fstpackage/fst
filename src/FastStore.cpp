@@ -43,19 +43,19 @@
 #include <FastStore_v1.h>
 
 #include <iblockrunner.h>
+#include <iblockwriterfactory.h>
+#include <ifsttable.h>
+
 #include <blockrunner_char.h>
+#include <blockwriterfactory.h>
+#include <fsttable.h>
+
 #include <character_v6.h>
 #include <factor_v7.h>
 #include <integer_v8.h>
 #include <double_v9.h>
 #include <logical_v10.h>
 
-#include <compression.h>
-#include <compressor.h>
-
-// External libraries
-#include "lz4.h"
-#include "zstd.h"
 
 using namespace std;
 using namespace Rcpp;
@@ -114,22 +114,17 @@ inline int FindKey(StringVector colNameList, String item)
 //  8 * nrOfCols           | unsigned long long | positionData
 //
 
-SEXP fstWrite(const char* fileName, SEXP table, int compress, Function serializer)
+void fstWrite(const char* fileName, IFstTable &fstTable, int compress)
 {
-  SEXP colNames = Rf_getAttrib(table, R_NamesSymbol);
-  SEXP keyNames = Rf_getAttrib(table, Rf_mkString("sorted"));
+  // SEXP keyNames = Rf_getAttrib(table, Rf_mkString("sorted"));
 
   // Meta on dataset
-  int nrOfCols =  LENGTH(colNames);
-  int keyLength = 0;
-  if (!Rf_isNull(keyNames))
-  {
-    keyLength = LENGTH(keyNames);
-  }
+  int nrOfCols =  fstTable.NrOfColumns();
+  int keyLength = fstTable.NrOfKeys();
 
   if (nrOfCols == 0)
   {
-    ::Rf_error("Your dataset needs at least one column.");
+    throw(runtime_error("Your dataset needs at least one column."));
   }
 
 
@@ -155,17 +150,8 @@ SEXP fstWrite(const char* fileName, SEXP table, int compress, Function serialize
   unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[offset + 32 + 2 * nrOfCols];
   unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[offset + 32 + 4 * nrOfCols];
 
-
-  // Find key column index numbers, if any
-  if (keyLength != 0)
-  {
-    StringVector keyList(keyNames);
-
-    for (int colSel = 0; colSel < keyLength; ++colSel)
-    {
-      keyColPos[colSel] = FindKey(colNames, keyList[colSel]);
-    }
-  }
+  // Get key column positions
+  fstTable.GetKeyColumns(keyColPos);
 
   *fstFileID            = FST_FILE_ID;
   *p_table_version      = FST_VERSION;
@@ -180,15 +166,15 @@ SEXP fstWrite(const char* fileName, SEXP table, int compress, Function serialize
 
 
   // data.frame code here for stability!
-  SEXP firstCol = VECTOR_ELT(table, 0);
-  int nrOfRows = LENGTH(firstCol);
+
+  int nrOfRows = fstTable.NrOfRows();
   *p_nrOfRows = nrOfRows;
 
 
   if (nrOfRows == 0)
   {
     delete[] metaDataBlock;
-    ::Rf_error("The dataset contains no data.");
+    throw(runtime_error("The dataset contains no data."));
   }
 
 
@@ -202,25 +188,18 @@ SEXP fstWrite(const char* fileName, SEXP table, int compress, Function serialize
   {
     delete[] metaDataBlock;
     myfile.close();
-    ::Rf_error("There was an error creating the file. Please check for a correct filename.");
+    throw(runtime_error("There was an error creating the file. Please check for a correct filename."));
   }
 
 
   // Write table meta information
   myfile.write((char*)(metaDataBlock), metaDataSize);  // table meta data
 
-  // Create buffers for blockRunner
-  unsigned int naInts[1 + BLOCKSIZE_CHAR / 32];  // we have 32 NA bits per integer
-  unsigned int strSizes[BLOCKSIZE_CHAR];  // we have 32 NA bits per integer
-  char buf[MAX_CHAR_STACK_SIZE];
+  // Serialize column names
+  IBlockWriter* blockRunner = fstTable.GetColNameWriter();
+  fdsWriteCharVec_v6(myfile, blockRunner, 0);   // column names
 
-
-  // Create blockrunner for character vector conversion
-  // BlockRunner blockRunnerR(colNames, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);
-  IBlockWriter* blockRunner = new BlockWriterChar(colNames, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);
-  fdsWriteCharVec_v6(myfile, blockRunner, nrOfCols, 0);   // column names
   // TODO: Write column attributes here
-
 
   // Vertical chunkset index or index of index
   char* chunkIndex = new char[CHUNK_INDEX_SIZE + 8 * nrOfCols];
@@ -240,67 +219,67 @@ SEXP fstWrite(const char* fileName, SEXP table, int compress, Function serialize
   // Row and column meta data
   myfile.write((char*)(chunkIndex), CHUNK_INDEX_SIZE + 8 * nrOfCols);   // file positions of column data
 
-
   // column data
   for (int colNr = 0; colNr < nrOfCols; ++colNr)
   {
     positionData[colNr] = myfile.tellp();  // current location
-    SEXP colVec = VECTOR_ELT(table, colNr);  // column vector
+    FstColumnType colType = fstTable.GetColumnType(colNr);
+    colBaseTypes[colNr] = (unsigned short int) colType;
 
     // Store attributes here if any
     // unsigned int attrBlockSize = SerializeObjectAttributes(ofstream &myfile, RObject rObject, serializer);
 
-    switch (TYPEOF(colVec))
+    switch (colType)
     {
-      case STRSXP:
+      case FstColumnType::CHARACTER:
+      {
         colTypes[colNr] = 6;
-        colBaseTypes[colNr] = 1;
-
-        // Create blockrunner for character vector conversion
         delete blockRunner;
-        blockRunner = new BlockWriterChar(colVec, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);  // reuse buffers
-        fdsWriteCharVec_v6(myfile, blockRunner, nrOfRows, compress);   // column names
+        blockRunner = fstTable.GetCharWriter(colNr);
+        fdsWriteCharVec_v6(myfile, blockRunner, compress);   // column names
         break;
+      }
 
-      case INTSXP:
-        if(Rf_isFactor(colVec))
-        {
-          colTypes[colNr] = 7;
-          colBaseTypes[colNr] = 2;
+      case FstColumnType::FACTOR:
+      {
+        colTypes[colNr] = 7;
+        delete blockRunner;
+        int* intP = fstTable.GetIntWriter(colNr);  // level values pointer
+        blockRunner = fstTable.GetLevelWriter(colNr);
+        fdsWriteFactorVec_v7(myfile, intP, blockRunner, nrOfRows, compress);
+        break;
+      }
 
-          delete blockRunner;
-          SEXP levelVec = Rf_getAttrib(colVec, Rf_mkString("levels"));
-          int* intP = INTEGER(colVec);  // data pointer
-          unsigned int nrOfFactorLevels = LENGTH(levelVec);
-          blockRunner = new BlockWriterChar(levelVec, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);
-          fdsWriteFactorVec_v7(myfile, intP, blockRunner, nrOfRows, nrOfFactorLevels, compress);
-
-          break;
-        }
-
+      case FstColumnType::INT_32:
+      {
         colTypes[colNr] = 8;
-        colBaseTypes[colNr] = 3;
-        fdsWriteIntVec_v8(myfile, INTEGER(colVec), nrOfRows, compress);
+        int* intP = fstTable.GetIntWriter(colNr);
+        fdsWriteIntVec_v8(myfile, intP, nrOfRows, compress);
         break;
+      }
 
-      case REALSXP:
+      case FstColumnType::DOUBLE_64:
+      {
         colTypes[colNr] = 9;
-        colBaseTypes[colNr] = 4;
-        fdsWriteRealVec_v9(myfile, REAL(colVec), nrOfRows, compress);
+        double* doubleP = fstTable.GetDoubleWriter(colNr);
+        fdsWriteRealVec_v9(myfile, doubleP, nrOfRows, compress);
         break;
+      }
 
-      case LGLSXP:
+      case FstColumnType::BOOL_32:
+      {
         colTypes[colNr] = 10;
-        colBaseTypes[colNr] = 5;
-        fdsWriteLogicalVec_v10(myfile, LOGICAL(colVec), nrOfRows, compress);
+        int* intP = fstTable.GetLogicalWriter(colNr);
+        fdsWriteLogicalVec_v10(myfile, intP, nrOfRows, compress);
         break;
+      }
 
       default:
         delete[] metaDataBlock;
         delete[] chunkIndex;
         delete blockRunner;
         myfile.close();
-        ::Rf_error("Unknown type found in column.");
+        throw(runtime_error("Unknown type found in column."));
     }
   }
 
@@ -320,16 +299,10 @@ SEXP fstWrite(const char* fileName, SEXP table, int compress, Function serialize
   // cleanup
   delete[] metaDataBlock;
   delete[] chunkIndex;
-
-
-  return List::create(
-    _["keyNames"] = keyNames,
-    _["keyLength"] = keyLength,
-    _["metaDataSize"] = metaDataSize);
 }
 
 
-SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer)
+SEXP fstStore(String fileName, SEXP table, SEXP compression)
 {
   if (!Rf_isInteger(compression))
   {
@@ -342,7 +315,18 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression, Function serializer
     ::Rf_error("Parameter compression should be an integer value between 0 and 100");
   }
 
-  return fstWrite(fileName.get_cstring(), table, compress, serializer);
+  FstTable fstTable(table);
+
+  try
+  {
+    fstWrite(fileName.get_cstring(), fstTable, compress);
+  }
+  catch (const std::runtime_error& e)
+  {
+    ::Rf_error(e.what());
+  }
+
+  return table;
 }
 
 

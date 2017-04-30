@@ -46,6 +46,8 @@ public:
   unsigned int bufSize;
   char* activeBuf;
 
+  unsigned int vecLength;
+
   virtual ~IBlockWriter() {};
 
   virtual void SetBuffersFromVec(unsigned int startCount, unsigned int endCount) = 0;
