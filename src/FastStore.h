@@ -41,16 +41,10 @@
 
 
 #include <Rcpp.h>
-#include <iostream>
-#include <fstream>
-#include <R.h>
-#include <Rinternals.h>
 
 #include <compression.h>
 #include <compressor.h>
 
-// External libraries
-#include "lz4.h"
 
 // [[Rcpp::export]]
 SEXP fstStore(Rcpp::String fileName, SEXP table, SEXP compression);

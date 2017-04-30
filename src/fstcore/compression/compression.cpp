@@ -34,7 +34,6 @@
 
 #include "compression.h"
 
-#include <Rcpp.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -46,11 +45,10 @@
 // #include <unordered_map>
 // #include <boost/unordered_map.hpp>
 
-#include "zstd.h"
+#include <zstd.h>
 #include "lz4.h"
 
 
-using namespace Rcpp;
 using namespace std;
 
 
