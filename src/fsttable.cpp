@@ -49,6 +49,7 @@ using namespace Rcpp;
 FstTable::FstTable(SEXP &table)
 {
   this->rTable = &table;
+  this->nrOfCols = 0;
 }
 
 

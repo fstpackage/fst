@@ -63,7 +63,7 @@ class FstTable : public IFstTable
   char buf[MAX_CHAR_STACK_SIZE];
 
   // Table metadata
-  unsigned int nrOfCols = 0;
+  unsigned int nrOfCols;
 
   public:
     FstTable(SEXP &table);
