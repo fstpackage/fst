@@ -5,7 +5,6 @@ CXX_STD      = CXX11
 PKG_LIBS     = $(SHLIB_OPENMP_CFLAGS) -L. -lLZ4 -lZSTD -lFRAME -lTYPES
 
 # libraries
-# LIBCOMPRESS = fstcore/compression/compression.o
 LIBLZ4  = fstcore/LZ4/lz4.o
 LIBZSTD = fstcore/ZSTD/common/entropy_common.o fstcore/ZSTD/common/error_private.o fstcore/ZSTD/common/fse_decompress.o \
 	fstcore/ZSTD/compress/fse_compress.o fstcore/ZSTD/decompress/huf_decompress.o fstcore/ZSTD/compress/huf_compress.o \
@@ -16,7 +15,7 @@ LIBTYPES = fstcore/logical/logical_v4.o fstcore/logical/logical_v10.o fstcore/in
 	fstcore/double/double_v3.o fstcore/double/double_v9.o fstcore/character/character_v1.o fstcore/character/character_v6.o \
 	fstcore/factor/factor_v5.o fstcore/factor/factor_v7.o
 
-$(SHLIB): libLZ4.a libZSTD.a libCOMPRESS.a libFRAME.a libTYPES.a
+$(SHLIB): libLZ4.a libZSTD.a libFRAME.a libTYPES.a
 
 libLZ4.a: $(LIBLZ4)
 	$(AR) rcs libLZ4.a $(LIBLZ4)
@@ -24,10 +23,7 @@ libLZ4.a: $(LIBLZ4)
 libZSTD.a: $(LIBZSTD)
 	$(AR) rcs libZSTD.a $(LIBZSTD)
 
-# libCOMPRESS.a: $(LIBCOMPRESS) libLZ4.a libZSTD.a
-# 	$(AR) rcs libCOMPRESS.a $(LIBCOMPRESS)
-
-libFRAME.a: $(LIBFRAME) libCOMPRESS.a
+libFRAME.a: $(LIBFRAME)
 	$(AR) rcs libFRAME.a $(LIBFRAME)
 
 libTYPES.a: $(LIBTYPES) libFRAME.a
