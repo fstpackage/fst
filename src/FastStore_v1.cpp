@@ -49,10 +49,6 @@
 #include <compression.h>
 #include <compressor.h>
 
-// External libraries
-#include "lz4.h"
-#include "zstd.h"
-
 using namespace std;
 using namespace Rcpp;
 

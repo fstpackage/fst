@@ -41,7 +41,6 @@
 #include <ratio>
 
 // External libraries
-#include "lz4.h"
 #include <compression.h>
 #include <compressor.h>
 

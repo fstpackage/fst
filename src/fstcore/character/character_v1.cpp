@@ -44,8 +44,6 @@
 
 
 // External libraries
-#include "lz4.h"
-// #include <boost/unordered_map.hpp>
 
 using namespace std;
 using namespace Rcpp;

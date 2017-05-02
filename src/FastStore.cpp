@@ -35,8 +35,6 @@
 #include <Rcpp.h>
 #include <iostream>
 #include <fstream>
-#include <R.h>
-#include <Rinternals.h>
 
 #include <fstdefines.h>
 #include <FastStore.h>

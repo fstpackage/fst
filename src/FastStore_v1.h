@@ -45,9 +45,6 @@
 #include <compression.h>
 #include <compressor.h>
 
-// External libraries
-#include "lz4.h"
-
 
 Rcpp::List fstMeta_v1(Rcpp::String fileName);
 

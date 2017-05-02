@@ -49,8 +49,6 @@
 
 
 // External libraries
-#include "lz4.h"
-// #include <boost/unordered_map.hpp>
 
 
 List fdsReadCharVec_v1(ifstream &myfile, SEXP &strVec, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size);

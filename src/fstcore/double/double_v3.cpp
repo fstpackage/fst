@@ -34,11 +34,9 @@
 
 // Framework libraries
 #include "blockstreamer_v1.h"
-#include <compression.h>
-#include <compressor.h>
+#include "compression.h"
+#include "compressor.h"
 
-// External libraries
-#include "lz4.h"
 
 using namespace std;
 using namespace Rcpp;

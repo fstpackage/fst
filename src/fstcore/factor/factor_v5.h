@@ -49,10 +49,6 @@
 #include <compressor.h>
 
 
-// External libraries
-#include "lz4.h"
-
-
 // Parameter 'startRow' is zero based.
 SEXP fdsReadFactorVec_v5(ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned int startRow,
   unsigned int length, unsigned int size);

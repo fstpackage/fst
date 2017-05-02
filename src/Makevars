@@ -1,8 +1,9 @@
 
 PKG_CPPFLAGS = $(SHLIB_OPENMP_CFLAGS) -I. -Ifstcore -Ifstcore/LZ4 -Ifstcore/ZSTD -Ifstcore/ZSTD/common -Ifstcore/ZSTD/decompress \
-	-Ifstcore/ZSTD/compress -Ifstcore/logical -Ifstcore/integer -Ifstcore/double -Ifstcore/factor -Ifstcore/interface -Ifstcore/character
+	-Ifstcore/ZSTD/compress -Ifstcore/logical -Ifstcore/integer -Ifstcore/double -Ifstcore/factor -Ifstcore/interface \
+	-Ifstcore/character -Ifstcore/compression
 CXX_STD      = CXX11
-PKG_LIBS     = $(SHLIB_OPENMP_CFLAGS) -L. -lLZ4 -lZSTD -lFRAME -lTYPES
+PKG_LIBS     = $(SHLIB_OPENMP_CFLAGS) -L. -lTYPES -lFRAME -lCOMPRESSION -lLZ4 -lZSTD
 
 # libraries
 LIBLZ4  = fstcore/LZ4/lz4.o
@@ -10,6 +11,7 @@ LIBZSTD = fstcore/ZSTD/common/entropy_common.o fstcore/ZSTD/common/error_private
 	fstcore/ZSTD/compress/fse_compress.o fstcore/ZSTD/decompress/huf_decompress.o fstcore/ZSTD/compress/huf_compress.o \
 	fstcore/ZSTD/decompress/zstd_decompress.o fstcore/ZSTD/common/xxhash.o fstcore/ZSTD/common/zstd_common.o \
 	fstcore/ZSTD/compress/zstd_compress.o
+LIBCOMPRESSION  = fstcore/compression/compression.o fstcore/compression/compressor.o
 LIBFRAME = fstcore/interface/fstmetadata.o fstcore/interface/fststore.o
 LIBTYPES = fstcore/logical/logical_v4.o fstcore/logical/logical_v10.o fstcore/integer/integer_v2.o fstcore/integer/integer_v8.o \
 	fstcore/double/double_v3.o fstcore/double/double_v9.o fstcore/character/character_v1.o fstcore/character/character_v6.o \
@@ -23,12 +25,15 @@ libLZ4.a: $(LIBLZ4)
 libZSTD.a: $(LIBZSTD)
 	$(AR) rcs libZSTD.a $(LIBZSTD)
 
-libFRAME.a: $(LIBFRAME)
+libCOMPRESSION.a: $(LIBCOMPRESSION) libLZ4.a libZSTD.a
+	$(AR) rcs libCOMPRESSION.a $(LIBCOMPRESSION)
+
+libFRAME.a: $(LIBFRAME) libCOMPRESSION.a
 	$(AR) rcs libFRAME.a $(LIBFRAME)
 
 libTYPES.a: $(LIBTYPES) libFRAME.a
 	$(AR) rcs libTYPES.a $(LIBTYPES)
 
 clean:
-	rm -f $(SHLIB) $(LIBLZ4) $(OBJECTS) libLZ4.a $(LIBZSTD) libZSTD.a $(LIBFRAME) \
-	libFRAME.a $(LIBTYPES) libTYPES.a
+	rm -f $(SHLIB) $(OBJECTS) $(LIBLZ4) libLZ4.a $(LIBZSTD) libZSTD.a $(LIBFRAME) \
+	libFRAME.a $(LIBTYPES) libTYPES.a libCOMPRESSION.a $(LIBCOMPRESSION)

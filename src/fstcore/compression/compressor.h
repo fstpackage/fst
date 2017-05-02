@@ -38,7 +38,10 @@
 
 #include <fstream>
 
-#include <compression.h>
+#include "compression.h"
+#include "lz4.h"
+#include "zstd.h"
+
 
 #define NR_OF_ALGORITHMS 15
 #define MAX_TARGET_REP_SIZE 8
