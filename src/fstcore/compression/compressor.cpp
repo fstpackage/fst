@@ -32,6 +32,7 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
+#include <algorithm>
 #include <fstream>
 
 #include "compressor.h"
@@ -297,7 +298,7 @@ int DualCompressor::CompressBufferSize(int maxBlockSize)
 {
   int size1 = MaxCompressSize(maxBlockSize, algorithmType[(int) algo1]);
   int size2 = MaxCompressSize(maxBlockSize, algorithmType[(int) algo2]);
-  return fmax(size1, size2);
+  return max(size1, size2);
 }
 
 int DualCompressor::Compress(char* dst, unsigned int dstCapacity, const char* src,  unsigned int srcSize, CompAlgo &compAlgorithm)
@@ -312,11 +313,11 @@ int DualCompressor::Compress(char* dst, unsigned int dstCapacity, const char* sr
 
     if (lastSize2 > lastSize1)
     {
-      a1Ratio = fmin(95, a1Ratio + 5);
+      a1Ratio = min(95, a1Ratio + 5);
     }
     else
     {
-      a1Ratio = fmax(5, a1Ratio - 5);
+      a1Ratio = max(5, a1Ratio - 5);
     }
 
     return lastSize1;
@@ -327,11 +328,11 @@ int DualCompressor::Compress(char* dst, unsigned int dstCapacity, const char* sr
 
   if (lastSize2 > lastSize1)
   {
-    a1Ratio = fmin(95, a1Ratio + 5);
+    a1Ratio = min(95, a1Ratio + 5);
   }
   else
   {
-    a1Ratio = fmax(5, a1Ratio - 5);
+    a1Ratio = max(5, a1Ratio - 5);
   }
 
   return lastSize2;
@@ -437,7 +438,7 @@ int StreamCompositeCompressor::CompressBufferSize()
 int StreamCompositeCompressor::CompressBufferSize(unsigned int srcSize)
 {
   // determine maximum compression buffer size
-  compBufSize = fmax(compress1->CompressBufferSize(srcSize), compress2->CompressBufferSize(srcSize));
+  compBufSize = max(compress1->CompressBufferSize(srcSize), compress2->CompressBufferSize(srcSize));
   return compBufSize;  // return buffer size for the compression algorithm
 }
 

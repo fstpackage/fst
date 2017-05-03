@@ -38,6 +38,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <algorithm>
 
 #include <iostream>
 #include <fstream>
@@ -589,7 +590,7 @@ void LogicDecompr64(char* logicalVec, const unsigned long long* compBuf, int nrO
     int* logicsInt = (int*) logics;  // 32 logicals
     int logicalsLeft = nrOfLogicals - nrOfDiscard;
 
-    int partLogicalsLeft = fmin(logicalsLeft, 32 - partDiscard);
+    int partLogicalsLeft = min(logicalsLeft, 32 - partDiscard);
 
     memcpy(logicalVec, &logicsInt[partDiscard], partLogicalsLeft * sizeof(int));
 
