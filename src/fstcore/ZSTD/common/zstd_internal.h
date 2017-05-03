@@ -49,6 +49,10 @@
 #include "error_private.h"
 #define ZSTD_STATIC_LINKING_ONLY
 #include "zstd.h"
+#ifndef XXH_STATIC_LINKING_ONLY
+#  define XXH_STATIC_LINKING_ONLY   /* XXH64_state_t */
+#endif
+#include "xxhash.h"               /* XXH_reset, update, digest */
 
 
 /*-*************************************
@@ -265,6 +269,15 @@ MEM_STATIC U32 ZSTD_highbit32(U32 val)
     return r;
 #   endif
 }
+
+
+/* hidden functions */
+
+/* ZSTD_invalidateRepCodes() :
+ * ensures next compression will not use repcodes from previous block.
+ * Note : only works with regular variant;
+ *        do not use with extDict variant ! */
+void ZSTD_invalidateRepCodes(ZSTD_CCtx* cctx);
 
 
 #endif   /* ZSTD_CCOMMON_H_MODULE */

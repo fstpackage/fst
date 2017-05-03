@@ -35,8 +35,6 @@ You can contact the author at :
 #include "blockstreamer_v2.h"
 
 // System libraries
-#include <ctime>
-#include <ratio>
 #include <fstream>
 
 // External libraries
@@ -53,7 +51,6 @@ You can contact the author at :
 
 
 using namespace std;
-using namespace Rcpp;
 
 
 inline unsigned long long CompressBlock_v2(StreamCompressor* streamCompressor, ofstream &myfile, char* vecP, char* compBuf, char* blockIndex,

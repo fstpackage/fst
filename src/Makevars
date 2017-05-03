@@ -1,7 +1,7 @@
 
 PKG_CPPFLAGS = $(SHLIB_OPENMP_CFLAGS) -I. -Ifstcore -Ifstcore/LZ4 -Ifstcore/ZSTD -Ifstcore/ZSTD/common -Ifstcore/ZSTD/decompress \
 	-Ifstcore/ZSTD/compress -Ifstcore/logical -Ifstcore/integer -Ifstcore/double -Ifstcore/factor -Ifstcore/interface \
-	-Ifstcore/character -Ifstcore/compression
+	-Ifstcore/character -Ifstcore/compression -Ifstcore/blockstreamer
 CXX_STD      = CXX11
 PKG_LIBS     = $(SHLIB_OPENMP_CFLAGS) -L. -lTYPES -lFRAME -lCOMPRESSION -lLZ4 -lZSTD
 
@@ -15,7 +15,7 @@ LIBCOMPRESSION  = fstcore/compression/compression.o fstcore/compression/compress
 LIBFRAME = fstcore/interface/fstmetadata.o fstcore/interface/fststore.o
 LIBTYPES = fstcore/logical/logical_v4.o fstcore/logical/logical_v10.o fstcore/integer/integer_v2.o fstcore/integer/integer_v8.o \
 	fstcore/double/double_v3.o fstcore/double/double_v9.o fstcore/character/character_v1.o fstcore/character/character_v6.o \
-	fstcore/factor/factor_v5.o fstcore/factor/factor_v7.o
+	fstcore/factor/factor_v5.o fstcore/factor/factor_v7.o fstcore/blockstreamer/blockstreamer_v2.o
 
 $(SHLIB): libLZ4.a libZSTD.a libFRAME.a libTYPES.a
 

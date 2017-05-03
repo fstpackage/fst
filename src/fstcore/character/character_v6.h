@@ -39,7 +39,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <iblockrunner.h>
+#include "iblockrunner.h"
 
 
 void fdsWriteCharVec_v6(std::ofstream &myfile, IBlockWriter* blockRunner, int compression);

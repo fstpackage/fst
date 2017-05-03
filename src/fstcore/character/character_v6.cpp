@@ -34,13 +34,11 @@ You can contact the author at :
 
 #include "character_v6.h"
 #include "iblockrunner.h"
-#include "blockrunner_char.h"
 #include "fstdefines.h"
 
 #include <iostream>
 #include <fstream>
 
-#include "lowerbound.h"
 #include <compression.h>
 #include <compressor.h>
 
@@ -276,7 +274,7 @@ inline void ReadDataBlock_v6(istream &myfile, IBlockReader* blockReader, unsigne
 }
 
 
-inline SEXP ReadDataBlockCompressed_v6(istream &myfile, IBlockReader* blockReader, unsigned long long blockSize, unsigned int nrOfElements,
+inline void ReadDataBlockCompressed_v6(istream &myfile, IBlockReader* blockReader, unsigned long long blockSize, unsigned int nrOfElements,
   unsigned int startElem, unsigned int endElem, unsigned int vecOffset,
   unsigned int intBlockSize, Decompressor &decompressor, unsigned short int &algoInt, unsigned short int &algoChar)
 {
@@ -325,8 +323,6 @@ inline SEXP ReadDataBlockCompressed_v6(istream &myfile, IBlockReader* blockReade
 
   delete[] buf;  // character vector buffer
   delete[] sizeMeta;
-
-  return List::create(_["res"] = 0);  // TODO: return timings here
 }
 
 

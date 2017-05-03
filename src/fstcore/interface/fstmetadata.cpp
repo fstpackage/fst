@@ -35,14 +35,14 @@
 
 #include <fstream>
 
-#include <iblockrunner.h>
-#include <fstmetadata.h>
-#include <fstdefines.h>
+#include <Rcpp.h>
+
+#include "iblockrunner.h"
+#include "fstmetadata.h"
+#include "fstdefines.h"
 #include "character_v6.h"
 
-// Refactor!
 #include "blockrunner_char.h"
-
 
 //  8                      | unsigned long long | nextHorzChunkSet
 //  8                      | unsigned long long | nextVertChunkSet
@@ -65,7 +65,7 @@ unsigned int FstMetaData::ReadHeader(istream &fstfile, unsigned int &tableClassT
 
   if (!fstfile)
   {
-    throw std::runtime_error(FSTERROR_DAMAGED_HEADER);
+    Rf_error(FSTERROR_DAMAGED_HEADER);
   }
 
 
@@ -137,9 +137,6 @@ int FstMetaData::CollectRecursive(std::istream &fstfile, uint64_t filePointer)
   unsigned short int* colAttributeTypes  = (unsigned short int*) metaDataBlock;
   unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[2 * nrOfCols];
 
-  // Column names TODO: this method should return a vector<string>
-  // SEXP colNames;
-  // PROTECT(colNames = Rf_allocVector(STRSXP, nrOfCols));
   unsigned long long offset = filePointer + headerSize + 4 * nrOfCols;
 
   BlockReaderChar* blockReader = new BlockReaderChar();

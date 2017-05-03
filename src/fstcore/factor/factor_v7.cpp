@@ -32,21 +32,21 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-// Framework headers
-#include <fstdefines.h>
-#include <iblockrunner.h>
-#include <blockrunner_char.h>
-#include <factor_v7.h>
-#include <blockstreamer_v2.h>
-#include <integer_v8.h>
-#include <character_v6.h>
-
-#include <compression.h>
-#include <compressor.h>
-
 // Standard headers
+#include <stdexcept>
 #include <iostream>
 #include <fstream>
+
+// Framework headers
+#include "fstdefines.h"
+#include "iblockrunner.h"
+#include "factor_v7.h"
+#include "blockstreamer_v2.h"
+#include "integer_v8.h"
+#include "character_v6.h"
+
+#include "compression.h"
+#include "compressor.h"
 
 // #include <boost/unordered_map.hpp>
 
@@ -187,7 +187,7 @@ void fdsReadFactorVec_v7(istream &myfile, IBlockReader* blockReader, int* intP, 
 
   if (*versionNr > VERSION_NUMBER_FACTOR)
   {
-    Rf_error("Incompatible fst file.");
+	  throw runtime_error("Incompatible fst file.");
   }
 
   unsigned int* nrOfLevels = (unsigned int*) &meta[4];

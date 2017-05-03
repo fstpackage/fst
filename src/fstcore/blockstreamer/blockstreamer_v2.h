@@ -36,7 +36,6 @@
 #ifndef BLOCKSTORE_H
 #define BLOCKSTORE_H
 
-#include <Rcpp.h>  // Rcpp header
 
 // Framework headers
 #include "compressor.h"

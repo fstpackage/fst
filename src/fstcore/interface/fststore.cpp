@@ -38,7 +38,6 @@
 #include <stdexcept>
 
 #include <fstdefines.h>
-#include <fsttable.h>
 #include <fststore.h>
 #include <fstmetadata.h>
 

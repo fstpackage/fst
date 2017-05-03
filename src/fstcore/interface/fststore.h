@@ -39,7 +39,6 @@
 
 #include <iostream>
 #include <vector>
-#include <fsttable.h>
 #include <fststore.h>
 
 
