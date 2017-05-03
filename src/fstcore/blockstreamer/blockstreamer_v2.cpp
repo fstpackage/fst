@@ -36,6 +36,7 @@ You can contact the author at :
 
 // System libraries
 #include <fstream>
+#include <cstring>
 
 // External libraries
 #include <compression.h>
