@@ -42,17 +42,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// fstRead
-SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
-RcppExport SEXP fst_fstRead(SEXP fileNameSEXP, SEXP columnSelectionSEXP, SEXP startRowSEXP, SEXP endRowSEXP) {
+// fstRetrieve
+SEXP fstRetrieve(Rcpp::String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
+RcppExport SEXP fst_fstRetrieve(SEXP fileNameSEXP, SEXP columnSelectionSEXP, SEXP startRowSEXP, SEXP endRowSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type fileName(fileNameSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type fileName(fileNameSEXP);
     Rcpp::traits::input_parameter< SEXP >::type columnSelection(columnSelectionSEXP);
     Rcpp::traits::input_parameter< SEXP >::type startRow(startRowSEXP);
     Rcpp::traits::input_parameter< SEXP >::type endRow(endRowSEXP);
-    rcpp_result_gen = Rcpp::wrap(fstRead(fileName, columnSelection, startRow, endRow));
+    rcpp_result_gen = Rcpp::wrap(fstRetrieve(fileName, columnSelection, startRow, endRow));
     return rcpp_result_gen;
 END_RCPP
 }

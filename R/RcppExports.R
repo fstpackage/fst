@@ -13,8 +13,8 @@ fstMeta <- function(fileName) {
     .Call('fst_fstMeta', PACKAGE = 'fst', fileName)
 }
 
-fstRead <- function(fileName, columnSelection, startRow, endRow) {
-    .Call('fst_fstRead', PACKAGE = 'fst', fileName, columnSelection, startRow, endRow)
+fstRetrieve <- function(fileName, columnSelection, startRow, endRow) {
+    .Call('fst_fstRetrieve', PACKAGE = 'fst', fileName, columnSelection, startRow, endRow)
 }
 
 BytesConvert <- function(integer) {

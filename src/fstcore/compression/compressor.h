@@ -36,11 +36,7 @@
 #ifndef COMPRESSOR_H
 #define COMPRESSOR_H
 
-#include <fstream>
-
 #include "compression.h"
-#include "lz4.h"
-#include "zstd.h"
 
 
 #define NR_OF_ALGORITHMS 15
@@ -129,8 +125,7 @@ public:
   /**
    Constructor for a single algorithm compressor.
 
-   @param algo1 First compression algorithm.
-   @param algo2 Second compression algorithm.
+   @param algo Compression algorithm.
    */
   FixedRatioCompressor(CompAlgo algo);
 
@@ -176,7 +171,7 @@ public:
    Constructor for a single algorithm compressor.
 
    @param algo1 First compression algorithm.
-   @param algo2 Second compression algorithm.
+   @param compressionLevel Level of compression.
    */
   SingleCompressor(CompAlgo algo1, int compressionLevel);
 
@@ -282,7 +277,6 @@ public:
    @param compressor Compressor that is to be used for the compressed blocks. No specific parameters can be set for
           the compressor.
    @param compressionLevel Value 0 - 100 indicating the compression level.
-   @param maxBlockSize Maximum size of the input buffer for compression.
 */
   StreamLinearCompressor(Compressor *compressor, float compressionLevel);
 
@@ -323,8 +317,6 @@ public:
 
    @param compressor Compressor that is to be used for the compressed blocks. No specific parameters can be set for
           the compressor.
-   @param compressionLevel Value 0 - 100 indicating the compression level.
-   @param maxBlockSize Maximum size of the input buffer for compression.
 */
   StreamSingleCompressor(Compressor *compressor);
 

@@ -36,9 +36,6 @@
 #ifndef COMPRESSION_H
 #define COMPRESSION_H
 
-#include "lz4.h"
-#include "zstd.h"
-
 
 #define MAX_SIZE_COMPRESS_BLOCK 16384
 #define MAX_SIZE_COMPRESS_BLOCK_HALF 8192

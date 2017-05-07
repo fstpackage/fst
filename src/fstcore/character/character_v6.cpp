@@ -35,12 +35,9 @@ You can contact the author at :
 #include "character_v6.h"
 #include "iblockrunner.h"
 #include "fstdefines.h"
-
-#include <iostream>
-#include <fstream>
-
-#include <compression.h>
 #include <compressor.h>
+
+#include <fstream>
 
 
 // #include <boost/unordered_map.hpp>
@@ -174,12 +171,12 @@ void fdsWriteCharVec_v6(ofstream &myfile, IBlockWriter* blockRunner, int compres
   unsigned long long fullSize = metaSize;
 
   // Compressors
-  Compressor* compressInt = NULL;
-  Compressor* compressInt2 = NULL;
-  StreamCompressor* streamCompressInt = NULL;
+  Compressor* compressInt;
+  Compressor* compressInt2 = nullptr;
+  StreamCompressor* streamCompressInt = nullptr;
   Compressor* compressChar = NULL;
   Compressor* compressChar2 = NULL;
-  StreamCompressor* streamCompressChar = NULL;
+  StreamCompressor* streamCompressChar;
 
   // Compression settings
   if (compression <= 50)

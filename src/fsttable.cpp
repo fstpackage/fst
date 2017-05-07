@@ -199,3 +199,68 @@ void FstTable::GetKeyColumns(int* keyColPos)
   }
 }
 
+
+//  FstTableReader implementation
+
+void FstTableReader::InitTable(unsigned int nrOfCols)
+{
+  this->nrOfCols = nrOfCols;
+
+  this->resTable = Rf_allocVector(VECSXP, nrOfCols);
+  PROTECT(resTable);
+}
+
+
+IBlockReader* FstTableReader::GetCharReader()
+{
+
+}
+
+
+int* FstTableReader::GetLogicalReader()
+{
+
+}
+
+
+int* FstTableReader::GetIntReader()
+{
+
+}
+
+
+double* FstTableReader::GetDoubleReader()
+{
+
+}
+
+
+IBlockReader* FstTableReader::GetLevelReader()
+{
+
+}
+
+
+void FstTableReader::SetColNames()
+{
+  // BlockReaderChar* blockReader = new BlockReaderChar();
+  // return blockReader;
+}
+
+void FstTableReader::SetKeyColumns(int* keyColPos, unsigned int nrOfKeys)
+{
+
+}
+
+unsigned int FstTableReader::NrOfColumns()
+{
+
+}
+
+unsigned int FstTableReader::NrOfRows()
+{
+
+}
+
+
+

@@ -58,17 +58,17 @@ inline unsigned long long CompressBlock_v2(StreamCompressor* streamCompressor, o
   int block, unsigned long long blockIndexPos, unsigned int *maxCompSize, int sourceBlockSize)
 {
   // 1 long file pointer and 1 short algorithmID per block
-  unsigned long long* blockPosition = (unsigned long long*) &blockIndex[COL_META_SIZE + block * 8];
+  unsigned long long* blockPosition = reinterpret_cast<unsigned long long*>(&blockIndex[COL_META_SIZE + block * 8]);
 
   // unsigned short blockAlgorithm = (unsigned short*) &blockIndex[COL_META_SIZE + 8 + block * 8];
 
   // Compress block
   CompAlgo compAlgo;
-  unsigned int compSize = (unsigned int) streamCompressor->Compress(myfile, vecP, sourceBlockSize, compBuf, compAlgo);
+  unsigned int compSize = static_cast<unsigned int>(streamCompressor->Compress(myfile, vecP, sourceBlockSize, compBuf, compAlgo));
   if (compSize > *maxCompSize) *maxCompSize = compSize;
-  unsigned int blockAlgorithm = (unsigned int) compAlgo;
+  unsigned int blockAlgorithm = static_cast<unsigned int>(compAlgo);
 
-  *blockPosition = blockIndexPos | ((unsigned long long) blockAlgorithm << 48); // starting position and algorithm in 2 high bytes
+  *blockPosition = blockIndexPos | (static_cast<unsigned long long>(blockAlgorithm) << 48); // starting position and algorithm in 2 high bytes
 
   return compSize;  // compressed block length
 }
@@ -86,10 +86,10 @@ void fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLengt
   --nrOfBlocks;  // Do last block later
 
   // No fixed ratio compressor specified
-  if (fixedRatioCompressor == NULL )
+  if (fixedRatioCompressor == nullptr )
   {
     unsigned int compress[2] = { 0, 0 };
-    myfile.write((char*) compress, COL_META_SIZE);
+    myfile.write(reinterpret_cast<char*>(compress), COL_META_SIZE);
 
     uint64_t blockPos = 0;
 
@@ -116,12 +116,12 @@ void fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLengt
   {
     // char compBuf[compressBufSizeRemain + COL_META_SIZE];  // meta data and compression buffer
 
-    unsigned int *compress = (unsigned int*) compBuf;
+    unsigned int *compress = reinterpret_cast<unsigned int*>(compBuf);
     compress[0] = 0;
 
     CompAlgo compAlgo;
     fixedRatioCompressor->Compress(&compBuf[COL_META_SIZE], compressBufSizeRemain, vec, remainBlock, compAlgo);
-    compress[1] = (unsigned int) compAlgo;  // set fixed-ratio compression algorithm
+    compress[1] = static_cast<unsigned int>(compAlgo);  // set fixed-ratio compression algorithm
     myfile.write(compBuf, compressBufSizeRemain + COL_META_SIZE);
 
     return;
@@ -134,12 +134,12 @@ void fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLengt
 
   // First block and metadata
 
-  unsigned int *compress = (unsigned int*) compBuf;
+  unsigned int *compress = reinterpret_cast<unsigned int*>(compBuf);
   compress[0] = 0;
 
   CompAlgo compAlgo;
   fixedRatioCompressor->Compress(&compBuf[COL_META_SIZE], compressBufSize, vec, blockSize, compAlgo);
-  compress[1] = (unsigned int) compAlgo;  // set fixed-ratio compression algorithm
+  compress[1] = static_cast<unsigned int>(compAlgo);  // set fixed-ratio compression algorithm
   myfile.write(compBuf, compressBufSize + COL_META_SIZE);
 
   // Next blocks
@@ -175,14 +175,14 @@ void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRow
 
   char* blockIndex = new char[(2 + nrOfBlocks) * 8];  // 1 long file pointer with 2 highest bytes indicating algorithmID
 
-  unsigned int* maxCompSize = (unsigned int*) &blockIndex[0];  // maximum uncompressed block length
-  unsigned int* blockSizeElements = (unsigned int*) &blockIndex[4];  // number of elements per block
+  unsigned int* maxCompSize = reinterpret_cast<unsigned int*>(&blockIndex[0]);  // maximum uncompressed block length
+  unsigned int* blockSizeElements = reinterpret_cast<unsigned int*>(&blockIndex[4]);  // number of elements per block
 
   *blockSizeElements = blockSizeElems;
   *maxCompSize = blockSize;  // can be used later for optimization
 
   // Write block index
-  myfile.write((char*) blockIndex, 8 + COL_META_SIZE + nrOfBlocks * 8);
+  myfile.write(static_cast<char*>(blockIndex), 8 + COL_META_SIZE + nrOfBlocks * 8);
   unsigned long long blockIndexPos = 8 + COL_META_SIZE + nrOfBlocks * 8;  // relative to the column data starting position
 
 
@@ -204,12 +204,12 @@ void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRow
   blockIndexPos += CompressBlock_v2(streamCompressor, myfile, &colVec[blockPos], compBuf, blockIndex, nrOfBlocks, blockIndexPos, maxCompSize, remain * elementSize);
 
   // Write last block position
-  unsigned long long* blockPosition = (unsigned long long*) &blockIndex[COL_META_SIZE + 8 + nrOfBlocks * 8];
+  unsigned long long* blockPosition = reinterpret_cast<unsigned long long*>(&blockIndex[COL_META_SIZE + 8 + nrOfBlocks * 8]);
   *blockPosition = blockIndexPos;
 
   // Rewrite blockIndex
   myfile.seekp(curPos);
-  myfile.write((char*) blockIndex, COL_META_SIZE + 16 + nrOfBlocks * 8);
+  myfile.write(static_cast<char*>(blockIndex), COL_META_SIZE + 16 + nrOfBlocks * 8);
   myfile.seekp(0, ios_base::end);
 
   delete[] blockIndex;
@@ -222,8 +222,8 @@ inline void fdsReadFixedCompStream_v2(istream &myfile, char* outVec, unsigned lo
   unsigned int* meta, unsigned int startRow, int elementSize, unsigned int vecLength)
 {
   unsigned int compAlgo = meta[1];  // identifier of the fixed ratio compressor
-  unsigned int repSize = fixedRatioSourceRepSize[(int) compAlgo];  // in bytes
-  unsigned int targetRepSize = fixedRatioTargetRepSize[(int) compAlgo];  // in bytes
+  unsigned int repSize = fixedRatioSourceRepSize[static_cast<int>(compAlgo)];  // in bytes
+  unsigned int targetRepSize = fixedRatioTargetRepSize[static_cast<int>(compAlgo)];  // in bytes
 
   // robustness: test for correct algo here
   if (repSize < 1)

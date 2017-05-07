@@ -134,12 +134,6 @@ void BlockWriterChar::SetBuffersFromVec(unsigned int startCount, unsigned int en
 }
 
 
-// BlockReaderChar::BlockReaderChar(SEXP &strVec)
-// {
-//   this->strVec = &strVec;
-// }
-
-
 void BlockReaderChar::AllocateVec(unsigned int vecLength)
 {
   PROTECT(this->strVec = Rf_allocVector(STRSXP, vecLength));
@@ -292,8 +286,3 @@ void BlockReaderChar::BufferToVec(unsigned int nrOfElements, unsigned int startE
   }
 }
 
-
-BlockReaderChar::~BlockReaderChar()
-{
-
-}

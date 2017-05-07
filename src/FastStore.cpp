@@ -41,11 +41,9 @@
 #include <FastStore_v1.h>
 
 #include <iblockrunner.h>
-#include <iblockwriterfactory.h>
 #include <ifsttable.h>
 
 #include <blockrunner_char.h>
-#include <blockwriterfactory.h>
 #include <fsttable.h>
 
 #include <character_v6.h>
@@ -348,7 +346,6 @@ inline unsigned int ReadHeader(ifstream &myfile, unsigned int &tableClassType, i
   int* p_keyLength                = (int*) &tableMeta[16];
   int* p_nrOfColsFirstChunk       = (int*) &tableMeta[20];
 
-
   keyLength          = *p_keyLength;
   nrOfColsFirstChunk = *p_nrOfColsFirstChunk;
 
@@ -362,7 +359,7 @@ inline unsigned int ReadHeader(ifstream &myfile, unsigned int &tableClassType, i
   if (*p_table_version > FST_VERSION)
   {
     myfile.close();
-    ::Rf_error("Incompatible fst file: file was created by a newer version of the fst package.");
+    throw(runtime_error("Incompatible fst file: file was created by a newer version of the fst package."));
   }
 
   return *p_table_version;
@@ -477,18 +474,18 @@ List fstMeta(String fileName)
 }
 
 
-SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
+SEXP fstRead(const char* fileName, IFstTableReader &tableReader, SEXP columnSelection, SEXP startRow, SEXP endRow)
 {
   // fst file stream using a stack buffer
   ifstream myfile;
   char ioBuf[4096];
   myfile.rdbuf()->pubsetbuf(ioBuf, 4096);
-  myfile.open(CHAR(STRING_ELT(fileName, 0)), ios::binary);
+  myfile.open(fileName, ios::binary);
 
   if (myfile.fail())
   {
     myfile.close();
-    ::Rf_error("There was an error opening the fst file, please check for a correct path.");
+    throw(runtime_error("There was an error opening the fst file, please check for a correct path."));
   }
 
 
@@ -501,7 +498,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   {
     // Close and reopen (slow: fst file should be resaved to avoid this overhead)
     myfile.close();
-    return fstRead_v1(fileName, columnSelection, startRow, endRow);
+    return fstRead_v1(Rf_mkString(fileName), columnSelection, startRow, endRow);
   }
 
 
@@ -511,7 +508,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   myfile.read(metaDataBlock, metaSize);
 
 
-  int* keyColPos                         = (int*) metaDataBlock;
+  int* keyColPos = (int*) metaDataBlock;
 
   unsigned int tmpOffset = 4 * keyLength;
 
@@ -530,9 +527,9 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   // TODO: read table attributes here
 
   // Read column names
-  // SEXP colNames;
-  // PROTECT(colNames = Rf_allocVector(STRSXP, nrOfCols));
   unsigned long long offset = metaSize + TABLE_META_SIZE;
+
+  // use IFstTableReader::GetColNameReader() here
   BlockReaderChar* blockReader = new BlockReaderChar();
   fdsReadCharVec_v6(myfile, (IBlockReader*) blockReader, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
   SEXP colNames = blockReader->StrVector();
@@ -555,7 +552,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   {
     myfile.close();
     delete[] metaDataBlock;
-    ::Rf_error("Multiple chunk read not implemented yet.");
+    throw(runtime_error("Multiple chunk read not implemented yet."));
   }
 
 
@@ -606,7 +603,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
         delete[] blockPos;
         myfile.close();
         UNPROTECT(1);
-        ::Rf_error("Selected column not found.");
+        throw(runtime_error("Selected column not found."));
       }
 
       colIndex[colSel] = equal;
@@ -627,10 +624,10 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 
     if (firstRow < 0)
     {
-      ::Rf_error("Parameter fromRow should have a positive value.");
+      throw(runtime_error("Parameter fromRow should have a positive value."));
     }
 
-    ::Rf_error("Row selection is out of range.");
+    throw(runtime_error("Row selection is out of range."));
   }
 
   int length = nrOfRows - firstRow;
@@ -647,7 +644,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
       delete[] blockPos;
       myfile.close();
       UNPROTECT(1);
-      ::Rf_error("Parameter 'lastRow' should be equal to or larger than parameter 'fromRow'.");
+      throw(runtime_error("Parameter 'lastRow' should be equal to or larger than parameter 'fromRow'."));
     }
 
     length = min(lastRow - firstRow, nrOfRows - firstRow);
@@ -657,8 +654,10 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   SEXP selectedNames;
   PROTECT(selectedNames = Rf_allocVector(STRSXP, nrOfSelect));
 
-  SEXP resTable;
-  PROTECT(resTable = Rf_allocVector(VECSXP, nrOfSelect));
+  tableReader.InitTable(nrOfSelect);
+
+  // SEXP resTable;
+  // PROTECT(resTable = Rf_allocVector(VECSXP, nrOfSelect));
 
   BlockReaderChar* blockReaderStrVec = new BlockReaderChar();
 
@@ -672,7 +671,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
       delete[] blockPos;
       myfile.close();
       UNPROTECT(4);
-      ::Rf_error("Column selection is out of range.");
+      throw(runtime_error("Column selection is out of range."));
     }
 
     // Column name
@@ -689,7 +688,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
         // blockReaderStrVec = new BlockReaderChar();
         fdsReadCharVec_v6(myfile, (IBlockReader*) blockReaderStrVec, pos, firstRow, length, nrOfRows);
 
-        SET_VECTOR_ELT(resTable, colSel, blockReaderStrVec->StrVector());
+        SET_VECTOR_ELT( ((FstTableReader*) &tableReader)->resTable, colSel, blockReaderStrVec->StrVector());
         UNPROTECT(1);
         break;
 
@@ -698,7 +697,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
         SEXP intVec;
         PROTECT(intVec = Rf_allocVector(INTSXP, length));
         fdsReadIntVec_v8(myfile, INTEGER(intVec), pos, firstRow, length, nrOfRows);
-        SET_VECTOR_ELT(resTable, colSel, intVec);
+        SET_VECTOR_ELT( ((FstTableReader*) &tableReader)->resTable, colSel, intVec);
         UNPROTECT(1);
         break;
 
@@ -707,7 +706,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
         SEXP realVec;
         PROTECT(realVec = Rf_allocVector(REALSXP, length));
         fdsReadRealVec_v9(myfile, REAL(realVec), pos, firstRow, length, nrOfRows);
-        SET_VECTOR_ELT(resTable, colSel, realVec);
+        SET_VECTOR_ELT( ((FstTableReader*) &tableReader)->resTable, colSel, realVec);
         UNPROTECT(1);
         break;
 
@@ -716,7 +715,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
         SEXP boolVec;
         PROTECT(boolVec = Rf_allocVector(LGLSXP, length));
         fdsReadLogicalVec_v10(myfile, LOGICAL(boolVec), pos, firstRow, length, nrOfRows);
-        SET_VECTOR_ELT(resTable, colSel, boolVec);
+        SET_VECTOR_ELT( ((FstTableReader*) &tableReader)->resTable, colSel, boolVec);
         UNPROTECT(1);
         break;
 
@@ -730,7 +729,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
         Rf_setAttrib(facVec, Rf_mkString("levels"), blockReaderStrVec->StrVector());
         Rf_setAttrib(facVec, Rf_mkString("class"), Rf_mkString("factor"));
 
-        SET_VECTOR_ELT(resTable, colSel, facVec);
+        SET_VECTOR_ELT( ((FstTableReader*) &tableReader)->resTable, colSel, facVec);
         UNPROTECT(2);  // level string was also generated
         break;
 
@@ -740,7 +739,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
         delete[] blockPos;
 
         myfile.close();
-        ::Rf_error("Unknown type found in column.");
+        throw(runtime_error("Unknown type found in column."));
     }
   }
 
@@ -749,7 +748,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
   myfile.close();
 
   // Generalize to full atributes
-  Rf_setAttrib(resTable, R_NamesSymbol, selectedNames);
+  Rf_setAttrib( ((FstTableReader*) &tableReader)->resTable, R_NamesSymbol, selectedNames);
 
   int found = 0;
   for (int i = 0; i < keyLength; ++i)
@@ -782,7 +781,7 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
     return List::create(
       _["keyNames"] = keyNames,
       _["found"] = found,
-      _["resTable"] = resTable,
+      _["resTable"] = ((FstTableReader*) &tableReader)->resTable,
       _["selectedNames"] = selectedNames);
   }
 
@@ -804,5 +803,32 @@ SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
     _["keyLength"] = keyLength,
     _["nrOfSelect"] = nrOfSelect,
     _["selectedNames"] = selectedNames,
-    _["resTable"] = resTable);
+    _["resTable"] = ((FstTableReader*) &tableReader)->resTable);
+}
+
+
+SEXP fstRetrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
+{
+  SEXP result;
+
+  FstTableReader tableReader;
+
+  // std::vector<std::string> columnNameVec(columnSelection.size());
+  //
+  // int i;
+  // for (i = 0; i < columnSelection.size(); i++)
+  // {
+  //   columnNameVec[i] = Rcpp::as< std::string >(columnSelection(i));
+  // }
+
+  try
+  {
+    result = fstRead(fileName.get_cstring(), tableReader, columnSelection, startRow, endRow);
+  }
+  catch (const std::runtime_error& e)
+  {
+    ::Rf_error(e.what());
+  }
+
+  return result;
 }

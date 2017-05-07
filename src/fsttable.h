@@ -93,4 +93,42 @@ class FstTable : public IFstTable
 };
 
 
+class FstTableReader : public IFstTableReader
+{
+  // Buffers for blockRunner
+  unsigned int naInts[1 + BLOCKSIZE_CHAR / 32];  // we have 32 NA bits per integer
+  unsigned int strSizes[BLOCKSIZE_CHAR];  // we have 32 NA bits per integer
+  char buf[MAX_CHAR_STACK_SIZE];
+
+  // Table metadata
+  unsigned int nrOfCols;
+
+public:
+  // Result table
+  SEXP resTable;
+
+  void InitTable(unsigned int nrOfCols);
+
+  ~FstTableReader() {};
+
+  IBlockReader* GetCharReader();
+
+  int* GetLogicalReader();
+
+  int* GetIntReader();
+
+  double* GetDoubleReader();
+
+  IBlockReader* GetLevelReader();
+
+  void SetColNames();
+
+  void SetKeyColumns(int* keyColPos, unsigned int nrOfKeys);
+
+  unsigned int NrOfColumns();
+
+  unsigned int NrOfRows();
+};
+
+
 #endif  // FST_TABLE_H

@@ -141,7 +141,7 @@ read.fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
     to <- as.integer(to)
   }
 
-  res <- fstRead(fileName, columns, from, to)
+  res <- fstRetrieve(fileName, columns, from, to)
 
   if (as.data.table)
   {

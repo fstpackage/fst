@@ -34,7 +34,6 @@
 
 // Framework libraries
 #include "blockstreamer_v2.h"
-#include "compression.h"
 #include "compressor.h"
 
 using namespace std;
@@ -52,7 +51,7 @@ void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned int nrO
 
   if (compression == 0)
   {
-    return fdsStreamUncompressed_v2(myfile, (char*) doubleVector, nrOfRows, 8, BLOCKSIZE_REAL, NULL);
+    return fdsStreamUncompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, BLOCKSIZE_REAL, NULL);
   }
 
   if (compression <= 50)  // low compression: linear mix of uncompressed and LZ4_SHUF
@@ -60,7 +59,7 @@ void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned int nrO
     Compressor* compress1 = new DualCompressor(CompAlgo::LZ4_SHUF8, CompAlgo::LZ4, 0, 2 * compression);
     StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, 2 * compression);
     streamCompressor->CompressBufferSize(blockSize);
-    fdsStreamcompressed_v2(myfile, (char*) doubleVector, nrOfRows, 8, streamCompressor, BLOCKSIZE_REAL);
+    fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, streamCompressor, BLOCKSIZE_REAL);
 
     delete compress1;
     delete streamCompressor;

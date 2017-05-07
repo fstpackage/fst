@@ -61,7 +61,7 @@ class BlockReaderChar : public IBlockReader
   SEXP strVec;
 
 public:
-  ~BlockReaderChar();
+  ~BlockReaderChar(){}
 
   void AllocateVec(unsigned int vecLength);
 

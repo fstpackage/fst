@@ -36,6 +36,7 @@
 #ifndef BLOCKSTORE_H
 #define BLOCKSTORE_H
 
+#include <fstream>
 
 // Framework headers
 #include "compressor.h"

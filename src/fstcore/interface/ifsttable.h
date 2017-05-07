@@ -36,12 +36,7 @@
 #ifndef IFST_TABLE_H
 #define IFST_TABLE_H
 
-#include <iostream>
-#include <vector>
-
-#include <Rcpp.h>
-
-#include <iblockrunner.h>
+#include "iblockrunner.h"
 
 enum FstColumnType
 {
@@ -87,5 +82,35 @@ class IFstTable
     virtual unsigned int NrOfRows() = 0;
 };
 
+
+/**
+ Interface to a fst table. A fst table is a temporary wrapper around an array of columnar data buffers.
+ The table only exists to facilitate serialization and deserialization of data.
+ */
+class IFstTableReader
+{
+public:
+  virtual ~IFstTableReader() {};
+
+  virtual void InitTable(unsigned int nrOfCols);
+
+  virtual IBlockReader* GetCharReader() = 0;
+
+  virtual int* GetLogicalReader() = 0;
+
+  virtual int* GetIntReader() = 0;
+
+  virtual double* GetDoubleReader() = 0;
+
+  virtual IBlockReader* GetLevelReader() = 0;
+
+  virtual void SetColNames() = 0;
+
+  virtual void SetKeyColumns(int* keyColPos, unsigned int nrOfKeys) = 0;
+
+  virtual unsigned int NrOfColumns() = 0;
+
+  virtual unsigned int NrOfRows() = 0;
+};
 
 #endif  // IFST_TABLE_H

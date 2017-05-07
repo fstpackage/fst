@@ -53,7 +53,7 @@ SEXP fstStore(Rcpp::String fileName, SEXP table, SEXP compression);
 Rcpp::List fstMeta(Rcpp::String fileName);
 
 // [[Rcpp::export]]
-SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
+SEXP fstRetrieve(Rcpp::String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
 
 
 #endif  // FASTSTORE_H
