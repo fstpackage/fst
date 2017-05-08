@@ -92,7 +92,7 @@ class IFstTableReader
 public:
   virtual ~IFstTableReader() {};
 
-  virtual void InitTable(unsigned int nrOfCols);
+  virtual void InitTable(unsigned int nrOfCols) = 0;
 
   virtual IBlockReader* GetCharReader() = 0;
 
