@@ -37,6 +37,17 @@
 #define IFST_COLUMN_H
 
 
+#include "iblockrunner.h"
+
+class IFactorColumn
+{
+public:
+  virtual ~IFactorColumn() {};
+  virtual int* LevelData() = 0;
+  virtual IBlockReader* Levels() = 0;
+};
+
+
 class IDoubleColumn
 {
 public:

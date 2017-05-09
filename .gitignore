@@ -5,7 +5,6 @@
 *.pdf
 *.o
 *.a
-*.orig
 *.txt
 *.gz
 *.rds

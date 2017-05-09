@@ -94,7 +94,7 @@ public:
 
   virtual void InitTable(unsigned int nrOfCols, int nrOfRows) = 0;
 
-  virtual IBlockReader* GetCharReader() = 0;
+  virtual void AddCharColumn(IBlockReader* stringColumn, int colNr) = 0;
 
   virtual void AddLogicalColumn(ILogicalColumn* logicalColumn, int colNr) = 0;
 

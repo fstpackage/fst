@@ -684,13 +684,14 @@ SEXP fstRead(const char* fileName, IFstTableReader &tableReader, SEXP columnSele
     {
     // Character vector
       case 6:
-        // PROTECT(strVec = Rf_allocVector(STRSXP, length));
-        // blockReaderStrVec = new BlockReaderChar();
+      {
+        BlockReaderChar* stringColumn = new BlockReaderChar();
         fdsReadCharVec_v6(myfile, (IBlockReader*) blockReaderStrVec, pos, firstRow, length, nrOfRows);
-
-        SET_VECTOR_ELT( ((FstTableReader*) &tableReader)->resTable, colSel, blockReaderStrVec->StrVector());
+        tableReader.AddCharColumn((IBlockReader*) blockReaderStrVec, colSel);
+        delete stringColumn;
         UNPROTECT(1);
         break;
+      }
 
       // Integer vector
       case 8:
@@ -717,15 +718,9 @@ SEXP fstRead(const char* fileName, IFstTableReader &tableReader, SEXP columnSele
         break;
       }
 
-        // SEXP boolVec;
-        // PROTECT(boolVec = Rf_allocVector(LGLSXP, length));
-        // fdsReadLogicalVec_v10(myfile, LOGICAL(boolVec), pos, firstRow, length, nrOfRows);
-        // SET_VECTOR_ELT( ((FstTableReader*) &tableReader)->resTable, colSel, boolVec);
-        // UNPROTECT(1);
-        // break;
-
       // Factor vector
       case 7:
+      {
         SEXP facVec;
         PROTECT(facVec = Rf_allocVector(INTSXP, length));
 
@@ -737,7 +732,7 @@ SEXP fstRead(const char* fileName, IFstTableReader &tableReader, SEXP columnSele
         SET_VECTOR_ELT( ((FstTableReader*) &tableReader)->resTable, colSel, facVec);
         UNPROTECT(2);  // level string was also generated
         break;
-
+      }
 
       default:
         delete[] metaDataBlock;

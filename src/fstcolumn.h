@@ -37,6 +37,38 @@
 #define FST_COLUMN_H
 
 #include "ifstcolumn.h"
+#include "blockrunner_char.h"
+//
+// class FactorColumn
+// {
+// public:
+//   SEXP intVec;
+//   BlockReaderChar* blockReaderStrVec;
+//
+//   FactorColumn(int nrOfRows)
+//   {
+//     intVec = Rf_allocVector(INTSXP, nrOfRows);
+//     PROTECT(intVec);
+//     blockReaderStrVec = new BlockReaderChar();
+//   }
+//
+//   ~IFactorColumn()
+//   {
+//     UNPROTECT(1);
+//     delete blockReaderStrVec;
+//   };
+//
+//   int* LevelData()
+//   {
+//     return INTEGER(intVec);
+//   }
+//
+//   IBlockReader* Levels()
+//   {
+//     return blockReaderStrVec;
+//   }
+// };
+
 
 
 class LogicalColumn : public ILogicalColumn
@@ -44,20 +76,20 @@ class LogicalColumn : public ILogicalColumn
 public:
   SEXP colVec;
 
-  DoubleColumn(int nrOfRows)
+  LogicalColumn(int nrOfRows)
   {
-    colVec = Rf_allocVector(REALSXP, nrOfRows);
+    colVec = Rf_allocVector(LGLSXP, nrOfRows);
     PROTECT(colVec);
   }
 
-  ~DoubleColumn()
+  ~LogicalColumn()
   {
     UNPROTECT(1);
   }
 
-  double* Data()
+  int* Data()
   {
-    return REAL(colVec);
+    return LOGICAL(colVec);
   }
 };
 

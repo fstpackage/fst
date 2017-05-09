@@ -36,6 +36,7 @@
 
 
 #include "ifsttable.h"
+#include "iblockrunner.h"
 #include "fstdefines.h"
 
 #include "blockrunner_char.h"
@@ -214,9 +215,10 @@ void FstTableReader::InitTable(unsigned int nrOfCols, int nrOfRows)
 }
 
 
-IBlockReader* FstTableReader::GetCharReader()
+void FstTableReader::AddCharColumn(IBlockReader* stringColumn, int colNr)
 {
-
+  BlockReaderChar* sColumn = (BlockReaderChar*) stringColumn;
+  SET_VECTOR_ELT(resTable, colNr, sColumn->StrVector());
 }
 
 
