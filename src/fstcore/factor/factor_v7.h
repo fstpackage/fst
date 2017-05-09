@@ -40,9 +40,7 @@
 #include <iostream>
 #include <fstream>
 
-#include <compression.h>
-#include <compressor.h>
-
+#include <iblockrunner.h>
 
 void fdsWriteFactorVec_v7(std::ofstream &myfile, int* intP, IBlockWriter* blockRunner, unsigned int size, unsigned int compression);
 

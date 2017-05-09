@@ -51,7 +51,7 @@ void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned int nrO
 
   if (compression == 0)
   {
-    return fdsStreamUncompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, BLOCKSIZE_REAL, NULL);
+    return fdsStreamUncompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, BLOCKSIZE_REAL, nullptr);
   }
 
   if (compression <= 50)  // low compression: linear mix of uncompressed and LZ4_SHUF

@@ -38,14 +38,12 @@
 #include <fstream>
 
 // Framework headers
-#include "fstdefines.h"
 #include "iblockrunner.h"
 #include "factor_v7.h"
 #include "blockstreamer_v2.h"
 #include "integer_v8.h"
 #include "character_v6.h"
 
-#include "compression.h"
 #include "compressor.h"
 
 // #include <boost/unordered_map.hpp>
@@ -109,7 +107,7 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IBlockWriter* blockRunner
       return;
     }
 
-    fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, NULL);
+    fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, nullptr);
 
     return;
   }
@@ -118,9 +116,9 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IBlockWriter* blockRunner
 
   if (*nrOfLevels < 128)  // use 1 byte per int
   {
-    Compressor* defaultCompress = NULL;
-    Compressor* compress2 = NULL;
-    StreamCompressor* streamCompressor = NULL;
+    Compressor* defaultCompress;
+    Compressor* compress2;
+    StreamCompressor* streamCompressor = nullptr;
 
     if (compression <= 50)
     {

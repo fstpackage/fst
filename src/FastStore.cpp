@@ -45,6 +45,7 @@
 
 #include <blockrunner_char.h>
 #include <fsttable.h>
+#include <fstcolumn.h>
 
 #include <character_v6.h>
 #include <factor_v7.h>
@@ -656,11 +657,6 @@ SEXP fstRead(const char* fileName, IFstTableReader &tableReader, SEXP columnSele
 
   tableReader.InitTable(nrOfSelect, length);
 
-  // SEXP resTable;
-  // PROTECT(resTable = Rf_allocVector(VECSXP, nrOfSelect));
-
-  BlockReaderChar* blockReaderStrVec = new BlockReaderChar();
-
   for (int colSel = 0; colSel < nrOfSelect; ++colSel)
   {
     int colNr = colIndex[colSel];
@@ -685,9 +681,9 @@ SEXP fstRead(const char* fileName, IFstTableReader &tableReader, SEXP columnSele
     // Character vector
       case 6:
       {
-        BlockReaderChar* stringColumn = new BlockReaderChar();
-        fdsReadCharVec_v6(myfile, (IBlockReader*) blockReaderStrVec, pos, firstRow, length, nrOfRows);
-        tableReader.AddCharColumn((IBlockReader*) blockReaderStrVec, colSel);
+        IBlockReader* stringColumn = new BlockReaderChar();
+        fdsReadCharVec_v6(myfile, stringColumn, pos, firstRow, length, nrOfRows);
+        tableReader.AddCharColumn(stringColumn, colSel);
         delete stringColumn;
         UNPROTECT(1);
         break;
@@ -721,16 +717,11 @@ SEXP fstRead(const char* fileName, IFstTableReader &tableReader, SEXP columnSele
       // Factor vector
       case 7:
       {
-        SEXP facVec;
-        PROTECT(facVec = Rf_allocVector(INTSXP, length));
-
-        fdsReadFactorVec_v7(myfile, (IBlockReader*) blockReaderStrVec, INTEGER(facVec), pos, firstRow, length, nrOfRows);
-
-        Rf_setAttrib(facVec, Rf_mkString("levels"), blockReaderStrVec->StrVector());
-        Rf_setAttrib(facVec, Rf_mkString("class"), Rf_mkString("factor"));
-
-        SET_VECTOR_ELT( ((FstTableReader*) &tableReader)->resTable, colSel, facVec);
-        UNPROTECT(2);  // level string was also generated
+        IFactorColumn* factorColumn = new FactorColumn(length);
+        fdsReadFactorVec_v7(myfile, ((FactorColumn*) factorColumn)->Levels(), ((FactorColumn*) factorColumn)->LevelData(), pos, firstRow, length, nrOfRows);
+        tableReader.AddFactorColumn(factorColumn, colSel);
+        UNPROTECT(1);  // level string was also generated
+        delete factorColumn;
         break;
       }
 
@@ -743,7 +734,7 @@ SEXP fstRead(const char* fileName, IFstTableReader &tableReader, SEXP columnSele
     }
   }
 
-  delete blockReaderStrVec;
+  // delete blockReaderStrVec;
 
   myfile.close();
 

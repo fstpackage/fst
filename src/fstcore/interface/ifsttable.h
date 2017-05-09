@@ -102,7 +102,7 @@ public:
 
   virtual void AddDoubleColumn(IDoubleColumn* doubleColumn, int colNr) = 0;
 
-  virtual IBlockReader* GetLevelReader() = 0;
+  virtual void AddFactorColumn(IFactorColumn* factorColumn, int colNr) = 0;
 
   virtual void SetColNames() = 0;
 

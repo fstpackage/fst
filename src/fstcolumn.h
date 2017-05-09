@@ -38,48 +38,48 @@
 
 #include "ifstcolumn.h"
 #include "blockrunner_char.h"
-//
-// class FactorColumn
-// {
-// public:
-//   SEXP intVec;
-//   BlockReaderChar* blockReaderStrVec;
-//
-//   FactorColumn(int nrOfRows)
-//   {
-//     intVec = Rf_allocVector(INTSXP, nrOfRows);
-//     PROTECT(intVec);
-//     blockReaderStrVec = new BlockReaderChar();
-//   }
-//
-//   ~IFactorColumn()
-//   {
-//     UNPROTECT(1);
-//     delete blockReaderStrVec;
-//   };
-//
-//   int* LevelData()
-//   {
-//     return INTEGER(intVec);
-//   }
-//
-//   IBlockReader* Levels()
-//   {
-//     return blockReaderStrVec;
-//   }
-// };
 
+
+class FactorColumn : public IFactorColumn
+{
+public:
+  SEXP intVec;
+  BlockReaderChar* blockReaderStrVec;
+
+  FactorColumn(int nrOfRows)
+  {
+    intVec = Rf_allocVector(INTSXP, nrOfRows);
+    PROTECT(intVec);
+    blockReaderStrVec = new BlockReaderChar();
+  }
+
+  ~FactorColumn()
+  {
+    UNPROTECT(1);
+    delete blockReaderStrVec;
+  };
+
+  int* LevelData()
+  {
+    return INTEGER(intVec);
+  }
+
+  IBlockReader* Levels()
+  {
+    return blockReaderStrVec;
+  }
+};
 
 
 class LogicalColumn : public ILogicalColumn
 {
 public:
-  SEXP colVec;
+  SEXP boolVec;
 
   LogicalColumn(int nrOfRows)
   {
-    colVec = Rf_allocVector(LGLSXP, nrOfRows);
-    PROTECT(colVec);
+    boolVec = Rf_allocVector(LGLSXP, nrOfRows);
+    PROTECT(boolVec);
   }
 
   ~LogicalColumn()
@@ -89,7 +89,7 @@ public:
 
   int* Data()
   {
-    return LOGICAL(colVec);
+    return LOGICAL(boolVec);
   }
 };
 

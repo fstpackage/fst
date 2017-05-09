@@ -497,10 +497,10 @@ void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
       blockPStart = blockPEnd;
       blockPEnd = (unsigned long long*) &blockIndex[8 + 8 * blockCount];
 
-      unsigned short algo = (unsigned short) (((*blockPStart) >> 48) & 0xffff);
-      unsigned long long blockPosStart = (*blockPStart) & BLOCK_POS_MASK;
-      unsigned long long blockPosEnd = (*blockPEnd) & BLOCK_POS_MASK;
-      unsigned long long compSize = blockPosEnd - blockPosStart;
+      algo = (unsigned short) (((*blockPStart) >> 48) & 0xffff);
+      blockPosStart = (*blockPStart) & BLOCK_POS_MASK;
+      blockPosEnd = (*blockPEnd) & BLOCK_POS_MASK;
+      compSize = blockPosEnd - blockPosStart;
 
       if (algo == 0)  // no compression
       {
@@ -523,10 +523,10 @@ void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
       blockPStart = blockPEnd;
       blockPEnd = (unsigned long long*) &blockIndex[8 + 8 * blockCount];
 
-      unsigned short algo = (unsigned short) (((*blockPStart) >> 48) & 0xffff);
-      unsigned long long blockPosStart = (*blockPStart) & BLOCK_POS_MASK;
-      unsigned long long blockPosEnd = (*blockPEnd) & BLOCK_POS_MASK;
-      unsigned long long compSize = blockPosEnd - blockPosStart;
+      algo = (unsigned short) (((*blockPStart) >> 48) & 0xffff);
+      blockPosStart = (*blockPStart) & BLOCK_POS_MASK;
+      blockPosEnd = (*blockPEnd) & BLOCK_POS_MASK;
+      compSize = blockPosEnd - blockPosStart;
 
       if (algo == 0)  // no compression
       {
@@ -555,7 +555,7 @@ void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
 
   // Update meta pointers
   blockPStart = blockPEnd;
-  blockPEnd = (unsigned long long*) &blockIndex[8 + 8 * maxBlock];
+  blockPEnd = reinterpret_cast<unsigned long long*>(&blockIndex[8 + 8 * maxBlock]);
 
   algo = (unsigned short) (((*blockPStart) >> 48) & 0xffff);
   blockPosStart = (*blockPStart) & BLOCK_POS_MASK;

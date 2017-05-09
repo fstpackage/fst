@@ -49,7 +49,7 @@ void fdsWriteIntVec_v8(ofstream &myfile, int* integerVector, unsigned int nrOfRo
 
   if (compression == 0)
   {
-    return fdsStreamUncompressed_v2(myfile, (char*) integerVector, nrOfRows, 4, BLOCKSIZE_INT, NULL);
+    return fdsStreamUncompressed_v2(myfile, (char*) integerVector, nrOfRows, 4, BLOCKSIZE_INT, nullptr);
   }
 
   if (compression <= 50)  // low compression: linear mix of uncompressed and LZ4_SHUF

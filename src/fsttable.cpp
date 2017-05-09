@@ -41,6 +41,7 @@
 
 #include "blockrunner_char.h"
 #include "fsttable.h"
+#include "fstcolumn.h"
 
 #include <Rcpp.h>
 
@@ -244,9 +245,13 @@ void FstTableReader::AddDoubleColumn(IDoubleColumn* doubleColumn, int colNr)
   SET_VECTOR_ELT(resTable, colNr, dColumn->colVec);
 }
 
-IBlockReader* FstTableReader::GetLevelReader()
-{
 
+void FstTableReader::AddFactorColumn(IFactorColumn* factorColumn, int colNr)
+{
+  Rf_setAttrib(((FactorColumn*) factorColumn)->intVec, Rf_mkString("levels"), ((FactorColumn*) factorColumn)->blockReaderStrVec->StrVector());
+  Rf_setAttrib(((FactorColumn*) factorColumn)->intVec, Rf_mkString("class"), Rf_mkString("factor"));
+
+  SET_VECTOR_ELT(resTable, colNr, ((FactorColumn*) factorColumn)->intVec);
 }
 
 

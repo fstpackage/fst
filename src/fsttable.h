@@ -95,52 +95,6 @@ class FstTable : public IFstTable
 };
 
 
-class LogicalColumn : public ILogicalColumn
-{
-public:
-  SEXP boolVec;
-
-  LogicalColumn(int nrOfRows)
-  {
-    boolVec = Rf_allocVector(LGLSXP, nrOfRows);
-    PROTECT(boolVec);
-  }
-
-  ~LogicalColumn()
-  {
-    UNPROTECT(1);
-  }
-
-  int* Data()
-  {
-    return LOGICAL(boolVec);
-  }
-};
-
-
-class DoubleColumn : public IDoubleColumn
-{
-  public:
-    SEXP colVec;
-
-    DoubleColumn(int nrOfRows)
-    {
-      colVec = Rf_allocVector(REALSXP, nrOfRows);
-      PROTECT(colVec);
-    }
-
-    ~DoubleColumn()
-    {
-      UNPROTECT(1);
-    }
-
-    double* Data()
-    {
-      return REAL(colVec);
-    }
-};
-
-
 class FstTableReader : public IFstTableReader
 {
   // Buffers for blockRunner
@@ -169,7 +123,7 @@ public:
 
   void AddDoubleColumn(IDoubleColumn* doubleColumn, int colNr);
 
-  IBlockReader* GetLevelReader();
+  void AddFactorColumn(IFactorColumn* factorColumn, int colNr);
 
   void SetColNames();
 

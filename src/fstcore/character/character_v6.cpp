@@ -174,8 +174,8 @@ void fdsWriteCharVec_v6(ofstream &myfile, IBlockWriter* blockRunner, int compres
   Compressor* compressInt;
   Compressor* compressInt2 = nullptr;
   StreamCompressor* streamCompressInt = nullptr;
-  Compressor* compressChar = NULL;
-  Compressor* compressChar2 = NULL;
+  Compressor* compressChar = nullptr;
+  Compressor* compressChar2 = nullptr;
   StreamCompressor* streamCompressChar;
 
   // Compression settings
