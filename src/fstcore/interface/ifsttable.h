@@ -36,6 +36,7 @@
 #ifndef IFST_TABLE_H
 #define IFST_TABLE_H
 
+#include "ifstcolumn.h"
 #include "iblockrunner.h"
 
 enum FstColumnType
@@ -47,7 +48,6 @@ enum FstColumnType
   BOOL_32,
   UNKNOWN
 };
-
 
 
 /**
@@ -92,15 +92,15 @@ class IFstTableReader
 public:
   virtual ~IFstTableReader() {};
 
-  virtual void InitTable(unsigned int nrOfCols) = 0;
+  virtual void InitTable(unsigned int nrOfCols, int nrOfRows) = 0;
 
   virtual IBlockReader* GetCharReader() = 0;
 
-  virtual int* GetLogicalReader() = 0;
+  virtual void AddLogicalColumn(ILogicalColumn* logicalColumn, int colNr) = 0;
 
-  virtual int* GetIntReader() = 0;
+  virtual int* AddIntColumn(int colNr) = 0;
 
-  virtual double* GetDoubleReader() = 0;
+  virtual void AddDoubleColumn(IDoubleColumn* doubleColumn, int colNr) = 0;
 
   virtual IBlockReader* GetLevelReader() = 0;
 

@@ -113,11 +113,13 @@ int* FstTable::GetLogicalWriter(unsigned int colNr)
   return LOGICAL(cols);
 }
 
+
 int* FstTable::GetIntWriter(unsigned int colNr)
 {
   cols = VECTOR_ELT(*rTable, colNr);  // retrieve column vector
   return INTEGER(cols);
 }
+
 
 double* FstTable::GetDoubleWriter(unsigned int colNr)
 {
@@ -202,9 +204,10 @@ void FstTable::GetKeyColumns(int* keyColPos)
 
 //  FstTableReader implementation
 
-void FstTableReader::InitTable(unsigned int nrOfCols)
+void FstTableReader::InitTable(unsigned int nrOfCols, int nrOfRows)
 {
   this->nrOfCols = nrOfCols;
+  this->nrOfRows = nrOfRows;
 
   this->resTable = Rf_allocVector(VECSXP, nrOfCols);
   PROTECT(resTable);
@@ -217,23 +220,27 @@ IBlockReader* FstTableReader::GetCharReader()
 }
 
 
-int* FstTableReader::GetLogicalReader()
+void FstTableReader::AddLogicalColumn(ILogicalColumn* logicalColumn, int colNr)
 {
-
+  LogicalColumn* lColumn = (LogicalColumn*) logicalColumn;
+  SET_VECTOR_ELT(resTable, colNr, lColumn->boolVec);
 }
 
 
-int* FstTableReader::GetIntReader()
+int* FstTableReader::AddIntColumn(int colNr)
 {
+  colVec = Rf_allocVector(INTSXP, nrOfRows);
+  SET_VECTOR_ELT(resTable, colNr, colVec);
 
+  return INTEGER(colVec);
 }
 
 
-double* FstTableReader::GetDoubleReader()
+void FstTableReader::AddDoubleColumn(IDoubleColumn* doubleColumn, int colNr)
 {
-
+  DoubleColumn* dColumn = (DoubleColumn*) doubleColumn;
+  SET_VECTOR_ELT(resTable, colNr, dColumn->colVec);
 }
-
 
 IBlockReader* FstTableReader::GetLevelReader()
 {

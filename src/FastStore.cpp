@@ -654,7 +654,7 @@ SEXP fstRead(const char* fileName, IFstTableReader &tableReader, SEXP columnSele
   SEXP selectedNames;
   PROTECT(selectedNames = Rf_allocVector(STRSXP, nrOfSelect));
 
-  tableReader.InitTable(nrOfSelect);
+  tableReader.InitTable(nrOfSelect, length);
 
   // SEXP resTable;
   // PROTECT(resTable = Rf_allocVector(VECSXP, nrOfSelect));
@@ -694,30 +694,35 @@ SEXP fstRead(const char* fileName, IFstTableReader &tableReader, SEXP columnSele
 
       // Integer vector
       case 8:
-        SEXP intVec;
-        PROTECT(intVec = Rf_allocVector(INTSXP, length));
-        fdsReadIntVec_v8(myfile, INTEGER(intVec), pos, firstRow, length, nrOfRows);
-        SET_VECTOR_ELT( ((FstTableReader*) &tableReader)->resTable, colSel, intVec);
-        UNPROTECT(1);
+        fdsReadIntVec_v8(myfile, tableReader.AddIntColumn(colSel), pos, firstRow, length, nrOfRows);
         break;
 
       // Real vector
       case 9:
-        SEXP realVec;
-        PROTECT(realVec = Rf_allocVector(REALSXP, length));
-        fdsReadRealVec_v9(myfile, REAL(realVec), pos, firstRow, length, nrOfRows);
-        SET_VECTOR_ELT( ((FstTableReader*) &tableReader)->resTable, colSel, realVec);
-        UNPROTECT(1);
+      {
+        IDoubleColumn* doubleColumn = new DoubleColumn(length);
+        fdsReadRealVec_v9(myfile, doubleColumn->Data(), pos, firstRow, length, nrOfRows);
+        tableReader.AddDoubleColumn(doubleColumn, colSel);
+        delete doubleColumn;
         break;
+      }
 
       // Logical vector
       case 10:
-        SEXP boolVec;
-        PROTECT(boolVec = Rf_allocVector(LGLSXP, length));
-        fdsReadLogicalVec_v10(myfile, LOGICAL(boolVec), pos, firstRow, length, nrOfRows);
-        SET_VECTOR_ELT( ((FstTableReader*) &tableReader)->resTable, colSel, boolVec);
-        UNPROTECT(1);
+      {
+        ILogicalColumn* logicalColumn = new LogicalColumn(length);
+        fdsReadLogicalVec_v10(myfile, logicalColumn->Data(), pos, firstRow, length, nrOfRows);
+        tableReader.AddLogicalColumn(logicalColumn, colSel);
+        delete logicalColumn;
         break;
+      }
+
+        // SEXP boolVec;
+        // PROTECT(boolVec = Rf_allocVector(LGLSXP, length));
+        // fdsReadLogicalVec_v10(myfile, LOGICAL(boolVec), pos, firstRow, length, nrOfRows);
+        // SET_VECTOR_ELT( ((FstTableReader*) &tableReader)->resTable, colSel, boolVec);
+        // UNPROTECT(1);
+        // break;
 
       // Factor vector
       case 7:
