@@ -34,8 +34,8 @@
 */
 
 
-
 #include "iblockrunner.h"
+#include "ifstcolumn.h"
 #include "blockrunner_char.h"
 #include "fstdefines.h"
 

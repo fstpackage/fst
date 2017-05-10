@@ -45,6 +45,8 @@
 #include <compression.h>
 #include <compressor.h>
 
+
+// [[Rcpp::plugins(openmp)]]
 // [[Rcpp::export]]
 SEXP fstStore(Rcpp::String fileName, SEXP table, SEXP compression);
 

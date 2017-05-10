@@ -1,6 +1,5 @@
 /*
   fst - An R-package for ultra fast storage and retrieval of datasets.
-  Header File
   Copyright (C) 2017, Mark AJ Klik
 
   BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
@@ -33,22 +32,23 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef CHARACTER_V6_H
-#define CHARACTER_V6_H
 
+#ifndef IFST_COLUMN_FACTORY_H
+#define IFST_COLUMN_FACTORY_H
 
-#include <iostream>
-#include <fstream>
 
 #include "iblockrunner.h"
 #include "ifstcolumn.h"
 
+class IColumnFactory
+{
+public:
+  virtual ~IFactorColumn() {};
+  virtual IFactorColumn*  CreateFactorColumn(int nrOfRows) = 0;
+  virtual IDoubleColumn*  CreateDoubleColumn(int nrOfRows) = 0;
+  virtual IIntegerColumn* CreateIntegerColumn(int nrOfRows) = 0;
+  virtual IStringColumn* CreateIntegerColumn(int nrOfRows) = 0;
+};
 
-void fdsWriteCharVec_v6(std::ofstream &myfile, IBlockWriter* blockRunner, int compression);
-
-
-void fdsReadCharVec_v6(std::istream &myfile, IStringColumn* blockReader, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size);
-
-
-#endif  // CHARACTER_V6_H
+#endif // IFST_COLUMN_FACTORY_H
 

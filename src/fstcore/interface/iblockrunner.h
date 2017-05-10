@@ -54,18 +54,5 @@ public:
 };
 
 
-class IStringColumn
-{
-public:
-
-  virtual ~IStringColumn() {};
-
-  virtual void AllocateVec(unsigned int vecLength) = 0;
-
-  virtual void BufferToVec(unsigned int nrOfElements, unsigned int startElem, unsigned int endElem,
-    unsigned int vecOffset, unsigned int* sizeMeta, char* buf) = 0;
-};
-
-
 #endif  // IBLOCKRUNNER_H
 

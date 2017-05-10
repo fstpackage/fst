@@ -512,7 +512,6 @@ SEXP fstRead(const char* fileName, IFstTableReader &tableReader, SEXP columnSele
     throw(runtime_error("There was an error opening the fst file, please check for a correct path."));
   }
 
-
   unsigned int tableClassType;
   int keyLength, nrOfColsFirstChunk;
   unsigned int version = ReadHeader(myfile, tableClassType, keyLength, nrOfColsFirstChunk);

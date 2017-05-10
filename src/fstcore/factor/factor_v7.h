@@ -41,6 +41,8 @@
 #include <fstream>
 
 #include <iblockrunner.h>
+#include <ifstcolumn.h>
+
 
 void fdsWriteFactorVec_v7(std::ofstream &myfile, int* intP, IBlockWriter* blockRunner, unsigned int size, unsigned int compression);
 
