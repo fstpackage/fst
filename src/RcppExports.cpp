@@ -5,19 +5,6 @@
 
 using namespace Rcpp;
 
-// UnserializeObjectAttributes
-SEXP UnserializeObjectAttributes(SEXP rObject, RawVector rawVector, Function unserializer);
-RcppExport SEXP fst_UnserializeObjectAttributes(SEXP rObjectSEXP, SEXP rawVectorSEXP, SEXP unserializerSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type rObject(rObjectSEXP);
-    Rcpp::traits::input_parameter< RawVector >::type rawVector(rawVectorSEXP);
-    Rcpp::traits::input_parameter< Function >::type unserializer(unserializerSEXP);
-    rcpp_result_gen = Rcpp::wrap(UnserializeObjectAttributes(rObject, rawVector, unserializer));
-    return rcpp_result_gen;
-END_RCPP
-}
 // fstStore
 SEXP fstStore(Rcpp::String fileName, SEXP table, SEXP compression);
 RcppExport SEXP fst_fstStore(SEXP fileNameSEXP, SEXP tableSEXP, SEXP compressionSEXP) {
@@ -53,6 +40,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< SEXP >::type startRow(startRowSEXP);
     Rcpp::traits::input_parameter< SEXP >::type endRow(endRowSEXP);
     rcpp_result_gen = Rcpp::wrap(fstRetrieve(fileName, columnSelection, startRow, endRow));
+    return rcpp_result_gen;
+END_RCPP
+}
+// UnserializeObjectAttributes
+SEXP UnserializeObjectAttributes(SEXP rObject, RawVector rawVector, Function unserializer);
+RcppExport SEXP fst_UnserializeObjectAttributes(SEXP rObjectSEXP, SEXP rawVectorSEXP, SEXP unserializerSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type rObject(rObjectSEXP);
+    Rcpp::traits::input_parameter< RawVector >::type rawVector(rawVectorSEXP);
+    Rcpp::traits::input_parameter< Function >::type unserializer(unserializerSEXP);
+    rcpp_result_gen = Rcpp::wrap(UnserializeObjectAttributes(rObject, rawVector, unserializer));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -141,6 +141,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< SEXP >::type lower(lowerSEXP);
     Rcpp::traits::input_parameter< SEXP >::type upper(upperSEXP);
     rcpp_result_gen = Rcpp::wrap(LowerBoundIndex(table, key, lower, upper));
+    return rcpp_result_gen;
+END_RCPP
+}
+// hasOpenMP
+SEXP hasOpenMP();
+RcppExport SEXP fst_hasOpenMP() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(hasOpenMP());
     return rcpp_result_gen;
 END_RCPP
 }
