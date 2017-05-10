@@ -5,7 +5,4 @@ sudo: false
 os:
   - linux
   - osx
-  
-compiler:
-  - clang
-  - gcc
+ 
