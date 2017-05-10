@@ -44,7 +44,7 @@ class IFactorColumn
 public:
   virtual ~IFactorColumn() {};
   virtual int* LevelData() = 0;
-  virtual IBlockReader* Levels() = 0;
+  virtual IStringColumn* Levels() = 0;
 };
 
 

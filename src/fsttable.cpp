@@ -213,10 +213,11 @@ void FstTableReader::InitTable(unsigned int nrOfCols, int nrOfRows)
 
   this->resTable = Rf_allocVector(VECSXP, nrOfCols);
   PROTECT(resTable);
+  isProtected++;
 }
 
 
-void FstTableReader::AddCharColumn(IBlockReader* stringColumn, int colNr)
+void FstTableReader::AddCharColumn(IStringColumn* stringColumn, int colNr)
 {
   BlockReaderChar* sColumn = (BlockReaderChar*) stringColumn;
   SET_VECTOR_ELT(resTable, colNr, sColumn->StrVector());

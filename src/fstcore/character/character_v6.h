@@ -45,7 +45,7 @@
 void fdsWriteCharVec_v6(std::ofstream &myfile, IBlockWriter* blockRunner, int compression);
 
 
-void fdsReadCharVec_v6(std::istream &myfile, IBlockReader* blockReader, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size);
+void fdsReadCharVec_v6(std::istream &myfile, IStringColumn* blockReader, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size);
 
 
 #endif  // CHARACTER_V6_H

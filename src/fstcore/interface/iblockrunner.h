@@ -54,11 +54,11 @@ public:
 };
 
 
-class IBlockReader
+class IStringColumn
 {
 public:
 
-  virtual ~IBlockReader() {};
+  virtual ~IStringColumn() {};
 
   virtual void AllocateVec(unsigned int vecLength) = 0;
 

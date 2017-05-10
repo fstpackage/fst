@@ -56,12 +56,14 @@ class BlockWriterChar : public IBlockWriter
 };
 
 
-class BlockReaderChar : public IBlockReader
+class BlockReaderChar : public IStringColumn
 {
   SEXP strVec;
+  bool isProtected;
 
 public:
-  ~BlockReaderChar(){}
+  BlockReaderChar() { isProtected = true; }
+  ~BlockReaderChar(){ if (isProtected) UNPROTECT(1); }
 
   void AllocateVec(unsigned int vecLength);
 

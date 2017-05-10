@@ -246,7 +246,7 @@ void fdsWriteCharVec_v6(ofstream &myfile, IBlockWriter* blockRunner, int compres
 }
 
 
-inline void ReadDataBlock_v6(istream &myfile, IBlockReader* blockReader, unsigned long long blockSize, unsigned int nrOfElements,
+inline void ReadDataBlock_v6(istream &myfile, IStringColumn* blockReader, unsigned long long blockSize, unsigned int nrOfElements,
   unsigned int startElem, unsigned int endElem, unsigned int vecOffset)
 {
   unsigned int nrOfNAInts = 1 + nrOfElements / 32;  // last bit is NA flag
@@ -271,7 +271,7 @@ inline void ReadDataBlock_v6(istream &myfile, IBlockReader* blockReader, unsigne
 }
 
 
-inline void ReadDataBlockCompressed_v6(istream &myfile, IBlockReader* blockReader, unsigned long long blockSize, unsigned int nrOfElements,
+inline void ReadDataBlockCompressed_v6(istream &myfile, IStringColumn* blockReader, unsigned long long blockSize, unsigned int nrOfElements,
   unsigned int startElem, unsigned int endElem, unsigned int vecOffset,
   unsigned int intBlockSize, Decompressor &decompressor, unsigned short int &algoInt, unsigned short int &algoChar)
 {
@@ -323,7 +323,7 @@ inline void ReadDataBlockCompressed_v6(istream &myfile, IBlockReader* blockReade
 }
 
 
-void fdsReadCharVec_v6(istream &myfile, IBlockReader* blockReader, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size)
+void fdsReadCharVec_v6(istream &myfile, IStringColumn* blockReader, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size)
 {
   // Jump to startRow size
   myfile.seekg(blockPos);

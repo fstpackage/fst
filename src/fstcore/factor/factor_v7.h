@@ -46,7 +46,7 @@ void fdsWriteFactorVec_v7(std::ofstream &myfile, int* intP, IBlockWriter* blockR
 
 
 // Parameter 'startRow' is zero based.
-void fdsReadFactorVec_v7(std::istream &myfile, IBlockReader* blockReader, int* intP, unsigned long long blockPos, unsigned int startRow,
+void fdsReadFactorVec_v7(std::istream &myfile, IStringColumn* blockReader, int* intP, unsigned long long blockPos, unsigned int startRow,
   unsigned int length, unsigned int size);
 
 

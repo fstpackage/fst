@@ -64,7 +64,7 @@ public:
     return INTEGER(intVec);
   }
 
-  IBlockReader* Levels()
+  IStringColumn* Levels()
   {
     return blockReaderStrVec;
   }

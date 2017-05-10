@@ -172,7 +172,7 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IBlockWriter* blockRunner
 
 
 // Parameter 'startRow' is zero based.
-void fdsReadFactorVec_v7(istream &myfile, IBlockReader* blockReader, int* intP, unsigned long long blockPos, unsigned int startRow,
+void fdsReadFactorVec_v7(istream &myfile, IStringColumn* blockReader, int* intP, unsigned long long blockPos, unsigned int startRow,
   unsigned int length, unsigned int size)
 {
   // Jump to factor level

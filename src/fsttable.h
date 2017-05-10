@@ -73,7 +73,7 @@ class FstTable : public IFstTable
 
     IBlockWriter* GetCharWriter(unsigned int colNr);
 
-    void AddCharColumn(IBlockReader* stringColumn, int colNr);
+    // void AddCharColumn(IBlockReader* stringColumn, int colNr);
 
     int* GetLogicalWriter(unsigned int colNr);
 
@@ -105,17 +105,20 @@ class FstTableReader : public IFstTableReader
   // Table metadata
   unsigned int nrOfCols;
   int nrOfRows;
+  bool isProtected;
 
 public:
   // Result table
   SEXP resTable;
   SEXP colVec;
 
+  FstTableReader() { isProtected = false; };
+
+  ~FstTableReader() { if (isProtected) UNPROTECT(1); };
+
   void InitTable(unsigned int nrOfCols, int nrOfRows);
 
-  ~FstTableReader() {};
-
-  void AddCharColumn(IBlockReader* stringColumn, int colNr);
+  void AddCharColumn(IStringColumn* stringColumn, int colNr);
 
   void AddLogicalColumn(ILogicalColumn* logicalColumn, int colNr);
 

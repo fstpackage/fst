@@ -35,8 +35,6 @@
 
 #include <fstream>
 
-#include <Rcpp.h>
-
 #include "iblockrunner.h"
 #include "fstmetadata.h"
 #include "fstdefines.h"
@@ -140,7 +138,7 @@ int FstMetaData::CollectRecursive(std::istream &fstfile, uint64_t filePointer)
   unsigned long long offset = filePointer + headerSize + 4 * nrOfCols;
 
   BlockReaderChar* blockReader = new BlockReaderChar();
-  fdsReadCharVec_v6(fstfile, (IBlockReader*) blockReader, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
+  fdsReadCharVec_v6(fstfile, (IStringColumn*) blockReader, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
   SEXP colNames = blockReader->StrVector();
   delete blockReader;
 
