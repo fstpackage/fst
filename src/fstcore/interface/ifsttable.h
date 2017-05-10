@@ -107,10 +107,6 @@ public:
   virtual void SetColNames() = 0;
 
   virtual void SetKeyColumns(int* keyColPos, unsigned int nrOfKeys) = 0;
-
-  virtual unsigned int NrOfColumns() = 0;
-
-  virtual unsigned int NrOfRows() = 0;
 };
 
 #endif  // IFST_TABLE_H

@@ -55,7 +55,6 @@ class FstTable : public IFstTable
   // References to R objects
   SEXP* rTable;
   SEXP  cols;
-  SEXP levelVec;
 
   // Buffers for blockRunner
   unsigned int naInts[1 + BLOCKSIZE_CHAR / 32];  // we have 32 NA bits per integer
@@ -97,11 +96,6 @@ class FstTable : public IFstTable
 
 class FstTableReader : public IFstTableReader
 {
-  // Buffers for blockRunner
-  unsigned int naInts[1 + BLOCKSIZE_CHAR / 32];  // we have 32 NA bits per integer
-  unsigned int strSizes[BLOCKSIZE_CHAR];  // we have 32 NA bits per integer
-  char buf[MAX_CHAR_STACK_SIZE];
-
   // Table metadata
   unsigned int nrOfCols;
   int nrOfRows;
@@ -131,10 +125,6 @@ public:
   void SetColNames();
 
   void SetKeyColumns(int* keyColPos, unsigned int nrOfKeys);
-
-  unsigned int NrOfColumns();
-
-  unsigned int NrOfRows();
 };
 
 

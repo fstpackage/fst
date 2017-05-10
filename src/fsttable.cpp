@@ -213,7 +213,7 @@ void FstTableReader::InitTable(unsigned int nrOfCols, int nrOfRows)
 
   this->resTable = Rf_allocVector(VECSXP, nrOfCols);
   PROTECT(resTable);
-  isProtected++;
+  isProtected = true;
 }
 
 
@@ -266,16 +266,4 @@ void FstTableReader::SetKeyColumns(int* keyColPos, unsigned int nrOfKeys)
 {
 
 }
-
-unsigned int FstTableReader::NrOfColumns()
-{
-
-}
-
-unsigned int FstTableReader::NrOfRows()
-{
-
-}
-
-
 

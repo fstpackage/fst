@@ -137,7 +137,7 @@ void BlockWriterChar::SetBuffersFromVec(unsigned int startCount, unsigned int en
 void BlockReaderChar::AllocateVec(unsigned int vecLength)
 {
   PROTECT(this->strVec = Rf_allocVector(STRSXP, vecLength));
-  isProtected++;
+  isProtected = true;
 }
 
 void BlockReaderChar::BufferToVec(unsigned int nrOfElements, unsigned int startElem, unsigned int endElem,
