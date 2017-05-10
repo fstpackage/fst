@@ -367,7 +367,7 @@ inline unsigned int ReadHeader(ifstream &myfile, unsigned int &tableClassType, i
 }
 
 
-List fstMeta(String fileName)
+SEXP fstMeta(String fileName)
 {
   // fst file stream using a stack buffer
   ifstream myfile;
@@ -715,8 +715,13 @@ SEXP fstRead(const char* fileName, IFstTableReader &tableReader, SEXP columnSele
 
       // Integer vector
       case 8:
-        fdsReadIntVec_v8(myfile, tableReader.AddIntColumn(colSel), pos, firstRow, length, nrOfRows);
+      {
+        IIntegerColumn* integerColumn = new IntegerColumn(length);
+        fdsReadIntVec_v8(myfile, integerColumn->Data(), pos, firstRow, length, nrOfRows);
+        tableReader.AddIntegerColumn(integerColumn, colSel);
+        delete integerColumn;
         break;
+      }
 
       // Real vector
       case 9:

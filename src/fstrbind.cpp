@@ -47,7 +47,6 @@ using namespace Rcpp;
 using namespace std;
 
 
-// [[Rcpp::export]]
 SEXP BytesConvert(SEXP integer)
 {
   int* intVal = INTEGER(integer);

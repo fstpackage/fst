@@ -33,56 +33,20 @@
 */
 
 
-#ifndef IFST_COLUMN_H
-#define IFST_COLUMN_H
+#ifndef OPEN_MP_H
+#define OPEN_MP_H
 
 
-class IStringColumn
-{
-public:
-
-  virtual ~IStringColumn() {};
-
-  virtual void AllocateVec(unsigned int vecLength) = 0;
-
-  virtual void BufferToVec(unsigned int nrOfElements, unsigned int startElem, unsigned int endElem,
-    unsigned int vecOffset, unsigned int* sizeMeta, char* buf) = 0;
-};
+#include <Rcpp.h>
 
 
-class IFactorColumn
-{
-public:
-  virtual ~IFactorColumn() {};
-  virtual int* LevelData() = 0;
-  virtual IStringColumn* Levels() = 0;
-};
+// [[Rcpp::export]]
+int getDTthreads();
+
+void avoid_openmp_hang_within_fork();
+
+// [[Rcpp::export]]
+SEXP hasOpenMP();
 
 
-
-class IIntegerColumn
-{
-public:
-  virtual ~IIntegerColumn() {};
-  virtual int* Data() = 0;
-};
-
-
-class IDoubleColumn
-{
-public:
-  virtual ~IDoubleColumn() {};
-  virtual double* Data() = 0;
-};
-
-
-class ILogicalColumn
-{
-public:
-  virtual ~ILogicalColumn() {};
-  virtual int* Data() = 0;
-};
-
-
-#endif // IFST_COLUMN_H
-
+#endif  // OPEN_MP_H

@@ -231,19 +231,17 @@ void FstTableReader::AddLogicalColumn(ILogicalColumn* logicalColumn, int colNr)
 }
 
 
-int* FstTableReader::AddIntColumn(int colNr)
-{
-  colVec = Rf_allocVector(INTSXP, nrOfRows);
-  SET_VECTOR_ELT(resTable, colNr, colVec);
-
-  return INTEGER(colVec);
-}
-
-
 void FstTableReader::AddDoubleColumn(IDoubleColumn* doubleColumn, int colNr)
 {
   DoubleColumn* dColumn = (DoubleColumn*) doubleColumn;
   SET_VECTOR_ELT(resTable, colNr, dColumn->colVec);
+}
+
+
+void FstTableReader::AddIntegerColumn(IIntegerColumn* integerColumn, int colNr)
+{
+  IntegerColumn* iColumn = (IntegerColumn*) integerColumn;
+  SET_VECTOR_ELT(resTable, colNr, iColumn->colVec);
 }
 
 

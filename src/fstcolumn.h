@@ -117,4 +117,27 @@ class DoubleColumn : public IDoubleColumn
 };
 
 
+class IntegerColumn : public IIntegerColumn
+{
+public:
+  SEXP colVec;
+
+  IntegerColumn(int nrOfRows)
+  {
+    colVec = Rf_allocVector(INTSXP, nrOfRows);
+    PROTECT(colVec);
+  }
+
+  ~IntegerColumn()
+  {
+    UNPROTECT(1);
+  }
+
+  int* Data()
+  {
+    return INTEGER(colVec);
+  }
+};
+
+
 #endif  // FST_COLUMN_H

@@ -39,13 +39,13 @@
 using namespace Rcpp;
 using namespace std;
 
-// [[Rcpp::export]]
+
 int SType(SEXP value)
 {
   return TYPEOF(value);
 }
 
-// [[Rcpp::export]]
+
 int compChar(SEXP str1, SEXP str2)
 {
   const char* strA = CHAR(STRING_ELT(str1, 0));
@@ -178,7 +178,6 @@ int firstCharEqualHigher(SEXP charVec, const char* key, int lower, int upper)
 
 
 // Check for data.table
-// [[Rcpp::export]]
 bool IsSortedTable(SEXP table, SEXP key)
 {
   if (TYPEOF(table) != VECSXP) return false;
@@ -202,7 +201,6 @@ bool IsSortedTable(SEXP table, SEXP key)
 
 
 
-// [[Rcpp::export]]
 SEXP FirstIntEqualHigher(SEXP intVec, SEXP intKey, SEXP lower, SEXP upper)
 {
   int res = firstIntEqualHigher(INTEGER(intVec), *INTEGER(intKey), *INTEGER(lower), *INTEGER(upper));
@@ -217,7 +215,6 @@ SEXP FirstIntEqualHigher(SEXP intVec, SEXP intKey, SEXP lower, SEXP upper)
 }
 
 
-// [[Rcpp::export]]
 SEXP LastIntEqualLower(SEXP intVec, SEXP intKey, SEXP lower, SEXP upper)
 {
   int res = lastIntEqualLower(INTEGER(intVec), *INTEGER(intKey), *INTEGER(lower), *INTEGER(upper));
@@ -234,7 +231,6 @@ SEXP LastIntEqualLower(SEXP intVec, SEXP intKey, SEXP lower, SEXP upper)
 
 
 // Search for the first row that has a key equal or larger than the specified key in the range [lower, upper].
-// [[Rcpp::export]]
 SEXP LowerBoundIndex(SEXP table, SEXP key, SEXP lower, SEXP upper)
 {
   // Find the column numbers of the selected columns
@@ -352,7 +348,7 @@ SEXP LowerBoundIndex(SEXP table, SEXP key, SEXP lower, SEXP upper)
   *INTEGER(res) = lowerIndex;
 
   delete[] colIndex;
-  
+
   return List::create(
     _["keyNames"] = keyNames,
     _["colNames"] = colNames,

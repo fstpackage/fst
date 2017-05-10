@@ -31,7 +31,7 @@
         packageStartupMessage("\n!!! This development version of the package is rather old, please update !!!")
 
     # Check for OpenMP support
-    if (!fst:::hasOpenMP())
+    if (!hasOpenMP())
     {
       packageStartupMessage("(OpenMP was not detected, using single threaded mode)")
     } else

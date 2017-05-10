@@ -48,7 +48,7 @@ inline unsigned int SerializeObjectAttributes(ofstream &myfile, RObject rObject,
 
   if (nrOfAttributes == 0) return 0;
 
-  // Create a list with attribute data for serialization  
+  // Create a list with attribute data for serialization
   List outList(nrOfAttributes + 1);
 
   int listIndex = 0;
@@ -57,14 +57,14 @@ inline unsigned int SerializeObjectAttributes(ofstream &myfile, RObject rObject,
     SEXP attribute = rObject.attr(*it);
     outList[listIndex++] = attribute;
   }
-  
+
   outList[nrOfAttributes] = attrNames;
-  
+
   RawVector serializedAttributes = serializer(outList, R_NilValue);
 
   unsigned int dataLength =  LENGTH(serializedAttributes);
   myfile.write((char*) RAW(serializedAttributes), dataLength);
-  
+
   return dataLength;
 }
 
@@ -76,7 +76,7 @@ inline SEXP UnserializeRaw(unsigned char* rawData, unsigned int rawLength, Funct
   return unserializer(rawVec);
 }
 
-// [[Rcpp::export]]
+
 SEXP UnserializeObjectAttributes(SEXP rObject, RawVector rawVector, Function unserializer)
 {
   SEXP attributes = UnserializeRaw(RAW(rawVector), LENGTH(rawVector), unserializer);

@@ -79,6 +79,7 @@ void when_fork_end() {
     DTthreads = preFork_DTthreads;
 }
 
+
 void avoid_openmp_hang_within_fork()
 {
     // Called once on loading data.table from init.c
@@ -88,7 +89,6 @@ void avoid_openmp_hang_within_fork()
 }
 
 
-// [[Rcpp::export]]
 SEXP hasOpenMP() {
   // Just for use by onAttach to avoid an RPRINTF from C level which isn't suppressable by CRAN
   // There is now a 'grep' in CRAN_Release.cmd to detect any use of RPRINTF in init.c, which is

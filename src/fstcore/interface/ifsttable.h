@@ -98,7 +98,7 @@ public:
 
   virtual void AddLogicalColumn(ILogicalColumn* logicalColumn, int colNr) = 0;
 
-  virtual int* AddIntColumn(int colNr) = 0;
+  virtual void AddIntegerColumn(IIntegerColumn* integerColumn, int colNr) = 0;
 
   virtual void AddDoubleColumn(IDoubleColumn* doubleColumn, int colNr) = 0;
 

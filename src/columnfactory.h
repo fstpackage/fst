@@ -33,56 +33,51 @@
 */
 
 
-#ifndef IFST_COLUMN_H
-#define IFST_COLUMN_H
+#ifndef FST_TABLE_H
+#define FST_TABLE_H
 
+#include <iostream>
+#include <vector>
 
-class IStringColumn
+#include <Rcpp.h>
+
+#include <icolumnfactory.h>
+#include <ifstcolumn.h>
+#include <ifsttable.h>
+
+#include <fstcolumn.h>
+#include <blockrunner_char.h>
+
+class ColumnFactory : IColumnFactory
 {
 public:
+  ~ColumnFactory() {};
 
-  virtual ~IStringColumn() {};
+  IFactorColumn* CreateFactorColumn(int nrOfRows)
+  {
+    return new FactorColumn(nrOfRows);
+  }
 
-  virtual void AllocateVec(unsigned int vecLength) = 0;
+  ILogicalColumn* CreateLogicalColumn(int nrOfRows)
+  {
+    return new LogicalColumn(nrOfRows);
+  }
 
-  virtual void BufferToVec(unsigned int nrOfElements, unsigned int startElem, unsigned int endElem,
-    unsigned int vecOffset, unsigned int* sizeMeta, char* buf) = 0;
+  IDoubleColumn* CreateDoubleColumn(int nrOfRows)
+  {
+    return new DoubleColumn(nrOfRows);
+  }
+
+  IIntegerColumn* CreateIntegerColumn(int nrOfRows)
+  {
+    return new IntegerColumn(nrOfRows);
+  }
+
+  IStringColumn* CreateStringColumn(int nrOfRows)
+  {
+    return new BlockReaderChar();
+  }
 };
 
 
-class IFactorColumn
-{
-public:
-  virtual ~IFactorColumn() {};
-  virtual int* LevelData() = 0;
-  virtual IStringColumn* Levels() = 0;
-};
-
-
-
-class IIntegerColumn
-{
-public:
-  virtual ~IIntegerColumn() {};
-  virtual int* Data() = 0;
-};
-
-
-class IDoubleColumn
-{
-public:
-  virtual ~IDoubleColumn() {};
-  virtual double* Data() = 0;
-};
-
-
-class ILogicalColumn
-{
-public:
-  virtual ~ILogicalColumn() {};
-  virtual int* Data() = 0;
-};
-
-
-#endif // IFST_COLUMN_H
-
+#endif  // FST_TABLE_H

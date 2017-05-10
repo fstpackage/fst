@@ -37,7 +37,7 @@
 #define FASTSTORE_H
 
 
-#define FST_VERSION 1  // version number of the fst package
+#define FST_VERSION 1  // version number of the fst package (odd numbers are dev versions)
 
 
 #include <Rcpp.h>
@@ -46,12 +46,11 @@
 #include <compressor.h>
 
 
-// [[Rcpp::plugins(openmp)]]
 // [[Rcpp::export]]
 SEXP fstStore(Rcpp::String fileName, SEXP table, SEXP compression);
 
 // [[Rcpp::export]]
-Rcpp::List fstMeta(Rcpp::String fileName);
+SEXP fstMeta(Rcpp::String fileName);
 
 // [[Rcpp::export]]
 SEXP fstRetrieve(Rcpp::String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);

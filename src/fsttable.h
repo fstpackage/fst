@@ -104,7 +104,6 @@ class FstTableReader : public IFstTableReader
 public:
   // Result table
   SEXP resTable;
-  SEXP colVec;
 
   FstTableReader() { isProtected = false; };
 
@@ -116,7 +115,7 @@ public:
 
   void AddLogicalColumn(ILogicalColumn* logicalColumn, int colNr);
 
-  int* AddIntColumn(int colNr);
+  void AddIntegerColumn(IIntegerColumn* integerColumn, int colNr);
 
   void AddDoubleColumn(IDoubleColumn* doubleColumn, int colNr);
 
