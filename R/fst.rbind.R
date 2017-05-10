@@ -13,7 +13,8 @@ fst.rbind <- function(path, x, compress = NULL)
 
   if (!is.data.frame(x)) stop("Please make sure 'x' is a data frame.")
 
-  fstrbind(path, x, compress, serialize)
+  stop("Not implemented yet")
+  # fstrbind(path, x, compress, serialize)
 
   invisible(x)  # return a 'fst' object in the future
 }
