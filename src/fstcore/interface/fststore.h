@@ -39,20 +39,27 @@
 
 #include <iostream>
 #include <vector>
+
+#include <Rcpp.h>
+
+#include <icolumnfactory.h>
+#include <ifsttable.h>
+
 #include <fststore.h>
 
 
 class FstStore
 {
   std::string fstFile;
-  bool append;
 
   public:
     FstStore(std::string fstFile);
-    FstStore(std::string fstFile, bool append);
 
-    // void RowBind(FstTable table);
-    // void ColBind(FstTable table);
+    void fstWrite(const char* fileName, IFstTable &fstTable, int compress);
+
+    SEXP fstMeta(Rcpp::String fileName);
+
+    SEXP fstRead(const char* fileName, IFstTableReader &tableReader, SEXP columnSelection, int startRow, int endRow, IColumnFactory* columnFactory, std::vector<int> &keyIndex, IStringArray* selectedCols);
 };
 
 

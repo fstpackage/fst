@@ -49,6 +49,7 @@ public:
   virtual IDoubleColumn* CreateDoubleColumn(int nrOfRows) = 0;
   virtual IIntegerColumn* CreateIntegerColumn(int nrOfRows) = 0;
   virtual IStringColumn* CreateStringColumn(int nrOfRows) = 0;
+  virtual IStringArray* CreateStringArray() = 0;
 };
 
 #endif // IFST_COLUMN_FACTORY_H

@@ -33,8 +33,8 @@
 */
 
 
-#ifndef FST_TABLE_H
-#define FST_TABLE_H
+#ifndef COLUMN_FACTORY_H
+#define COLUMN_FACTORY_H
 
 #include <iostream>
 #include <vector>
@@ -48,7 +48,8 @@
 #include <fstcolumn.h>
 #include <blockrunner_char.h>
 
-class ColumnFactory : IColumnFactory
+
+class ColumnFactory : public IColumnFactory
 {
 public:
   ~ColumnFactory() {};
@@ -73,6 +74,11 @@ public:
     return new IntegerColumn(nrOfRows);
   }
 
+  IStringArray* CreateStringArray()
+  {
+    return new StringArray();
+  }
+
   IStringColumn* CreateStringColumn(int nrOfRows)
   {
     return new BlockReaderChar();
@@ -80,4 +86,5 @@ public:
 };
 
 
-#endif  // FST_TABLE_H
+#endif  // COLUMN_FACTORY_H
+

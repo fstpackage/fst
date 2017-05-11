@@ -40,6 +40,40 @@
 #include "blockrunner_char.h"
 
 
+class StringArray : public IStringArray
+{
+  SEXP strVec;
+  bool isProtected;
+
+public:
+
+  ~StringArray() { if (isProtected) UNPROTECT(1); }
+
+  void AllocateArray(int length)
+  {
+    PROTECT(this->strVec = Rf_allocVector(STRSXP, length));
+    isProtected = true;
+  }
+
+  void SetElement(int elementNr, const char* str)
+  {
+    SET_STRING_ELT(strVec, elementNr, Rf_mkChar(str));
+  }
+
+  SEXP GetElement(int elementNr)
+  {
+    return STRING_ELT(strVec, elementNr);
+  }
+
+  void SetElement(int elementNr, const char* str, int strLen)
+  {
+    SET_STRING_ELT(strVec, elementNr, Rf_mkCharLen(str, strLen));
+  }
+
+  SEXP StrVector() { return strVec; }
+};
+
+
 class FactorColumn : public IFactorColumn
 {
 public:

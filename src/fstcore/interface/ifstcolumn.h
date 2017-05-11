@@ -37,6 +37,17 @@
 #define IFST_COLUMN_H
 
 
+class IStringArray
+{
+public:
+
+  virtual ~IStringArray() {};
+  virtual void AllocateArray(int vecLength) = 0;
+  virtual void SetElement(int elementNr, const char* str) = 0;
+  virtual void SetElement(int elementNr, const char* str, int strLen) = 0;
+};
+
+
 class IStringColumn
 {
 public:

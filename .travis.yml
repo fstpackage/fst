@@ -9,4 +9,6 @@ r:
 
 os:
   - linux
-  - osx
+
+# No OpenMp support on Travis OSX build
+#  - osx

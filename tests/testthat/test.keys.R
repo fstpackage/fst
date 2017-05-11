@@ -42,6 +42,7 @@ test_that("Missing middle key",
 test_that("Missing first key",
 {
   fstwrite(x, "testdata/keys.fst")
+  res <- fst:::fstRetrieve("testdata/keys.fst", c("B", "C", "D", "E"), 1L, NULL)
   y <- fstread("testdata/keys.fst", columns = c("B", "C", "D", "E"), as.data.table = TRUE)
   expect_null(key(y))
 })
