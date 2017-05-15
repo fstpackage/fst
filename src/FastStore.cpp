@@ -39,24 +39,18 @@
 #include <Rcpp.h>
 
 #include <fstdefines.h>
-#include <FastStore.h>
-#include <FastStore_v1.h>
-
 #include <iblockrunner.h>
 #include <ifsttable.h>
 #include <icolumnfactory.h>
+#include <fststore.h>
 
 #include <blockrunner_char.h>
 #include <fsttable.h>
 #include <fstcolumn.h>
-#include <fststore.h>
 #include <columnfactory.h>
 
-#include <character_v6.h>
-#include <factor_v7.h>
-#include <integer_v8.h>
-#include <double_v9.h>
-#include <logical_v10.h>
+#include <FastStore.h>
+#include <FastStore_v1.h>
 
 
 using namespace std;
@@ -114,29 +108,86 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression)
 
 SEXP fstMeta(String fileName)
 {
-  SEXP result;
+  int version;
 
   FstStore* fstStore = new FstStore(fileName.get_cstring());
+  IColumnFactory* columnFactory = new ColumnFactory();
 
   try
   {
-    result = fstStore->fstMeta(fileName);
+    version = fstStore->fstMeta(fileName.get_cstring(), columnFactory);
   }
   catch (const std::runtime_error& e)
   {
     ::Rf_error(e.what());
   }
 
+  // We may be looking at a fst v0.7.2 file format
+  if (version == 0)
+  {
+    // Close and reopen (slow: fst file should be resaved to avoid)
+    return fstMeta_v1(fileName);  // scans further for safety
+  }
+
+  // R internals part
+  SEXP colNames = ((BlockReaderChar*) fstStore->blockReader)->StrVector();
+
+// Convert to integer vector
+  IntegerVector colTypeVec(fstStore->nrOfCols);
+  for (int col = 0; col != fstStore->nrOfCols; ++col)
+  {
+    colTypeVec[col] = fstStore->colTypes[col];
+  }
+
+  List retList;
+
+  if (fstStore->keyLength > 0)
+  {
+    SEXP keyNames;
+    PROTECT(keyNames = Rf_allocVector(STRSXP, fstStore->keyLength));
+    for (int i = 0; i < fstStore->keyLength; ++i)
+    {
+      SET_STRING_ELT(keyNames, i, STRING_ELT(colNames, fstStore->keyColPos[i]));
+    }
+
+    IntegerVector keyColIndex(fstStore->keyLength);
+    for (int col = 0; col != fstStore->keyLength; ++col)
+    {
+      keyColIndex[col] = fstStore->keyColPos[col];
+    }
+
+    UNPROTECT(1);  // keyNames
+
+    retList = List::create(
+      _["nrOfCols"]        = fstStore->nrOfCols,
+      _["nrOfRows"]        = *fstStore->p_nrOfRows,
+      _["fstVersion"]      = fstStore->version,
+      _["colTypeVec"]      = colTypeVec,
+      _["keyColIndex"]     = keyColIndex,
+      _["keyLength"]       = fstStore->keyLength,
+      _["keyNames"]        = keyNames,
+      _["colNames"]        = colNames);
+  }
+  else
+  {
+    retList = List::create(
+      _["nrOfCols"]        = fstStore->nrOfCols,
+      _["nrOfRows"]        = *fstStore->p_nrOfRows,
+      _["fstVersion"]      = fstStore->version,
+      _["keyLength"]       = fstStore->keyLength,
+      _["colTypeVec"]      = colTypeVec,
+      _["colNames"]        = colNames);
+  }
+
+  delete columnFactory;
   delete fstStore;
 
-  return result;
+  return retList;
 }
 
 
 SEXP fstRetrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 {
-  SEXP result;
-
   FstTableReader tableReader;
   IColumnFactory* columnFactory = new ColumnFactory();
   FstStore* fstStore = new FstStore(fileName.get_cstring());
@@ -154,17 +205,41 @@ SEXP fstRetrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
   vector<int> keyIndex;
 
   StringArray* colNames = new StringArray();
+  StringArray* colSelection = nullptr;
+
+  if (!Rf_isNull(columnSelection))
+  {
+    colSelection = new StringArray();
+    colSelection->SetArray(columnSelection);
+  }
+
+  int result;
 
   try
   {
-    result = fstStore->fstRead(fileName.get_cstring(), tableReader, columnSelection, sRow, eRow, columnFactory, keyIndex, colNames);
+    result = fstStore->fstRead(fileName.get_cstring(), tableReader, colSelection, sRow, eRow, columnFactory, keyIndex, colNames);
   }
   catch (const std::runtime_error& e)
   {
+    delete colSelection;
+    delete columnFactory;
+    delete fstStore;
+    delete colNames;
+
     ::Rf_error(e.what());
   }
 
+  // Test deprecated version format !!!
+  if (result == -1)
+  {
+    return fstRead_v1(fileName.get_sexp(), columnSelection, startRow, endRow);
+  }
+
   SEXP colNameVec = colNames->StrVector();
+
+  // Generalize to full atributes
+  Rf_setAttrib(tableReader.resTable, R_NamesSymbol, colNameVec);
+
 
   // Convert keyIndex to keyNames
   SEXP keyNames;
@@ -187,7 +262,5 @@ SEXP fstRetrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
     _["keyNames"] = keyNames,
     _["keyIndex"] = keyIndex,
     _["colNameVec"] = colNameVec,
-    _["resTable"] = result);
-
-  return result;
+    _["resTable"] = tableReader.resTable);
 }

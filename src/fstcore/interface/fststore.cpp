@@ -35,21 +35,16 @@
 
 #include <iostream>
 #include <fstream>
-
-#include <Rcpp.h>
+#include <stdexcept>
+#include <cstring>
+#include <algorithm>
 
 #include <iblockrunner.h>
 #include <ifsttable.h>
 #include <icolumnfactory.h>
 
 #include <fstdefines.h>
-#include <FastStore.h>
-#include <FastStore_v1.h>
-#include <blockrunner_char.h>
-#include <fsttable.h>
-#include <fstcolumn.h>
 #include <fststore.h>
-#include <columnfactory.h>
 
 #include <character_v6.h>
 #include <factor_v7.h>
@@ -59,7 +54,6 @@
 
 
 using namespace std;
-using namespace Rcpp;
 
 
 
@@ -102,6 +96,8 @@ using namespace Rcpp;
 FstStore::FstStore(std::string fstFile)
 {
   this->fstFile = fstFile;
+  metaDataBlock = nullptr;
+  blockReader = nullptr;
 }
 
 
@@ -115,7 +111,7 @@ inline unsigned int ReadHeader(ifstream &myfile, unsigned int &tableClassType, i
   if (!myfile)
   {
     myfile.close();
-    ::Rf_error("Error reading file header, your fst file is incomplete or damaged.");
+    throw(runtime_error("Error reading file header, your fst file is incomplete or damaged."));
   }
 
 
@@ -354,115 +350,67 @@ void FstStore::fstWrite(const char* fileName, IFstTable &fstTable, int compress)
 }
 
 
-SEXP FstStore::fstMeta(String fileName)
+int FstStore::fstMeta(const char*  fileName, IColumnFactory* columnFactory)
 {
   // fst file stream using a stack buffer
   ifstream myfile;
   char ioBuf[4096];
   myfile.rdbuf()->pubsetbuf(ioBuf, 4096);
-  myfile.open(fileName.get_cstring(), ios::binary);
+  myfile.open(fileName, ios::binary);
 
   if (myfile.fail())
   {
     myfile.close();
-    ::Rf_error("There was an error opening the fst file, please check for a correct path.");
+    throw(runtime_error("There was an error opening the fst file, please check for a correct path."));
   }
 
   // Read variables from fst file header
-  unsigned int tableClassType;
-  int keyLength, nrOfColsFirstChunk;
-  unsigned int version = ReadHeader(myfile, tableClassType, keyLength, nrOfColsFirstChunk);
+  version = ReadHeader(myfile, tableClassType, keyLength, nrOfColsFirstChunk);
 
   // We may be looking at a fst v0.7.2 file format
   if (version == 0)
   {
     // Close and reopen (slow: fst file should be resaved to avoid)
     myfile.close();
-    return fstMeta_v1(fileName);  // scans further for safety
+    return 0;  // scans further for safety
   }
 
 
   // Continue reading table metadata
   int metaSize = 32 + 4 * keyLength + 6 * nrOfColsFirstChunk;
-  char* metaDataBlock = new char[metaSize];
+  metaDataBlock = new char[metaSize];
   myfile.read(metaDataBlock, metaSize);
 
   unsigned int tmpOffset = 4 * keyLength;
 
-  int* keyColPos                         = (int*) metaDataBlock;
+  keyColPos                                 = (int*) metaDataBlock;
   // unsigned long long* p_nextHorzChunkSet = (unsigned long long*) &metaDataBlock[tmpOffset];
   // unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[tmpOffset + 8];
-  unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[tmpOffset + 16];
+  p_nrOfRows                                = (unsigned long long*) &metaDataBlock[tmpOffset + 16];
   // unsigned int* p_version                = (unsigned int*) &metaDataBlock[tmpOffset + 24];
-  int* p_nrOfCols                        = (int*) &metaDataBlock[tmpOffset + 28];
+  int* p_nrOfCols                           = (int*) &metaDataBlock[tmpOffset + 28];
   // unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[tmpOffset + 32];
-  unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 2 * nrOfColsFirstChunk];
+  colTypes                                  = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 2 * nrOfColsFirstChunk];
   // unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 4 * nrOfColsFirstChunk];
 
 
-  int nrOfCols = *p_nrOfCols;
+  nrOfCols = *p_nrOfCols;
 
 
   // Read column names
   unsigned long long offset = metaSize + TABLE_META_SIZE;
-  BlockReaderChar* blockReader = new BlockReaderChar();
-  fdsReadCharVec_v6(myfile, (IStringColumn*) blockReader, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
-  SEXP colNames = blockReader->StrVector();
-  delete blockReader;
 
-  // Convert to integer vector
-  IntegerVector colTypeVec(nrOfCols);
-  for (int col = 0; col != nrOfCols; ++col)
-  {
-    colTypeVec[col] = colTypes[col];
-  }
-
+  blockReader = columnFactory->CreateStringColumn(nrOfCols);
+  fdsReadCharVec_v6(myfile, blockReader, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
 
   // cleanup
   myfile.close();
 
-
-  if (keyLength > 0)
-  {
-    SEXP keyNames;
-    PROTECT(keyNames = Rf_allocVector(STRSXP, keyLength));
-    for (int i = 0; i < keyLength; ++i)
-    {
-      SET_STRING_ELT(keyNames, i, STRING_ELT(colNames, keyColPos[i]));
-    }
-
-    IntegerVector keyColIndex(keyLength);
-    for (int col = 0; col != keyLength; ++col)
-    {
-      keyColIndex[col] = keyColPos[col];
-    }
-
-    UNPROTECT(1);  // keyNames
-
-    return List::create(
-      _["nrOfCols"]        = nrOfCols,
-      _["nrOfRows"]        = *p_nrOfRows,
-      _["fstVersion"]      = version,
-      _["colTypeVec"]      = colTypeVec,
-      _["keyColIndex"]     = keyColIndex,
-      _["keyLength"]       = keyLength,
-      _["keyNames"]        = keyNames,
-      _["colNames"]        = colNames);
-  }
-
-  // UNPROTECT(1);
-
-  return List::create(
-    _["nrOfCols"]        = nrOfCols,
-    _["nrOfRows"]        = *p_nrOfRows,
-    _["fstVersion"]      = version,
-    _["keyLength"]       = keyLength,
-    _["colTypeVec"]      = colTypeVec,
-    _["colNames"]        = colNames);
+  return 1;
 }
 
 
-SEXP FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, SEXP columnSelection, int startRow, int endRow, IColumnFactory* columnFactory, vector<int> &keyIndex, IStringArray* selectedCols)
+int FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, IStringArray* columnSelection, int startRow, int endRow, IColumnFactory* columnFactory, vector<int> &keyIndex, IStringArray* selectedCols)
 {
   // fst file stream using a stack buffer
   ifstream myfile;
@@ -485,7 +433,7 @@ SEXP FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, SEXP 
   {
     // Close and reopen (slow: fst file should be resaved to avoid this overhead)
     myfile.close();
-    return fstRead_v1(Rf_mkString(fileName), columnSelection, Rf_ScalarInteger(startRow), Rf_ScalarInteger(endRow));
+    return -1;  // error code for deprecated fst format
   }
 
 
@@ -519,8 +467,8 @@ SEXP FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, SEXP 
   // Use a pure C++ charVector implementation here for performance
   IStringColumn* blockReader = columnFactory->CreateStringColumn(nrOfCols);
   fdsReadCharVec_v6(myfile, blockReader, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
-  SEXP colNames = ((BlockReaderChar*) blockReader)->StrVector();
-  delete blockReader;
+
+  // SEXP colNames = ((BlockReaderChar*) blockReader)->StrVector();
 
   // TODO: read column attributes here
 
@@ -539,6 +487,7 @@ SEXP FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, SEXP 
   {
     myfile.close();
     delete[] metaDataBlock;
+    delete blockReader;
     throw(runtime_error("Multiple chunk read not implemented yet."));
   }
 
@@ -553,9 +502,9 @@ SEXP FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, SEXP 
 
   // Determine column selection
   int *colIndex;
-  int nrOfSelect = LENGTH(columnSelection);
+  int nrOfSelect = 0;
 
-  if (Rf_isNull(columnSelection))
+  if (columnSelection == nullptr)
   {
     colIndex = new int[nrOfCols];
 
@@ -567,16 +516,17 @@ SEXP FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, SEXP 
   }
   else  // determine column numbers of column names
   {
+    nrOfSelect = columnSelection->Length();
     colIndex = new int[nrOfSelect];
     int equal;
     for (int colSel = 0; colSel < nrOfSelect; ++colSel)
     {
       equal = -1;
-      const char* str1 = CHAR(STRING_ELT(columnSelection, colSel));
+      const char* str1 = columnSelection->GetElement(colSel);
 
       for (int colNr = 0; colNr < nrOfCols; ++colNr)
       {
-        const char* str2 = CHAR(STRING_ELT(colNames, colNr));
+        const char* str2 = blockReader->GetElement(colNr);
         if (strcmp(str1, str2) == 0)
         {
           equal = colNr;
@@ -589,6 +539,7 @@ SEXP FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, SEXP 
         delete[] metaDataBlock;
         delete[] blockPos;
         delete[] colIndex;
+        delete blockReader;
         myfile.close();
         throw(runtime_error("Selected column not found."));
       }
@@ -607,6 +558,7 @@ SEXP FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, SEXP 
     delete[] metaDataBlock;
     delete[] blockPos;
     delete[] colIndex;
+    delete blockReader;
     myfile.close();
 
     if (firstRow < 0)
@@ -628,16 +580,13 @@ SEXP FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, SEXP 
       delete[] metaDataBlock;
       delete[] blockPos;
       delete[] colIndex;
+      delete blockReader;
       myfile.close();
       throw(runtime_error("Incorrect row range specified."));
     }
 
     length = min(endRow - firstRow, nrOfRows - firstRow);
   }
-
-  // Vector of selected column names
-  SEXP selectedNames;
-  PROTECT(selectedNames = Rf_allocVector(STRSXP, nrOfSelect));
 
   tableReader.InitTable(nrOfSelect, length);
 
@@ -650,14 +599,10 @@ SEXP FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, SEXP 
       delete[] metaDataBlock;
       delete[] blockPos;
       delete[] colIndex;
-      UNPROTECT(1);  // selectedNames
+      delete blockReader;
       myfile.close();
       throw(runtime_error("Column selection is out of range."));
     }
-
-    // Column name
-    SEXP selName = STRING_ELT(colNames, colNr);
-    SET_STRING_ELT(selectedNames, colSel, selName);
 
     unsigned long long pos = blockPos[colNr];
 
@@ -707,7 +652,7 @@ SEXP FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, SEXP 
       case 7:
       {
         IFactorColumn* factorColumn = columnFactory->CreateFactorColumn(length);
-        fdsReadFactorVec_v7(myfile, ((FactorColumn*) factorColumn)->Levels(), ((FactorColumn*) factorColumn)->LevelData(), pos, firstRow, length, nrOfRows);
+        fdsReadFactorVec_v7(myfile, factorColumn->Levels(), factorColumn->LevelData(), pos, firstRow, length, nrOfRows);
         tableReader.AddFactorColumn(factorColumn, colSel);
         delete factorColumn;
         break;
@@ -717,7 +662,7 @@ SEXP FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, SEXP 
         delete[] metaDataBlock;
         delete[] blockPos;
         delete[] colIndex;
-        UNPROTECT(1);  // selectedNames
+        delete blockReader;
         myfile.close();
         throw(runtime_error("Unknown type found in column."));
     }
@@ -727,9 +672,6 @@ SEXP FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, SEXP 
 
   myfile.close();
 
-  // Generalize to full atributes
-  Rf_setAttrib( ((FstTableReader*) &tableReader)->resTable, R_NamesSymbol, selectedNames);
-
   // Key index
   SetKeyIndex(keyIndex, keyLength, nrOfSelect, keyColPos, colIndex);
 
@@ -738,15 +680,16 @@ SEXP FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, SEXP 
   // Only when keys are present in result set, TODO: compute using C++ only !!!
   for (int i = 0; i < nrOfSelect; ++i)
   {
-    selectedCols->SetElement(i, CHAR(STRING_ELT(colNames, colIndex[i])));
+    selectedCols->SetElement(i, blockReader->GetElement(colIndex[i]));
   }
 
-  UNPROTECT(1);  // selectedNames
   delete[] metaDataBlock;
   delete[] blockPos;
   delete[] colIndex;
+  delete blockReader;
 
-  return ((FstTableReader*) &tableReader)->resTable;
+
+  return 0;
 }
 
 //

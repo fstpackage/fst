@@ -55,19 +55,30 @@ public:
     isProtected = true;
   }
 
+  // Use an existing SEXP
+  void SetArray(SEXP strVec)
+  {
+    this->strVec = strVec;
+  }
+
   void SetElement(int elementNr, const char* str)
   {
     SET_STRING_ELT(strVec, elementNr, Rf_mkChar(str));
   }
 
-  SEXP GetElement(int elementNr)
+  const char* GetElement(int elementNr)
   {
-    return STRING_ELT(strVec, elementNr);
+    return CHAR(STRING_ELT(strVec, elementNr));
   }
 
   void SetElement(int elementNr, const char* str, int strLen)
   {
     SET_STRING_ELT(strVec, elementNr, Rf_mkCharLen(str, strLen));
+  }
+
+  int Length()
+  {
+    return LENGTH(strVec);
   }
 
   SEXP StrVector() { return strVec; }

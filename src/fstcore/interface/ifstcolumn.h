@@ -45,6 +45,8 @@ public:
   virtual void AllocateArray(int vecLength) = 0;
   virtual void SetElement(int elementNr, const char* str) = 0;
   virtual void SetElement(int elementNr, const char* str, int strLen) = 0;
+  virtual const char* GetElement(int elementNr) = 0;
+  virtual int Length() = 0;
 };
 
 
@@ -53,11 +55,10 @@ class IStringColumn
 public:
 
   virtual ~IStringColumn() {};
-
   virtual void AllocateVec(unsigned int vecLength) = 0;
-
   virtual void BufferToVec(unsigned int nrOfElements, unsigned int startElem, unsigned int endElem,
     unsigned int vecOffset, unsigned int* sizeMeta, char* buf) = 0;
+  virtual const char* GetElement(int elementNr) = 0;
 };
 
 

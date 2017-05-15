@@ -36,14 +36,10 @@
 #ifndef FASTSTORE_V1_H
 #define FASTSTORE_V1_H
 
-#include <Rcpp.h>
 #include <iostream>
 #include <fstream>
-#include <R.h>
-#include <Rinternals.h>
 
-#include <compression.h>
-#include <compressor.h>
+#include <Rcpp.h>
 
 
 Rcpp::List fstMeta_v1(Rcpp::String fileName);

@@ -70,6 +70,11 @@ public:
   void BufferToVec(unsigned int nrOfElements, unsigned int startElem, unsigned int endElem,
     unsigned int vecOffset, unsigned int* sizeMeta, char* buf);
 
+  const char* GetElement(int elementNr)
+  {
+    return CHAR(STRING_ELT(strVec, elementNr));
+  }
+
   SEXP StrVector() { return strVec; }
 };
 

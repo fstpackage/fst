@@ -40,26 +40,36 @@
 #include <iostream>
 #include <vector>
 
-#include <Rcpp.h>
-
 #include <icolumnfactory.h>
 #include <ifsttable.h>
-
-#include <fststore.h>
 
 
 class FstStore
 {
+  unsigned int tableClassType;
+  int nrOfColsFirstChunk;
+
   std::string fstFile;
 
+  char* metaDataBlock;
+
   public:
+    unsigned long long* p_nrOfRows;
+    int* keyColPos;
+    unsigned short int* colTypes;
+    unsigned int version;
+    int nrOfCols, keyLength;
+    IStringColumn* blockReader;
+
     FstStore(std::string fstFile);
+
+    ~FstStore() { delete[] metaDataBlock; delete blockReader; }
 
     void fstWrite(const char* fileName, IFstTable &fstTable, int compress);
 
-    SEXP fstMeta(Rcpp::String fileName);
+    int fstMeta(const char* fileName, IColumnFactory* columnFactory);
 
-    SEXP fstRead(const char* fileName, IFstTableReader &tableReader, SEXP columnSelection, int startRow, int endRow, IColumnFactory* columnFactory, std::vector<int> &keyIndex, IStringArray* selectedCols);
+    int fstRead(const char* fileName, IFstTableReader &tableReader, IStringArray* columnSelection, int startRow, int endRow, IColumnFactory* columnFactory, std::vector<int> &keyIndex, IStringArray* selectedCols);
 };
 
 

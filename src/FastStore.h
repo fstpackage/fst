@@ -42,9 +42,6 @@
 
 #include <Rcpp.h>
 
-#include <compression.h>
-#include <compressor.h>
-
 
 // [[Rcpp::export]]
 SEXP fstStore(Rcpp::String fileName, SEXP table, SEXP compression);

@@ -34,11 +34,10 @@
 
 #include <FastStore_v1.h>
 
-#include <Rcpp.h>
 #include <iostream>
 #include <fstream>
-#include <R.h>
-#include <Rinternals.h>
+
+#include <Rcpp.h>
 
 #include <character_v1.h>
 #include <integer_v2.h>
@@ -46,8 +45,8 @@
 #include <logical_v4.h>
 #include <factor_v5.h>
 
-#include <compression.h>
 #include <compressor.h>
+
 
 using namespace std;
 using namespace Rcpp;

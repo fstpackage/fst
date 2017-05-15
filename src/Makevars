@@ -3,7 +3,7 @@ PKG_CPPFLAGS = $(SHLIB_OPENMP_CFLAGS) -I. -Ifstcore -Ifstcore/LZ4 -Ifstcore/ZSTD
 	-Ifstcore/ZSTD/compress -Ifstcore/logical -Ifstcore/integer -Ifstcore/double -Ifstcore/factor -Ifstcore/interface \
 	-Ifstcore/character -Ifstcore/compression -Ifstcore/blockstreamer
 CXX_STD      = CXX11
-PKG_LIBS     = $(SHLIB_OPENMP_CFLAGS) -L. -lTYPES -lFRAME -lCOMPRESSION -lLZ4 -lZSTD
+PKG_LIBS     = $(SHLIB_OPENMP_CFLAGS) -L. -lFRAME -lCOMPRESSION -lLZ4 -lZSTD
 
 # libraries
 LIBLZ4  = fstcore/LZ4/lz4.o
@@ -12,12 +12,12 @@ LIBZSTD = fstcore/ZSTD/common/entropy_common.o fstcore/ZSTD/common/error_private
 	fstcore/ZSTD/decompress/zstd_decompress.o fstcore/ZSTD/common/xxhash.o fstcore/ZSTD/common/zstd_common.o \
 	fstcore/ZSTD/compress/zstd_compress.o
 LIBCOMPRESSION  = fstcore/compression/compression.o fstcore/compression/compressor.o
-LIBFRAME = fstcore/interface/fstmetadata.o fstcore/interface/fststore.o
-LIBTYPES = fstcore/logical/logical_v4.o fstcore/logical/logical_v10.o fstcore/integer/integer_v2.o fstcore/integer/integer_v8.o \
+LIBFRAME = fstcore/interface/fstmetadata.o fstcore/interface/fststore.o fstcore/logical/logical_v4.o \
+  fstcore/logical/logical_v10.o fstcore/integer/integer_v2.o fstcore/integer/integer_v8.o \
 	fstcore/double/double_v3.o fstcore/double/double_v9.o fstcore/character/character_v1.o fstcore/character/character_v6.o \
 	fstcore/factor/factor_v5.o fstcore/factor/factor_v7.o fstcore/blockstreamer/blockstreamer_v2.o
 
-$(SHLIB): libLZ4.a libZSTD.a libFRAME.a libTYPES.a
+$(SHLIB): libLZ4.a libZSTD.a libCOMPRESSION.a libFRAME.a
 
 libLZ4.a: $(LIBLZ4)
 	$(AR) rcs libLZ4.a $(LIBLZ4)
@@ -31,9 +31,6 @@ libCOMPRESSION.a: $(LIBCOMPRESSION) libLZ4.a libZSTD.a
 libFRAME.a: $(LIBFRAME) libCOMPRESSION.a
 	$(AR) rcs libFRAME.a $(LIBFRAME)
 
-libTYPES.a: $(LIBTYPES) libFRAME.a
-	$(AR) rcs libTYPES.a $(LIBTYPES)
-
 clean:
 	rm -f $(SHLIB) $(OBJECTS) $(LIBLZ4) libLZ4.a $(LIBZSTD) libZSTD.a $(LIBFRAME) \
-	libFRAME.a $(LIBTYPES) libTYPES.a libCOMPRESSION.a $(LIBCOMPRESSION)
+	libFRAME.a libCOMPRESSION.a $(LIBCOMPRESSION)
