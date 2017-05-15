@@ -37,7 +37,6 @@
 #define IFST_COLUMN_FACTORY_H
 
 
-#include "iblockrunner.h"
 #include "ifstcolumn.h"
 
 class IColumnFactory

@@ -12,3 +12,9 @@ os:
 
 # No OpenMp support on Travis OSX build
 #  - osx
+
+r_packages:
+  - covr
+
+after_success:
+  - Rscript -e 'library(covr); codecov()'

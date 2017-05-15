@@ -36,6 +36,7 @@
 #ifndef FSTSTREAMER_H
 #define FSTSTREAMER_H
 
+#include <string>
 
 
 /**

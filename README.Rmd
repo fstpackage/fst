@@ -17,6 +17,7 @@ knitr::opts_chunk$set(
 
 [![Build Status](https://travis-ci.org/fstpackage/fst.svg?branch=master)](https://travis-ci.org/fstpackage/fst)
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/fst)](https://cran.r-project.org/package=fst)
+[![codecov](https://codecov.io/gh/fstpackage/fst/branch/master/graph/badge.svg)](https://codecov.io/gh/fstpackage/fst)
 
 
 ## Overview

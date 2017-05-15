@@ -37,7 +37,6 @@
 #define FST_STORE_H
 
 
-#include <iostream>
 #include <vector>
 
 #include <icolumnfactory.h>
