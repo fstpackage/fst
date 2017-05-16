@@ -32,13 +32,13 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#include "logical_v10.h"
-#include "blockstreamer_v2.h"
+#include <logical/logical_v10.h>
+#include <blockstreamer/blockstreamer_v2.h>
 
 
 // External libraries
-#include <compression.h>
-#include <compressor.h>
+#include <compression/compression.h>
+#include <compression/compressor.h>
 
 #define BLOCKSIZE_LOGICAL 4096  // number of logicals in default compression block
 

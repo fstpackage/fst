@@ -41,9 +41,9 @@
 
 #include <Rcpp.h>
 
-#include <icolumnfactory.h>
-#include <ifstcolumn.h>
-#include <ifsttable.h>
+#include <interface/icolumnfactory.h>
+#include <interface/ifstcolumn.h>
+#include <interface/ifsttable.h>
 
 #include <fstcolumn.h>
 #include <blockrunner_char.h>

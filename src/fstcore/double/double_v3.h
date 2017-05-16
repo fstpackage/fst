@@ -36,15 +36,12 @@
 #ifndef DOUBLE_V3_H
 #define DOUBLE_V3_H
 
-// System libraries
-#include <ctime>
-#include <ratio>
 
-// External libraries
-#include <compression.h>
-#include <compressor.h>
+// fst framework
+#include <compression/compression.h>
+#include <compression/compressor.h>
 
 
-SEXP fdsReadRealVec_v3(ifstream &myfile, SEXP &realVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
+SEXP fdsReadRealVec_v3(std::ifstream &myfile, SEXP &realVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
 
 #endif // DOUBLE_V3_H

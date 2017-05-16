@@ -37,9 +37,7 @@
 #define BLOCKSTORE_H
 
 #include <fstream>
-
-// Framework headers
-#include "compressor.h"
+#include <compression/compressor.h>
 
 // Method for writing column data of any type to a ofstream.
 void fdsStreamUncompressed_v2(std::ofstream &myfile, char* vec, unsigned int vecLength, int elementSize, int blockSizeElems,

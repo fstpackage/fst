@@ -37,21 +37,16 @@
 #define CHARACTER_V1_H
 
 
-#include <Rcpp.h>
 #include <iostream>
 #include <fstream>
-#include <R.h>
-#include <Rinternals.h>
 
-#include "lowerbound.h"
-#include <compression.h>
-#include <compressor.h>
+#include <Rcpp.h>
 
-
-// External libraries
+#include <compression/compression.h>
+#include <compression/compressor.h>
 
 
-List fdsReadCharVec_v1(ifstream &myfile, SEXP &strVec, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size);
+Rcpp::List fdsReadCharVec_v1(std::ifstream &myfile, SEXP &strVec, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size);
 
 
 #endif  // CHARACTER_V1_H

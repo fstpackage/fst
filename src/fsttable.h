@@ -41,9 +41,9 @@
 
 #include <Rcpp.h>
 
-#include <fstdefines.h>
-#include <iblockrunner.h>
-#include <ifsttable.h>
+#include <interface/fstdefines.h>
+#include <interface/iblockrunner.h>
+#include <interface/ifsttable.h>
 
 
 /**

@@ -39,18 +39,17 @@
 #include <cstring>
 #include <algorithm>
 
-#include <iblockrunner.h>
-#include <ifsttable.h>
-#include <icolumnfactory.h>
+#include <interface/iblockrunner.h>
+#include <interface/ifsttable.h>
+#include <interface/icolumnfactory.h>
+#include <interface/fstdefines.h>
+#include <interface/fststore.h>
 
-#include <fstdefines.h>
-#include <fststore.h>
-
-#include <character_v6.h>
-#include <factor_v7.h>
-#include <integer_v8.h>
-#include <double_v9.h>
-#include <logical_v10.h>
+#include <character/character_v6.h>
+#include <factor/factor_v7.h>
+#include <integer/integer_v8.h>
+#include <double/double_v9.h>
+#include <logical/logical_v10.h>
 
 
 using namespace std;

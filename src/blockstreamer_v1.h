@@ -39,7 +39,7 @@
 #include <Rcpp.h>  // Rcpp header
 
 // Framework headers
-#include "compressor.h"
+#include <compression/compressor.h>
 
 
 SEXP fdsReadColumn_v1(std::ifstream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size, int elementSize);

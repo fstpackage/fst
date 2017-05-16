@@ -32,15 +32,17 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
+#include <fstrbind.h>
+
 #include <Rcpp.h>
 
 #include <fstream>
 
-#include <fstrbind.h>
-#include <fstmetadata.h>
-#include <fstdefines.h>
+#include <interface/fstmetadata.h>
+#include <interface/fstdefines.h>
+#include <interface/fststore.h>
+
 #include <fsttable.h>
-#include <fststore.h>
 
 
 using namespace Rcpp;

@@ -33,12 +33,12 @@
 */
 
 
-#include "integer_v8.h"
-#include <blockstreamer_v2.h>
+#include <integer/integer_v8.h>
+#include <blockstreamer/blockstreamer_v2.h>
 
 // External libraries
-#include <compression.h>
-#include <compressor.h>
+#include <compression/compression.h>
+#include <compression/compressor.h>
 
 using namespace std;
 

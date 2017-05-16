@@ -32,10 +32,10 @@ You can contact the author at :
 - fst source repository : https://github.com/fstPackage/fst
 */
 
-#include "character_v6.h"
-#include "iblockrunner.h"
-#include "fstdefines.h"
-#include <compressor.h>
+#include "character/character_v6.h"
+#include "interface/iblockrunner.h"
+#include "interface/fstdefines.h"
+#include <compression/compressor.h>
 
 #include <fstream>
 

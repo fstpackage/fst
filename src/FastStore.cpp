@@ -38,11 +38,11 @@
 
 #include <Rcpp.h>
 
-#include <fstdefines.h>
-#include <iblockrunner.h>
-#include <ifsttable.h>
-#include <icolumnfactory.h>
-#include <fststore.h>
+#include <interface/fstdefines.h>
+#include <interface/iblockrunner.h>
+#include <interface/ifsttable.h>
+#include <interface/icolumnfactory.h>
+#include <interface/fststore.h>
 
 #include <blockrunner_char.h>
 #include <fsttable.h>

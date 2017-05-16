@@ -37,20 +37,17 @@
 #define FACTOR_V5_H
 
 
-#include <Rcpp.h>
 #include <iostream>
 #include <fstream>
-#include <R.h>
-#include <Rinternals.h>
 
-#include "lowerbound.h"
+#include <Rcpp.h>
 
-#include <compression.h>
-#include <compressor.h>
+#include <compression/compression.h>
+#include <compression/compressor.h>
 
 
 // Parameter 'startRow' is zero based.
-SEXP fdsReadFactorVec_v5(ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned int startRow,
+SEXP fdsReadFactorVec_v5(std::ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned int startRow,
   unsigned int length, unsigned int size);
 
 

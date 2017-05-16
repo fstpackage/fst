@@ -36,8 +36,8 @@
 #ifndef FST_COLUMN_H
 #define FST_COLUMN_H
 
-#include "ifstcolumn.h"
-#include "blockrunner_char.h"
+#include <interface/ifstcolumn.h>
+#include <blockrunner_char.h>
 
 
 class StringArray : public IStringArray

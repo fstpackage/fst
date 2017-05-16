@@ -43,8 +43,8 @@ You can contact the author at :
 #include <Rcpp.h>
 
 // External libraries
-#include <compression.h>
-#include <compressor.h>
+#include <compression/compression.h>
+#include <compression/compressor.h>
 
 using namespace std;
 using namespace Rcpp;

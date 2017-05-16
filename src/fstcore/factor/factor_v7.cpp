@@ -38,13 +38,13 @@
 #include <fstream>
 
 // Framework headers
-#include "iblockrunner.h"
-#include "factor_v7.h"
-#include "blockstreamer_v2.h"
-#include "integer_v8.h"
-#include "character_v6.h"
+#include <interface/iblockrunner.h>
+#include <factor/factor_v7.h>
+#include <blockstreamer/blockstreamer_v2.h>
+#include <integer/integer_v8.h>
+#include <character/character_v6.h>
 
-#include "compressor.h"
+#include <compression/compressor.h>
 
 // #include <boost/unordered_map.hpp>
 

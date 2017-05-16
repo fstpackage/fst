@@ -34,16 +34,16 @@
 */
 
 
-
-#include "ifsttable.h"
-#include "iblockrunner.h"
-#include "fstdefines.h"
-
-#include "blockrunner_char.h"
-#include "fsttable.h"
-#include "fstcolumn.h"
-
 #include <Rcpp.h>
+
+#include <interface/ifsttable.h>
+#include <interface/iblockrunner.h>
+#include <interface/fstdefines.h>
+
+#include <blockrunner_char.h>
+#include <fstcolumn.h>
+
+#include <fsttable.h>
 
 using namespace Rcpp;
 

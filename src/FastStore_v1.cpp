@@ -39,13 +39,13 @@
 
 #include <Rcpp.h>
 
-#include <character_v1.h>
-#include <integer_v2.h>
-#include <double_v3.h>
-#include <logical_v4.h>
-#include <factor_v5.h>
+#include <compression/compressor.h>
 
-#include <compressor.h>
+#include <character/character_v1.h>
+#include <integer/integer_v2.h>
+#include <double/double_v3.h>
+#include <logical/logical_v4.h>
+#include <factor/factor_v5.h>
 
 
 using namespace std;

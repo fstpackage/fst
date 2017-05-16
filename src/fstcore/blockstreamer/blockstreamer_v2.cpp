@@ -39,8 +39,8 @@ You can contact the author at :
 #include <cstring>
 
 // External libraries
-#include <compression.h>
-#include <compressor.h>
+#include <compression/compression.h>
+#include <compression/compressor.h>
 
 
 #define COL_META_SIZE 8

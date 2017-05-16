@@ -39,8 +39,8 @@
 
 #include <vector>
 
-#include <icolumnfactory.h>
-#include <ifsttable.h>
+#include <interface/icolumnfactory.h>
+#include <interface/ifsttable.h>
 
 
 class FstStore

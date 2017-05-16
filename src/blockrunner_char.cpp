@@ -34,10 +34,11 @@
 */
 
 
-#include "iblockrunner.h"
-#include "ifstcolumn.h"
-#include "blockrunner_char.h"
-#include "fstdefines.h"
+#include <interface/iblockrunner.h>
+#include <interface/ifstcolumn.h>
+#include <interface/fstdefines.h>
+
+#include <blockrunner_char.h>
 
 #include <Rcpp.h>
 
