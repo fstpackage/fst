@@ -36,7 +36,7 @@
 #ifndef COMPRESSOR_H
 #define COMPRESSOR_H
 
-#include "compression.h"
+#include <compression/compression.h>
 
 
 #define NR_OF_ALGORITHMS 15

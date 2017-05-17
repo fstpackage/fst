@@ -34,7 +34,7 @@
 
 // Framework libraries
 #include <blockstreamer/blockstreamer_v2.h>
-#include "compression/compressor.h"
+#include <compression/compressor.h>
 
 using namespace std;
 

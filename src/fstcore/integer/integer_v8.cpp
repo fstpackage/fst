@@ -32,7 +32,6 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-
 #include <integer/integer_v8.h>
 #include <blockstreamer/blockstreamer_v2.h>
 

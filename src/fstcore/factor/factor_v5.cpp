@@ -32,19 +32,21 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-// Framework headers
-#include <character_v1.h>
-#include <integer_v2.h>
-#include "factor_v5.h"
-
-#include "blockstreamer_v1.h"
-#include "lowerbound.h"
-#include <compression.h>
-#include <compressor.h>
 
 // Standard headers
 #include <iostream>
 #include <fstream>
+
+#include <Rcpp.h>
+
+// Framework headers
+#include <character/character_v1.h>
+#include <integer/integer_v2.h>
+#include <factor/factor_v5.h>
+#include <compression/compression.h>
+#include <compression/compressor.h>
+
+#include <blockstreamer_v1.h>
 
 using namespace std;
 using namespace Rcpp;

@@ -32,16 +32,19 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#include "integer_v2.h"
-#include <blockstreamer_v1.h>
 
 // System libraries
 #include <ctime>
 #include <ratio>
+#include <iostream>
+#include <fstream>
 
-// External libraries
-#include "compression.h"
-#include "compressor.h"
+#include <Rcpp.h>
+
+#include <integer/integer_v2.h>
+#include <blockstreamer_v1.h>
+#include <compression/compression.h>
+#include <compression/compressor.h>
 
 using namespace std;
 using namespace Rcpp;

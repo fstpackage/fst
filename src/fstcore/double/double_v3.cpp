@@ -32,10 +32,17 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-// Framework libraries
-#include "blockstreamer_v1.h"
-#include "compression.h"
-#include "compressor.h"
+
+// Standard libraries
+#include <ostream>
+#include <istream>
+
+#include <Rcpp.h>
+
+#include <compression/compression.h>
+#include <compression/compressor.h>
+
+#include <blockstreamer_v1.h>
 
 
 using namespace std;

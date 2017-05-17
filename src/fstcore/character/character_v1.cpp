@@ -32,15 +32,15 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#include <character_v1.h>
 
-#include <Rcpp.h>
 #include <iostream>
 #include <fstream>
 
-#include "lowerbound.h"
-#include <compression.h>
-#include <compressor.h>
+#include <Rcpp.h>
+
+#include <character/character_v1.h>
+#include <compression/compression.h>
+#include <compression/compressor.h>
 
 
 // External libraries

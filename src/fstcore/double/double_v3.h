@@ -36,6 +36,10 @@
 #ifndef DOUBLE_V3_H
 #define DOUBLE_V3_H
 
+#include <ostream>
+#include <istream>
+
+#include <Rcpp.h>
 
 // fst framework
 #include <compression/compression.h>

@@ -36,6 +36,9 @@
 #ifndef INTEGER_V2_H
 #define INTEGER_V2_H
 
+#include <iostream>
+#include <fstream>
+
 #include <Rcpp.h>  // Rcpp header
 
 #define BLOCKSIZE_INT 4096  // number of integers in default compression block

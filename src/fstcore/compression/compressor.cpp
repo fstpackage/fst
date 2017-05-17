@@ -35,11 +35,11 @@
 #include <algorithm>
 #include <fstream>
 
-#include "compressor.h"
-#include "compression.h"
+#include <compression/compressor.h>
+#include <compression/compression.h>
 
-#include "lz4.h"
-#include "zstd.h"
+#include <lz4.h>
+#include <zstd.h>
 
 
 using namespace std;

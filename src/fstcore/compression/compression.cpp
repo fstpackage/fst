@@ -32,22 +32,21 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#include "compression.h"
-
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <algorithm>
-
 #include <iostream>
 #include <fstream>
+
+#include <compression/compression.h>
 
 // #include <unordered_map>
 // #include <boost/unordered_map.hpp>
 
 #include <zstd.h>
-#include "lz4.h"
+#include <lz4.h>
 
 
 using namespace std;

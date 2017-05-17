@@ -40,8 +40,6 @@
 #include <iostream>
 #include <fstream>
 
-#include <Rcpp.h>
-
 #include <compression/compression.h>
 #include <compression/compressor.h>
 

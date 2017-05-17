@@ -36,7 +36,10 @@
 #ifndef LOGICAL_V4_H
 #define LOGICAL_V4_H
 
-#include <Rcpp.h>  // Rcpp header
+#include <iostream>
+#include <fstream>
+
+#include <Rcpp.h>
 
 SEXP fdsReadLogicalVec_v4(std::ifstream &myfile, SEXP &boolVec, unsigned long long blockPos, unsigned int startRow,
   unsigned int length, unsigned int size);
