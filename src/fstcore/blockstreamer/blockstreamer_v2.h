@@ -37,6 +37,7 @@
 #define BLOCKSTORE_H
 
 #include <fstream>
+
 #include <compression/compressor.h>
 
 // Method for writing column data of any type to a ofstream.

@@ -35,12 +35,13 @@
 
 #include <fstream>
 
-#include "iblockrunner.h"
-#include "fstmetadata.h"
-#include "fstdefines.h"
-#include "character_v6.h"
+#include <interface/iblockrunner.h>
+#include <interface/fstmetadata.h>
+#include <interface/fstdefines.h>
+#include <character/character_v6.h>
 
-#include "blockrunner_char.h"
+#include <blockrunner_char.h>
+
 
 //  8                      | unsigned long long | nextHorzChunkSet
 //  8                      | unsigned long long | nextVertChunkSet

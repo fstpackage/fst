@@ -229,13 +229,13 @@ SEXP fstRetrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
     ::Rf_error(e.what());
   }
 
+  SEXP colNameVec = colNames->StrVector();
+
   // Test deprecated version format !!!
   if (result == -1)
   {
     return fstRead_v1(fileName.get_sexp(), columnSelection, startRow, endRow);
   }
-
-  SEXP colNameVec = colNames->StrVector();
 
   // Generalize to full atributes
   Rf_setAttrib(tableReader.resTable, R_NamesSymbol, colNameVec);
