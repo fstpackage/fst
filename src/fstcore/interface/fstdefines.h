@@ -55,6 +55,7 @@
 #define FSTERROR_NO_APPEND           "This version of the fst file format does not allow appending data"
 #define FSTERROR_DAMAGED_HEADER      "Error reading file header, your fst file is incomplete or damaged"
 #define FSTERROR_INCORRECT_COL_COUNT "Data frame has an incorrect amount of columns"
+#define FSTERROR_NON_FST_FILE        "File format was not recognised as a fst file"
 
 
 #endif // FSTDEFINES_H

@@ -108,26 +108,34 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression)
 
 SEXP fstMeta(String fileName)
 {
-  int version;
-
   FstStore* fstStore = new FstStore(fileName.get_cstring());
   IColumnFactory* columnFactory = new ColumnFactory();
 
   try
   {
-    version = fstStore->fstMeta(columnFactory);
+    fstStore->fstMeta(columnFactory);
+
   }
   catch (const std::runtime_error& e)
   {
+    // delete columnFactory;
+    // delete fstStore;
+
+    // We may be looking at a fst v0.7.2 file format, this unsafe code will be removed later
+    if (std::strcmp(e.what(), FSTERROR_NON_FST_FILE))
+    {
+      return fstMeta_v1(fileName);  // scans further for safety
+    }
+
     ::Rf_error(e.what());
   }
 
   // We may be looking at a fst v0.7.2 file format
-  if (version == 0)
-  {
-    // Close and reopen (slow: fst file should be resaved to avoid)
-    return fstMeta_v1(fileName);  // scans further for safety
-  }
+  // if (version == 0)
+  // {
+  //   // Close and reopen (slow: fst file should be resaved to avoid)
+  //   return fstMeta_v1(fileName);  // scans further for safety
+  // }
 
   // R internals part
   SEXP colNames = ((BlockReaderChar*) fstStore->blockReader)->StrVector();
@@ -213,11 +221,11 @@ SEXP fstRetrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
     colSelection->SetArray(columnSelection);
   }
 
-  int result;
+  int result = 0;
 
   try
   {
-    result = fstStore->fstRead(tableReader, colSelection, sRow, eRow, columnFactory, keyIndex, colNames);
+    fstStore->fstRead(tableReader, colSelection, sRow, eRow, columnFactory, keyIndex, colNames);
   }
   catch (const std::runtime_error& e)
   {
@@ -226,16 +234,26 @@ SEXP fstRetrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
     delete fstStore;
     delete colNames;
 
+    // ::Rf_warning(e.what());
+    // ::Rf_warning(FSTERROR_NON_FST_FILE);
+
+    // We may be looking at a fst v0.7.2 file format, this unsafe code will be removed later
+    if (std::strcmp(e.what(), FSTERROR_NON_FST_FILE))
+    {
+      result = -1;
+    }
+
+    // Re-throw uncatched errors
     ::Rf_error(e.what());
   }
-
-  SEXP colNameVec = colNames->StrVector();
 
   // Test deprecated version format !!!
   if (result == -1)
   {
     return fstRead_v1(fileName.get_sexp(), columnSelection, startRow, endRow);
   }
+
+  SEXP colNameVec = colNames->StrVector();
 
   // Generalize to full atributes
   Rf_setAttrib(tableReader.resTable, R_NamesSymbol, colNameVec);

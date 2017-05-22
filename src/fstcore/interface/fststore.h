@@ -71,9 +71,9 @@ class FstStore
      */
     void fstWrite(IFstTable &fstTable, int compress) const;
 
-    int fstMeta(IColumnFactory* columnFactory);
+    void fstMeta(IColumnFactory* columnFactory);
 
-    int fstRead(IFstTable &tableReader, IStringArray* columnSelection, int startRow, int endRow, IColumnFactory* columnFactory, std::vector<int> &keyIndex, IStringArray* selectedCols);
+    void fstRead(IFstTable &tableReader, IStringArray* columnSelection, int startRow, int endRow, IColumnFactory* columnFactory, std::vector<int> &keyIndex, IStringArray* selectedCols);
 };
 
 

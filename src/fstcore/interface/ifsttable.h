@@ -61,6 +61,7 @@ class IFstTable
 
     virtual FstColumnType ColumnType(unsigned int colNr) = 0;
 
+	// Writer interface
     virtual IStringWriter* GetStringWriter(unsigned int colNr) = 0;
 
     virtual int* GetLogicalWriter(unsigned int colNr) = 0;
@@ -82,48 +83,21 @@ class IFstTable
     virtual unsigned int NrOfRows() = 0;
 
 	// Reader interface
-	virtual void InitTable(unsigned int nrOfCols, int nrOfRows) = 0;
+  	virtual void InitTable(unsigned int nrOfCols, int nrOfRows) = 0;
 
-	virtual void SetStringColumn(IStringColumn* stringColumn, int colNr) = 0;
+  	virtual void SetStringColumn(IStringColumn* stringColumn, int colNr) = 0;
 
-	virtual void SetLogicalColumn(ILogicalColumn* logicalColumn, int colNr) = 0;
+  	virtual void SetLogicalColumn(ILogicalColumn* logicalColumn, int colNr) = 0;
 
-	virtual void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr) = 0;
+  	virtual void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr) = 0;
 
-	virtual void SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr) = 0;
+  	virtual void SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr) = 0;
 
-	virtual void SetFactorColumn(IFactorColumn* factorColumn, int colNr) = 0;
+  	virtual void SetFactorColumn(IFactorColumn* factorColumn, int colNr) = 0;
 
-	//virtual void SetColNames() = 0;
+  	//virtual void SetColNames() = 0;
 
-	virtual void SetKeyColumns(int* keyColPos, unsigned int nrOfKeys) = 0;
+  	virtual void SetKeyColumns(int* keyColPos, unsigned int nrOfKeys) = 0;
 };
-
-//
-///**
-// Interface to a fst table. A fst table is a temporary wrapper around an array of columnar data buffers.
-// The table only exists to facilitate serialization and deserialization of data.
-// */
-//class IFstTableReader
-//{
-//public:
-//  virtual ~IFstTableReader() {};
-//
-//  virtual void InitTable(unsigned int nrOfCols, int nrOfRows) = 0;
-//
-//  virtual void SetStringColumn(IStringColumn* stringColumn, int colNr) = 0;
-//
-//  virtual void SetLogicalColumn(ILogicalColumn* logicalColumn, int colNr) = 0;
-//
-//  virtual void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr) = 0;
-//
-//  virtual void SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr) = 0;
-//
-//  virtual void SetFactorColumn(IFactorColumn* factorColumn, int colNr) = 0;
-//
-//  //virtual void SetColNames() = 0;
-//
-//  virtual void SetKeyColumns(int* keyColPos, unsigned int nrOfKeys) = 0;
-//};
 
 #endif  // IFST_TABLE_H

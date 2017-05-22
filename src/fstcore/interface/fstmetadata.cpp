@@ -35,7 +35,6 @@
 
 #include <fstream>
 
-#include <interface/iblockrunner.h>
 #include <interface/fstmetadata.h>
 #include <interface/fstdefines.h>
 #include <character/character_v6.h>

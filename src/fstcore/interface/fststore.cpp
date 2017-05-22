@@ -347,7 +347,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
 }
 
 
-int FstStore::fstMeta(IColumnFactory* columnFactory)
+void FstStore::fstMeta(IColumnFactory* columnFactory)
 {
   // fst file stream using a stack buffer
   ifstream myfile;
@@ -369,7 +369,7 @@ int FstStore::fstMeta(IColumnFactory* columnFactory)
   {
     // Close and reopen (slow: fst file should be resaved to avoid)
     myfile.close();
-    return 0;  // scans further for safety
+	throw(runtime_error(FSTERROR_NON_FST_FILE));
   }
 
 
@@ -402,12 +402,10 @@ int FstStore::fstMeta(IColumnFactory* columnFactory)
 
   // cleanup
   myfile.close();
-
-  return 1;
 }
 
 
-int FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, int startRow, int endRow, IColumnFactory* columnFactory, vector<int> &keyIndex, IStringArray* selectedCols)
+void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, int startRow, int endRow, IColumnFactory* columnFactory, vector<int> &keyIndex, IStringArray* selectedCols)
 {
   // fst file stream using a stack buffer
   ifstream myfile;
@@ -423,14 +421,14 @@ int FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, int
 
   unsigned int tableClassType;
   int keyLength, nrOfColsFirstChunk;
-  unsigned int version = ReadHeader(myfile, tableClassType, keyLength, nrOfColsFirstChunk);
+  version = ReadHeader(myfile, tableClassType, keyLength, nrOfColsFirstChunk);
 
   // We may be looking at a fst v0.7.2 file format, TODO: return error_code
   if (version == 0)
   {
     // Close and reopen (slow: fst file should be resaved to avoid this overhead)
-    myfile.close();
-    return -1;  // error code for deprecated fst format
+	  myfile.close();
+	  throw(runtime_error(FSTERROR_NON_FST_FILE));
   }
 
 
@@ -684,9 +682,6 @@ int FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, int
   delete[] blockPos;
   delete[] colIndex;
   delete blockReader;
-
-
-  return 0;
 }
 
 //
