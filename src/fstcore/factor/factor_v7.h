@@ -40,11 +40,11 @@
 #include <iostream>
 #include <fstream>
 
-#include <interface/iblockrunner.h>
+#include <interface/istringwriter.h>
 #include <interface/ifstcolumn.h>
 
 
-void fdsWriteFactorVec_v7(std::ofstream &myfile, int* intP, IBlockWriter* blockRunner, unsigned int size, unsigned int compression);
+void fdsWriteFactorVec_v7(std::ofstream &myfile, int* intP, IStringWriter* blockRunner, unsigned int size, unsigned int compression);
 
 
 // Parameter 'startRow' is zero based.

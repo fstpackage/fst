@@ -37,7 +37,7 @@
 #define IFST_TABLE_H
 
 #include "ifstcolumn.h"
-#include "iblockrunner.h"
+#include "istringwriter.h"
 
 enum FstColumnType
 {
@@ -59,9 +59,9 @@ class IFstTable
   public:
     virtual ~IFstTable() {};
 
-    virtual FstColumnType GetColumnType(unsigned int colNr) = 0;
+    virtual FstColumnType ColumnType(unsigned int colNr) = 0;
 
-    virtual IBlockWriter* GetCharWriter(unsigned int colNr) = 0;
+    virtual IStringWriter* GetStringWriter(unsigned int colNr) = 0;
 
     virtual int* GetLogicalWriter(unsigned int colNr) = 0;
 
@@ -69,9 +69,9 @@ class IFstTable
 
     virtual double* GetDoubleWriter(unsigned int colNr) = 0;
 
-    virtual IBlockWriter* GetLevelWriter(unsigned int colNr) = 0;
+    virtual IStringWriter* GetLevelWriter(unsigned int colNr) = 0;
 
-    virtual IBlockWriter* GetColNameWriter() = 0;
+    virtual IStringWriter* GetColNameWriter() = 0;
 
     virtual void GetKeyColumns(int* keyColPos) = 0;
 
@@ -80,33 +80,50 @@ class IFstTable
     virtual unsigned int NrOfColumns() = 0;
 
     virtual unsigned int NrOfRows() = 0;
+
+	// Reader interface
+	virtual void InitTable(unsigned int nrOfCols, int nrOfRows) = 0;
+
+	virtual void SetStringColumn(IStringColumn* stringColumn, int colNr) = 0;
+
+	virtual void SetLogicalColumn(ILogicalColumn* logicalColumn, int colNr) = 0;
+
+	virtual void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr) = 0;
+
+	virtual void SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr) = 0;
+
+	virtual void SetFactorColumn(IFactorColumn* factorColumn, int colNr) = 0;
+
+	//virtual void SetColNames() = 0;
+
+	virtual void SetKeyColumns(int* keyColPos, unsigned int nrOfKeys) = 0;
 };
 
-
-/**
- Interface to a fst table. A fst table is a temporary wrapper around an array of columnar data buffers.
- The table only exists to facilitate serialization and deserialization of data.
- */
-class IFstTableReader
-{
-public:
-  virtual ~IFstTableReader() {};
-
-  virtual void InitTable(unsigned int nrOfCols, int nrOfRows) = 0;
-
-  virtual void AddCharColumn(IStringColumn* stringColumn, int colNr) = 0;
-
-  virtual void AddLogicalColumn(ILogicalColumn* logicalColumn, int colNr) = 0;
-
-  virtual void AddIntegerColumn(IIntegerColumn* integerColumn, int colNr) = 0;
-
-  virtual void AddDoubleColumn(IDoubleColumn* doubleColumn, int colNr) = 0;
-
-  virtual void AddFactorColumn(IFactorColumn* factorColumn, int colNr) = 0;
-
-  virtual void SetColNames() = 0;
-
-  virtual void SetKeyColumns(int* keyColPos, unsigned int nrOfKeys) = 0;
-};
+//
+///**
+// Interface to a fst table. A fst table is a temporary wrapper around an array of columnar data buffers.
+// The table only exists to facilitate serialization and deserialization of data.
+// */
+//class IFstTableReader
+//{
+//public:
+//  virtual ~IFstTableReader() {};
+//
+//  virtual void InitTable(unsigned int nrOfCols, int nrOfRows) = 0;
+//
+//  virtual void SetStringColumn(IStringColumn* stringColumn, int colNr) = 0;
+//
+//  virtual void SetLogicalColumn(ILogicalColumn* logicalColumn, int colNr) = 0;
+//
+//  virtual void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr) = 0;
+//
+//  virtual void SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr) = 0;
+//
+//  virtual void SetFactorColumn(IFactorColumn* factorColumn, int colNr) = 0;
+//
+//  //virtual void SetColNames() = 0;
+//
+//  virtual void SetKeyColumns(int* keyColPos, unsigned int nrOfKeys) = 0;
+//};
 
 #endif  // IFST_TABLE_H

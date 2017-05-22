@@ -34,7 +34,7 @@
 */
 
 
-#include <interface/iblockrunner.h>
+#include <interface/istringwriter.h>
 #include <interface/ifstcolumn.h>
 #include <interface/fstdefines.h>
 
@@ -105,7 +105,7 @@ void BlockWriterChar::SetBuffersFromVec(unsigned int startCount, unsigned int en
 
 
   // Write string data
-  unsigned int pos = 0;
+  unsigned int pos;
   unsigned int lastPos = 0;
   sizeCount = -1;
 

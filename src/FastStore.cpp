@@ -39,7 +39,7 @@
 #include <Rcpp.h>
 
 #include <interface/fstdefines.h>
-#include <interface/iblockrunner.h>
+#include <interface/istringwriter.h>
 #include <interface/ifsttable.h>
 #include <interface/icolumnfactory.h>
 #include <interface/fststore.h>
@@ -93,7 +93,7 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression)
 
   try
   {
-    fstStore->fstWrite(fileName.get_cstring(), fstTable, compress);
+    fstStore->fstWrite(fstTable, compress);
   }
   catch (const std::runtime_error& e)
   {
@@ -115,7 +115,7 @@ SEXP fstMeta(String fileName)
 
   try
   {
-    version = fstStore->fstMeta(fileName.get_cstring(), columnFactory);
+    version = fstStore->fstMeta(columnFactory);
   }
   catch (const std::runtime_error& e)
   {
@@ -188,7 +188,7 @@ SEXP fstMeta(String fileName)
 
 SEXP fstRetrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 {
-  FstTableReader tableReader;
+  FstTable tableReader;
   IColumnFactory* columnFactory = new ColumnFactory();
   FstStore* fstStore = new FstStore(fileName.get_cstring());
 
@@ -217,7 +217,7 @@ SEXP fstRetrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
 
   try
   {
-    result = fstStore->fstRead(fileName.get_cstring(), tableReader, colSelection, sRow, eRow, columnFactory, keyIndex, colNames);
+    result = fstStore->fstRead(tableReader, colSelection, sRow, eRow, columnFactory, keyIndex, colNames);
   }
   catch (const std::runtime_error& e)
   {

@@ -34,25 +34,24 @@
 */
 
 
-#ifndef IBLOCKRUNNER_H
-#define IBLOCKRUNNER_H
+#ifndef ISTRINGWRITER_H
+#define ISTRINGWRITER_H
 
 
-class IBlockWriter
+class IStringWriter
 {
 public:
   unsigned int* strSizes;
   unsigned int* naInts;
   unsigned int bufSize;
   char* activeBuf;
-
   unsigned int vecLength;
 
-  virtual ~IBlockWriter() {};
+  virtual ~IStringWriter() {};
 
   virtual void SetBuffersFromVec(unsigned int startCount, unsigned int endCount) = 0;
 };
 
 
-#endif  // IBLOCKRUNNER_H
+#endif  // ISTRINGWRITER_H
 

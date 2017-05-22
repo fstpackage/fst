@@ -33,7 +33,7 @@ You can contact the author at :
 */
 
 #include "character/character_v6.h"
-#include "interface/iblockrunner.h"
+#include "interface/istringwriter.h"
 #include "interface/fstdefines.h"
 #include <compression/compressor.h>
 
@@ -45,7 +45,7 @@ You can contact the author at :
 using namespace std;
 
 
-inline unsigned int StoreCharBlock_v6(ofstream &myfile, IBlockWriter* blockRunner, unsigned int startCount, unsigned int endCount)
+inline unsigned int StoreCharBlock_v6(ofstream &myfile, IStringWriter* blockRunner, unsigned int startCount, unsigned int endCount)
 {
   blockRunner->SetBuffersFromVec(startCount, endCount);
 
@@ -64,7 +64,7 @@ inline unsigned int StoreCharBlock_v6(ofstream &myfile, IBlockWriter* blockRunne
 }
 
 
-inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IBlockWriter* blockRunner, unsigned int startCount,
+inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IStringWriter* blockRunner, unsigned int startCount,
   unsigned int endCount, StreamCompressor* intCompressor, StreamCompressor* charCompressor, unsigned short int &algoInt,
   unsigned short int &algoChar, int &intBufSize)
 {
@@ -109,7 +109,7 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IBlockWriter* 
 }
 
 
-void fdsWriteCharVec_v6(ofstream &myfile, IBlockWriter* blockRunner, int compression)
+void fdsWriteCharVec_v6(ofstream &myfile, IStringWriter* blockRunner, int compression)
 {
   unsigned int vecLength = blockRunner->vecLength;
 

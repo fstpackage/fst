@@ -64,11 +64,16 @@ class FstStore
 
     ~FstStore() { delete[] metaDataBlock; delete blockReader; }
 
-    void fstWrite(const char* fileName, IFstTable &fstTable, int compress);
+	/**
+     * \brief Stream a data table
+     * \param fstTable Table to stream, implementation of IFstTable interface
+     * \param compress Compression factor with a value 0-100
+     */
+    void fstWrite(IFstTable &fstTable, int compress) const;
 
-    int fstMeta(const char* fileName, IColumnFactory* columnFactory);
+    int fstMeta(IColumnFactory* columnFactory);
 
-    int fstRead(const char* fileName, IFstTableReader &tableReader, IStringArray* columnSelection, int startRow, int endRow, IColumnFactory* columnFactory, std::vector<int> &keyIndex, IStringArray* selectedCols);
+    int fstRead(IFstTable &tableReader, IStringArray* columnSelection, int startRow, int endRow, IColumnFactory* columnFactory, std::vector<int> &keyIndex, IStringArray* selectedCols);
 };
 
 

@@ -82,7 +82,7 @@ void when_fork_end() {
 
 void avoid_openmp_hang_within_fork()
 {
-    // Called once on loading data.table from init.c
+    // Called once on loading fst from init.c
 #ifdef _OPENMP
     pthread_atfork(&when_fork, &when_fork_end, NULL);
 #endif

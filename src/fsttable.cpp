@@ -37,7 +37,7 @@
 #include <Rcpp.h>
 
 #include <interface/ifsttable.h>
-#include <interface/iblockrunner.h>
+#include <interface/istringwriter.h>
 #include <interface/fstdefines.h>
 
 #include <blockrunner_char.h>
@@ -52,6 +52,7 @@ FstTable::FstTable(SEXP &table)
 {
   this->rTable = &table;
   this->nrOfCols = 0;
+  this->isProtected = false;
 }
 
 
@@ -80,7 +81,7 @@ unsigned int FstTable::NrOfRows()
 }
 
 
-FstColumnType FstTable::GetColumnType(unsigned int colNr)
+FstColumnType FstTable::ColumnType(unsigned int colNr)
 {
   SEXP colVec = VECTOR_ELT(*rTable, colNr);  // retrieve column vector
 
@@ -130,7 +131,7 @@ double* FstTable::GetDoubleWriter(unsigned int colNr)
 }
 
 
-IBlockWriter* FstTable::GetCharWriter(unsigned int colNr)
+IStringWriter* FstTable::GetStringWriter(unsigned int colNr)
 {
   cols = VECTOR_ELT(*rTable, colNr);  // retrieve column vector
 
@@ -141,7 +142,7 @@ IBlockWriter* FstTable::GetCharWriter(unsigned int colNr)
 }
 
 
-IBlockWriter* FstTable::GetLevelWriter(unsigned int colNr)
+IStringWriter* FstTable::GetLevelWriter(unsigned int colNr)
 {
   cols = VECTOR_ELT(*rTable, colNr);  // retrieve column vector
   cols = Rf_getAttrib(cols, Rf_mkString("levels"));
@@ -150,7 +151,7 @@ IBlockWriter* FstTable::GetLevelWriter(unsigned int colNr)
 }
 
 
-IBlockWriter* FstTable::GetColNameWriter()
+IStringWriter* FstTable::GetColNameWriter()
 {
   cols = Rf_getAttrib(*rTable, R_NamesSymbol);
 
@@ -206,7 +207,7 @@ void FstTable::GetKeyColumns(int* keyColPos)
 
 //  FstTableReader implementation
 
-void FstTableReader::InitTable(unsigned int nrOfCols, int nrOfRows)
+void FstTable::InitTable(unsigned int nrOfCols, int nrOfRows)
 {
   this->nrOfCols = nrOfCols;
   this->nrOfRows = nrOfRows;
@@ -217,35 +218,35 @@ void FstTableReader::InitTable(unsigned int nrOfCols, int nrOfRows)
 }
 
 
-void FstTableReader::AddCharColumn(IStringColumn* stringColumn, int colNr)
+void FstTable::SetStringColumn(IStringColumn* stringColumn, int colNr)
 {
   BlockReaderChar* sColumn = (BlockReaderChar*) stringColumn;
   SET_VECTOR_ELT(resTable, colNr, sColumn->StrVector());
 }
 
 
-void FstTableReader::AddLogicalColumn(ILogicalColumn* logicalColumn, int colNr)
+void FstTable::SetLogicalColumn(ILogicalColumn* logicalColumn, int colNr)
 {
   LogicalColumn* lColumn = (LogicalColumn*) logicalColumn;
   SET_VECTOR_ELT(resTable, colNr, lColumn->boolVec);
 }
 
 
-void FstTableReader::AddDoubleColumn(IDoubleColumn* doubleColumn, int colNr)
+void FstTable::SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr)
 {
   DoubleColumn* dColumn = (DoubleColumn*) doubleColumn;
   SET_VECTOR_ELT(resTable, colNr, dColumn->colVec);
 }
 
 
-void FstTableReader::AddIntegerColumn(IIntegerColumn* integerColumn, int colNr)
+void FstTable::SetIntegerColumn(IIntegerColumn* integerColumn, int colNr)
 {
   IntegerColumn* iColumn = (IntegerColumn*) integerColumn;
   SET_VECTOR_ELT(resTable, colNr, iColumn->colVec);
 }
 
 
-void FstTableReader::AddFactorColumn(IFactorColumn* factorColumn, int colNr)
+void FstTable::SetFactorColumn(IFactorColumn* factorColumn, int colNr)
 {
   Rf_setAttrib(((FactorColumn*) factorColumn)->intVec, Rf_mkString("levels"), ((FactorColumn*) factorColumn)->blockReaderStrVec->StrVector());
   Rf_setAttrib(((FactorColumn*) factorColumn)->intVec, Rf_mkString("class"), Rf_mkString("factor"));
@@ -254,13 +255,13 @@ void FstTableReader::AddFactorColumn(IFactorColumn* factorColumn, int colNr)
 }
 
 
-void FstTableReader::SetColNames()
+void FstTable::SetColNames()
 {
   // BlockReaderChar* blockReader = new BlockReaderChar();
   // return blockReader;
 }
 
-void FstTableReader::SetKeyColumns(int* keyColPos, unsigned int nrOfKeys)
+void FstTable::SetKeyColumns(int* keyColPos, unsigned int nrOfKeys)
 {
 
 }

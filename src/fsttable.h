@@ -42,7 +42,7 @@
 #include <Rcpp.h>
 
 #include <interface/fstdefines.h>
-#include <interface/iblockrunner.h>
+#include <interface/istringwriter.h>
 #include <interface/ifsttable.h>
 
 
@@ -56,21 +56,45 @@ class FstTable : public IFstTable
   SEXP* rTable;
   SEXP  cols;
 
+  // Table metadata
+  unsigned int nrOfCols;
+  int nrOfRows;
+  bool isProtected;
+
+
   // Buffers for blockRunner
   unsigned int naInts[1 + BLOCKSIZE_CHAR / 32];  // we have 32 NA bits per integer
   unsigned int strSizes[BLOCKSIZE_CHAR];  // we have 32 NA bits per integer
   char buf[MAX_CHAR_STACK_SIZE];
 
-  // Table metadata
-  unsigned int nrOfCols;
-
   public:
+    SEXP resTable;
+
+    FstTable() {}
+
     FstTable(SEXP &table);
-    ~FstTable() {};
 
-    FstColumnType GetColumnType(unsigned int colNr);
+    ~FstTable() { if (isProtected) UNPROTECT(1); }
 
-    IBlockWriter* GetCharWriter(unsigned int colNr);
+    void InitTable(unsigned int nrOfCols, int nrOfRows);
+
+    void SetStringColumn(IStringColumn* stringColumn, int colNr);
+
+    void SetLogicalColumn(ILogicalColumn* logicalColumn, int colNr);
+
+    void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr);
+
+    void SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr);
+
+    void SetFactorColumn(IFactorColumn* factorColumn, int colNr);
+
+    void SetColNames();
+
+    void SetKeyColumns(int* keyColPos, unsigned int nrOfKeys);
+
+    FstColumnType ColumnType(unsigned int colNr);
+
+    IStringWriter* GetStringWriter(unsigned int colNr);
 
     // void AddCharColumn(IBlockReader* stringColumn, int colNr);
 
@@ -80,9 +104,9 @@ class FstTable : public IFstTable
 
     double* GetDoubleWriter(unsigned int colNr);
 
-    IBlockWriter* GetLevelWriter(unsigned int colNr);
+    IStringWriter* GetLevelWriter(unsigned int colNr);
 
-    IBlockWriter* GetColNameWriter();
+    IStringWriter* GetColNameWriter();
 
     void GetKeyColumns(int* keyColPos);
 
@@ -91,39 +115,6 @@ class FstTable : public IFstTable
     unsigned int NrOfColumns();
 
     unsigned int NrOfRows();
-};
-
-
-class FstTableReader : public IFstTableReader
-{
-  // Table metadata
-  unsigned int nrOfCols;
-  int nrOfRows;
-  bool isProtected;
-
-public:
-  // Result table
-  SEXP resTable;
-
-  FstTableReader() { isProtected = false; };
-
-  ~FstTableReader() { if (isProtected) UNPROTECT(1); };
-
-  void InitTable(unsigned int nrOfCols, int nrOfRows);
-
-  void AddCharColumn(IStringColumn* stringColumn, int colNr);
-
-  void AddLogicalColumn(ILogicalColumn* logicalColumn, int colNr);
-
-  void AddIntegerColumn(IIntegerColumn* integerColumn, int colNr);
-
-  void AddDoubleColumn(IDoubleColumn* doubleColumn, int colNr);
-
-  void AddFactorColumn(IFactorColumn* factorColumn, int colNr);
-
-  void SetColNames();
-
-  void SetKeyColumns(int* keyColPos, unsigned int nrOfKeys);
 };
 
 

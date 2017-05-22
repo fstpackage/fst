@@ -40,11 +40,11 @@
 #include <iostream>
 #include <fstream>
 
-#include "interface/iblockrunner.h"
+#include "interface/istringwriter.h"
 #include "interface/ifstcolumn.h"
 
 
-void fdsWriteCharVec_v6(std::ofstream &myfile, IBlockWriter* blockRunner, int compression);
+void fdsWriteCharVec_v6(std::ofstream &myfile, IStringWriter* blockRunner, int compression);
 
 
 void fdsReadCharVec_v6(std::istream &myfile, IStringColumn* blockReader, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size);

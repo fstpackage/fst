@@ -38,7 +38,7 @@
 #include <fstream>
 
 // Framework headers
-#include <interface/iblockrunner.h>
+#include <interface/istringwriter.h>
 #include <factor/factor_v7.h>
 #include <blockstreamer/blockstreamer_v2.h>
 #include <integer/integer_v8.h>
@@ -54,7 +54,7 @@ using namespace std;
 #define HEADER_SIZE_FACTOR 16
 #define VERSION_NUMBER_FACTOR 1
 
-void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IBlockWriter* blockRunner, unsigned int size, unsigned int compression)
+void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunner, unsigned int size, unsigned int compression)
 {
   unsigned long long blockPos = myfile.tellp();  // offset for factor
   unsigned int nrOfFactorLevels = blockRunner->vecLength;

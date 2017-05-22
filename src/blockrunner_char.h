@@ -40,7 +40,7 @@
 #include <Rcpp.h>
 
 
-class BlockWriterChar : public IBlockWriter
+class BlockWriterChar : public IStringWriter
 {
   SEXP* strVec;
   unsigned int stackBufSize;

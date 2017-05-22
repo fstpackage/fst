@@ -39,7 +39,7 @@
 #include <cstring>
 #include <algorithm>
 
-#include <interface/iblockrunner.h>
+#include <interface/istringwriter.h>
 #include <interface/ifsttable.h>
 #include <interface/icolumnfactory.h>
 #include <interface/fstdefines.h>
@@ -161,7 +161,7 @@ inline void SetKeyIndex(vector<int> &keyIndex, int keyLength, int nrOfSelect, in
 }
 
 
-void FstStore::fstWrite(const char* fileName, IFstTable &fstTable, int compress)
+void FstStore::fstWrite(IFstTable &fstTable, int compress) const
 {
   // SEXP keyNames = Rf_getAttrib(table, Rf_mkString("sorted"));
 
@@ -229,7 +229,7 @@ void FstStore::fstWrite(const char* fileName, IFstTable &fstTable, int compress)
   ofstream myfile;
   char ioBuf[4096];
   myfile.rdbuf()->pubsetbuf(ioBuf, 4096);  // workaround for memory leak in ofstream
-  myfile.open(fileName, ios::binary);
+  myfile.open(fstFile.c_str(), ios::binary);
 
   if (myfile.fail())
   {
@@ -243,8 +243,9 @@ void FstStore::fstWrite(const char* fileName, IFstTable &fstTable, int compress)
   myfile.write((char*)(metaDataBlock), metaDataSize);  // table meta data
 
   // Serialize column names
-  IBlockWriter* blockRunner = fstTable.GetColNameWriter();
+  IStringWriter* blockRunner = fstTable.GetColNameWriter();
   fdsWriteCharVec_v6(myfile, blockRunner, 0);   // column names
+  delete blockRunner;
 
   // TODO: Write column attributes here
 
@@ -270,7 +271,7 @@ void FstStore::fstWrite(const char* fileName, IFstTable &fstTable, int compress)
   for (int colNr = 0; colNr < nrOfCols; ++colNr)
   {
     positionData[colNr] = myfile.tellp();  // current location
-    FstColumnType colType = fstTable.GetColumnType(colNr);
+    FstColumnType colType = fstTable.ColumnType(colNr);
     colBaseTypes[colNr] = (unsigned short int) colType;
 
     // Store attributes here if any
@@ -281,19 +282,19 @@ void FstStore::fstWrite(const char* fileName, IFstTable &fstTable, int compress)
       case FstColumnType::CHARACTER:
       {
         colTypes[colNr] = 6;
-        delete blockRunner;
-        blockRunner = fstTable.GetCharWriter(colNr);
+		IStringWriter* blockRunner = fstTable.GetStringWriter(colNr);
         fdsWriteCharVec_v6(myfile, blockRunner, compress);   // column names
+		delete blockRunner;
         break;
       }
 
       case FstColumnType::FACTOR:
       {
         colTypes[colNr] = 7;
-        delete blockRunner;
         int* intP = fstTable.GetIntWriter(colNr);  // level values pointer
-        blockRunner = fstTable.GetLevelWriter(colNr);
+		IStringWriter* blockRunner = fstTable.GetLevelWriter(colNr);
         fdsWriteFactorVec_v7(myfile, intP, blockRunner, nrOfRows, compress);
+		delete blockRunner;
         break;
       }
 
@@ -324,13 +325,10 @@ void FstStore::fstWrite(const char* fileName, IFstTable &fstTable, int compress)
       default:
         delete[] metaDataBlock;
         delete[] chunkIndex;
-        delete blockRunner;
         myfile.close();
         throw(runtime_error("Unknown type found in column."));
     }
   }
-
-  delete blockRunner;
 
   // update chunk position data
   *chunkPos = positionData[0] - 8 * nrOfCols;
@@ -349,13 +347,13 @@ void FstStore::fstWrite(const char* fileName, IFstTable &fstTable, int compress)
 }
 
 
-int FstStore::fstMeta(const char*  fileName, IColumnFactory* columnFactory)
+int FstStore::fstMeta(IColumnFactory* columnFactory)
 {
   // fst file stream using a stack buffer
   ifstream myfile;
   char ioBuf[4096];
   myfile.rdbuf()->pubsetbuf(ioBuf, 4096);
-  myfile.open(fileName, ios::binary);
+  myfile.open(fstFile.c_str(), ios::binary);
 
   if (myfile.fail())
   {
@@ -409,13 +407,13 @@ int FstStore::fstMeta(const char*  fileName, IColumnFactory* columnFactory)
 }
 
 
-int FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, IStringArray* columnSelection, int startRow, int endRow, IColumnFactory* columnFactory, vector<int> &keyIndex, IStringArray* selectedCols)
+int FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, int startRow, int endRow, IColumnFactory* columnFactory, vector<int> &keyIndex, IStringArray* selectedCols)
 {
   // fst file stream using a stack buffer
   ifstream myfile;
   char ioBuf[4096];
   myfile.rdbuf()->pubsetbuf(ioBuf, 4096);
-  myfile.open(fileName, ios::binary);
+  myfile.open(fstFile.c_str(), ios::binary);
 
   if (myfile.fail())
   {
@@ -612,7 +610,7 @@ int FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, IStrin
       {
         IStringColumn* stringColumn = columnFactory->CreateStringColumn(length);
         fdsReadCharVec_v6(myfile, stringColumn, pos, firstRow, length, nrOfRows);
-        tableReader.AddCharColumn(stringColumn, colSel);
+        tableReader.SetStringColumn(stringColumn, colSel);
         delete stringColumn;
         break;
       }
@@ -622,7 +620,7 @@ int FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, IStrin
       {
         IIntegerColumn* integerColumn = columnFactory->CreateIntegerColumn(length);
         fdsReadIntVec_v8(myfile, integerColumn->Data(), pos, firstRow, length, nrOfRows);
-        tableReader.AddIntegerColumn(integerColumn, colSel);
+        tableReader.SetIntegerColumn(integerColumn, colSel);
         delete integerColumn;
         break;
       }
@@ -632,7 +630,7 @@ int FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, IStrin
       {
         IDoubleColumn* doubleColumn = columnFactory->CreateDoubleColumn(length);
         fdsReadRealVec_v9(myfile, doubleColumn->Data(), pos, firstRow, length, nrOfRows);
-        tableReader.AddDoubleColumn(doubleColumn, colSel);
+        tableReader.SetDoubleColumn(doubleColumn, colSel);
         delete doubleColumn;
         break;
       }
@@ -642,7 +640,7 @@ int FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, IStrin
       {
         ILogicalColumn* logicalColumn = columnFactory->CreateLogicalColumn(length);
         fdsReadLogicalVec_v10(myfile, logicalColumn->Data(), pos, firstRow, length, nrOfRows);
-        tableReader.AddLogicalColumn(logicalColumn, colSel);
+        tableReader.SetLogicalColumn(logicalColumn, colSel);
         delete logicalColumn;
         break;
       }
@@ -652,7 +650,7 @@ int FstStore::fstRead(const char* fileName, IFstTableReader &tableReader, IStrin
       {
         IFactorColumn* factorColumn = columnFactory->CreateFactorColumn(length);
         fdsReadFactorVec_v7(myfile, factorColumn->Levels(), factorColumn->LevelData(), pos, firstRow, length, nrOfRows);
-        tableReader.AddFactorColumn(factorColumn, colSel);
+        tableReader.SetFactorColumn(factorColumn, colSel);
         delete factorColumn;
         break;
       }
