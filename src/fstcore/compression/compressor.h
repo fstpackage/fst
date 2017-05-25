@@ -256,11 +256,11 @@ private:
 public:
   StreamLinearCompressor(Compressor *compressor, float compressionLevel);
 
-  int CompressBufferSize() override;
+  int CompressBufferSize();
 
-  int CompressBufferSize(unsigned int srcSize) override;
+  int CompressBufferSize(unsigned int srcSize);
 
-  int Compress(char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf) override;
+  int Compress(char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf);
 };
 
 
@@ -284,9 +284,9 @@ public:
 */
   StreamSingleCompressor(Compressor *compressor);
 
-  int CompressBufferSize() override;
+  int CompressBufferSize();
 
-  int CompressBufferSize(unsigned int srcSize) override;
+  int CompressBufferSize(unsigned int srcSize);
 
   /**
     Compress src to myfile. Buffer compBuf can be used as a buffer if required.
@@ -298,7 +298,7 @@ public:
     @param compBuf Buffer to store temporary data.
     @param compAlgorithm Algorithm that was used for compression.
   */
-  int Compress(char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf) override;
+  int Compress(char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf);
 };
 
 
@@ -329,9 +329,9 @@ public:
 */
   StreamCompositeCompressor(Compressor *compressor1, Compressor *compressor2, float compressionLevel);
 
-  int CompressBufferSize() override;
+  int CompressBufferSize();
 
-  int CompressBufferSize(unsigned int srcSize) override;
+  int CompressBufferSize(unsigned int srcSize);
 
   /**
     Compress src to myfile. Buffer compBuf can be used as a buffer if required.
@@ -343,7 +343,7 @@ public:
     @param compBuf Buffer to store temporary data.
     @param compAlgorithm Algorithm that was used for compression.
   */
-  int Compress(char* src,  unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf) override;
+  int Compress(char* src,  unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf);
 };
 
 
