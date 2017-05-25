@@ -66,7 +66,7 @@ inline unsigned int StoreCharBlock_v6(ofstream &myfile, IStringWriter* blockRunn
 
 inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IStringWriter* blockRunner, unsigned int startCount,
   unsigned int endCount, StreamCompressor* intCompressor, StreamCompressor* charCompressor, unsigned short int &algoInt,
-  unsigned short int &algoChar, int &intBufSize)
+  unsigned short int &algoChar, int &intBufSize, int blockNr)
 {
   // Determine string lengths
   unsigned int nrOfElements = endCount - startCount;  // the string at position endCount is not included
@@ -80,9 +80,13 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IStringWriter*
   // 2) compress to 1 or 2 bytes if possible with strSizesBufLength
   int bufSize = intCompressor->CompressBufferSize(strSizesBufLength);  // 1 integer per string
   char *intBuf = new char[bufSize];
+  char* buf = nullptr;
 
   CompAlgo compAlgorithm;
-  intBufSize = intCompressor->Compress(myfile, (char*)(blockRunner->strSizes), strSizesBufLength, intBuf, compAlgorithm);
+  intBufSize = intCompressor->Compress((char*)(blockRunner->strSizes), strSizesBufLength, intBuf, compAlgorithm, blockNr, buf);
+  myfile.write(buf, intBufSize);
+
+  //intCompressor->WriteBlock(myfile, (char*)(blockRunner->strSizes), intBuf);
   algoInt = (unsigned short int) (compAlgorithm);  // store selected algorithm
 
   // Write NA bits uncompressed (add compression later ?)
@@ -91,14 +95,13 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IStringWriter*
   unsigned int totSize = blockRunner->bufSize;
 
   int compBufSize = charCompressor->CompressBufferSize(totSize);
-  // unsigned int pos = 0;
-  // unsigned int lastPos = 0;
-  // int sizeCount = -1;
   char* compBuf = new char[compBufSize];  // character buffer   check if reuse possible?
 
 
   // Compress buffer
-  int resSize = charCompressor->Compress(myfile, blockRunner->activeBuf, totSize, compBuf, compAlgorithm);
+  int resSize = charCompressor->Compress(blockRunner->activeBuf, totSize, compBuf, compAlgorithm, blockNr, buf);
+  myfile.write(buf, resSize);
+  //charCompressor->WriteBlock(myfile, blockRunner->activeBuf, compBuf);
 
   algoChar = (unsigned short int) (compAlgorithm);  // store selected algorithm
 
@@ -210,7 +213,7 @@ void fdsWriteCharVec_v6(ofstream &myfile, IStringWriter* blockRunner, int compre
 
     blockRunner->SetBuffersFromVec(block * BLOCKSIZE_CHAR, (block + 1) * BLOCKSIZE_CHAR);
     unsigned int totSize = storeCharBlockCompressed_v6(myfile, blockRunner, block * BLOCKSIZE_CHAR,
-      (block + 1) * BLOCKSIZE_CHAR, streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize);
+      (block + 1) * BLOCKSIZE_CHAR, streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize, block);
 
     fullSize += totSize;
     *blockPos = fullSize;
@@ -224,7 +227,7 @@ void fdsWriteCharVec_v6(ofstream &myfile, IStringWriter* blockRunner, int compre
 
   blockRunner->SetBuffersFromVec(nrOfBlocks * BLOCKSIZE_CHAR, vecLength);
   unsigned int totSize = storeCharBlockCompressed_v6(myfile, blockRunner, nrOfBlocks * BLOCKSIZE_CHAR,
-    vecLength, streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize);
+    vecLength, streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize, nrOfBlocks);
 
   fullSize += totSize;
   *blockPos = fullSize;

@@ -339,26 +339,12 @@ int DualCompressor::Compress(char* dst, unsigned int dstCapacity, const char* sr
 }
 
 
-int StreamFixedCompressor::Compress(ofstream &myfile, const char* src,  unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm)
-{
-  compAlgorithm = CompAlgo::UNCOMPRESS;
-  myfile.write(src, srcSize);
-  return srcSize;
-}
-
-
 StreamLinearCompressor::StreamLinearCompressor(Compressor *compressor, float compressionLevel)
 {
-  compBlockCount = 0;
-  curBlock = 0;
-  compBufSize = 0;
-
+  compBufSize = 0;  // remove ?
   compress = compressor;
 
-  if (compressionLevel == 0) compFactor = 1000000;  // no compression
-  else compFactor = 100.00001 / compressionLevel;  // >= 1.00
-
-  nextCompBlock = (int) (++compBlockCount * compFactor) - 1;
+  compFactor = compressionLevel / 100.0;  // >= 1.00
 }
 
 int StreamLinearCompressor::CompressBufferSize()
@@ -372,25 +358,25 @@ int StreamLinearCompressor::CompressBufferSize(unsigned int srcSize)
   return compBufSize;  // return buffer size for the compression algorithm
 }
 
-int StreamLinearCompressor::Compress(ofstream &myfile, const char* src,  unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm)
+int StreamLinearCompressor::Compress(char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf)
 {
-  // Compressed
-  if (curBlock >= nextCompBlock)
-  {
-    int compSize = compress->Compress(compBuf, compBufSize, src, srcSize, compAlgorithm);
-    myfile.write(compBuf, compSize);
-    nextCompBlock = (int) (++compBlockCount * compFactor) - 1;
-    ++curBlock;
-    return compSize;
-  }
+	int delta = (int)((blockNr + 1) * compFactor) - (int)(blockNr * compFactor);
+	int compSize;
 
+	// Algortihm 1
+	if (delta >= 1)
+	{
+	  compSize = compress->Compress(compBuf, compBufSize, src, srcSize, compAlgorithm);
+	  outBuf = compBuf;
+	  return compSize;
+	}
 
-  ++curBlock;
+	// Uncompressed
+	compSize = srcSize;
+	compAlgorithm = CompAlgo::UNCOMPRESS;
+	outBuf = src;
 
-  // Uncompressed
-  compAlgorithm = CompAlgo::UNCOMPRESS;
-  myfile.write(src, srcSize);
-  return srcSize;
+	return compSize;
 }
 
 
@@ -410,24 +396,21 @@ int StreamSingleCompressor::CompressBufferSize(unsigned int srcSize)
   return compBufSize;  // return buffer size for the compression algorithm
 }
 
-int StreamSingleCompressor::Compress(ofstream &myfile, const char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm)
+int StreamSingleCompressor::Compress(char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf)
 {
   int compSize = compress->Compress(compBuf, compBufSize, src, srcSize, compAlgorithm);
-  myfile.write(compBuf, compSize);
+  outBuf = compBuf;
+
   return compSize;
 }
 
+
 StreamCompositeCompressor::StreamCompositeCompressor(Compressor *compressor1, Compressor *compressor2, float compressionLevel)
 {
-  compBlockCount = 0;
-  curBlock = 0;
-
   compress1 = compressor2;
   compress2 = compressor1;
 
-  if (compressionLevel == 0) compFactor = 1000000;  // only algorithm 1
-  else compFactor = 100.00001 / compressionLevel;  // >= 1.00
-  nextCompBlock = (int) (++compBlockCount * compFactor) - 1;
+  compFactor = compressionLevel / 100.0;
 }
 
 int StreamCompositeCompressor::CompressBufferSize()
@@ -442,22 +425,22 @@ int StreamCompositeCompressor::CompressBufferSize(unsigned int srcSize)
   return compBufSize;  // return buffer size for the compression algorithm
 }
 
-int StreamCompositeCompressor::Compress(ofstream &myfile, const char* src,  unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm)
+int StreamCompositeCompressor::Compress(char* src,  unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf)
 {
+  int delta = (int)((blockNr + 1) * compFactor) - (int)(blockNr * compFactor);
   int compSize;
 
   // Algortihm 1
-  if (curBlock >= nextCompBlock)
+  if (delta >= 1)
   {
     compSize = compress1->Compress(compBuf, compBufSize, src, srcSize, compAlgorithm);
-    nextCompBlock = (int) (++compBlockCount * compFactor) - 1;
   }
   else
   {
-   compSize = compress2->Compress(compBuf, compBufSize, src, srcSize, compAlgorithm);
+	compSize = compress2->Compress(compBuf, compBufSize, src, srcSize, compAlgorithm); // Algortihm 2
   }
 
-  myfile.write(compBuf, compSize);
-  ++curBlock;
+  outBuf = compBuf;
+
   return compSize;
 }

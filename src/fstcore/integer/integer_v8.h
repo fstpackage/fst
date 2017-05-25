@@ -40,8 +40,7 @@
 #include <ostream>
 #include <istream>
 
-
-#define BLOCKSIZE_INT 4096  // number of integers in default compression block
+#include <interface/fstdefines.h>
 
 
 void fdsWriteIntVec_v8(std::ofstream &myfile, int* integerVector, unsigned int nrOfRows, unsigned int compression);

@@ -37,12 +37,12 @@
 #define COMPRESSOR_H
 
 #include <compression/compression.h>
+#include <interface/fstdefines.h>
 
 
 #define NR_OF_ALGORITHMS 15
 #define MAX_TARGET_REP_SIZE 8
 #define MAX_SOURCE_REP_SIZE 128
-#define MAX_TARGET_BUFFER 8192  // 16384  / 2
 
 // Compression algorithm types. Used for determining the maximum compression buffer size.
 enum CompAlgoType
@@ -228,28 +228,16 @@ public:
 };
 
 
-
 class StreamCompressor
 {
 public:
-  virtual int Compress(std::ofstream &myfile, const char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm) = 0;
+  virtual int Compress(char* src,  unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf) = 0;
 
   virtual int CompressBufferSize(unsigned int srcSize) = 0;
+
   virtual int CompressBufferSize() = 0;
 
   virtual ~StreamCompressor() {};
-};
-
-
-
-/**
- A null-compressor that just writes to file without compression.
-*/
-class StreamFixedCompressor : StreamCompressor
-{
-public:
-
-  int Compress(std::ofstream &myfile, const char* src,  unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm);
 };
 
 
@@ -261,41 +249,18 @@ public:
 class StreamLinearCompressor : public StreamCompressor
 {
 private:
-
   Compressor* compress;
-  unsigned int compBlockCount;
-  unsigned int nextCompBlock;
-  unsigned int curBlock;
   float compFactor;
   int compBufSize;
 
 public:
-
-/**
-   Constructor for a StreamLinearCompressor
-
-   @param compressor Compressor that is to be used for the compressed blocks. No specific parameters can be set for
-          the compressor.
-   @param compressionLevel Value 0 - 100 indicating the compression level.
-*/
   StreamLinearCompressor(Compressor *compressor, float compressionLevel);
 
-  int CompressBufferSize();
+  int CompressBufferSize() override;
 
-  int CompressBufferSize(unsigned int srcSize);
+  int CompressBufferSize(unsigned int srcSize) override;
 
-  /**
-    Compress src to myfile. Buffer compBuf can be used as a buffer if required.
-    Make sure it is at least CompressBufferSize() long.
-
-    @param myfile ofstream to which you want to write the compressed data.
-    @param src Source data.
-    @param srcSize Size of the source data (in bytes).
-    @param compBuf Buffer to store temporary data.
-    @param compAlgorithm Algorithm that was used for compressing the data.
-  */
-
-  int Compress(std::ofstream &myfile, const char* src,  unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm);
+  int Compress(char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf) override;
 };
 
 
@@ -306,7 +271,6 @@ public:
 class StreamSingleCompressor : public StreamCompressor
 {
 private:
-
   Compressor* compress;
   int compBufSize;
 
@@ -320,9 +284,9 @@ public:
 */
   StreamSingleCompressor(Compressor *compressor);
 
-  int CompressBufferSize();
+  int CompressBufferSize() override;
 
-  int CompressBufferSize(unsigned int srcSize);
+  int CompressBufferSize(unsigned int srcSize) override;
 
   /**
     Compress src to myfile. Buffer compBuf can be used as a buffer if required.
@@ -334,7 +298,7 @@ public:
     @param compBuf Buffer to store temporary data.
     @param compAlgorithm Algorithm that was used for compression.
   */
-  int Compress(std::ofstream &myfile, const char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm);
+  int Compress(char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf) override;
 };
 
 
@@ -348,12 +312,8 @@ public:
 class StreamCompositeCompressor : public StreamCompressor
 {
 private:
-
   Compressor* compress1;
   Compressor* compress2;
-  unsigned int compBlockCount;
-  unsigned int nextCompBlock;
-  unsigned int curBlock;
   float compFactor;
   int compBufSize;
 
@@ -369,9 +329,9 @@ public:
 */
   StreamCompositeCompressor(Compressor *compressor1, Compressor *compressor2, float compressionLevel);
 
-  int CompressBufferSize();
+  int CompressBufferSize() override;
 
-  int CompressBufferSize(unsigned int srcSize);
+  int CompressBufferSize(unsigned int srcSize) override;
 
   /**
     Compress src to myfile. Buffer compBuf can be used as a buffer if required.
@@ -383,7 +343,7 @@ public:
     @param compBuf Buffer to store temporary data.
     @param compAlgorithm Algorithm that was used for compression.
   */
-  int Compress(std::ofstream &myfile, const char* src,  unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm);
+  int Compress(char* src,  unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf) override;
 };
 
 

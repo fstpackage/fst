@@ -36,7 +36,7 @@
       packageStartupMessage("(OpenMP was not detected, using single threaded mode)")
     } else
     {
-      packageStartupMessage("(OpenMP detected)\n")
+      packageStartupMessage("(OpenMP detected, ", getDTthreads(), " threads activated)")
     }
   }
 }

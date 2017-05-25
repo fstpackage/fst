@@ -41,6 +41,7 @@
 #include <fstream>
 
 #include <compression/compression.h>
+#include <interface/fstdefines.h>
 
 // #include <unordered_map>
 // #include <boost/unordered_map.hpp>
@@ -51,6 +52,11 @@
 
 using namespace std;
 
+
+size_t MAX_compressBound(size_t srcSize)
+{
+	return max(ZSTD_compressBound(srcSize), LZ4_COMPRESSBOUND(srcSize));
+}
 
 // The size of outVec is expected to be 2 times nrOfDoubles
 void ShuffleReal(double* inVec, double* outVec, int nrOfDoubles)

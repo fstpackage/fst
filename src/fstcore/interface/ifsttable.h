@@ -95,7 +95,7 @@ class IFstTable
 
   	virtual void SetFactorColumn(IFactorColumn* factorColumn, int colNr) = 0;
 
-  	//virtual void SetColNames() = 0;
+//  	virtual void SetColNames() = 0;
 
   	virtual void SetKeyColumns(int* keyColPos, unsigned int nrOfKeys) = 0;
 };

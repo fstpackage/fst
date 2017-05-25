@@ -54,24 +54,28 @@ using namespace Rcpp;
 
 #define MAX_COMPRESSBOUND_PLUS_META_SIZE 17044
 
-
-inline unsigned long long CompressBlock_v1(StreamCompressor* streamCompressor, ofstream &myfile, char* vecP, char* compBuf, char* blockIndex,
-  int block, unsigned long long blockIndexPos, unsigned int *maxCompSize, int sourceBlockSize)
-{
-  // 1 long file pointer and 1 short algorithmID per block
-  unsigned long long* blockPosition = (unsigned long long*) &blockIndex[COL_META_SIZE + block * 10];
-  unsigned short* blockAlgorithm = (unsigned short*) &blockIndex[COL_META_SIZE + 8 + block * 10];
-  *blockPosition = blockIndexPos;  // starting position
-
-  // Compress block
-  CompAlgo compAlgo;
-  unsigned int compSize = (unsigned int) streamCompressor->Compress(myfile, vecP, sourceBlockSize, compBuf, compAlgo);
-  if (compSize > *maxCompSize) *maxCompSize = compSize;
-  *blockAlgorithm = (int) compAlgo;
-
-  return compSize;  // compressed block length
-}
-
+//
+// inline unsigned long long CompressBlock_v1(StreamCompressor* streamCompressor, ofstream &myfile, char* vecP, char* compBuf, char* blockIndex,
+//   int block, unsigned long long blockIndexPos, unsigned int *maxCompSize, int sourceBlockSize)
+// {
+//   // 1 long file pointer and 1 short algorithmID per block
+//   unsigned long long* blockPosition = (unsigned long long*) &blockIndex[COL_META_SIZE + block * 10];
+//   unsigned short* blockAlgorithm = (unsigned short*) &blockIndex[COL_META_SIZE + 8 + block * 10];
+//   *blockPosition = blockIndexPos;  // starting position
+//
+//   // Compress block
+//   CompAlgo compAlgo;
+//   char* buf;
+//
+//   unsigned int compSize = (unsigned int) streamCompressor->Compress(vecP, sourceBlockSize, compBuf, compAlgo, block, buf);
+//   myfile.write(buf, compSize);
+//
+//   if (compSize > *maxCompSize) *maxCompSize = compSize;
+//   *blockAlgorithm = (int) compAlgo;
+//
+//   return compSize;  // compressed block length
+// }
+//
 
 // Read data compressed with a fixed ratio compressor from a stream
 // Note that repSize is assumed to be a multiple of elementSize

@@ -35,12 +35,10 @@
 // Framework libraries
 #include <blockstreamer/blockstreamer_v2.h>
 #include <compression/compressor.h>
+#include <interface/fstdefines.h>
+
 
 using namespace std;
-
-
-#define BLOCKSIZE_REAL 2048  // number of doubles in default compression block
-
 
 void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned int nrOfRows, unsigned int compression)
 {

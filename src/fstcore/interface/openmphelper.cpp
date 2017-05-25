@@ -33,17 +33,28 @@ You can contact the author at :
 */
 
 
-#ifndef OPEN_MP_HELPER_H
-#define OPEN_MP_HELPER_H
-
-
 #ifdef _OPENMP
   #include <omp.h>
 #endif
 
+#include "openmphelper.h"
 
-int getDTthreads();
 
-bool hasOpenMP();
+int getDTthreads()
+{
+  #ifdef _OPENMP
+    return omp_get_max_threads();
+  #else
+    return 1;
+  #endif
+}
 
-#endif  // OPEN_MP_HELPER_H
+
+bool hasOpenMP()
+{
+  #ifdef _OPENMP
+    return true;
+  #else
+    return false;
+  #endif
+}

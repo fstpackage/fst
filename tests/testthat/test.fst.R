@@ -26,12 +26,62 @@ dataTable <- data.frame(Xint=1:nrOfRows, Ylog=sample(c(TRUE, FALSE, NA), nrOfRow
   CharLong = CharVecLong(nrOfRows),
   stringsAsFactors = FALSE)
 
+
 # col = "Qchar"
 # from = 1L
-# compress = 0L
+# compress = 60L
 # to = totLength = nrOfRows
 # selColumns = NULL
 #
+# require(testthat)
+# require(microbenchmark)
+#
+# Bench <- function(dataSet)
+# {
+#   print(microbenchmark(
+#     {
+#       write.fst(dataSet, "FactorStore/data0.fst")  # no compression
+#     }, times = 1))
+#
+#   print(microbenchmark(
+#     {
+#       write.fst(dataSet, "FactorStore/data1.fst", 1L)  # use compression
+#     }, times = 1))
+#
+#   print(microbenchmark(
+#     {
+#       write.fst(dataSet, "FactorStore/data30.fst", 30L)  # use compression
+#     }, times = 1))
+#
+#   print(microbenchmark(
+#     {
+#       write.fst(dataSet, "FactorStore/data70.fst", 70L)  # use compression
+#     }, times = 1))
+#
+#   print(microbenchmark(
+#     {
+#       write.fst(dataSet, "FactorStore/data100.fst", 100L)  # use compression
+#     }, times = 1))
+# }
+#
+# dt <- data.frame(Integer = 1:100000000)
+# object.size(dt) * 1e-9
+# Bench(dt)
+#
+# dt <- data.frame(Logical = sample(c(TRUE, FALSE, NA), 100000000, replace = TRUE))
+# object.size(dt) * 1e-9
+# Bench(dt)
+#
+#
+# dt <- data.frame(Double = runif(100000000, 0.0, 1000.0))
+# object.size(dt) * 1e-9
+# Bench(dt)
+#
+# rm(dt)
+
+# read.fst("FactorStore/data1.fst")
+#
+# #
 # dt <- dataTable[1:totLength, col, drop = FALSE]
 # fstwrite(dt, "FactorStore/data1.fst", compress)  # use compression
 #
@@ -48,9 +98,17 @@ dataTable <- data.frame(Xint=1:nrOfRows, Ylog=sample(c(TRUE, FALSE, NA), nrOfRow
 
 # fst:::fstRead("FactorStore/data1.fst", selColumns, 1L, to)
 
+col = "Xint"
+from = 1L
+to = 30L
+selColumns = NULL
+totLength = 30L
+compress = 30L
+
 TestWriteRead <- function(col, from = 1L, to = nrOfRows, selColumns = NULL, compress = 0L, totLength = nrOfRows)
 {
   dt <- dataTable[1:totLength, col, drop = FALSE]
+
   fstwrite(dt, "FactorStore/data1.fst", compress)  # use compression
 
   # Read full dataset
@@ -86,7 +144,6 @@ TestWriteRead <- function(col, from = 1L, to = nrOfRows, selColumns = NULL, comp
   expect_equal(subDT, data, info = message)
 }
 
-
 colNames <- colnames(dataTable)
 
 test_that("Single uncompressed vectors",
@@ -101,6 +158,14 @@ test_that("Small uncompressed vectors",
 })
 
 
+#
+# dt <- dataTable[, "Qchar", drop = FALSE]
+# fstwrite(dt, "FactorStore/char_uncomp_10000.fst")
+# fstwrite(dt, "FactorStore/data1.fst", compress)  # use compression
+#
+# read.fst("E:\\Repositories\\BitBucket\\fst\\vs\\testData\\char_comp_10000.fst")
+
+
 test_that("Single weakly compressed vectors",
 {
   sapply(colNames, function(x){TestWriteRead(x, compress = 30L)})
@@ -113,15 +178,21 @@ test_that("Single small weakly compressed vectors",
 })
 
 
+test_that("Single medium sized weakly compressed vectors",
+{
+  sapply(colNames, function(x){TestWriteRead(x, to = 8193L, totLength = 8193L, compress = 30L)})
+})
+
+
 test_that("Single moderate compressed vectors",
 {
-  sapply(colNames, function(x){TestWriteRead(x, compress = 60L)})
+  # sapply(colNames, function(x){TestWriteRead(x, compress = 60L)})
 })
 
 
 test_that("Single small moderate compressed vectors",
 {
-  sapply(colNames, function(x){TestWriteRead(x, to = 30L, totLength = 30L, compress = 60L)})
+  # sapply(colNames, function(x){TestWriteRead(x, to = 30L, totLength = 30L, compress = 60L)})
 })
 
 
@@ -141,19 +212,19 @@ BlockTestSingleType <- function(type)
   # Single first block
   BlockTests(type, 0, 0, 0L )  # uncompressed
   BlockTests(type, 0, 0, 40L)  # algorithm 1
-  BlockTests(type, 0, 0, 80L)  # algorithm 2
+  # BlockTests(type, 0, 0, 80L)  # algorithm 2
 
   # Single middle block
   BlockTests(type, 1, 1, 0L )  # uncompressed
   BlockTests(type, 1, 1, 40L)  # algorithm 1
-  BlockTests(type, 1, 1, 80L)  # algorithm 2
+  # BlockTests(type, 1, 1, 80L)  # algorithm 2
 
   lastBlock = as.integer((nrOfRows - 1) / blockSize)
 
   # Single last block
   BlockTests(type, lastBlock, lastBlock, 0L )  # uncompressed
   BlockTests(type, lastBlock, lastBlock, 40L)  # algorithm 1
-  BlockTests(type, lastBlock, lastBlock, 80L)  # algorithm 2
+  # BlockTests(type, lastBlock, lastBlock, 80L)  # algorithm 2
 
   # Multiple blocks
   BlockTests(type, 0, 1, 0L)  # uncompressed
@@ -164,9 +235,9 @@ BlockTestSingleType <- function(type)
   BlockTests(type, lastBlock - 1, lastBlock, 40L)  # algorithm 1
   BlockTests(type, 0, lastBlock, 40L)  # algorithm 1
 
-  BlockTests(type, 0, 1, 80L)  # algorithm 2
-  BlockTests(type, lastBlock - 1, lastBlock, 80L)  # algorithm 2
-  BlockTests(type, 0, lastBlock, 80L)  # algorithm 2
+  # BlockTests(type, 0, 1, 80L)  # algorithm 2
+  # BlockTests(type, lastBlock - 1, lastBlock, 80L)  # algorithm 2
+  # BlockTests(type, 0, lastBlock, 80L)  # algorithm 2
 }
 
 
