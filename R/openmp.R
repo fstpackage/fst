@@ -9,7 +9,9 @@ getFstThreads <- function()
 }
 
 
-#' Set the number of threads to use in OpenMP parallel calculations in \code{fst}
+#' Set the number of threads to use for parallel calculations in \code{fst}
+#'
+#' @param nrOfThreads Number of threads to use for parallel calculations
 #'
 #' @return The previous number of threads set.
 #' @export

@@ -2,13 +2,16 @@
 % Please edit documentation in R/openmp.R
 \name{setFstThreads}
 \alias{setFstThreads}
-\title{Set the number of threads to use in OpenMP parallel calculations in \code{fst}}
+\title{Set the number of threads to use for parallel calculations in \code{fst}}
 \usage{
 setFstThreads(nrOfThreads)
+}
+\arguments{
+\item{nrOfThreads}{Number of threads to use for parallel calculations}
 }
 \value{
 The previous number of threads set.
 }
 \description{
-Set the number of threads to use in OpenMP parallel calculations in \code{fst}
+Set the number of threads to use for parallel calculations in \code{fst}
 }
