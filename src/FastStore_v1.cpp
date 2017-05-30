@@ -51,8 +51,6 @@
 using namespace std;
 using namespace Rcpp;
 
-#define BLOCKSIZE 16384  // number of bytes in default compression block
-
 
 // Scans further than necessary for safety!!!
 List fstMeta_v1(String fileName)

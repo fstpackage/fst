@@ -49,18 +49,17 @@ You can contact the author at :
 using namespace std;
 using namespace Rcpp;
 
-#define COL_META_SIZE 8
-#define PREF_BLOCK_SIZE 16384
+#define COL_META_SIZE_V1 8
+#define PREF_BLOCK_SIZE_V1 16384
 
-#define MAX_COMPRESSBOUND_PLUS_META_SIZE 17044
 
 //
 // inline unsigned long long CompressBlock_v1(StreamCompressor* streamCompressor, ofstream &myfile, char* vecP, char* compBuf, char* blockIndex,
 //   int block, unsigned long long blockIndexPos, unsigned int *maxCompSize, int sourceBlockSize)
 // {
 //   // 1 long file pointer and 1 short algorithmID per block
-//   unsigned long long* blockPosition = (unsigned long long*) &blockIndex[COL_META_SIZE + block * 10];
-//   unsigned short* blockAlgorithm = (unsigned short*) &blockIndex[COL_META_SIZE + 8 + block * 10];
+//   unsigned long long* blockPosition = (unsigned long long*) &blockIndex[COL_META_SIZE_V1 + block * 10];
+//   unsigned short* blockAlgorithm = (unsigned short*) &blockIndex[COL_META_SIZE_V1 + 8 + block * 10];
 //   *blockPosition = blockIndexPos;  // starting position
 //
 //   // Compress block
@@ -101,7 +100,7 @@ inline SEXP fdsReadFixedCompStream_v1(ifstream &myfile, char* outVec, unsigned l
 
   if (startRep > 0)
   {
-    myfile.seekg(blockPos + COL_META_SIZE + startRep * targetRepSize);  // move to startRep
+    myfile.seekg(blockPos + COL_META_SIZE_V1 + startRep * targetRepSize);  // move to startRep
   }
 
   unsigned int startRowRep = startRep * repSizeElement;
@@ -146,14 +145,14 @@ inline SEXP fdsReadFixedCompStream_v1(ifstream &myfile, char* outVec, unsigned l
   // Process in large blocks
 
   // Define prefered block sizes
-  unsigned int nrOfRepsPerBlock = (PREF_BLOCK_SIZE / repSize);
+  unsigned int nrOfRepsPerBlock = (PREF_BLOCK_SIZE_V1 / repSize);
   unsigned int nrOfReps = 1 + endRep - startRep;  // remaining reps to read
   unsigned int nrOfFullBlocks = (nrOfReps - 1) / nrOfRepsPerBlock;  // excluding last (partial) block
 
   unsigned int blockSize = nrOfRepsPerBlock * repSize;  // block size in bytes
   unsigned int targetBlockSize = nrOfRepsPerBlock * targetRepSize;  // block size in bytes
 
-  char repBuf[MAX_TARGET_BUFFER];  // maximum size read buffer for PREF_BLOCK_SIZE source
+  char repBuf[MAX_TARGET_BUFFER];  // maximum size read buffer for PREF_BLOCK_SIZE_V1 source
 
 
   // Decompress full blocks
@@ -204,7 +203,7 @@ SEXP fdsReadColumn_v1(ifstream &myfile, char* outVec, unsigned long long blockPo
   // Read header
   unsigned int compress[2];
   myfile.seekg(blockPos);
-  myfile.read((char*) compress, COL_META_SIZE);
+  myfile.read((char*) compress, COL_META_SIZE_V1);
 
   // Data is uncompressed or uses a fixed-ratio compressor (logical)
   if (compress[0] == 0)
@@ -212,7 +211,7 @@ SEXP fdsReadColumn_v1(ifstream &myfile, char* outVec, unsigned long long blockPo
     if (compress[1] == 0)  // uncompressed data
     {
       // Jump to startRow position
-      if (startRow > 0) myfile.seekg(blockPos + elementSize * startRow + COL_META_SIZE);
+      if (startRow > 0) myfile.seekg(blockPos + elementSize * startRow + COL_META_SIZE_V1);
 
       // Read data
       myfile.read((char*) outVec, elementSize * length);
@@ -242,7 +241,7 @@ SEXP fdsReadColumn_v1(ifstream &myfile, char* outVec, unsigned long long blockPo
 
   if (startBlock > 0)
   {
-    myfile.seekg(blockPos + COL_META_SIZE + 10 * startBlock);  // move to startBlock meta info
+    myfile.seekg(blockPos + COL_META_SIZE_V1 + 10 * startBlock);  // move to startBlock meta info
   }
 
   // Read block index (position pointer and algorithm for each block)

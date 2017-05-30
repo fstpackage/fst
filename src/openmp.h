@@ -41,12 +41,18 @@
 
 
 // [[Rcpp::export]]
-int getDTthreads();
+SEXP getNrOfActiveThreads();
 
-void avoid_openmp_hang_within_fork();
+
+// [[Rcpp::export]]
+int setNrOfActiveThreads(SEXP nrOfThreads);
+
 
 // [[Rcpp::export]]
 SEXP hasOpenMP();
+
+
+int avoid_openmp_hang_within_fork();
 
 
 #endif  // OPEN_MP_H

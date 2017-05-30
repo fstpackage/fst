@@ -13,8 +13,12 @@ fstRetrieve <- function(fileName, columnSelection, startRow, endRow) {
     .Call('fst_fstRetrieve', PACKAGE = 'fst', fileName, columnSelection, startRow, endRow)
 }
 
-getDTthreads <- function() {
-    .Call('fst_getDTthreads', PACKAGE = 'fst')
+getNrOfActiveThreads <- function() {
+    .Call('fst_getNrOfActiveThreads', PACKAGE = 'fst')
+}
+
+setNrOfActiveThreads <- function(nrOfThreads) {
+    .Call('fst_setNrOfActiveThreads', PACKAGE = 'fst', nrOfThreads)
 }
 
 hasOpenMP <- function() {

@@ -123,7 +123,7 @@ private:
 public:
 
   /**
-   Constructor for a single algorithm compressor.
+   Constructor for a fixed ratio compressor.
 
    @param algo Compression algorithm.
    */

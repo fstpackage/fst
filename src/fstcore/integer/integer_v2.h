@@ -41,8 +41,6 @@
 
 #include <Rcpp.h>  // Rcpp header
 
-#define BLOCKSIZE_INT 4096  // number of integers in default compression block
-
 SEXP fdsReadIntVec_v2(std::ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
 
 #endif // INTEGER_V2_H

@@ -42,8 +42,10 @@ You can contact the author at :
 #endif
 
 
-int getDTthreads();
+int GetFstThreads();
 
-bool hasOpenMP();
+int SetFstThreads(int nrOfThreads);
+
+bool HasOpenMP();
 
 #endif  // OPEN_MP_HELPER_H

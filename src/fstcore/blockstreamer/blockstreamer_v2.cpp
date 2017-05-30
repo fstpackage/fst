@@ -46,6 +46,7 @@ You can contact the author at :
 #include <compression/compression.h>
 #include <compression/compressor.h>
 #include <interface/fstdefines.h>
+#include <interface/openmphelper.h>
 
 #include "blockstreamer_v2.h"
 
@@ -193,45 +194,33 @@ void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRow
   // Compress in blocks
   --nrOfBlocks;  // Do last block later
 
+  unsigned int maxCompressionSize = 0;
+  unsigned long long* blockPosition = reinterpret_cast<unsigned long long*>(&blockIndex[COL_META_SIZE]);
+
 //////////////////////////////////////////////////////////
 // Parallel region starts here
 //////////////////////////////////////////////////////////
 
-  unsigned int maxCompressionSize = 0;
-  unsigned long long* blockPosition = reinterpret_cast<unsigned long long*>(&blockIndex[COL_META_SIZE]);
+  int nrOfThreads = GetFstThreads();
 
-// #pragma omp parallel for ordered schedule(static, 1) reduction(max:maxCompressionSize) num_threads(8) shared(blockIndexPos)
+#pragma omp parallel for ordered schedule(static, 1) num_threads(nrOfThreads)
   for (int block = 0; block < nrOfBlocks; ++block)
   {
-//    unsigned long long* blockPosition = reinterpret_cast<unsigned long long*>(&blockIndex[COL_META_SIZE + block * 8]);
     CompAlgo compAlgo;
     char compBuf[MAX_COMPRESSBOUND];
-	char* buf = nullptr;
+    char* buf = nullptr;
 
-// #pragma omp critical
-//     printf("Thread %d is running block %d\n", omp_get_thread_num(), block);
-
-  unsigned int compSize = static_cast<unsigned int>(streamCompressor->Compress(&colVec[block * blockSize], blockSize, compBuf, compAlgo, block, buf));
-
-  // #pragma omp ordered
-  {
+    unsigned int compSize = static_cast<unsigned int>(streamCompressor->Compress(&colVec[block * blockSize], blockSize, compBuf, compAlgo, block, buf));
     unsigned int blockAlgorithm = static_cast<unsigned int>(compAlgo);
 
-    if (compSize > maxCompressionSize) maxCompressionSize = compSize;
-
-	// ordered
-  //    printf("Thread %d is running ordered section block %d\n", omp_get_thread_num(), block);
-      blockPosition[block] = blockIndexPos | (static_cast<unsigned long long>(blockAlgorithm) << 48); // starting position and algorithm in 2 high bytes
-
+#pragma omp ordered
+  	{
+  		if (compSize > maxCompressionSize) maxCompressionSize = compSize;
+  		blockPosition[block] = blockIndexPos | (static_cast<unsigned long long>(blockAlgorithm) << 48); // starting position and algorithm in 2 high bytes
   		blockIndexPos += compSize;  // compressed block length
-
-  //printf("Thread %d blockIndexPos: %d compSize: %d\n", omp_get_thread_num(), blockIndexPos, compSize);
-
-	  myfile.write(buf, compSize);
-
-      //streamCompressor->WriteBlock(myfile, &colVec[block * blockSize], compBuf);
-  	}
-  }
+  		myfile.write(buf, compSize);
+    	}
+    }
 
 //////////////////////////////////////////////////////////
 // Parallel region ends here
@@ -240,18 +229,18 @@ void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRow
   // 1 long file pointer and 1 short algorithmID per block
 //  unsigned long long* blockPosition = reinterpret_cast<unsigned long long*>(&blockIndex[COL_META_SIZE + nrOfBlocks * 8]);
   {
-      char compBuf[MAX_COMPRESSBOUND];
-	  char* buf = nullptr;
+    char compBuf[MAX_COMPRESSBOUND];
+    char* buf = nullptr;
 
-      CompAlgo compAlgo;
+    CompAlgo compAlgo;
 
-      unsigned int compSize = static_cast<unsigned int>(streamCompressor->Compress(&colVec[nrOfBlocks * blockSize], remain * elementSize, compBuf, compAlgo, nrOfBlocks, buf));
+    unsigned int compSize = static_cast<unsigned int>(streamCompressor->Compress(&colVec[nrOfBlocks * blockSize], remain * elementSize, compBuf, compAlgo, nrOfBlocks, buf));
 	  myfile.write(buf, compSize);
 
-      if (compSize > maxCompressionSize) maxCompressionSize = compSize;
-      unsigned int blockAlgorithm = static_cast<unsigned int>(compAlgo);
-      blockPosition[nrOfBlocks] = blockIndexPos | (static_cast<unsigned long long>(blockAlgorithm) << 48); // starting position and algorithm in 2 high bytes
-      blockIndexPos += compSize;  // compressed block length
+    if (compSize > maxCompressionSize) maxCompressionSize = compSize;
+    unsigned int blockAlgorithm = static_cast<unsigned int>(compAlgo);
+    blockPosition[nrOfBlocks] = blockIndexPos | (static_cast<unsigned long long>(blockAlgorithm) << 48); // starting position and algorithm in 2 high bytes
+    blockIndexPos += compSize;  // compressed block length
   }
 
   // Might be usefull in future implementation
@@ -568,7 +557,7 @@ void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
       outOffset += blockSize;  // update position in output vector
     }
   }
-  else  // outVec pointer is nog 8-byte aligned
+  else  // outVec pointer is not 8-byte aligned
   {
     // Process middle blocks (if any)
     for (int blockCount = 1; blockCount < maxBlock; ++blockCount)

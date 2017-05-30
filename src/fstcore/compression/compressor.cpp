@@ -303,39 +303,67 @@ int DualCompressor::CompressBufferSize(int maxBlockSize)
 
 int DualCompressor::Compress(char* dst, unsigned int dstCapacity, const char* src,  unsigned int srcSize, CompAlgo &compAlgorithm)
 {
-  a1Count += (a1Ratio / 100.0);  // check for use of algorith 1
+	int lastCountLocal;
+	float a1CountLocal;
+	int a1RatioLocal;
+	int lastSize1Local;
+	int lastSize2Local;
 
-  if (a1Count > lastCount)
+	#pragma omp critical
+	{
+		lastCountLocal = lastCount;
+		a1CountLocal = a1Count;
+		a1RatioLocal = a1Ratio;
+		lastSize1Local = lastSize1;
+		lastSize2Local = lastSize2;
+	}
+
+  a1CountLocal += (a1RatioLocal / 100.0);  // check for use of algorithm 1
+
+  if (a1CountLocal > lastCountLocal)
   {
-    ++lastCount;
+    ++lastCountLocal;
     compAlgorithm = algo1;
-    lastSize1 = a1(dst, dstCapacity, src,  srcSize, compLevel1);
+    lastSize1Local = a1(dst, dstCapacity, src,  srcSize, compLevel1);
 
-    if (lastSize2 > lastSize1)
+    if (lastSize2Local > lastSize1Local)
     {
-      a1Ratio = min(95, a1Ratio + 5);
+      a1RatioLocal = min(95, a1RatioLocal + 5);
     }
     else
     {
-      a1Ratio = max(5, a1Ratio - 5);
+      a1RatioLocal = max(5, a1RatioLocal - 5);
     }
 
-    return lastSize1;
+	#pragma omp critical
+	{
+		lastCount = lastCountLocal;
+		a1Ratio = a1RatioLocal;
+		lastSize1 = lastSize1Local;
+	}
+
+    return lastSize1Local;
   }
 
   compAlgorithm = algo2;
-  lastSize2 = a2(dst, dstCapacity, src,  srcSize, compLevel2);
+  lastSize2Local = a2(dst, dstCapacity, src,  srcSize, compLevel2);
 
-  if (lastSize2 > lastSize1)
+  if (lastSize2Local > lastSize1Local)
   {
-    a1Ratio = min(95, a1Ratio + 5);
+    a1RatioLocal = min(95, a1RatioLocal + 5);
   }
   else
   {
-    a1Ratio = max(5, a1Ratio - 5);
+    a1RatioLocal = max(5, a1RatioLocal - 5);
   }
 
-  return lastSize2;
+	#pragma omp critical
+	{
+		a1Ratio = a1RatioLocal;
+		lastSize2 = lastSize2Local;
+	}
+
+  return lastSize2Local;
 }
 
 

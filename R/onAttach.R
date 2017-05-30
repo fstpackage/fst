@@ -36,7 +36,9 @@
       packageStartupMessage("(OpenMP was not detected, using single threaded mode)")
     } else
     {
-      packageStartupMessage("(OpenMP detected, ", getDTthreads(), " threads activated)")
+      # Use only physical cores to maximize performance (no hyperthreading)
+      setFstThreads(parallel::detectCores(logical = FALSE))
+      packageStartupMessage("(OpenMP detected, using ", getFstThreads(), " cores)")
     }
   }
 }

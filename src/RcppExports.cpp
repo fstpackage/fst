@@ -43,13 +43,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// getDTthreads
-int getDTthreads();
-RcppExport SEXP fst_getDTthreads() {
+// getNrOfActiveThreads
+SEXP getNrOfActiveThreads();
+RcppExport SEXP fst_getNrOfActiveThreads() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(getDTthreads());
+    rcpp_result_gen = Rcpp::wrap(getNrOfActiveThreads());
+    return rcpp_result_gen;
+END_RCPP
+}
+// setNrOfActiveThreads
+int setNrOfActiveThreads(SEXP nrOfThreads);
+RcppExport SEXP fst_setNrOfActiveThreads(SEXP nrOfThreadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type nrOfThreads(nrOfThreadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(setNrOfActiveThreads(nrOfThreads));
     return rcpp_result_gen;
 END_RCPP
 }

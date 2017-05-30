@@ -32,6 +32,7 @@ You can contact the author at :
 - fst source repository : https://github.com/fstPackage/fst
 */
 
+#include <algorithm>
 
 #ifdef _OPENMP
   #include <omp.h>
@@ -39,18 +40,26 @@ You can contact the author at :
 
 #include "openmphelper.h"
 
+static int FstThreads = 0;
 
-int getDTthreads()
+int GetFstThreads()
 {
   #ifdef _OPENMP
-    return omp_get_max_threads();
+	int ans = FstThreads == 0 ? omp_get_max_threads() : std::min(FstThreads, omp_get_max_threads());
+	return std::max(1, ans);
   #else
     return 1;
   #endif
 }
 
+int SetFstThreads(int nrOfThreads)
+{
+	int oldNrOfThreads = GetFstThreads();
+	FstThreads = nrOfThreads;
+	return oldNrOfThreads;
+}
 
-bool hasOpenMP()
+bool HasOpenMP()
 {
   #ifdef _OPENMP
     return true;
