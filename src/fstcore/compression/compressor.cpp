@@ -386,7 +386,7 @@ int StreamLinearCompressor::CompressBufferSize(unsigned int srcSize)
   return compBufSize;  // return buffer size for the compression algorithm
 }
 
-int StreamLinearCompressor::Compress(char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf)
+int StreamLinearCompressor::Compress(char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr)
 {
 	int delta = (int)((blockNr + 1) * compFactor) - (int)(blockNr * compFactor);
 	int compSize;
@@ -395,14 +395,13 @@ int StreamLinearCompressor::Compress(char* src, unsigned int srcSize, char* comp
 	if (delta >= 1)
 	{
 	  compSize = compress->Compress(compBuf, compBufSize, src, srcSize, compAlgorithm);
-	  outBuf = compBuf;
 	  return compSize;
 	}
 
 	// Uncompressed
 	compSize = srcSize;
 	compAlgorithm = CompAlgo::UNCOMPRESS;
-	outBuf = src;
+	memcpy(compBuf, src, srcSize);
 
 	return compSize;
 }
@@ -424,10 +423,9 @@ int StreamSingleCompressor::CompressBufferSize(unsigned int srcSize)
   return compBufSize;  // return buffer size for the compression algorithm
 }
 
-int StreamSingleCompressor::Compress(char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf)
+int StreamSingleCompressor::Compress(char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr)
 {
   int compSize = compress->Compress(compBuf, compBufSize, src, srcSize, compAlgorithm);
-  outBuf = compBuf;
 
   return compSize;
 }
@@ -453,7 +451,7 @@ int StreamCompositeCompressor::CompressBufferSize(unsigned int srcSize)
   return compBufSize;  // return buffer size for the compression algorithm
 }
 
-int StreamCompositeCompressor::Compress(char* src,  unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf)
+int StreamCompositeCompressor::Compress(char* src,  unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr)
 {
   int delta = (int)((blockNr + 1) * compFactor) - (int)(blockNr * compFactor);
   int compSize;
@@ -467,8 +465,6 @@ int StreamCompositeCompressor::Compress(char* src,  unsigned int srcSize, char* 
   {
 	compSize = compress2->Compress(compBuf, compBufSize, src, srcSize, compAlgorithm); // Algortihm 2
   }
-
-  outBuf = compBuf;
 
   return compSize;
 }

@@ -37,8 +37,8 @@
     } else
     {
       # Use only physical cores to maximize performance (no hyperthreading)
-      setFstThreads(parallel::detectCores(logical = FALSE))
-      packageStartupMessage("(OpenMP detected, using ", getFstThreads(), " cores)")
+      set_fst_threads(parallel::detectCores(logical = FALSE))
+      packageStartupMessage("(OpenMP detected, using ", get_fst_threads(), " cores)")
     }
   }
 }

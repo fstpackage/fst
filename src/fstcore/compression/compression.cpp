@@ -1203,7 +1203,7 @@ unsigned int LZ4_C_SHUF8(char* dst, unsigned int dstCapacity, const char* src,  
   double shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_8];
 
   ShuffleReal((double*) src, shuffleBuf, doubleSize);
-  return LZ4_compress_fast((char*) shuffleBuf, dst, srcSize, dstCapacity, 100 - compressionLevel);  // large acceleration
+  return LZ4_compress_fast(reinterpret_cast<char*>(shuffleBuf), dst, srcSize, dstCapacity, 100 - compressionLevel);  // large acceleration
 }
 
 unsigned int LZ4_D_SHUF8(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize)

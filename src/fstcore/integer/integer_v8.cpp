@@ -36,7 +36,6 @@
 #include <blockstreamer/blockstreamer_v2.h>
 
 // External libraries
-#include <compression/compression.h>
 #include <compression/compressor.h>
 
 using namespace std;
@@ -48,7 +47,7 @@ void fdsWriteIntVec_v8(ofstream &myfile, int* integerVector, unsigned int nrOfRo
 
   if (compression == 0)
   {
-    return fdsStreamUncompressed_v2(myfile, (char*) integerVector, nrOfRows, 4, BLOCKSIZE_INT, nullptr);
+    return fdsStreamUncompressed_v2(myfile, reinterpret_cast<char*>(integerVector), nrOfRows, 4, BLOCKSIZE_INT, nullptr);
   }
 
   if (compression <= 50)  // low compression: linear mix of uncompressed and LZ4_SHUF
@@ -58,7 +57,7 @@ void fdsWriteIntVec_v8(ofstream &myfile, int* integerVector, unsigned int nrOfRo
     StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, 2 * compression);
 
     streamCompressor->CompressBufferSize(blockSize);
-    fdsStreamcompressed_v2(myfile, (char*) integerVector, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
+    fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(integerVector), nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
 
     delete compress1;
     delete streamCompressor;
@@ -69,7 +68,7 @@ void fdsWriteIntVec_v8(ofstream &myfile, int* integerVector, unsigned int nrOfRo
   Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD_SHUF4, 0);
   StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
   streamCompressor->CompressBufferSize(blockSize);
-  fdsStreamcompressed_v2(myfile, (char*) integerVector, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
+  fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(integerVector), nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
 
   delete compress1;
   delete compress2;
@@ -81,5 +80,5 @@ void fdsWriteIntVec_v8(ofstream &myfile, int* integerVector, unsigned int nrOfRo
 
 void fdsReadIntVec_v8(istream &myfile, int* integerVec, unsigned long long blockPos, unsigned int startRow, unsigned int length, unsigned int size)
 {
-  return fdsReadColumn_v2(myfile, (char*) integerVec, blockPos, startRow, length, size, 4);
+  return fdsReadColumn_v2(myfile, reinterpret_cast<char*>(integerVec), blockPos, startRow, length, size, 4);
 }

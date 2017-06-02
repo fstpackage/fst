@@ -35,13 +35,13 @@ test_that("Get number of threads",
 
   if (osName == "Windows" || osName == "Linux")
   {
-    nrOfThreads <- getFstThreads()
+    nrOfThreads <- get_fst_threads()
     expect_gt(nrOfThreads, 1)
 
-    prevThreads <- setFstThreads(2)  # Set number of OpenMP threads
+    prevThreads <- set_fst_threads(2)  # Set number of OpenMP threads
     expect_equal(nrOfThreads, prevThreads)
 
-    nrOfThreads <- getFstThreads()
+    nrOfThreads <- get_fst_threads()
     expect_equal(nrOfThreads, 2)
   }
 })

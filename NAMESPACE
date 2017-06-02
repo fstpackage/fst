@@ -2,9 +2,9 @@
 
 S3method(print,fst.metadata)
 export(fst.metadata)
-export(getFstThreads)
+export(get_fst_threads)
 export(read.fst)
-export(setFstThreads)
+export(set_fst_threads)
 export(write.fst)
 import(data.table)
 importFrom(Rcpp,sourceCpp)

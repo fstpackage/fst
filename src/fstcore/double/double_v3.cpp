@@ -48,9 +48,6 @@
 using namespace std;
 using namespace Rcpp;
 
-#define BLOCKSIZE_REAL 2048  // number of doubles in default compression block
-
-
 SEXP fdsReadRealVec_v3(ifstream &myfile, SEXP &realVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size)
 {
   char* values = (char*) REAL(realVec);  // output vector

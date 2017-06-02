@@ -36,6 +36,7 @@ You can contact the author at :
 #include <fstream>
 #include <cstring>
 #include <iostream>
+#include <algorithm>
 
 // Change this to accomadate non-openmp systems!
 #ifdef _OPENMP
@@ -165,6 +166,8 @@ void fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLengt
 }
 
 
+#define BATCH_SIZE 50
+
 // Method for writing column data of any type to a stream.
 void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRows, int elementSize,
   StreamCompressor* streamCompressor, int blockSizeElems)
@@ -201,47 +204,101 @@ void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRow
 // Parallel region starts here
 //////////////////////////////////////////////////////////
 
-  int nrOfThreads = GetFstThreads();
+  // * total number of blocks: nrOfBlocks + 1
+  // * last block might be smaller than blockSize
 
-#pragma omp parallel for ordered schedule(static, 1) num_threads(nrOfThreads)
-  for (int block = 0; block < nrOfBlocks; ++block)
+  int nrOfThreads = min(GetFstThreads(), nrOfBlocks + 1);
+  int batchSize = min(BATCH_SIZE, nrOfBlocks / nrOfThreads);  // keep thread buffer small
+  batchSize = max(1, batchSize);
+  char* threadBuffer = new char[nrOfThreads * MAX_COMPRESSBOUND * batchSize];
+  int nrOfBatches = nrOfBlocks / batchSize;  // number of complete batches with complete blocks
+
+  if (nrOfBlocks > 0)
   {
-    CompAlgo compAlgo;
-    char compBuf[MAX_COMPRESSBOUND];
-    char* buf = nullptr;
+	  batchSize = max(batchSize, 1); // at least 1 block per batch
 
-    unsigned int compSize = static_cast<unsigned int>(streamCompressor->Compress(&colVec[block * blockSize], blockSize, compBuf, compAlgo, block, buf));
-    unsigned int blockAlgorithm = static_cast<unsigned int>(compAlgo);
+	  // Parallel region processes batches with batchSize complete blocks per batch
+
+#pragma omp parallel num_threads(nrOfThreads)
+	  {
+#pragma omp for ordered schedule(static, 1)
+		  for (int batch = 0; batch < nrOfBatches; batch++)
+		  {
+			  unsigned int compSize[BATCH_SIZE];
+			  unsigned int blockAlgorithm[BATCH_SIZE];
+			  int threadNr = omp_get_thread_num();  // use memory buffer specific for this thread
+			  unsigned int totSize = 0;
+			  unsigned int localMax = 0;
+
+			  for (int offset = 0; offset < batchSize; offset++)
+			  {
+				  int block = batch * batchSize + offset;
+				  CompAlgo compAlgo;
+				  char* compBuf = &threadBuffer[threadNr * MAX_COMPRESSBOUND * batchSize + totSize];
+				  compSize[offset] = static_cast<unsigned int>(streamCompressor->Compress(&colVec[block * blockSize], blockSize, compBuf, compAlgo, block));
+				  totSize += compSize[offset];
+				  blockAlgorithm[offset] = static_cast<unsigned int>(compAlgo);
+				  if (compSize[offset] > localMax) localMax = compSize[offset];
+			  }
+
 
 #pragma omp ordered
-  	{
-  		if (compSize > maxCompressionSize) maxCompressionSize = compSize;
-  		blockPosition[block] = blockIndexPos | (static_cast<unsigned long long>(blockAlgorithm) << 48); // starting position and algorithm in 2 high bytes
-  		blockIndexPos += compSize;  // compressed block length
-  		myfile.write(buf, compSize);
-    	}
-    }
+			  {
+				  for (int offset = 0; offset < batchSize; offset++)
+				  {
+					  int block = batch * batchSize + offset;
+					  blockPosition[block] = blockIndexPos | (static_cast<unsigned long long>(blockAlgorithm[offset]) << 48); // starting position and algorithm in 2 high bytes
+					  blockIndexPos += compSize[offset];  // compressed block length
+				  }
 
-//////////////////////////////////////////////////////////
-// Parallel region ends here
-//////////////////////////////////////////////////////////
+				  char* compBuf = &threadBuffer[threadNr * MAX_COMPRESSBOUND * batchSize];
+				  if (localMax > maxCompressionSize) maxCompressionSize = localMax;
+				  myfile.write(compBuf, totSize);
+			  }
+		  }
+	  }
+  }
+
+  //////////////////////////////////////////////////////////
+  // Parallel region ends here
+  //////////////////////////////////////////////////////////
 
   // 1 long file pointer and 1 short algorithmID per block
-//  unsigned long long* blockPosition = reinterpret_cast<unsigned long long*>(&blockIndex[COL_META_SIZE + nrOfBlocks * 8]);
   {
-    char compBuf[MAX_COMPRESSBOUND];
-    char* buf = nullptr;
+	char* compBuf = threadBuffer;
+	unsigned int compSize;
+	unsigned int blockAlgorithm;
+	unsigned int totSize = 0;
+	CompAlgo compAlgo;
 
-    CompAlgo compAlgo;
+	int fullBlocksRemain = nrOfBlocks - nrOfBatches * batchSize;
 
-    unsigned int compSize = static_cast<unsigned int>(streamCompressor->Compress(&colVec[nrOfBlocks * blockSize], remain * elementSize, compBuf, compAlgo, nrOfBlocks, buf));
-	  myfile.write(buf, compSize);
+	for (int offset = 0; offset < fullBlocksRemain; offset++)
+	{
+		int block = nrOfBatches * batchSize + offset;
 
-    if (compSize > maxCompressionSize) maxCompressionSize = compSize;
-    unsigned int blockAlgorithm = static_cast<unsigned int>(compAlgo);
-    blockPosition[nrOfBlocks] = blockIndexPos | (static_cast<unsigned long long>(blockAlgorithm) << 48); // starting position and algorithm in 2 high bytes
-    blockIndexPos += compSize;  // compressed block length
+		compSize = static_cast<unsigned int>(streamCompressor->Compress(&colVec[block * blockSize], blockSize, &compBuf[totSize], compAlgo, block));
+		totSize += compSize;
+		blockAlgorithm = static_cast<unsigned int>(compAlgo);
+		if (compSize > maxCompressionSize) maxCompressionSize = compSize;
+
+		blockPosition[block] = blockIndexPos | (static_cast<unsigned long long>(blockAlgorithm) << 48); // starting position and algorithm in 2 high bytes
+		blockIndexPos += compSize;  // compressed block length
+	}
+
+	// last (possibly) partial block
+	compSize = static_cast<unsigned int>(streamCompressor->Compress(&colVec[nrOfBlocks * blockSize], remain * elementSize, &compBuf[totSize], compAlgo, nrOfBlocks));
+	totSize += compSize;
+
+	if (compSize > maxCompressionSize) maxCompressionSize = compSize;
+	blockAlgorithm = static_cast<unsigned int>(compAlgo);
+	blockPosition[nrOfBlocks] = blockIndexPos | (static_cast<unsigned long long>(blockAlgorithm) << 48); // starting position and algorithm in 2 high bytes
+	blockIndexPos += compSize;  // compressed block length
+
+	myfile.write(compBuf, totSize);
   }
+
+  delete[] threadBuffer;
 
   // Might be usefull in future implementation
   *maxCompSize = maxCompressionSize;
@@ -388,7 +445,7 @@ void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
   // Read header
   unsigned int compress[2];
   myfile.seekg(blockPos);
-  myfile.read((char*) compress, COL_META_SIZE);
+  myfile.read(reinterpret_cast<char*>(compress), COL_META_SIZE);
 
   // Data is uncompressed or uses a fixed-ratio compressor (logical)
   if (compress[0] == 0)
@@ -533,29 +590,54 @@ void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
 
   if ((outOffset % 8) == 0)  // outVec pointer is 8-byte aligned
   {
-    // Process middle blocks (if any)
-    for (int blockCount = 1; blockCount < maxBlock; ++blockCount)
-    {
-      // Update meta pointers
-      blockPStart = blockPEnd;
-      blockPEnd = (unsigned long long*) &blockIndex[8 + 8 * blockCount];
+	  // Process middle blocks (if any)
 
-      algo = (unsigned short) (((*blockPStart) >> 48) & 0xffff);
-      blockPosStart = (*blockPStart) & BLOCK_POS_MASK;
-      blockPosEnd = (*blockPEnd) & BLOCK_POS_MASK;
-      compSize = blockPosEnd - blockPosStart;
+	  //////////////////////////////////////////////////////////
+	  // Parallel region starts here
+	  //////////////////////////////////////////////////////////
+	  int nrOfThreads = min(GetFstThreads(), maxBlock - 1);
 
-      if (algo == 0)  // no compression
-      {
-        myfile.read(&outVec[outOffset], blockSize);  // read first block data
-      } else
-      {
-        myfile.read(compBuf, compSize);
-        decompressor.Decompress(algo, &outVec[outOffset], blockSize, compBuf, compSize);
-      }
+#pragma omp parallel num_threads(nrOfThreads)
+		{
+#pragma omp for ordered schedule(static, 1)
+			for (int blockCount = 1; blockCount < maxBlock; ++blockCount)
+			{
+				char threadBuf[MAX_COMPRESSBOUND];  // maximum size needed in worst case scenario for single thread
 
-      outOffset += blockSize;  // update position in output vector
-    }
+				// Update meta pointers
+				unsigned long long* bPStart = reinterpret_cast<unsigned long long*>(&blockIndex[8 * blockCount]);
+				unsigned long long* bPEnd = reinterpret_cast<unsigned long long*>(&blockIndex[8 + 8 * blockCount]);
+				unsigned short threadAlgo = static_cast<unsigned short>(((*bPStart) >> 48) & 0xffff);
+				unsigned long long curCompSize = ((*bPEnd) & BLOCK_POS_MASK) - ((*bPStart) & BLOCK_POS_MASK);
+
+
+#pragma omp ordered
+				{
+					if (threadAlgo == 0)  // no compression
+					{
+						myfile.read(&outVec[outOffset + (blockCount - 1) * blockSize], blockSize);  // read first block data
+					}
+					else
+					{
+						myfile.read(threadBuf, curCompSize);
+					}
+				}
+
+				// Decompress if required
+				if (threadAlgo != 0)  // no compression
+				{
+					decompressor.Decompress(threadAlgo, &outVec[outOffset + (blockCount - 1) * blockSize], blockSize, threadBuf, curCompSize);
+				}
+			}
+		}
+
+	  //////////////////////////////////////////////////////////
+	  // Parallel region ends here
+	  //////////////////////////////////////////////////////////
+
+	  blockPEnd = reinterpret_cast<unsigned long long*>(&blockIndex[8 * maxBlock]);
+	  outOffset += (maxBlock - 1) * blockSize;
+
   }
   else  // outVec pointer is not 8-byte aligned
   {

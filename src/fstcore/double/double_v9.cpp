@@ -68,7 +68,7 @@ void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned int nrO
   Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD, 20);
   StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
   streamCompressor->CompressBufferSize(blockSize);
-  fdsStreamcompressed_v2(myfile, (char*) doubleVector, nrOfRows, 8, streamCompressor, BLOCKSIZE_REAL);
+  fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, streamCompressor, BLOCKSIZE_REAL);
 
   delete compress1;
   delete compress2;
@@ -80,5 +80,5 @@ void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned int nrO
 
 void fdsReadRealVec_v9(istream &myfile, double* doubleVector, unsigned long long blockPos, unsigned int startRow, unsigned int length, unsigned int size)
 {
-  return fdsReadColumn_v2(myfile, (char*) doubleVector, blockPos, startRow, length, size, 8);
+  return fdsReadColumn_v2(myfile, reinterpret_cast<char*>(doubleVector), blockPos, startRow, length, size, 8);
 }

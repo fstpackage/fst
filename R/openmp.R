@@ -1,21 +1,25 @@
 
-#' Get the number of threads use by all OpenMP parallel calculations in \code{fst}
+#' Get or set the number of threads used in parallel operations
 #'
-#' @return The number of threads used by OpenMP.
+#' For parallel operations, the performance is determined to a great extend by the number of threads
+#' used. More threads will allow the CPU to perform more computational intensive tasks simultaneously,
+#' speeding up the operation. Using more threads also introduces some overhead that will scale with the
+#' number of threads used. Therefore, using the maximum number of available threads is not always the
+#' fastest solution. With \code{set_fst_threads} the number of threads can be adjusted to the users
+#' specific requirements. As a default, \code{fst} uses a number of threads equal to the number of
+#' physical cores in the system (not the number of logical cores).
+#'
+#' @return The number of threads used (\code{get_fst_threads}) or the previous number of threads used (\code{set_fst_threads}).
 #' @export
-getFstThreads <- function()
+get_fst_threads <- function()
 {
   return(getNrOfActiveThreads())
 }
 
-
-#' Set the number of threads to use for parallel calculations in \code{fst}
-#'
-#' @param nrOfThreads Number of threads to use for parallel calculations
-#'
-#' @return The previous number of threads set.
+#' @rdname get_fst_threads
+#' @param nrOfThreads Number of threads to use
 #' @export
-setFstThreads <- function(nrOfThreads)
+set_fst_threads <- function(nrOfThreads)
 {
   return(setNrOfActiveThreads(nrOfThreads))
 }

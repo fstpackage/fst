@@ -80,11 +80,10 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IStringWriter*
   // 2) compress to 1 or 2 bytes if possible with strSizesBufLength
   int bufSize = intCompressor->CompressBufferSize(strSizesBufLength);  // 1 integer per string
   char *intBuf = new char[bufSize];
-  char* buf = nullptr;
 
   CompAlgo compAlgorithm;
-  intBufSize = intCompressor->Compress((char*)(blockRunner->strSizes), strSizesBufLength, intBuf, compAlgorithm, blockNr, buf);
-  myfile.write(buf, intBufSize);
+  intBufSize = intCompressor->Compress((char*)(blockRunner->strSizes), strSizesBufLength, intBuf, compAlgorithm, blockNr);
+  myfile.write(intBuf, intBufSize);
 
   //intCompressor->WriteBlock(myfile, (char*)(blockRunner->strSizes), intBuf);
   algoInt = (unsigned short int) (compAlgorithm);  // store selected algorithm
@@ -99,8 +98,8 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IStringWriter*
 
 
   // Compress buffer
-  int resSize = charCompressor->Compress(blockRunner->activeBuf, totSize, compBuf, compAlgorithm, blockNr, buf);
-  myfile.write(buf, resSize);
+  int resSize = charCompressor->Compress(blockRunner->activeBuf, totSize, compBuf, compAlgorithm, blockNr);
+  myfile.write(compBuf, resSize);
   //charCompressor->WriteBlock(myfile, blockRunner->activeBuf, compBuf);
 
   algoChar = (unsigned short int) (compAlgorithm);  // store selected algorithm

@@ -94,8 +94,8 @@ public:
   Decompressor() {};
 
   ~Decompressor() { };
-
-  int Decompress(unsigned int algo, char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize);
+	
+  static int Decompress(unsigned int algo, char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize);
 };
 
 
@@ -231,7 +231,7 @@ public:
 class StreamCompressor
 {
 public:
-  virtual int Compress(char* src,  unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf) = 0;
+  virtual int Compress(char* src,  unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr) = 0;
 
   virtual int CompressBufferSize(unsigned int srcSize) = 0;
 
@@ -260,7 +260,7 @@ public:
 
   int CompressBufferSize(unsigned int srcSize);
 
-  int Compress(char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf);
+  int Compress(char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr);
 };
 
 
@@ -298,7 +298,7 @@ public:
     @param compBuf Buffer to store temporary data.
     @param compAlgorithm Algorithm that was used for compression.
   */
-  int Compress(char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf);
+  int Compress(char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr);
 };
 
 
@@ -343,7 +343,7 @@ public:
     @param compBuf Buffer to store temporary data.
     @param compAlgorithm Algorithm that was used for compression.
   */
-  int Compress(char* src,  unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr, char* &outBuf);
+  int Compress(char* src,  unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr);
 };
 
 
