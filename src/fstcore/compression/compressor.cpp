@@ -34,6 +34,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <cstring>
 
 #include <compression/compressor.h>
 #include <compression/compression.h>
