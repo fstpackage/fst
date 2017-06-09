@@ -52,15 +52,15 @@
 #define BLOCKSIZE_CHAR					2047						// number of characters in default compression block
 #define PREF_BLOCK_SIZE					16384 * CACHEFACTOR			// BlockStreamer
 #define MAX_SIZE_COMPRESS_BLOCK			16384 * CACHEFACTOR			// Compression
-#define MAX_SIZE_COMPRESS_BLOCK_HALF	8192 * CACHEFACTOR		// Compression
-#define MAX_SIZE_COMPRESS_BLOCK_QUARTER 4096 * CACHEFACTOR  // Compression
-#define MAX_SIZE_COMPRESS_BLOCK_8		2048 * CACHEFACTOR		// Compression
-#define MAX_SIZE_COMPRESS_BLOCK_128		128 * CACHEFACTOR		// Compression
+#define MAX_SIZE_COMPRESS_BLOCK_HALF	8192 * CACHEFACTOR			// Compression
+#define MAX_SIZE_COMPRESS_BLOCK_QUARTER 4096 * CACHEFACTOR			// Compression
+#define MAX_SIZE_COMPRESS_BLOCK_8		2048 * CACHEFACTOR			// Compression
+#define MAX_SIZE_COMPRESS_BLOCK_128		128 * CACHEFACTOR			// Compression
 #define MAX_COMPRESSBOUND				17036						// maximum compression buffer at source size of MAX_SIZE_COMPRESS_BLOCK
 //#define MAX_COMPRESSBOUND				33548						// maximum compression buffer at source size of MAX_SIZE_COMPRESS_BLOCK * CACHEFACTOR
 #define MAX_TARGET_BUFFER				BLOCKSIZE * CACHEFACTOR / 2 // 16384  / 2  (Compressor)
-#define BLOCKSIZE_REAL					2048 * CACHEFACTOR					// number of doubles in default compression block
-#define BLOCKSIZE_INT					4096 * CACHEFACTOR					// number of integers in default compression block
+#define BLOCKSIZE_REAL					2048 * CACHEFACTOR			// number of doubles in default compression block
+#define BLOCKSIZE_INT					4096 * CACHEFACTOR			// number of integers in default compression block
 
 
 // fst specific errors

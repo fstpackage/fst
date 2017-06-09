@@ -166,7 +166,7 @@ void fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLengt
 }
 
 
-#define BATCH_SIZE 50
+#define BATCH_SIZE 100
 
 // Method for writing column data of any type to a stream.
 void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRows, int elementSize,
@@ -201,22 +201,20 @@ void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRow
   unsigned long long* blockPosition = reinterpret_cast<unsigned long long*>(&blockIndex[COL_META_SIZE]);
 
 //////////////////////////////////////////////////////////
-// Parallel region starts here
+// Parallel logics start here
 //////////////////////////////////////////////////////////
 
-  // * total number of blocks: nrOfBlocks + 1
-  // * last block might be smaller than blockSize
+  // total number of blocks: nrOfBlocks + 1
+  // last block might be smaller than blockSize
 
-  int nrOfThreads = min(GetFstThreads(), nrOfBlocks + 1);
+  int nrOfThreads = max(1, min(GetFstThreads(), nrOfBlocks));
   int batchSize = min(BATCH_SIZE, nrOfBlocks / nrOfThreads);  // keep thread buffer small
   batchSize = max(1, batchSize);
   char* threadBuffer = new char[nrOfThreads * MAX_COMPRESSBOUND * batchSize];
   int nrOfBatches = nrOfBlocks / batchSize;  // number of complete batches with complete blocks
 
-  if (nrOfBlocks > 0)
+  if (nrOfBatches > 0)
   {
-	  batchSize = max(batchSize, 1); // at least 1 block per batch
-
 	  // Parallel region processes batches with batchSize complete blocks per batch
 
 #pragma omp parallel num_threads(nrOfThreads)
@@ -384,7 +382,7 @@ inline void fdsReadFixedCompStream_v2(istream &myfile, char* outVec, unsigned lo
   char repBuf[MAX_TARGET_BUFFER];  // maximum size read buffer for PREF_BLOCK_SIZE source
   uint64_t activeBlockPos = 0;  // position of active block
 
-  if (((uintptr_t) outP % 8) == 0)  // aligned pointer
+  if ((reinterpret_cast<uintptr_t>(outP) % 8) == 0)  // aligned pointer
   {
     // Decompress full blocks
     for (unsigned int block = 0; block < nrOfFullBlocks; ++block)
@@ -418,7 +416,7 @@ inline void fdsReadFixedCompStream_v2(istream &myfile, char* outVec, unsigned lo
   // Decompress all but last repetition block fully
   if (lastBlockSize != repSize)
   {
-    if (((uintptr_t) outP % 8) == 0)  // aligned pointer
+    if ((reinterpret_cast<uintptr_t>(outP) % 8) == 0)  // aligned pointer
     {
       decompressor.Decompress(compAlgo, &outP[activeBlockPos], lastBlockSize - repSize, repBuf, lastTargetBlockSize - targetRepSize);
     }
@@ -440,232 +438,254 @@ inline void fdsReadFixedCompStream_v2(istream &myfile, char* outVec, unsigned lo
 
 #define UNCOMPRESSED_BLOCKSIZE 1073741824  // 1 GB default block
 
-void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size, int elementSize)
+inline void ProcessBatch(char* outVec, char* blockIndex, int blockSize, Decompressor decompressor, uint64_t outOffset, bool isAlligned, int blockStart, int blockEnd, unsigned long long*& bStart, unsigned long long*& bEnd, char* threadBuf)
 {
-  // Read header
-  unsigned int compress[2];
-  myfile.seekg(blockPos);
-  myfile.read(reinterpret_cast<char*>(compress), COL_META_SIZE);
+	unsigned long long totSize = 0;
+	for (int blockCount = blockStart; blockCount < blockEnd; blockCount++)
+	{
+		// File offsets and algorithm
+		bStart = reinterpret_cast<unsigned long long*>(&blockIndex[8 * blockCount]);
+		bEnd = reinterpret_cast<unsigned long long*>(&blockIndex[8 + 8 * blockCount]);
+		unsigned short threadAlgo = static_cast<unsigned short>(((*bStart) >> 48) & 0xffff);
+		unsigned long long curCompBlockSize = (*bEnd & BLOCK_POS_MASK) - (*bStart & BLOCK_POS_MASK);
 
-  // Data is uncompressed or uses a fixed-ratio compressor (logical)
-  if (compress[0] == 0)
-  {
-    if (compress[1] == 0)  // uncompressed data
-    {
-      // Jump to startRow position
-      if (startRow > 0) myfile.seekg(blockPos + elementSize * startRow + COL_META_SIZE);
-
-      uint64_t totBytes = (uint64_t) (length) * elementSize;
-      uint64_t nrOfBlocks = (totBytes - 1) / UNCOMPRESSED_BLOCKSIZE;  // all but last block
-      uint64_t remainingBytes = totBytes - nrOfBlocks * UNCOMPRESSED_BLOCKSIZE;  // last block
-      uint64_t curBlockPos = 0;
-
-      for (uint64_t block = 0; block != nrOfBlocks; ++block)
-      {
-        // Read data
-        myfile.read(&outVec[curBlockPos], UNCOMPRESSED_BLOCKSIZE);
-        curBlockPos += UNCOMPRESSED_BLOCKSIZE;
-      }
-      myfile.read(&outVec[curBlockPos], remainingBytes);
-
-      return;
-    }
-
-    // Stream uses a fixed-ratio compressor
-
-    fdsReadFixedCompStream_v2(myfile, outVec, blockPos, compress, startRow, elementSize, length);
-
-    return;
-  }
-
-  // Data is compressed
-
-  // unsigned int* maxCompSize = (unsigned int*) &compress[0];  // 4 algorithms in index
-  unsigned int blockSizeElements = compress[1];  // number of elements per block
-
-  // Number of compressed data blocks, the last block can be smaller than blockSizeElements
-  int nrOfBlocks = 1 + (size - 1) / blockSizeElements;
-
-  // Calculate startRow data block position
-  int startBlock = startRow / blockSizeElements;
-  int endBlock = (startRow + length - 1) / blockSizeElements;
-  int startOffset = startRow % blockSizeElements;
-
-  if (startBlock > 0)
-  {
-    myfile.seekg(blockPos + COL_META_SIZE + 8 * startBlock);  // move to startBlock meta info
-  }
-
-  // Read block index (position pointer and algorithm for each block)
-  char* blockIndex = new char[(2 + endBlock - startBlock) * 8];  // 1 long file pointer using 2 highest bytes for algorithm
-  myfile.read(blockIndex, (2 + endBlock - startBlock) * 8);
-
-  int blockSize = elementSize * blockSizeElements;
-
-  // char compBuf[*maxCompSize];  // read buffer
-  // char tmpBuf[blockSize];  // temporary buffer
-  char compBuf[MAX_COMPRESSBOUND];  // maximum size needed in worst case scenario compression
-  char tmpBuf[MAX_SIZE_COMPRESS_BLOCK];  // temporary buffer
-
-  Decompressor decompressor;
-
-  unsigned long long* blockPStart = (unsigned long long*) &blockIndex[0];
-  unsigned long long* blockPEnd = (unsigned long long*) &blockIndex[8];
-
-  unsigned short algo = (unsigned short) (((*blockPStart) >> 48) & 0xffff);
-  unsigned long long blockPosStart = (*blockPStart) & BLOCK_POS_MASK;
-  unsigned long long blockPosEnd = (*blockPEnd) & BLOCK_POS_MASK;
-  unsigned long long compSize = blockPosEnd - blockPosStart;
-
-  // unsigned short* algo = (unsigned short*) &blockIndex[8];
-
-  // Process single block and return
-  if (startBlock == endBlock)  // Read single block and subset result
-  {
-    if (algo == 0)  // no compression on this block
-    {
-      myfile.seekg(blockPos + blockPosStart + elementSize * startOffset);  // move to block data position
-      myfile.read((char*) outVec, (uint64_t) (length) * elementSize);
-
-      delete[] blockIndex;
-
-      return;
-    }
-
-    // Data is compressed
-    unsigned int curSize = blockSizeElements;
-    if (startBlock == (nrOfBlocks - 1))  // test for last block
-    {
-      curSize = 1 + (size + blockSizeElements - 1) % blockSizeElements;  // smaller last block size
-    }
-
-    myfile.seekg(blockPos + blockPosStart);  // move to block data position, not always necessary!
-    myfile.read(compBuf, compSize);
-
-    if (length == curSize)
-    {
-      decompressor.Decompress(algo, outVec, elementSize * length, compBuf, compSize);  // direct decompress
-    }
-    else
-    {
-      decompressor.Decompress(algo, tmpBuf, elementSize * curSize, compBuf, compSize);  // decompress in tmp buffer
-      memcpy(outVec, &tmpBuf[elementSize * startOffset], elementSize * length);  // data range
-    }
-
-    delete[] blockIndex;
-
-    return;
-  }
-
-  // Calculations span at least two block
-
-  // First block
-  int subBlockSize = blockSizeElements - startOffset;
-
-  if (algo == 0)  // no compression
-  {
-    myfile.seekg(blockPos + blockPosStart + elementSize * startOffset);  // move to block data position
-    myfile.read(outVec, elementSize * subBlockSize);  // read first block data
-  } else
-  {
-    myfile.seekg(blockPos + blockPosStart);  // move to block data position
-    myfile.read(compBuf, compSize);
-
-    if (startOffset == 0)  // full block
-    {
-      decompressor.Decompress(algo, outVec, blockSize, compBuf, compSize);
-    }
-    else
-    {
-      decompressor.Decompress(algo, tmpBuf, blockSize, compBuf, compSize);
-      memcpy(outVec, &tmpBuf[elementSize * startOffset], elementSize * subBlockSize);
-    }
-  }
-
-  int remain = (startRow + length) % blockSizeElements;  // remaining required items in last block
-  if (remain == 0) ++endBlock;
-
-  int maxBlock = endBlock - startBlock;
-  uint64_t outOffset = subBlockSize * elementSize;  // position in output vector
-
-  if ((outOffset % 8) == 0)  // outVec pointer is 8-byte aligned
-  {
-	  // Process middle blocks (if any)
-
-	  //////////////////////////////////////////////////////////
-	  // Parallel region starts here
-	  //////////////////////////////////////////////////////////
-	  int nrOfThreads = min(GetFstThreads(), maxBlock - 1);
-
-#pragma omp parallel num_threads(nrOfThreads)
+		if (threadAlgo == 0)  // uncompressed block
 		{
-#pragma omp for ordered schedule(static, 1)
-			for (int blockCount = 1; blockCount < maxBlock; ++blockCount)
-			{
-				char threadBuf[MAX_COMPRESSBOUND];  // maximum size needed in worst case scenario for single thread
-
-				// Update meta pointers
-				unsigned long long* bPStart = reinterpret_cast<unsigned long long*>(&blockIndex[8 * blockCount]);
-				unsigned long long* bPEnd = reinterpret_cast<unsigned long long*>(&blockIndex[8 + 8 * blockCount]);
-				unsigned short threadAlgo = static_cast<unsigned short>(((*bPStart) >> 48) & 0xffff);
-				unsigned long long curCompSize = ((*bPEnd) & BLOCK_POS_MASK) - ((*bPStart) & BLOCK_POS_MASK);
-
-
-#pragma omp ordered
-				{
-					if (threadAlgo == 0)  // no compression
-					{
-						myfile.read(&outVec[outOffset + (blockCount - 1) * blockSize], blockSize);  // read first block data
-					}
-					else
-					{
-						myfile.read(threadBuf, curCompSize);
-					}
-				}
-
-				// Decompress if required
-				if (threadAlgo != 0)  // no compression
-				{
-					decompressor.Decompress(threadAlgo, &outVec[outOffset + (blockCount - 1) * blockSize], blockSize, threadBuf, curCompSize);
-				}
-			}
+			memcpy(&outVec[outOffset + (blockCount - 1) * blockSize], &threadBuf[totSize], blockSize);  // copy to misaligned pointer
+		}
+		else if (isAlligned)  // compressed and output vector alligned
+		{
+			decompressor.Decompress(threadAlgo, &outVec[outOffset + (blockCount - 1) * blockSize], blockSize, &threadBuf[totSize], curCompBlockSize);
+		}
+		else  // misaligned output vector, memcpy to avoid inefficient decompression
+		{
+			char allignBuf[MAX_SIZE_COMPRESS_BLOCK];
+			decompressor.Decompress(threadAlgo, allignBuf, blockSize, &threadBuf[totSize], curCompBlockSize);
+			memcpy(&outVec[outOffset + (blockCount - 1) * blockSize], allignBuf, blockSize);  // copy to misaligned pointer
 		}
 
-	  //////////////////////////////////////////////////////////
-	  // Parallel region ends here
-	  //////////////////////////////////////////////////////////
+		totSize += curCompBlockSize;
+	}
+}
 
-	  blockPEnd = reinterpret_cast<unsigned long long*>(&blockIndex[8 * maxBlock]);
-	  outOffset += (maxBlock - 1) * blockSize;
+void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size, int elementSize)
+{
+	// Read header
+	unsigned int compress[2];
+	myfile.seekg(blockPos);
+	myfile.read(reinterpret_cast<char*>(compress), COL_META_SIZE);
 
-  }
-  else  // outVec pointer is not 8-byte aligned
-  {
-    // Process middle blocks (if any)
-    for (int blockCount = 1; blockCount < maxBlock; ++blockCount)
-    {
-      // Update meta pointers
-      blockPStart = blockPEnd;
-      blockPEnd = (unsigned long long*) &blockIndex[8 + 8 * blockCount];
+	// Data is uncompressed or uses a fixed-ratio compressor (logical)
+	if (compress[0] == 0)
+	{
+		if (compress[1] == 0)  // uncompressed data
+		{
+			// Jump to startRow position
+			if (startRow > 0) myfile.seekg(blockPos + elementSize * startRow + COL_META_SIZE);
 
-      algo = (unsigned short) (((*blockPStart) >> 48) & 0xffff);
-      blockPosStart = (*blockPStart) & BLOCK_POS_MASK;
-      blockPosEnd = (*blockPEnd) & BLOCK_POS_MASK;
-      compSize = blockPosEnd - blockPosStart;
+			uint64_t totBytes = static_cast<uint64_t>(length) * elementSize;
+			uint64_t nrOfBlocks = (totBytes - 1) / UNCOMPRESSED_BLOCKSIZE;  // all but last block
+			uint64_t remainingBytes = totBytes - nrOfBlocks * UNCOMPRESSED_BLOCKSIZE;  // last block
+			uint64_t curBlockPos = 0;
 
-      if (algo == 0)  // no compression
-      {
-        myfile.read(&outVec[outOffset], blockSize);  // read first block data
-      } else
-      {
-        myfile.read(compBuf, compSize);
-        decompressor.Decompress(algo, tmpBuf, blockSize, compBuf, compSize);
-        memcpy(&outVec[outOffset], tmpBuf, blockSize);  // copy to misaligned pointer
-      }
+			for (uint64_t block = 0; block != nrOfBlocks; ++block)
+			{
+				// Read data
+				myfile.read(&outVec[curBlockPos], UNCOMPRESSED_BLOCKSIZE);
+				curBlockPos += UNCOMPRESSED_BLOCKSIZE;
+			}
+			myfile.read(&outVec[curBlockPos], remainingBytes);
 
-      outOffset += blockSize;  // update position in output vector
-    }
-  }
+			return;
+		}
+
+		// Stream uses a fixed-ratio compressor
+
+		fdsReadFixedCompStream_v2(myfile, outVec, blockPos, compress, startRow, elementSize, length);
+
+		return;
+	}
+
+	// Data is compressed
+
+	// unsigned int* maxCompSize = (unsigned int*) &compress[0];  // 4 algorithms in index
+	unsigned int blockSizeElements = compress[1];  // number of elements per block
+
+	// Number of compressed data blocks, the last block can be smaller than blockSizeElements
+	int nrOfBlocks = 1 + (size - 1) / blockSizeElements;
+
+	// Calculate startRow data block position
+	int startBlock = startRow / blockSizeElements;
+	int endBlock = (startRow + length - 1) / blockSizeElements;
+	int startOffset = startRow % blockSizeElements;
+
+	if (startBlock > 0)
+	{
+		myfile.seekg(blockPos + COL_META_SIZE + 8 * startBlock);  // move to startBlock meta info
+	}
+
+	// Read block index (position pointer and algorithm for each block)
+	char* blockIndex = new char[(2 + endBlock - startBlock) * 8];  // 1 long file pointer using 2 highest bytes for algorithm
+	myfile.read(blockIndex, (2 + endBlock - startBlock) * 8);
+
+	int blockSize = elementSize * blockSizeElements;
+
+	// char compBuf[*maxCompSize];  // read buffer
+	// char tmpBuf[blockSize];  // temporary buffer
+	char compBuf[MAX_COMPRESSBOUND];  // maximum size needed in worst case scenario compression
+	char tmpBuf[MAX_SIZE_COMPRESS_BLOCK];  // temporary buffer
+
+	Decompressor decompressor;
+
+	unsigned long long* blockPStart = reinterpret_cast<unsigned long long*>(&blockIndex[0]);
+	unsigned long long* blockPEnd = reinterpret_cast<unsigned long long*>(&blockIndex[8]);
+
+	unsigned short algo = static_cast<unsigned short>(((*blockPStart) >> 48) & 0xffff);
+	unsigned long long blockPosStart = (*blockPStart) & BLOCK_POS_MASK;
+	unsigned long long blockPosEnd = (*blockPEnd) & BLOCK_POS_MASK;
+	unsigned long long compSize = blockPosEnd - blockPosStart;
+
+	// unsigned short* algo = (unsigned short*) &blockIndex[8];
+
+	// Process single block and return
+	if (startBlock == endBlock)  // Read single block and subset result
+	{
+		if (algo == 0)  // no compression on this block
+		{
+			myfile.seekg(blockPos + blockPosStart + elementSize * startOffset);  // move to block data position
+			myfile.read(static_cast<char*>(outVec), static_cast<uint64_t>(length)* elementSize);
+
+			delete[] blockIndex;
+
+			return;
+		}
+
+		// Data is compressed
+		unsigned int curSize = blockSizeElements;
+		if (startBlock == (nrOfBlocks - 1))  // test for last block
+		{
+			curSize = 1 + (size + blockSizeElements - 1) % blockSizeElements;  // smaller last block size
+		}
+
+		myfile.seekg(blockPos + blockPosStart);  // move to block data position, not always necessary!
+		myfile.read(compBuf, compSize);
+
+		if (length == curSize)
+		{
+			decompressor.Decompress(algo, outVec, elementSize * length, compBuf, compSize);  // direct decompress
+		}
+		else
+		{
+			decompressor.Decompress(algo, tmpBuf, elementSize * curSize, compBuf, compSize);  // decompress in tmp buffer
+			memcpy(outVec, &tmpBuf[elementSize * startOffset], elementSize * length);  // data range
+		}
+
+		delete[] blockIndex;
+
+		return;
+	}
+
+	// Calculations span at least two block
+
+	// First block
+	int subBlockSize = blockSizeElements - startOffset;
+
+	if (algo == 0)  // no compression
+	{
+		myfile.seekg(blockPos + blockPosStart + elementSize * startOffset);  // move to block data position
+		myfile.read(outVec, elementSize * subBlockSize);  // read first block data
+	}
+	else
+	{
+		myfile.seekg(blockPos + blockPosStart);  // move to block data position
+		myfile.read(compBuf, compSize);
+
+		if (startOffset == 0)  // full block
+		{
+			decompressor.Decompress(algo, outVec, blockSize, compBuf, compSize);
+		}
+		else
+		{
+			decompressor.Decompress(algo, tmpBuf, blockSize, compBuf, compSize);
+			memcpy(outVec, &tmpBuf[elementSize * startOffset], elementSize * subBlockSize);
+		}
+	}
+
+	int remain = (startRow + length) % blockSizeElements;  // remaining required items in last block
+	if (remain == 0) ++endBlock;
+
+	int maxBlock = endBlock - startBlock;
+	uint64_t outOffset = subBlockSize * elementSize;  // position in output vector
+
+	// Process middle blocks (if any)
+
+
+	bool isAlligned = (outOffset % 8) == 0;  // test for 8 byte alligned output vector
+
+	maxBlock--;  // decrement to get number of full blocks
+
+	int nrOfThreads = max(1, min(GetFstThreads(), maxBlock));
+	int batchSize = min(BATCH_SIZE, maxBlock / nrOfThreads);  // keep thread buffer small
+	batchSize = max(1, batchSize);
+	char* threadBuffer = new char[nrOfThreads * MAX_COMPRESSBOUND * batchSize];
+	int nrOfBatches = (maxBlock + batchSize - 1) / batchSize;  // number of batches (last one may be smaller)
+	int blockBatch = 0;  // counter of batch job
+
+	//if (nrOfBatches > 0)
+	//{
+
+	//////////////////////////////////////////////////////////
+	// Parallel logic starts here
+	//////////////////////////////////////////////////////////
+
+#pragma omp parallel num_threads(nrOfThreads) shared(isAlligned,nrOfBatches,blockBatch,batchSize)
+	{
+#pragma omp for schedule(static, 1) nowait
+		for (int blockJob = 0; blockJob < nrOfBatches; blockJob++)  // a blockJob is a single unit of work
+		{
+			int threadNr = omp_get_thread_num();  // use memory buffer specific for this thread
+
+			int blockStart, blockEnd;
+			unsigned long long  *bStart, *bEnd;
+			unsigned long long curCompSize;
+			char* threadBuf;
+			int curBatchSize = batchSize;
+
+#pragma omp critical
+			{
+				// last batch might have a smaller size
+				if (blockBatch == (nrOfBatches - 1))
+				{
+					curBatchSize = batchSize - (nrOfBatches * batchSize % maxBlock);
+				}
+
+				blockStart = 1 + blockBatch * batchSize;
+				blockEnd = blockStart + curBatchSize;
+
+				// determine total length of compressed blocks in batch
+				bStart = reinterpret_cast<unsigned long long*>(&blockIndex[8 * blockStart]);
+				bEnd = reinterpret_cast<unsigned long long*>(&blockIndex[8 * blockEnd]);
+				curCompSize = (*bEnd & BLOCK_POS_MASK) - (*bStart & BLOCK_POS_MASK);
+
+				threadBuf = &threadBuffer[threadNr * MAX_COMPRESSBOUND * batchSize];
+				myfile.read(threadBuf, curCompSize);  // always cache in  threadBuf first (non zero copy for uncompressed blocks)
+				blockBatch++;
+			}
+
+			// Decompress all blocks into output vector
+
+			ProcessBatch(outVec, blockIndex, blockSize, decompressor, outOffset, isAlligned, blockStart, blockEnd, bStart, bEnd, threadBuf);
+		}
+	}
+
+	delete[] threadBuffer;
+
+	//////////////////////////////////////////////////////////
+	// Parallel logic ends here
+	//////////////////////////////////////////////////////////
+
+	outOffset += maxBlock * blockSize;
+	maxBlock++;
 
 
   // No last block
@@ -679,10 +699,10 @@ void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
   // Process last block
 
   // Update meta pointers
-  blockPStart = blockPEnd;
+  blockPStart = reinterpret_cast<unsigned long long*>(&blockIndex[8 * maxBlock]);
   blockPEnd = reinterpret_cast<unsigned long long*>(&blockIndex[8 + 8 * maxBlock]);
 
-  algo = (unsigned short) (((*blockPStart) >> 48) & 0xffff);
+  algo = static_cast<unsigned short>(((*blockPStart) >> 48) & 0xffff);
   blockPosStart = (*blockPStart) & BLOCK_POS_MASK;
   blockPosEnd = (*blockPEnd) & BLOCK_POS_MASK;
   compSize = blockPosEnd - blockPosStart;
@@ -716,7 +736,7 @@ void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
     else
     {
       decompressor.Decompress(algo, tmpBuf, curSize * elementSize, compBuf, compSize);  // define tmpBuf locally for speed ?
-      memcpy((char*) &outVec[outOffset], tmpBuf, elementSize * remain);
+      memcpy(static_cast<char*>(&outVec[outOffset]), tmpBuf, elementSize * remain);
     }
   }
 

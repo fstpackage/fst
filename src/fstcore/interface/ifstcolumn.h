@@ -37,6 +37,9 @@
 #define IFST_COLUMN_H
 
 
+// The abstract column and array interfaces function as a bridge between the actual data and fst
+
+
 class IStringArray
 {
 public:
