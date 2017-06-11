@@ -52,7 +52,7 @@ void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned int nrO
     return fdsStreamUncompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, BLOCKSIZE_REAL, nullptr);
   }
 
-  if (compression <= 50)  // low compression: linear mix of uncompressed and LZ4_SHUF
+  if (compression <= 50)  // low compression: linear mix of uncompressed and the best of LZ4_SHUF8 / LZ4
   {
     Compressor* compress1 = new DualCompressor(CompAlgo::LZ4_SHUF8, CompAlgo::LZ4, 0, 2 * compression);
     StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, 2 * compression);

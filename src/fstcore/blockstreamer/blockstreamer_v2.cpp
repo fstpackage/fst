@@ -38,11 +38,6 @@ You can contact the author at :
 #include <iostream>
 #include <algorithm>
 
-// Change this to accomadate non-openmp systems!
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 // Framework libraries
 #include <compression/compression.h>
 #include <compression/compressor.h>
@@ -50,6 +45,14 @@ You can contact the author at :
 #include <interface/openmphelper.h>
 
 #include "blockstreamer_v2.h"
+
+// Use compile time thread counter for speed
+#ifdef _OPENMP
+  #include <omp.h>
+  #define OMP_GET_THREAD_NUM omp_get_thread_num()
+#else
+  #define OMP_GET_THREAD_NUM 0
+#endif
 
 #define COL_META_SIZE 8
 #define BLOCK_ALGO_MASK 0xffff000000000000
@@ -99,6 +102,9 @@ void fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLengt
 
     uint64_t blockPos = 0;
 
+	// use larger blocks here for faster writing !
+	// and test for parallel improvements (use multiple cores to fetch data from main memory
+  	// and use (thread-) local cache for writing)
     for (int block = 0; block != nrOfBlocks; ++block)
     {
       myfile.write(&vec[blockPos], blockSize);
@@ -166,7 +172,7 @@ void fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLengt
 }
 
 
-#define BATCH_SIZE 100
+#define BATCH_SIZE 50
 
 // Method for writing column data of any type to a stream.
 void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRows, int elementSize,
@@ -224,7 +230,9 @@ void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRow
 		  {
 			  unsigned int compSize[BATCH_SIZE];
 			  unsigned int blockAlgorithm[BATCH_SIZE];
-			  int threadNr = omp_get_thread_num();  // use memory buffer specific for this thread
+
+			  int threadNr = OMP_GET_THREAD_NUM;  // use memory buffer specific for this thread
+
 			  unsigned int totSize = 0;
 			  unsigned int localMax = 0;
 
@@ -643,7 +651,7 @@ void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
 #pragma omp for schedule(static, 1) nowait
 		for (int blockJob = 0; blockJob < nrOfBatches; blockJob++)  // a blockJob is a single unit of work
 		{
-			int threadNr = omp_get_thread_num();  // use memory buffer specific for this thread
+			int threadNr = OMP_GET_THREAD_NUM;  // use memory buffer specific for this thread
 
 			int blockStart, blockEnd;
 			unsigned long long  *bStart, *bEnd;

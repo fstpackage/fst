@@ -336,7 +336,7 @@ int DualCompressor::Compress(char* dst, unsigned int dstCapacity, const char* sr
       a1RatioLocal = max(5, a1RatioLocal - 5);
     }
 
-	#pragma omp critical
+	#pragma omp critical (criticalcompression)
 	{
 		lastCount = lastCountLocal;
 		a1Ratio = a1RatioLocal;
@@ -358,7 +358,7 @@ int DualCompressor::Compress(char* dst, unsigned int dstCapacity, const char* sr
     a1RatioLocal = max(5, a1RatioLocal - 5);
   }
 
-	#pragma omp critical
+	#pragma omp critical (criticalcompression)
 	{
 		a1Ratio = a1RatioLocal;
 		lastSize2 = lastSize2Local;
