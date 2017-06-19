@@ -61,24 +61,36 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
 
   // Vector meta data
   char meta[HEADER_SIZE_FACTOR];
-  unsigned int* versionNr = (unsigned int*) &meta;
-  unsigned int* nrOfLevels = (unsigned int*) &meta[4];
-  unsigned long long* levelVecPos = (unsigned long long*) &meta[8];
+  unsigned int* versionNr = reinterpret_cast<unsigned int*>(&meta);
+  unsigned int* nrOfLevels = reinterpret_cast<unsigned int*>(&meta[4]);
+  unsigned long long* levelVecPos = reinterpret_cast<unsigned long long*>(&meta[8]);
 
-  myfile.write(meta, HEADER_SIZE_FACTOR);  // number of levels
+  // Use blockrunner to store factor levels if length > 0
+  if (nrOfFactorLevels > 0)
+  {
+	  myfile.write(meta, HEADER_SIZE_FACTOR);  // number of levels
+	  *nrOfLevels = nrOfFactorLevels;
+	  fdsWriteCharVec_v6(myfile, blockRunner, compression);   // factor levels
+															  // Rewrite meta-data
+	  *versionNr = VERSION_NUMBER_FACTOR;
+	  *levelVecPos = myfile.tellp();  // offset for level vector
 
-  *nrOfLevels = nrOfFactorLevels;
+	  myfile.seekp(blockPos);
+	  myfile.write(meta, HEADER_SIZE_FACTOR);  // number of levels
+	  myfile.seekp(*levelVecPos);  // return to end of file
+  }
+  else
+  {
+	  // With zero levels all data values must be zero. Therefore, we only need to
+  	  // add the vector length to have enough information. 
+	  // (see also https://github.com/fstpackage/fst/issues/56)
+	  *nrOfLevels = 0;
+	  *versionNr = VERSION_NUMBER_FACTOR;
+	  *levelVecPos = blockPos + HEADER_SIZE_FACTOR;  // offset for level vector
+	  myfile.write(meta, HEADER_SIZE_FACTOR);  // write meta data
 
-  // Use blockrunner to store factor levels
-  fdsWriteCharVec_v6(myfile, blockRunner, compression);   // factor levels
-
-  // Rewrite meta-data
-  *versionNr = VERSION_NUMBER_FACTOR;
-  *levelVecPos = myfile.tellp();  // offset for level vector
-
-  myfile.seekp(blockPos);
-  myfile.write(meta, HEADER_SIZE_FACTOR);  // number of levels
-  myfile.seekp(*levelVecPos);  // return to end of file
+	  return;
+  }
 
   // Store factor vector here
 
@@ -171,7 +183,8 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
 }
 
 
-// Parameter 'startRow' is zero based.
+// Parameter 'startRow' is zero based
+// Data vector intP is expected to point to a memory block 4 * size bytes long
 void fdsReadFactorVec_v7(istream &myfile, IStringColumn* blockReader, int* intP, unsigned long long blockPos, unsigned int startRow,
   unsigned int length, unsigned int size)
 {
@@ -193,7 +206,23 @@ void fdsReadFactorVec_v7(istream &myfile, IStringColumn* blockReader, int* intP,
 
   // Read level strings
 
-  fdsReadCharVec_v6(myfile, blockReader, blockPos + HEADER_SIZE_FACTOR, 0, *nrOfLevels, *nrOfLevels);  // get level strings
+  if (*nrOfLevels > 0)
+  {
+    fdsReadCharVec_v6(myfile, blockReader, blockPos + HEADER_SIZE_FACTOR, 0, *nrOfLevels, *nrOfLevels);  // get level strings
+  }
+  else
+  {
+	  // Create empty level vector
+	  blockReader->AllocateVec(0);
+
+	  // All level values must be NA, so we need only the number of levels
+	  for (unsigned int pos = 0; pos < length; pos++)
+	  {
+		  intP[pos] = FST_NA_INT;
+	  }
+
+	  return;
+  }
 
   // Read level values
   fdsReadColumn_v2(myfile, (char*) intP, *levelVecPos, startRow, length, size, 4);

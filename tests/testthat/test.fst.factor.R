@@ -49,23 +49,23 @@ TestWriteRead <- function(dt, offset = 3, cap = 3)
 
   # Read with small offset
   data <- fstread("FactorStore/data1.fst", from = offset)
-  expect_equal(ToFrame(dt[offset:nrow(dt),]), data)
+  expect_equal(ToFrame(dt[offset:nrow(dt), , drop = FALSE]), data)
 
   # Read with medium offset
   data <- fstread("FactorStore/data1.fst", from = nrow(dt) - cap)
-  expect_equal(ToFrame(dt[(nrow(dt) - cap):nrow(dt),]), data)
+  expect_equal(ToFrame(dt[(nrow(dt) - cap):nrow(dt), , drop = FALSE]), data)
 
   # Read less rows
   data <- fstread("FactorStore/data1.fst", to = cap)
-  expect_equal(ToFrame(dt[1:cap,]), data)
+  expect_equal(ToFrame(dt[1:cap, , drop = FALSE]), data)
 
   # Read less rows
   data <- fstread("FactorStore/data1.fst", to = nrow(dt) - cap)
-  expect_equal(ToFrame(dt[1:(nrow(dt) - cap),]), data)
+  expect_equal(ToFrame(dt[1:(nrow(dt) - cap), , drop = FALSE]), data)
 
   # Read less rows with offset
   data <- fstread("FactorStore/data1.fst", from = offset, to = nrow(dt) - cap)
-  expect_equal(ToFrame(dt[offset:(nrow(dt) - cap),]), data)
+  expect_equal(ToFrame(dt[offset:(nrow(dt) - cap), , drop = FALSE]), data)
 }
 
 
@@ -99,4 +99,30 @@ test_that("Multiple sizes of 4-byte factor columns  are stored correctly",
 })
 
 
+test_that("Small factor with a single NA level",
+{
+  dt <- data.frame(A = 1:3, B = as.factor(rep(NA, 3)))
+  fstwrite(dt, "FactorStore/data1.fst")
+  expect_equal(fstread("FactorStore/data1.fst"), dt)
+})
 
+
+test_that("Single block one-column factor with a single NA level",
+{
+  dt <- data.frame(B = as.factor(rep(NA, 10)))
+  TestWriteRead(dt)
+})
+
+
+test_that("Single block factor with a single NA level",
+{
+  dt <- data.frame(A = 1:1000, B = as.factor(rep(NA, 10)))
+  TestWriteRead(dt)
+})
+
+
+test_that("Medium factor with a single NA level",
+{
+  dt <- data.frame(A = 1:10000, B = as.factor(rep(NA, 10000)))
+  TestWriteRead(dt)
+})

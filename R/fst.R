@@ -26,8 +26,7 @@
 #' y <- read.fst("dataset.fst", "B") # read selection of columns
 #' y <- read.fst("dataset.fst", "A", 100, 200) # read selection of columns and rows
 #' @export
-write.fst <- function(x, path, compress = 0)
-{
+write.fst <- function(x, path, compress = 0) {
   if (!is.character(path)) stop("Please specify a correct path.")
 
   if (!is.data.frame(x)) stop("Please make sure 'x' is a data frame.")
@@ -57,12 +56,11 @@ write.fst <- function(x, path, compress = 0)
 #' # Display meta information
 #' fst.metadata("dataset.fst")
 #' @export
-fst.metadata <- function(path)
-{
+fst.metadata <- function(path) {
   metaData <- fstMeta(normalizePath(path, mustWork = TRUE))
 
-  colInfo <- list(Path = path, NrOfRows = metaData$nrOfRows, Keys = metaData$keyNames, ColumnNames = metaData$colNames,
-                  ColumnTypes = metaData$colTypeVec, KeyColIndex = metaData$keyColIndex)
+  colInfo <- list(Path = path, NrOfRows = metaData$nrOfRows, Keys = metaData$keyNames,
+    ColumnNames = metaData$colNames, ColumnTypes = metaData$colTypeVec, KeyColIndex = metaData$keyColIndex)
   class(colInfo) <- "fst.metadata"
 
   colInfo
@@ -70,8 +68,7 @@ fst.metadata <- function(path)
 
 
 #' @export
-print.fst.metadata <- function(x, ...)
-{
+print.fst.metadata <- function(x, ...) {
   cat("<fst file>\n")
   cat(x$NrOfRows, " rows, ", length(x$ColumnNames), " columns (", x$Path, ")\n\n", sep = "")
 
@@ -79,13 +76,12 @@ print.fst.metadata <- function(x, ...)
   colNames <- format(encodeString(x$ColumnNames, quote = "'"))
 
   # Table has no key columns
-  if (is.null(x$Keys))
-  {
+  if (is.null(x$Keys)) {
     cat(paste0("* ", colNames, ": ", types[x$ColumnTypes], "\n"), sep = "")
     return(invisible(NULL))
   }
 
-  K = C = Count = KeyLab = O = NULL  # avoid R CMD check note
+  K <- C <- Count <- KeyLab <- O <- NULL  # avoid R CMD check note
 
   # Table has key columns
   keys <- data.table(K = x$Keys, Count = 1:length(x$Keys))
@@ -143,8 +139,7 @@ read.fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
 
   res <- fstRetrieve(fileName, columns, from, to)
 
-  if (as.data.table)
-  {
+  if (as.data.table) {
     keyNames <- res$keyNames
     res <- setDT(res$resTable)
     if (length(keyNames) > 0 ) attr(res, "sorted") <- keyNames
@@ -153,4 +148,3 @@ read.fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
 
   as.data.frame(res$resTable, row.names = NULL, stringsAsFactors = FALSE, optional = TRUE)
 }
-

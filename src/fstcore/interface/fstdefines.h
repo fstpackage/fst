@@ -71,5 +71,6 @@
 #define FSTERROR_INCORRECT_COL_COUNT "Data frame has an incorrect amount of columns"
 #define FSTERROR_NON_FST_FILE        "File format was not recognised as a fst file"
 
+#define FST_NA_INT					 0x80000000
 
 #endif // FSTDEFINES_H

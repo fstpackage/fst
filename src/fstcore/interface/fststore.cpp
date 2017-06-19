@@ -423,7 +423,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
   int keyLength, nrOfColsFirstChunk;
   version = ReadHeader(myfile, tableClassType, keyLength, nrOfColsFirstChunk);
 
-  // We may be looking at a fst v0.7.2 file format, TODO: return error_code
+  // No magic marker for fst format found (v0.7.2 file format?)
   if (version == 0)
   {
     // Close and reopen (slow: fst file should be resaved to avoid this overhead)

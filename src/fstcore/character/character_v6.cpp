@@ -113,7 +113,7 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IStringWriter*
 
 void fdsWriteCharVec_v6(ofstream &myfile, IStringWriter* blockRunner, int compression)
 {
-  unsigned int vecLength = blockRunner->vecLength;
+  unsigned int vecLength = blockRunner->vecLength;  // expected to be larger than zero
 
   unsigned long long curPos = myfile.tellp();
   unsigned int nrOfBlocks = (vecLength - 1) / BLOCKSIZE_CHAR;  // number of blocks minus 1
@@ -126,7 +126,7 @@ void fdsWriteCharVec_v6(ofstream &myfile, IStringWriter* blockRunner, int compre
     // Set column header
     unsigned int* isCompressed  = (unsigned int*) meta;
     unsigned int* blockSizeChar = (unsigned int*) &meta[4];
-    *blockSizeChar = BLOCKSIZE_CHAR;
+    *blockSizeChar = BLOCKSIZE_CHAR;  // check why 2047 and not 2048
     *isCompressed = 0;
 
     myfile.write(meta, metaSize);  // write block offset index

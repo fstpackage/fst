@@ -89,18 +89,16 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression)
   }
 
   FstTable fstTable(table);
-  FstStore* fstStore = new FstStore(fileName.get_cstring());
+  FstStore fstStore(fileName.get_cstring());
 
   try
   {
-    fstStore->fstWrite(fstTable, compress);
+    fstStore.fstWrite(fstTable, compress);
   }
   catch (const std::runtime_error& e)
   {
     ::Rf_error(e.what());
   }
-
-  delete fstStore;
 
   return table;
 }
