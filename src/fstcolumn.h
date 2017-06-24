@@ -139,6 +139,31 @@ public:
 };
 
 
+class DateTimeColumn : public IDateTimeColumn
+{
+public:
+  SEXP dateTimeVec;
+
+  DateTimeColumn(int nrOfRows)
+  {
+    dateTimeVec = Rf_allocVector(INTSXP, nrOfRows);
+    PROTECT(dateTimeVec);
+
+    Rf_setAttrib(dateTimeVec, Rf_mkString("class"), Rf_mkString("Date"));
+  }
+
+  ~DateTimeColumn()
+  {
+    UNPROTECT(1);
+  }
+
+  int* Data()
+  {
+    return INTEGER(dateTimeVec);
+  }
+};
+
+
 class DoubleColumn : public IDoubleColumn
 {
   public:

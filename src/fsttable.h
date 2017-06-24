@@ -84,6 +84,8 @@ class FstTable : public IFstTable
 
     void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr);
 
+    void SetDateTimeColumn(IDateTimeColumn* dateTimeColumn, int colNr);
+
     void SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr);
 
     void SetFactorColumn(IFactorColumn* factorColumn, int colNr);
@@ -101,6 +103,8 @@ class FstTable : public IFstTable
     int* GetLogicalWriter(unsigned int colNr);
 
     int* GetIntWriter(unsigned int colNr);
+
+    int* GetDateTimeWriter(unsigned int colNr);
 
     double* GetDoubleWriter(unsigned int colNr);
 

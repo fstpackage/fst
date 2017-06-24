@@ -47,6 +47,7 @@ public:
   virtual ILogicalColumn* CreateLogicalColumn(int nrOfRows) = 0;
   virtual IDoubleColumn* CreateDoubleColumn(int nrOfRows) = 0;
   virtual IIntegerColumn* CreateIntegerColumn(int nrOfRows) = 0;
+  virtual IDateTimeColumn* CreateDateTimeColumn(int nrOfRows) = 0;
   virtual IStringColumn* CreateStringColumn(int nrOfRows) = 0;
   virtual IStringArray* CreateStringArray() = 0;
 };

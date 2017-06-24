@@ -39,16 +39,6 @@
 #include "ifstcolumn.h"
 #include "istringwriter.h"
 
-enum FstColumnType
-{
-  CHARACTER = 1,
-  FACTOR,
-  INT_32,
-  DOUBLE_64,
-  BOOL_32,
-  UNKNOWN
-};
-
 
 /**
   Interface to a fst table. A fst table is a temporary wrapper around an array of columnar data buffers.
@@ -67,6 +57,8 @@ class IFstTable
     virtual int* GetLogicalWriter(unsigned int colNr) = 0;
 
     virtual int* GetIntWriter(unsigned int colNr) = 0;
+
+	virtual int* GetDateTimeWriter(unsigned int colNr) = 0;
 
     virtual double* GetDoubleWriter(unsigned int colNr) = 0;
 
@@ -94,6 +86,8 @@ class IFstTable
   	virtual void SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr) = 0;
 
   	virtual void SetFactorColumn(IFactorColumn* factorColumn, int colNr) = 0;
+
+	virtual void SetDateTimeColumn(IDateTimeColumn* dateTimeColumn, int colNr) = 0;
 
 //  	virtual void SetColNames() = 0;
 

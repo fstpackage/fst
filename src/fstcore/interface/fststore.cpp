@@ -272,7 +272,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
   {
     positionData[colNr] = myfile.tellp();  // current location
     FstColumnType colType = fstTable.ColumnType(colNr);
-    colBaseTypes[colNr] = (unsigned short int) colType;
+    colBaseTypes[colNr] = static_cast<unsigned short int>(colType);
 
     // Store attributes here if any
     // unsigned int attrBlockSize = SerializeObjectAttributes(ofstream &myfile, RObject rObject, serializer);
@@ -321,6 +321,14 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
         fdsWriteLogicalVec_v10(myfile, intP, nrOfRows, compress);
         break;
       }
+
+	  case FstColumnType::DATETIME_INT:
+	  {
+		  colTypes[colNr] = 11;
+		  int* intP = fstTable.GetDateTimeWriter(colNr);
+		  fdsWriteIntVec_v8(myfile, intP, nrOfRows, compress);
+		  break;
+	  }
 
       default:
         delete[] metaDataBlock;
@@ -618,6 +626,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
       {
         IIntegerColumn* integerColumn = columnFactory->CreateIntegerColumn(length);
         fdsReadIntVec_v8(myfile, integerColumn->Data(), pos, firstRow, length, nrOfRows);
+
         tableReader.SetIntegerColumn(integerColumn, colSel);
         delete integerColumn;
         break;
@@ -652,6 +661,16 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
         delete factorColumn;
         break;
       }
+
+	  // Logical vector
+	  case 11:
+	  {
+		  IDateTimeColumn* dateTimeColumn = columnFactory->CreateDateTimeColumn(length);
+		  fdsReadIntVec_v8(myfile, dateTimeColumn->Data(), pos, firstRow, length, nrOfRows);
+		  tableReader.SetDateTimeColumn(dateTimeColumn, colSel);
+		  delete dateTimeColumn;
+		  break;
+	  }
 
       default:
         delete[] metaDataBlock;

@@ -117,6 +117,13 @@ int* FstTable::GetLogicalWriter(unsigned int colNr)
 }
 
 
+int* FstTable::GetDateTimeWriter(unsigned int colNr)
+{
+  cols = VECTOR_ELT(*rTable, colNr);  // retrieve column vector
+  return INTEGER(cols);
+}
+
+
 int* FstTable::GetIntWriter(unsigned int colNr)
 {
   cols = VECTOR_ELT(*rTable, colNr);  // retrieve column vector
@@ -229,6 +236,13 @@ void FstTable::SetLogicalColumn(ILogicalColumn* logicalColumn, int colNr)
 {
   LogicalColumn* lColumn = (LogicalColumn*) logicalColumn;
   SET_VECTOR_ELT(resTable, colNr, lColumn->boolVec);
+}
+
+
+void FstTable::SetDateTimeColumn(IDateTimeColumn* dateTimeColumn, int colNr)
+{
+  DateTimeColumn* dTimeColumn = (DateTimeColumn*) dateTimeColumn;
+  SET_VECTOR_ELT(resTable, colNr, dTimeColumn->dateTimeVec);
 }
 
 

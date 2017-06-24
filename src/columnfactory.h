@@ -74,6 +74,11 @@ public:
     return new IntegerColumn(nrOfRows);
   }
 
+  IDateTimeColumn* CreateDateTimeColumn(int nrOfRows)
+  {
+    return new DateTimeColumn(nrOfRows);
+  }
+
   IStringArray* CreateStringArray()
   {
     return new StringArray();

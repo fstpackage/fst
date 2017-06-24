@@ -37,6 +37,20 @@
 #define IFST_COLUMN_H
 
 
+// Column types available in fst
+enum FstColumnType
+{
+	CHARACTER = 1,
+	FACTOR,
+	INT_32,
+	DOUBLE_64,
+	BOOL_32,
+	DATETIME_INT,
+	DATETIME_DOUBLE,
+	UNKNOWN
+};
+
+
 // The abstract column and array interfaces function as a bridge between the actual data and fst
 
 
@@ -73,6 +87,13 @@ public:
   virtual IStringColumn* Levels() = 0;
 };
 
+
+class IDateTimeColumn
+{
+public:
+	virtual ~IDateTimeColumn() {};
+	virtual int* Data() = 0;
+};
 
 
 class IIntegerColumn
