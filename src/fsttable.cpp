@@ -91,10 +91,15 @@ FstColumnType FstTable::ColumnType(unsigned int colNr)
       return FstColumnType::CHARACTER;
 
     case INTSXP:
-      if(Rf_isFactor(colVec))
+      if (Rf_isFactor(colVec))  // factor
       {
         return FstColumnType::FACTOR;
       }
+      else if (Rf_inherits(colVec, "Date"))
+      {
+        return FstColumnType::DATETIME_INT;
+      }
+
 
       return FstColumnType::INT_32;
 

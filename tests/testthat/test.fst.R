@@ -16,6 +16,13 @@ nrOfLevels <- 8
 CharVec <- function(nrOfRows) { sapply(1:nrOfRows, function(x) { paste(sample(LETTERS, sample(1:4)), collapse="") }) }
 CharVecLong <- function(nrOfRows) { sapply(1:nrOfRows, function(x) { paste(sample(LETTERS, sample(20:25)), collapse="") }) }
 
+DateVec <- function(nrOfRows)
+{
+  dateVec <- sample(1:nrOfRows, replace = TRUE)
+  class(dateVec) <- "Date"
+  dateVec
+}
+
 # Sample data
 nrOfRows <- 10000L
 charNA <- CharVec(nrOfRows)
@@ -24,6 +31,7 @@ dataTable <- data.frame(Xint=1:nrOfRows, Ylog=sample(c(TRUE, FALSE, NA), nrOfRow
   Zdoub=rnorm(nrOfRows), Qchar=CharVec(nrOfRows), WFact=factor(sample(CharVec(nrOfLevels), nrOfRows, replace = TRUE)),
   CharNA = charNA,
   CharLong = CharVecLong(nrOfRows),
+  Date = DateVec(nrOfRows),
   stringsAsFactors = FALSE)
 
 
@@ -98,7 +106,7 @@ dataTable <- data.frame(Xint=1:nrOfRows, Ylog=sample(c(TRUE, FALSE, NA), nrOfRow
 
 # fst:::fstRead("FactorStore/data1.fst", selColumns, 1L, to)
 
-col = "Xint"
+col = "Date"
 from = 1L
 to = 30L
 selColumns = NULL
@@ -156,14 +164,6 @@ test_that("Small uncompressed vectors",
 {
   sapply(colNames, function(x){TestWriteRead(x, to = 30L, totLength = 30L)})
 })
-
-
-#
-# dt <- dataTable[, "Qchar", drop = FALSE]
-# fstwrite(dt, "FactorStore/char_uncomp_10000.fst")
-# fstwrite(dt, "FactorStore/data1.fst", compress)  # use compression
-#
-# read.fst("E:\\Repositories\\BitBucket\\fst\\vs\\testData\\char_comp_10000.fst")
 
 
 test_that("Single weakly compressed vectors",
@@ -252,6 +252,11 @@ test_that("Integer column block tests",
 test_that("Logical column block tests",
 {
   BlockTestSingleType("Ylog")
+})
+
+test_that("Date column block tests",
+{
+  BlockTestSingleType("Date")
 })
 
 blockSize = 2048
