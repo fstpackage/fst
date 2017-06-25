@@ -97,13 +97,17 @@ FstColumnType FstTable::ColumnType(unsigned int colNr)
       }
       else if (Rf_inherits(colVec, "Date"))
       {
-        return FstColumnType::DATETIME_INT;
+        return FstColumnType::DATE_INT;
       }
-
 
       return FstColumnType::INT_32;
 
     case REALSXP:
+      if (Rf_inherits(colVec, "Date"))
+      {
+        return FstColumnType::DATE_INT;
+      }
+
       return FstColumnType::DOUBLE_64;
 
     case LGLSXP:
@@ -125,6 +129,13 @@ int* FstTable::GetLogicalWriter(unsigned int colNr)
 int* FstTable::GetDateTimeWriter(unsigned int colNr)
 {
   cols = VECTOR_ELT(*rTable, colNr);  // retrieve column vector
+
+  // Convert underlying type to INTSXP
+  if (TYPEOF(cols) == REALSXP)
+  {
+    cols = Rf_coerceVector(cols, INTSXP);
+  }
+
   return INTEGER(cols);
 }
 
@@ -150,7 +161,7 @@ IStringWriter* FstTable::GetStringWriter(unsigned int colNr)
   // Assuming that nrOfRows is already set
   unsigned int nrOfVectorRows = LENGTH(cols);
 
-  return new BlockWriterChar(cols, nrOfVectorRows, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);
+  return new BlockWriterChar(cols, nrOfVectorRows, MAX_CHAR_STACK_SIZE);
 }
 
 
@@ -159,7 +170,7 @@ IStringWriter* FstTable::GetLevelWriter(unsigned int colNr)
   cols = VECTOR_ELT(*rTable, colNr);  // retrieve column vector
   cols = Rf_getAttrib(cols, Rf_mkString("levels"));
   unsigned int nrOfFactorLevels = LENGTH(cols);
-  return new BlockWriterChar(cols, nrOfFactorLevels, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);
+  return new BlockWriterChar(cols, nrOfFactorLevels, MAX_CHAR_STACK_SIZE);
 }
 
 
@@ -168,7 +179,7 @@ IStringWriter* FstTable::GetColNameWriter()
   cols = Rf_getAttrib(*rTable, R_NamesSymbol);
 
   // Assuming that nrOfCols is already set
-  return new BlockWriterChar(cols, nrOfCols, strSizes, naInts, buf, MAX_CHAR_STACK_SIZE);
+  return new BlockWriterChar(cols, nrOfCols, MAX_CHAR_STACK_SIZE);
 }
 
 

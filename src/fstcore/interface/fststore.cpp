@@ -322,7 +322,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
         break;
       }
 
-	  case FstColumnType::DATETIME_INT:
+	  case FstColumnType::DATE_INT:
 	  {
 		  colTypes[colNr] = 11;
 		  int* intP = fstTable.GetDateTimeWriter(colNr);

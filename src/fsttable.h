@@ -62,11 +62,6 @@ class FstTable : public IFstTable
   bool isProtected;
 
 
-  // Buffers for blockRunner
-  unsigned int naInts[1 + BLOCKSIZE_CHAR / 32];  // we have 32 NA bits per integer
-  unsigned int strSizes[BLOCKSIZE_CHAR];  // we have 32 NA bits per integer
-  char buf[MAX_CHAR_STACK_SIZE];
-
   public:
     SEXP resTable;
 

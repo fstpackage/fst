@@ -1,7 +1,6 @@
 
 context("OpenMP")
 
-source("helper.fstwrite.R")
 
 # Clean testdata directory
 if (!file.exists("testdata")) {

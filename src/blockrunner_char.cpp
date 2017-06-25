@@ -47,12 +47,11 @@ using namespace std;
 using namespace Rcpp;
 
 
-BlockWriterChar::BlockWriterChar(SEXP &strVec, unsigned int vecLength, unsigned int* strSizes, unsigned int* naInts, char* stackBuf, unsigned int stackBufSize)
+BlockWriterChar::BlockWriterChar(SEXP &strVec, unsigned int vecLength, unsigned int stackBufSize)
 {
   this->strVec = &strVec;
-  this->naInts = naInts;
-  this->strSizes = strSizes;
-  this->buf = stackBuf;
+  this->naInts = naInts_buf;
+  this->strSizes = strSizes_buf;
   this->stackBufSize = stackBufSize;
   this->vecLength = vecLength;
 

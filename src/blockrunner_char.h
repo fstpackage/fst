@@ -39,17 +39,24 @@
 
 #include <Rcpp.h>
 
+#include <interface/fstdefines.h>
+
 
 class BlockWriterChar : public IStringWriter
 {
   SEXP* strVec;
   unsigned int stackBufSize;
   unsigned int heapBufSize;
-  char* buf;
+  // char* buf;
   char *heapBuf;
 
+  // Buffers for blockRunner (make these local !!!!)
+  unsigned int naInts_buf[1 + BLOCKSIZE_CHAR / 32];  // we have 32 NA bits per integer
+  unsigned int strSizes_buf[BLOCKSIZE_CHAR];  // we have 32 NA bits per integer
+  char buf[MAX_CHAR_STACK_SIZE];
+
   public:
-    BlockWriterChar(SEXP &strVec, unsigned int vecLength, unsigned int* strSizes, unsigned int* naInts, char* stackBuf, unsigned int stackBufSize);
+    BlockWriterChar(SEXP &strVec, unsigned int vecLength, unsigned int stackBufSize);
     ~BlockWriterChar();
 
     void SetBuffersFromVec(unsigned int startCount, unsigned int endCount);

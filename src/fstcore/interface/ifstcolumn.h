@@ -45,8 +45,7 @@ enum FstColumnType
 	INT_32,
 	DOUBLE_64,
 	BOOL_32,
-	DATETIME_INT,
-	DATETIME_DOUBLE,
+	DATE_INT,
 	UNKNOWN
 };
 
