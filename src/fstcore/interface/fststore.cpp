@@ -322,13 +322,21 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
         break;
       }
 
-	  case FstColumnType::DATE_INT:
-	  {
-		  colTypes[colNr] = 11;
-		  int* intP = fstTable.GetDateTimeWriter(colNr);
-		  fdsWriteIntVec_v8(myfile, intP, nrOfRows, compress);
-		  break;
-	  }
+  	  case FstColumnType::DATE_INT:
+  	  {
+  		  colTypes[colNr] = 11;
+  		  int* intP = fstTable.GetDateTimeWriter(colNr);
+  		  fdsWriteIntVec_v8(myfile, intP, nrOfRows, compress);
+  		  break;
+  	  }
+
+      case FstColumnType::INT_64:
+      {
+        colTypes[colNr] = 12;
+        long int* intP = fstTable.GetInt64Writer(colNr);
+        fdsWriteRealVec_v9(myfile, (double*) intP, nrOfRows, compress);
+        break;
+      }
 
       default:
         delete[] metaDataBlock;
@@ -662,7 +670,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
         break;
       }
 
-	  // Logical vector
+	  // Date vector
 	  case 11:
 	  {
 		  IDateTimeColumn* dateTimeColumn = columnFactory->CreateDateTimeColumn(length);
@@ -672,13 +680,23 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
 		  break;
 	  }
 
-      default:
-        delete[] metaDataBlock;
-        delete[] blockPos;
-        delete[] colIndex;
-        delete blockReader;
-        myfile.close();
-        throw(runtime_error("Unknown type found in column."));
+	  // integer64 vector
+    case 12:
+	  {
+	    IInt64Column* int64Column = columnFactory->CreateInt64Column(length);
+	    fdsReadRealVec_v9(myfile, (double*) int64Column->Data(), pos, firstRow, length, nrOfRows);
+	    tableReader.SetInt64Column(int64Column, colSel);
+	    delete int64Column;
+	    break;
+	  }
+
+    default:
+      delete[] metaDataBlock;
+      delete[] blockPos;
+      delete[] colIndex;
+      delete blockReader;
+      myfile.close();
+      throw(runtime_error("Unknown type found in column."));
     }
   }
 

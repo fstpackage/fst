@@ -38,15 +38,17 @@
 
 
 // Column types available in fst
+// Only add to the end to support previous format versions
 enum FstColumnType
 {
-	CHARACTER = 1,
+  UNKNOWN = 1,
+  CHARACTER,
 	FACTOR,
 	INT_32,
 	DOUBLE_64,
 	BOOL_32,
 	DATE_INT,
-	UNKNOWN
+	INT_64
 };
 
 
@@ -92,6 +94,14 @@ class IDateTimeColumn
 public:
 	virtual ~IDateTimeColumn() {};
 	virtual int* Data() = 0;
+};
+
+
+class IInt64Column
+{
+public:
+  virtual ~IInt64Column() {};
+  virtual long int* Data() = 0;
 };
 
 

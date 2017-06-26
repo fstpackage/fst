@@ -108,6 +108,11 @@ FstColumnType FstTable::ColumnType(unsigned int colNr)
         return FstColumnType::DATE_INT;
       }
 
+      if (Rf_inherits(colVec, "integer64"))
+      {
+        return FstColumnType::INT_64;
+      }
+
       return FstColumnType::DOUBLE_64;
 
     case LGLSXP:
@@ -128,15 +133,24 @@ int* FstTable::GetLogicalWriter(unsigned int colNr)
 
 int* FstTable::GetDateTimeWriter(unsigned int colNr)
 {
-  cols = VECTOR_ELT(*rTable, colNr);  // retrieve column vector
+  cols = VECTOR_ELT(*rTable, colNr);  // retrieve column vector (no copy?)
 
   // Convert underlying type to INTSXP
   if (TYPEOF(cols) == REALSXP)
   {
-    cols = Rf_coerceVector(cols, INTSXP);
+    cols = Rf_coerceVector(cols, INTSXP);  // PROTECT needed here?: if so use list container
   }
 
   return INTEGER(cols);
+}
+
+
+long int* FstTable::GetInt64Writer(unsigned int colNr)
+{
+  cols = VECTOR_ELT(*rTable, colNr);  // retrieve column vector (no copy?)
+
+  // Convert doubles to long integer type
+  return (long int*) (REAL(cols));
 }
 
 
@@ -259,6 +273,13 @@ void FstTable::SetDateTimeColumn(IDateTimeColumn* dateTimeColumn, int colNr)
 {
   DateTimeColumn* dTimeColumn = (DateTimeColumn*) dateTimeColumn;
   SET_VECTOR_ELT(resTable, colNr, dTimeColumn->dateTimeVec);
+}
+
+
+void FstTable::SetInt64Column(IInt64Column* int64Column, int colNr)
+{
+  Int64Column* i64Column = (Int64Column*) int64Column;
+  SET_VECTOR_ELT(resTable, colNr, i64Column->int64Vec);
 }
 
 

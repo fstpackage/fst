@@ -164,6 +164,31 @@ public:
 };
 
 
+class Int64Column : public IInt64Column
+{
+public:
+  SEXP int64Vec;
+
+  Int64Column(int nrOfRows)
+  {
+    int64Vec = Rf_allocVector(REALSXP, nrOfRows);
+    PROTECT(int64Vec);
+
+    Rf_setAttrib(int64Vec, Rf_mkString("class"), Rf_mkString("integer64"));
+  }
+
+  ~Int64Column()
+  {
+    UNPROTECT(1);
+  }
+
+  long int* Data()
+  {
+    return (long int*)(REAL(int64Vec));
+  }
+};
+
+
 class DoubleColumn : public IDoubleColumn
 {
   public:

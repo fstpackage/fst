@@ -1,7 +1,6 @@
 
 context("factor column")
 
-
 # Clean testdata directory
 if (!file.exists("FactorStore"))
 {
@@ -27,11 +26,15 @@ DateVec <- function(nrOfRows)
 nrOfRows <- 10000L
 charNA <- CharVec(nrOfRows)
 charNA[sample(1:nrOfRows, 10)] <- NA
-dataTable <- data.frame(Xint=1:nrOfRows, Ylog=sample(c(TRUE, FALSE, NA), nrOfRows, replace=TRUE),
-  Zdoub=rnorm(nrOfRows), Qchar=CharVec(nrOfRows), WFact=factor(sample(CharVec(nrOfLevels), nrOfRows, replace = TRUE)),
+dataTable <- data.frame(
+  Xint = 1:nrOfRows,
+  Ylog = sample(c(TRUE, FALSE, NA), nrOfRows, replace=TRUE),
+  Zdoub = rnorm(nrOfRows),
+  Qchar = CharVec(nrOfRows), WFact=factor(sample(CharVec(nrOfLevels), nrOfRows, replace = TRUE)),
   CharNA = charNA,
   CharLong = CharVecLong(nrOfRows),
   Date = DateVec(nrOfRows),
+  Integer64 = as.integer64.double(sample(c(2345612345679, 10, 8714567890), nrOfRows, replace = TRUE)),
   stringsAsFactors = FALSE)
 
 
@@ -267,6 +270,11 @@ test_that("Real column block tests",
   BlockTestSingleType("Zdoub")
 })
 
+test_that("Integer64 column block tests",
+{
+  BlockTestSingleType("Integer64")
+})
+
 blockSize = 2047
 
 test_that("Character column block tests",
@@ -286,24 +294,24 @@ test_that("Character column block tests with NA's",
 
 test_that("Mixed columns are stored correctly",
 {
-  TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "CharNA"))
+  TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "CharNA", "Date", "Integer64"))
 })
 
 
 test_that("From and to row can be set",
 {
-  TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "CharNA"), from = 10)
-  TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "CharNA"), to = 8)
-  TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "CharNA"), from = 4, to = 13)
+  TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "CharNA", "Date", "Integer64"), from = 10)
+  TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "CharNA", "Date", "Integer64"), to = 8)
+  TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "CharNA", "Date", "Integer64"), from = 4, to = 13)
 })
 
 
 test_that("Select columns",
 {
-  TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "CharNA"), selColumns = "Zdoub")
-  TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "CharNA"), selColumns = c("Ylog", "WFact"))
-  TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "CharNA"), selColumns = c("WFact", "Ylog"))
-  TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "CharNA"), from = 7, to = 13, selColumns = c("Ylog", "Qchar"))
+  TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "CharNA", "Date", "Integer64"), selColumns = "Zdoub")
+  TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "CharNA", "Date", "Integer64"), selColumns = c("Ylog", "WFact"))
+  TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "CharNA", "Date", "Integer64"), selColumns = c("WFact", "Ylog"))
+  TestWriteRead(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "CharNA", "Date", "Integer64"), from = 7, to = 13, selColumns = c("Ylog", "Qchar"))
 })
 
 

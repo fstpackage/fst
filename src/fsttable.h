@@ -53,8 +53,8 @@
 class FstTable : public IFstTable
 {
   // References to R objects
-  SEXP* rTable;
-  SEXP  cols;
+  SEXP* rTable;  // reference to R table structure (e.g. data.frame or data.table)
+  SEXP  cols;  // reference to working column
 
   // Table metadata
   unsigned int nrOfCols;
@@ -81,6 +81,8 @@ class FstTable : public IFstTable
 
     void SetDateTimeColumn(IDateTimeColumn* dateTimeColumn, int colNr);
 
+    void SetInt64Column(IInt64Column* int64Column, int colNr);
+
     void SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr);
 
     void SetFactorColumn(IFactorColumn* factorColumn, int colNr);
@@ -100,6 +102,8 @@ class FstTable : public IFstTable
     int* GetIntWriter(unsigned int colNr);
 
     int* GetDateTimeWriter(unsigned int colNr);
+
+    long int* GetInt64Writer(unsigned int colNr);
 
     double* GetDoubleWriter(unsigned int colNr);
 

@@ -58,7 +58,9 @@ class IFstTable
 
     virtual int* GetIntWriter(unsigned int colNr) = 0;
 
-	virtual int* GetDateTimeWriter(unsigned int colNr) = 0;
+  	virtual int* GetDateTimeWriter(unsigned int colNr) = 0;
+
+  	virtual long int* GetInt64Writer(unsigned int colNr) = 0;
 
     virtual double* GetDoubleWriter(unsigned int colNr) = 0;
 
@@ -87,7 +89,9 @@ class IFstTable
 
   	virtual void SetFactorColumn(IFactorColumn* factorColumn, int colNr) = 0;
 
-	virtual void SetDateTimeColumn(IDateTimeColumn* dateTimeColumn, int colNr) = 0;
+  	virtual void SetDateTimeColumn(IDateTimeColumn* dateTimeColumn, int colNr) = 0;
+
+  	virtual void SetInt64Column(IInt64Column* int64Column, int colNr) = 0;
 
 //  	virtual void SetColNames() = 0;
 
