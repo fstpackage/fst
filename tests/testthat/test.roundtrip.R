@@ -2,19 +2,17 @@
 context("roundtrip-vector")
 
 
-roundtrip_vector <- function(x)
-{
+roundtrip_vector <- function(x) {
   df <- data.frame(x = x, stringsAsFactors = FALSE)
   roundtrip(df)$x
 }
 
-roundtrip <- function(df)
-{
+roundtrip <- function(df) {
   temp <- tempfile()
-  fstwrite(df, temp)
+  fstwriteproxy(df, temp)
   on.exit(unlink(temp))
 
-  fstread(temp)
+  fstreadproxy(temp)
 }
 
 
@@ -83,15 +81,17 @@ test_that("preserves NA in factor and levels", {
   expect_identical(roundtrip_vector(x2), x2)
 })
 
-#
-# # Date --------------------------------------------------------------------
-#
-# test_that("preserves dates", {
-#   x <- as.Date("2010-01-01") + c(0L, 365L, NA)
-#   mode(x) <- "integer"
-#   expect_identical(roundtrip_vector(x), x)
-# })
-#
+
+# Date --------------------------------------------------------------------
+
+test_that("preserves dates", {
+  x <- as.Date("2010-01-01") + c(0L, 365L, NA)
+  mode(x) <- "integer"
+  expect_identical(roundtrip_vector(x), x)
+})
+
+
+# no lint start
 # # Time --------------------------------------------------------------------
 #
 # test_that("preserves hms", {
@@ -133,3 +133,4 @@ test_that("preserves NA in factor and levels", {
 #
 #   expect_identical(x1, x2)
 # })
+# no lint end

@@ -75,7 +75,7 @@ inline int FindKey(StringVector colNameList, String item)
 }
 
 
-SEXP fstStore(String fileName, SEXP table, SEXP compression)
+SEXP fststore(String fileName, SEXP table, SEXP compression)
 {
   if (!Rf_isInteger(compression))
   {
@@ -104,7 +104,7 @@ SEXP fstStore(String fileName, SEXP table, SEXP compression)
 }
 
 
-SEXP fstMeta(String fileName)
+SEXP fstmeta(String fileName)
 {
   FstStore* fstStore = new FstStore(fileName.get_cstring());
   IColumnFactory* columnFactory = new ColumnFactory();
@@ -165,24 +165,24 @@ SEXP fstMeta(String fileName)
     UNPROTECT(1);  // keyNames
 
     retList = List::create(
-      _["nrOfCols"]        = fstStore->nrOfCols,
-      _["nrOfRows"]        = *fstStore->p_nrOfRows,
-      _["fstVersion"]      = fstStore->version,
-      _["colTypeVec"]      = colTypeVec,
-      _["keyColIndex"]     = keyColIndex,
-      _["keyLength"]       = fstStore->keyLength,
-      _["keyNames"]        = keyNames,
-      _["colNames"]        = colNames);
+      _["nrofcols"]        = fstStore->nrOfCols,
+      _["nrofrows"]        = *fstStore->p_nrOfRows,
+      _["fstversion"]      = fstStore->version,
+      _["coltypevec"]      = colTypeVec,
+      _["keycolindex"]     = keyColIndex,
+      _["keylength"]       = fstStore->keyLength,
+      _["keynames"]        = keyNames,
+      _["colnames"]        = colNames);
   }
   else
   {
     retList = List::create(
-      _["nrOfCols"]        = fstStore->nrOfCols,
-      _["nrOfRows"]        = *fstStore->p_nrOfRows,
-      _["fstVersion"]      = fstStore->version,
-      _["keyLength"]       = fstStore->keyLength,
-      _["colTypeVec"]      = colTypeVec,
-      _["colNames"]        = colNames);
+      _["nrofcols"]        = fstStore->nrOfCols,
+      _["nrofrows"]        = *fstStore->p_nrOfRows,
+      _["fstversion"]      = fstStore->version,
+      _["keylength"]       = fstStore->keyLength,
+      _["coltypevec"]      = colTypeVec,
+      _["colnames"]        = colNames);
   }
 
   delete columnFactory;
@@ -192,7 +192,7 @@ SEXP fstMeta(String fileName)
 }
 
 
-SEXP fstRetrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
+SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 {
   FstTable tableReader;
   IColumnFactory* columnFactory = new ColumnFactory();
@@ -275,8 +275,8 @@ SEXP fstRetrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
   UNPROTECT(1);
 
   return List::create(
-    _["keyNames"] = keyNames,
-    _["keyIndex"] = keyIndex,
-    _["colNameVec"] = colNameVec,
-    _["resTable"] = tableReader.resTable);
+    _["keynames"] = keyNames,
+    _["keyindex"] = keyIndex,
+    _["colnamevec"] = colNameVec,
+    _["restable"] = tableReader.resTable);
 }

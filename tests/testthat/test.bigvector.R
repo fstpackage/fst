@@ -9,6 +9,7 @@ if (!file.exists("testdata")) {
   file.remove(list.files("testdata", full.names = TRUE))
 }
 
+# nolint start
 # # Sample data
 # x <- list(X = rep(1.1, 500000000))
 # setDT(x)
@@ -31,5 +32,4 @@ if (!file.exists("testdata")) {
 #   rm(y)
 #   gc()
 # })
-
-
+# nolint end

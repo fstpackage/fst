@@ -7,14 +7,13 @@
 #' @param x A data frame to append to an existing \code{fst} file.
 #' @param compress Value in the range 0 to 100, indicating the amount of compression to use for the appended data frame.
 #' If \code{NULL}, the compression setting of the existing \code{fst} file will be used.
-fst.rbind <- function(path, x, compress = NULL)
-{
-  fileName <- normalizePath(path, mustWork = TRUE)
+fst_rbind <- function(path, x, compress = NULL) {
+  filename <- normalizePath(path, mustWork = TRUE)
 
   if (!is.data.frame(x)) stop("Please make sure 'x' is a data frame.")
 
   stop("Not implemented yet")
-  # fstrbind(path, x, compress, serialize)
+  # fstrbind(path, x, compress, serialize)  # nolint
 
   invisible(x)  # return a 'fst' object in the future
 }

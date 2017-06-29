@@ -10,38 +10,32 @@ if (!file.exists("testdata")) {
 }
 
 
-test_that("Check OpenMP support on Windows and Linux",
-{
-  osName <- Sys.info()['sysname']
+test_that("Check OpenMP support on Windows and Linux", {
+  os_name <- Sys.info()['sysname']
 
-  if (osName == "Windows")
-  {
+  if (os_name == "Windows")  {
     expect_true(fst:::hasOpenMP())
   }
 
-  if (osName == "Linux")
-  {
+  if (os_name == "Linux") {
     expect_true(fst:::hasOpenMP())
   }
 
-  cat("OS:", osName, " OpenMp:", fst:::hasOpenMP(), sep = "")
+  cat("OS:", os_name, " OpenMp:", fst:::hasOpenMP(), sep = "")
 })
 
 
-test_that("Get number of threads",
-{
-  osName <- Sys.info()['sysname']
+test_that("Get number of threads", {
+  os_name <- Sys.info()['sysname']
 
-  if (osName == "Windows" || osName == "Linux")
-  {
-    nrOfThreads <- get_fst_threads()
-    expect_gt(nrOfThreads, 1)
+  if (os_name == "Windows" || os_name == "Linux") {
+    nr_of_threads <- get_fst_threads()
+    expect_gt(nr_of_threads, 1)
 
-    prevThreads <- set_fst_threads(2)  # Set number of OpenMP threads
-    expect_equal(nrOfThreads, prevThreads)
+    prev_threads <- set_fst_threads(2)  # Set number of OpenMP threads
+    expect_equal(nr_of_threads, prev_threads)
 
-    nrOfThreads <- get_fst_threads()
-    expect_equal(nrOfThreads, 2)
+    nr_of_threads <- get_fst_threads()
+    expect_equal(nr_of_threads, 2)
   }
 })
-

@@ -44,13 +44,13 @@
 
 
 // [[Rcpp::export]]
-SEXP fstStore(Rcpp::String fileName, SEXP table, SEXP compression);
+SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression);
 
 // [[Rcpp::export]]
-SEXP fstMeta(Rcpp::String fileName);
+SEXP fstmeta(Rcpp::String fileName);
 
 // [[Rcpp::export]]
-SEXP fstRetrieve(Rcpp::String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
+SEXP fstretrieve(Rcpp::String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
 
 
 #endif  // FASTSTORE_H

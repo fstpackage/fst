@@ -2,7 +2,9 @@
 require(testthat)
 require(fst)
 require(data.table)
-library(bit64)
+require(bit)
+require(bit64)
+require(lintr)
 
 source("testthat/helper.fstwrite.R")  # cross-version testing
 

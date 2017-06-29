@@ -7,7 +7,7 @@
 \usage{
 get_fst_threads()
 
-set_fst_threads(nrOfThreads)
+set_fst_threads(nrofthreads)
 }
 \arguments{
 \item{nrOfThreads}{Number of threads to use}

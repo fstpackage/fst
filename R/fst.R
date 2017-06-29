@@ -3,37 +3,47 @@
 #'
 #' Read and write data frames from and to a fast-storage (fst) file.
 #' Allows for compression and (file level) random access of stored data, even for compressed datasets.
-#' When using a \code{data.table} object for \code{x}, the key (if any) is preserved, allowing storage of sorted data.
+#' When using a \code{data.table} object for \code{x}, the key (if any) is preserved,
+#' allowing storage of sorted data.
+#' Methods \code{fstread} and \code{fstwrite} are equivalent to \code{read.fst} and \code{write.fst} (but the
+#' former syntax is preferred).
 #'
-#' @param x A data frame to write to disk
-#' @param path Path to fst file
-#' @param compress Value in the range 0 to 100, indicating the amount of compression to use.
-#' @return Both functions return a data frame. \code{write.fst}
-#'   invisibly returns \code{x} (so you can use this function in a pipeline).
+#' @param x a data frame to write to disk
+#' @param path path to fst file
+#' @param compress value in the range 0 to 100, indicating the amount of compression to use.
+#' @return all methods return a data frame. \code{fstwrite}
+#' invisibly returns \code{x} (so you can use this function in a pipeline).
 #' @examples
 #' # Sample dataset
 #' x <- data.frame(A = 1:10000, B = sample(c(TRUE, FALSE, NA), 10000, replace = TRUE))
 #'
 #' # Uncompressed
-#' write.fst(x, "dataset.fst")  # filesize: 41 KB
-#' y <- read.fst("dataset.fst") # read uncompressed data
+#' fstwrite(x, "dataset.fst")  # filesize: 41 KB
+#' y <- fstread("dataset.fst") # read uncompressed data
 #'
 #' # Compressed
-#' write.fst(x, "dataset.fst", 100)  # fileSize: 4 KB
-#' y <- read.fst("dataset.fst") # read compressed data
+#' fstwrite(x, "dataset.fst", 100)  # fileSize: 4 KB
+#' y <- fstread("dataset.fst") # read compressed data
 #'
 #' # Random access
-#' y <- read.fst("dataset.fst", "B") # read selection of columns
-#' y <- read.fst("dataset.fst", "A", 100, 200) # read selection of columns and rows
+#' y <- fstread("dataset.fst", "B") # read selection of columns
+#' y <- fstread("dataset.fst", "A", 100, 200) # read selection of columns and rows
 #' @export
-write.fst <- function(x, path, compress = 0) {
+fstwrite <- function(x, path, compress = 0) {
   if (!is.character(path)) stop("Please specify a correct path.")
 
   if (!is.data.frame(x)) stop("Please make sure 'x' is a data frame.")
 
-  fstStore(normalizePath(path, mustWork = FALSE), x, as.integer(compress))
+  fststore(normalizePath(path, mustWork = FALSE), x, as.integer(compress))
 
   invisible(x)
+}
+
+
+#' @rdname fstwrite
+#' @export
+write.fst <- function(x, path, compress = 0) {
+  fstwrite(x, path, compress)
 }
 
 
@@ -41,8 +51,9 @@ write.fst <- function(x, path, compress = 0) {
 #'
 #' Method for checking basic properties of the dataset stored in \code{path}.
 #'
-#' @param path Path to fst file
-#' @return Returns A list with meta information on the stored dataset in \code{path}. Has class 'fst.metadata'.
+#' @param path path to fst file
+#' @return Returns a list with meta information on the stored dataset in \code{path}.
+#' Has class 'fstmetadata'.
 #' @examples
 #' # Sample dataset
 #' x <- data.frame(
@@ -51,55 +62,66 @@ write.fst <- function(x, path, compress = 0) {
 #'   Last = sample(LETTERS, 10))
 #'
 #' # Write to fst file
-#' write.fst(x, "dataset.fst")
+#' fstwrite(x, "dataset.fst")
 #'
 #' # Display meta information
-#' fst.metadata("dataset.fst")
+#' fstmeta("dataset.fst")
+#' @export
+fstmeta <- function(path) {
+  metadata <- fstmeta(normalizePath(path, mustWork = TRUE))
+
+  colinfo <- list(path = path, nrofrows = metadata$nrofrows,
+    keys = metadata$keynames, columnnames = metadata$colnames,
+    columntypes = metadata$coltypevec, keycolindex = metadata$keycolindex)
+  class(colinfo) <- "fstmetadata"
+
+  colinfo
+}
+
+
+#' @rdname fstmeta
 #' @export
 fst.metadata <- function(path) {
-  metaData <- fstMeta(normalizePath(path, mustWork = TRUE))
-
-  colInfo <- list(Path = path, NrOfRows = metaData$nrOfRows, Keys = metaData$keyNames,
-    ColumnNames = metaData$colNames, ColumnTypes = metaData$colTypeVec, KeyColIndex = metaData$keyColIndex)
-  class(colInfo) <- "fst.metadata"
-
-  colInfo
+  fstmeta(path)
 }
 
 
 #' @export
-print.fst.metadata <- function(x, ...) {
+print.fstmetadata <- function(x, ...) {
   cat("<fst file>\n")
-  cat(x$NrOfRows, " rows, ", length(x$ColumnNames), " columns (", x$Path, ")\n\n", sep = "")
+  cat(x$nrofrows, " rows, ", length(x$columnnames), " columns (", x$path,
+    ")\n\n", sep = "")
 
-  types <- c("character", "integer", "double", "logical", "factor", "character", "factor", "integer", "double", "logical")
-  colNames <- format(encodeString(x$ColumnNames, quote = "'"))
+  types <- c("character", "integer", "double", "logical", "factor",
+    "character", "factor", "integer", "double", "logical")
+  column_names <- format(encodeString(x$columnnames, quote = "'"))
 
   # Table has no key columns
-  if (is.null(x$Keys)) {
-    cat(paste0("* ", colNames, ": ", types[x$ColumnTypes], "\n"), sep = "")
+  if (is.null(x$keys)) {
+    cat(paste0("* ", column_names, ": ", types[x$columntypes], "\n"), sep = "")
     return(invisible(NULL))
   }
 
-  K <- C <- Count <- KeyLab <- O <- NULL  # avoid R CMD check note
+  k <- c <- count <- keylab <- o <- NULL  # avoid R CMD check note
 
   # Table has key columns
-  keys <- data.table(K = x$Keys, Count = 1:length(x$Keys))
-  setkey(keys, K)
+  keys <- data.table(k = x$keys, count = 1:length(x$keys))
+  setkey(keys, k)
 
-  colTab <- data.table(C = x$ColumnNames, O = 1:length(x$ColumnNames))
-  setkey(colTab, C)
+  coltab <- data.table(c = x$columnnames, o = 1:length(x$columnnames))
+  setkey(coltab, c)
 
-  colTab <- keys[colTab]
-  colTab[!is.na(Count), KeyLab := paste0(" (key ", Count, ")")]
-  colTab[is.na(Count), KeyLab := ""]
-  setkey(colTab, O)
+  coltab <- keys[coltab]
+  coltab[!is.na(count), keylab := paste0(" (key ", count, ")")]
+  coltab[is.na(count), keylab := ""]
+  setkey(coltab, o)
 
-  cat(paste0("* ", colNames, ": ", types[x$ColumnTypes], colTab$KeyLab, "\n"), sep = "")
+  cat(paste0("* ", column_names, ": ", types[x$columntypes],
+    coltab$keylab, "\n"), sep = "")
 }
 
 
-#' @rdname write.fst
+#' @rdname fstwrite
 #'
 #' @param columns Column names to read. The default is to read all all columns.
 #' @param from Read data starting from this row number.
@@ -108,43 +130,47 @@ print.fst.metadata <- function(x, ...) {
 #' dataset \code{x} before writing, will be retained. This allows for storage of sorted datasets.
 #'
 #' @export
-read.fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE)
-{
-  fileName <- normalizePath(path, mustWork = TRUE)
+fstread <- function(path, columns = NULL, from = 1, to = NULL,
+  as.data.table = FALSE) {
+  filename <- normalizePath(path, mustWork = TRUE)
 
-  if (!is.null(columns))
-  {
-    if(!is.character(columns))
-    {
+  if (!is.null(columns)) {
+    if (!is.character(columns)) {
       stop("Parameter 'columns' should be a character vector of column names.")
     }
   }
 
-  if(!is.numeric(from) || from < 1 || length(from) != 1)
-  {
+  if (!is.numeric(from) || from < 1 || length(from) != 1) {
     stop("Parameter 'from' should have a numerical value equal or larger than 1.")
   }
 
   from <- as.integer(from)
 
-  if (!is.null(to))
-  {
-    if(!is.numeric(to) || length(to) != 1)
-    {
+  if (!is.null(to)) {
+    if (!is.numeric(to) || length(to) != 1) {
       stop("Parameter 'to' should have a numerical value larger than 1 (or NULL).")
     }
 
     to <- as.integer(to)
   }
 
-  res <- fstRetrieve(fileName, columns, from, to)
+  res <- fstretrieve(filename, columns, from, to)
 
   if (as.data.table) {
-    keyNames <- res$keyNames
-    res <- setDT(res$resTable)
-    if (length(keyNames) > 0 ) attr(res, "sorted") <- keyNames
+    keynames <- res$keynames
+    res <- setDT(res$restable)  # nolint
+    if (length(keynames) > 0 ) attr(res, "sorted") <- keynames
     return(res)
   }
 
-  as.data.frame(res$resTable, row.names = NULL, stringsAsFactors = FALSE, optional = TRUE)
+  as.data.frame(res$restable, row.names = NULL, stringsAsFactors = FALSE,
+    optional = TRUE)
+}
+
+
+#' @rdname fstwrite
+#' @export
+read.fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE) {
+
+  read_fst(path, columns, from, to, as.data.table)
 }

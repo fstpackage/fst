@@ -11,15 +11,14 @@
 #'
 #' @return The number of threads used (\code{get_fst_threads}) or the previous number of threads used (\code{set_fst_threads}).
 #' @export
-get_fst_threads <- function()
-{
+get_fst_threads <- function() {
   return(getNrOfActiveThreads())
 }
 
 #' @rdname get_fst_threads
 #' @param nrOfThreads Number of threads to use
 #' @export
-set_fst_threads <- function(nrOfThreads)
-{
-  return(setNrOfActiveThreads(nrOfThreads))
+set_fst_threads <- function(nrofthreads) {
+
+  return(setNrOfActiveThreads(nrofthreads))
 }

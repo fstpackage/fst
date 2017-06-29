@@ -43,7 +43,7 @@ class IColumnFactory
 {
 public:
   virtual ~IColumnFactory() {};
-  virtual IFactorColumn* CreateFactorColumn(int nrOfRows) = 0;
+  virtual IFactorColumn*  CreateFactorColumn(int nrOfRows) = 0;
   virtual ILogicalColumn* CreateLogicalColumn(int nrOfRows) = 0;
   virtual IDoubleColumn* CreateDoubleColumn(int nrOfRows) = 0;
   virtual IIntegerColumn* CreateIntegerColumn(int nrOfRows) = 0;
