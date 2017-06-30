@@ -172,5 +172,5 @@ fstread <- function(path, columns = NULL, from = 1, to = NULL,
 #' @export
 read.fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE) {
 
-  read_fst(path, columns, from, to, as.data.table)
+  fstread(path, columns, from, to, as.data.table)
 }
