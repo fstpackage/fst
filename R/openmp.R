@@ -16,7 +16,7 @@ get_fst_threads <- function() {
 }
 
 #' @rdname get_fst_threads
-#' @param nrOfThreads Number of threads to use
+#' @param nrofthreads number of threads to use
 #' @export
 set_fst_threads <- function(nrofthreads) {
 

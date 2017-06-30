@@ -104,7 +104,7 @@ SEXP fststore(String fileName, SEXP table, SEXP compression)
 }
 
 
-SEXP fstmeta(String fileName)
+SEXP fstmetadata(String fileName)
 {
   FstStore* fstStore = new FstStore(fileName.get_cstring());
   IColumnFactory* columnFactory = new ColumnFactory();

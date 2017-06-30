@@ -58,9 +58,9 @@
 // extern SEXP fst_SType(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
-  {"fst_meta",                  (DL_FUNC) &fstmeta,               1},
-  {"fst_retrieve",              (DL_FUNC) &fstretrieve,           4},
-  {"fst_store",                 (DL_FUNC) &fststore,              3},
+  {"fst_fstmetadata",           (DL_FUNC) &fstmetadata,           1},
+  {"fst_fstretrieve",           (DL_FUNC) &fstretrieve,           4},
+  {"fst_fststore",              (DL_FUNC) &fststore,              3},
   {"fst_getNrOfActiveThreads",  (DL_FUNC) &getNrOfActiveThreads,  0},
   {"fst_setNrOfActiveThreads",  (DL_FUNC) &setNrOfActiveThreads,  1},
   {"fst_hasOpenMP",             (DL_FUNC) &hasOpenMP,             0},

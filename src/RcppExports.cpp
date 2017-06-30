@@ -18,14 +18,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// fstmeta
-SEXP fstmeta(Rcpp::String fileName);
-RcppExport SEXP fst_fstmeta(SEXP fileNameSEXP) {
+// fstmetadata
+SEXP fstmetadata(Rcpp::String fileName);
+RcppExport SEXP fst_fstmetadata(SEXP fileNameSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::String >::type fileName(fileNameSEXP);
-    rcpp_result_gen = Rcpp::wrap(fstmeta(fileName));
+    rcpp_result_gen = Rcpp::wrap(fstmetadata(fileName));
     return rcpp_result_gen;
 END_RCPP
 }

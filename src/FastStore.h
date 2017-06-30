@@ -47,7 +47,7 @@
 SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression);
 
 // [[Rcpp::export]]
-SEXP fstmeta(Rcpp::String fileName);
+SEXP fstmetadata(Rcpp::String fileName);
 
 // [[Rcpp::export]]
 SEXP fstretrieve(Rcpp::String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);

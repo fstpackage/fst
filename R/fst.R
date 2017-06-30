@@ -15,19 +15,19 @@
 #' invisibly returns \code{x} (so you can use this function in a pipeline).
 #' @examples
 #' # Sample dataset
-#' x <- data.frame(A = 1:10000, B = sample(c(TRUE, FALSE, NA), 10000, replace = TRUE))
-#'
-#' # Uncompressed
-#' fstwrite(x, "dataset.fst")  # filesize: 41 KB
-#' y <- fstread("dataset.fst") # read uncompressed data
-#'
-#' # Compressed
-#' fstwrite(x, "dataset.fst", 100)  # fileSize: 4 KB
-#' y <- fstread("dataset.fst") # read compressed data
-#'
-#' # Random access
-#' y <- fstread("dataset.fst", "B") # read selection of columns
-#' y <- fstread("dataset.fst", "A", 100, 200) # read selection of columns and rows
+# x <- data.frame(A = 1:10000, B = sample(c(TRUE, FALSE, NA), 10000, replace = TRUE))
+#
+# # Uncompressed
+# fstwrite(x, "dataset.fst")  # filesize: 41 KB
+# y <- fstread("dataset.fst") # read uncompressed data
+#
+# # Compressed
+# fstwrite(x, "dataset.fst", 100)  # fileSize: 4 KB
+# y <- fstread("dataset.fst") # read compressed data
+#
+# # Random access
+# y <- fstread("dataset.fst", "B") # read selection of columns
+# y <- fstread("dataset.fst", "A", 100, 200) # read selection of columns and rows
 #' @export
 fstwrite <- function(x, path, compress = 0) {
   if (!is.character(path)) stop("Please specify a correct path.")
@@ -55,20 +55,20 @@ write.fst <- function(x, path, compress = 0) {
 #' @return Returns a list with meta information on the stored dataset in \code{path}.
 #' Has class 'fstmetadata'.
 #' @examples
-#' # Sample dataset
-#' x <- data.frame(
-#'   First = 1:10,
-#'   Second = sample(c(TRUE, FALSE, NA), 10, replace = TRUE),
-#'   Last = sample(LETTERS, 10))
-#'
-#' # Write to fst file
-#' fstwrite(x, "dataset.fst")
-#'
-#' # Display meta information
-#' fstmeta("dataset.fst")
+# # Sample dataset
+# x <- data.frame(
+#   First = 1:10,
+#   Second = sample(c(TRUE, FALSE, NA), 10, replace = TRUE),
+#   Last = sample(LETTERS, 10))
+#
+# # Write to fst file
+# fstwrite(x, "dataset.fst")
+#
+# # Display meta information
+# fstmeta("dataset.fst")
 #' @export
 fstmeta <- function(path) {
-  metadata <- fstmeta(normalizePath(path, mustWork = TRUE))
+  metadata <- fstmetadata(normalizePath(path, mustWork = TRUE))
 
   colinfo <- list(path = path, nrofrows = metadata$nrofrows,
     keys = metadata$keynames, columnnames = metadata$colnames,

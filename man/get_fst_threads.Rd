@@ -10,7 +10,7 @@ get_fst_threads()
 set_fst_threads(nrofthreads)
 }
 \arguments{
-\item{nrOfThreads}{Number of threads to use}
+\item{nrofthreads}{number of threads to use}
 }
 \value{
 The number of threads used (\code{get_fst_threads}) or the previous number of threads used (\code{set_fst_threads}).

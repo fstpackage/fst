@@ -5,8 +5,8 @@ fststore <- function(fileName, table, compression) {
     .Call('fst_fststore', PACKAGE = 'fst', fileName, table, compression)
 }
 
-fstmeta <- function(fileName) {
-    .Call('fst_fstmeta', PACKAGE = 'fst', fileName)
+fstmetadata <- function(fileName) {
+    .Call('fst_fstmetadata', PACKAGE = 'fst', fileName)
 }
 
 fstretrieve <- function(fileName, columnSelection, startRow, endRow) {
