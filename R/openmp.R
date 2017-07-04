@@ -9,16 +9,16 @@
 #' specific requirements. As a default, \code{fst} uses a number of threads equal to the number of
 #' physical cores in the system (not the number of logical cores).
 #'
-#' @return The number of threads used (\code{get_fst_threads}) or the previous number of threads used (\code{set_fst_threads}).
+#' @return The number of threads used (\code{fstgetthreads}) or the previous number of threads used
+#' (\code{fstsetthreads}).
 #' @export
-get_fst_threads <- function() {
+fstgetthreads <- function() {
   return(getNrOfActiveThreads())
 }
 
-#' @rdname get_fst_threads
-#' @param nrofthreads number of threads to use
+#' @rdname fstgetthreads
+#' @param nrOfThreads number of threads to use
 #' @export
-set_fst_threads <- function(nrofthreads) {
-
-  return(setNrOfActiveThreads(nrofthreads))
+fstsetthreads <- function(nrOfThreads) {
+  return(setNrOfActiveThreads(nrOfThreads))
 }

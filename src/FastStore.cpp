@@ -116,8 +116,8 @@ SEXP fstmetadata(String fileName)
   }
   catch (const std::runtime_error& e)
   {
-    // delete columnFactory;
-    // delete fstStore;
+    delete columnFactory;
+    delete fstStore;
 
     // We may be looking at a fst v0.7.2 file format, this unsafe code will be removed later
     if (std::strcmp(e.what(), FSTERROR_NON_FST_FILE))
@@ -128,17 +128,10 @@ SEXP fstmetadata(String fileName)
     ::Rf_error(e.what());
   }
 
-  // We may be looking at a fst v0.7.2 file format
-  // if (version == 0)
-  // {
-  //   // Close and reopen (slow: fst file should be resaved to avoid)
-  //   return fstMeta_v1(fileName);  // scans further for safety
-  // }
-
   // R internals part
   SEXP colNames = ((BlockReaderChar*) fstStore->blockReader)->StrVector();
 
-// Convert to integer vector
+  // Convert to integer vector
   IntegerVector colTypeVec(fstStore->nrOfCols);
   for (int col = 0; col != fstStore->nrOfCols; ++col)
   {
@@ -165,24 +158,24 @@ SEXP fstmetadata(String fileName)
     UNPROTECT(1);  // keyNames
 
     retList = List::create(
-      _["nrofcols"]        = fstStore->nrOfCols,
-      _["nrofrows"]        = *fstStore->p_nrOfRows,
-      _["fstversion"]      = fstStore->version,
-      _["coltypevec"]      = colTypeVec,
-      _["keycolindex"]     = keyColIndex,
-      _["keylength"]       = fstStore->keyLength,
-      _["keynames"]        = keyNames,
-      _["colnames"]        = colNames);
+      _["nNofCols"]        = fstStore->nrOfCols,
+      _["nrOfRows"]        = *fstStore->p_nrOfRows,
+      _["fstVersion"]      = fstStore->version,
+      _["colTypeVec"]      = colTypeVec,
+      _["keyColIndex"]     = keyColIndex,
+      _["keyLength"]       = fstStore->keyLength,
+      _["keyNames"]        = keyNames,
+      _["colNames"]        = colNames);
   }
   else
   {
     retList = List::create(
-      _["nrofcols"]        = fstStore->nrOfCols,
-      _["nrofrows"]        = *fstStore->p_nrOfRows,
-      _["fstversion"]      = fstStore->version,
-      _["keylength"]       = fstStore->keyLength,
-      _["coltypevec"]      = colTypeVec,
-      _["colnames"]        = colNames);
+      _["nrOfCols"]        = fstStore->nrOfCols,
+      _["nrOfRows"]        = *fstStore->p_nrOfRows,
+      _["fstVersion"]      = fstStore->version,
+      _["keyLength"]       = fstStore->keyLength,
+      _["colTypeVec"]      = colTypeVec,
+      _["colNames"]        = colNames);
   }
 
   delete columnFactory;
@@ -275,8 +268,8 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
   UNPROTECT(1);
 
   return List::create(
-    _["keynames"] = keyNames,
-    _["keyindex"] = keyIndex,
-    _["colnamevec"] = colNameVec,
-    _["restable"] = tableReader.resTable);
+    _["keyNames"] = keyNames,
+    _["keyIndex"] = keyIndex,
+    _["colNameVec"] = colNameVec,
+    _["resTable"] = tableReader.resTable);
 }

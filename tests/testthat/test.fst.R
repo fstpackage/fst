@@ -67,157 +67,168 @@ test_write_read <- function(col, from = 1L, to = nrofrows, sel_columns = NULL, c
   row.names(sub_dt) <- NULL
 
   uneq <- sub_dt[, 1] != data[, 1]
-  diffTable <- sub_dt
-  diffTable$Row <- 1:nrow(diffTable)
-  diffTable$Other <- data[, 1]
+  difftable <- sub_dt
+  difftable$Row <- 1:nrow(difftable)
+  difftable$Other <- data[, 1]
 
   message <- paste(
     "args: col:", col, "| from:", from, "| to:", to, "| setColumns:", sel_columns,
-    "| compress:", compress, "| tot_length", tot_length, " cols sub_dt:", ncol(sub_dt), ", rows sub_dt:", nrow(sub_dt),
-    "cols data:", ncol(data), ", rows data:", nrow(data),
+    "| compress:", compress, "| tot_length", tot_length, " cols sub_dt:", ncol(sub_dt), ", rows sub_dt:",
+      nrow(sub_dt), "cols data:", ncol(data), ", rows data:", nrow(data),
     "head sub_dt:", paste(sub_dt[1:10, 1], collapse = ","),
     "head data:", paste(data[1:10, 1], collapse = ","),
     "unequals:", sum(uneq),
-    "uneq rows sub_dt1", paste(diffTable[uneq, ][1:min(25, sum(uneq, na.rm = TRUE)), 1], collapse = ","),
-    "uneq rows sub_dt2", paste(diffTable[uneq, ][1:min(25, sum(uneq, na.rm = TRUE)), 2], collapse = ","),
-    "uneq rows sub_dt3", paste(diffTable[uneq, ][1:min(25, sum(uneq, na.rm = TRUE)), 3], collapse = ","))
+    "uneq rows sub_dt1", paste(difftable[uneq, ][1:min(25, sum(uneq, na.rm = TRUE)), 1], collapse = ","),
+    "uneq rows sub_dt2", paste(difftable[uneq, ][1:min(25, sum(uneq, na.rm = TRUE)), 2], collapse = ","),
+    "uneq rows sub_dt3", paste(difftable[uneq, ][1:min(25, sum(uneq, na.rm = TRUE)), 3], collapse = ","))
 
   expect_equal(sub_dt, data, info = message)
 }
 
 colNames <- colnames(datatable)
 
-test_that("Single uncompressed vectors",
-{
-  sapply(colNames, function(x){test_write_read(x)})
+test_that("Single uncompressed vectors", {
+  sapply(colNames,
+    function(x) {
+      test_write_read(x)
+    })
 })
 
 
-test_that("Small uncompressed vectors",
-{
-  sapply(colNames, function(x){test_write_read(x, to = 30L, tot_length = 30L)})
+test_that("Small uncompressed vectors", {
+  sapply(colNames, function(x){
+    test_write_read(x, to = 30L, tot_length = 30L)
+  })
 })
 
 
-test_that("Single weakly compressed vectors",
-{
-  sapply(colNames, function(x){test_write_read(x, compress = 30L)})
+test_that("Single weakly compressed vectors", {
+  sapply(colNames,
+    function(x) {
+      test_write_read(x, compress = 30L)
+    })
 })
 
 
-test_that("Single small weakly compressed vectors",
-{
-  sapply(colNames, function(x){test_write_read(x, to = 30L, tot_length = 30L, compress = 30L)})
+test_that("Single small weakly compressed vectors", {
+  sapply(colNames,
+    function(x) {
+      test_write_read(x, to = 30L, tot_length = 30L, compress = 30L)
+    })
 })
 
 
-test_that("Single medium sized weakly compressed vectors",
-{
-  sapply(colNames, function(x){test_write_read(x, to = 8193L, tot_length = 8193L, compress = 30L)})
+test_that("Single medium sized weakly compressed vectors", {
+  sapply(colNames,
+    function(x) {
+      test_write_read(x, to = 8193L, tot_length = 8193L, compress = 30L)
+    })
 })
 
 
-test_that("Single moderate compressed vectors",
-{
-  # sapply(colNames, function(x){test_write_read(x, compress = 60L)})
+test_that("Single moderate compressed vectors", {
+  sapply(colNames,
+    function(x) {
+      test_write_read(x, compress = 60L)
+    })
 })
 
 
-test_that("Single small moderate compressed vectors",
-{
-  # sapply(colNames, function(x){test_write_read(x, to = 30L, tot_length = 30L, compress = 60L)})
+test_that("Single small moderate compressed vectors", {
+  sapply(colNames,
+    function(x) {
+      test_write_read(x, to = 30L, tot_length = 30L, compress = 60L)
+  })
 })
 
 
 # Various boundary conditions
 
-BlockTests <- function(col, blockStart, blockEnd, compression)
-{
-  lastRow = min(blockEnd * blockSize + blockSize - 1L, nrofrows)
-  test_write_read(col, 1L + blockStart * blockSize,      lastRow,       NULL, compression)  # full
-  test_write_read(col, 1L + blockStart * blockSize + 4L, lastRow,       NULL, compression)  # offset
-  test_write_read(col, 1L + blockStart * blockSize,      lastRow - 10L, NULL, compression)  # remainder
+blocktests <- function(col, block_start, block_end, compression) {
+  last_row <- min(block_end * block_size + block_size - 1L, nrofrows)
+  test_write_read(col, 1L + block_start * block_size,      last_row,       NULL, compression)  # full
+  test_write_read(col, 1L + block_start * block_size + 4L, last_row,       NULL, compression)  # offset
+  test_write_read(col, 1L + block_start * block_size,      last_row - 10L, NULL, compression)  # remainder
 }
 
 
-BlockTestSingleType <- function(type)
-{
+blocktestsingletype <- function(type) {
   # Single first block
-  BlockTests(type, 0, 0, 0L )  # uncompressed
-  BlockTests(type, 0, 0, 40L)  # algorithm 1
-  BlockTests(type, 0, 0, 80L)  # algorithm 2
+  blocktests(type, 0, 0, 0L )  # uncompressed
+  blocktests(type, 0, 0, 40L)  # algorithm 1
+  blocktests(type, 0, 0, 80L)  # algorithm 2
 
   # Single middle block
-  BlockTests(type, 1, 1, 0L )  # uncompressed
-  BlockTests(type, 1, 1, 40L)  # algorithm 1
-  BlockTests(type, 1, 1, 80L)  # algorithm 2
+  blocktests(type, 1, 1, 0L )  # uncompressed
+  blocktests(type, 1, 1, 40L)  # algorithm 1
+  blocktests(type, 1, 1, 80L)  # algorithm 2
 
-  lastBlock = as.integer((nrofrows - 1) / blockSize)
+  last_block <- as.integer( (nrofrows - 1) / block_size)
 
   # Single last block
-  BlockTests(type, lastBlock, lastBlock, 0L )  # uncompressed
-  BlockTests(type, lastBlock, lastBlock, 40L)  # algorithm 1
-  BlockTests(type, lastBlock, lastBlock, 80L)  # algorithm 2
+  blocktests(type, last_block, last_block, 0L )  # uncompressed
+  blocktests(type, last_block, last_block, 40L)  # algorithm 1
+  blocktests(type, last_block, last_block, 80L)  # algorithm 2
 
   # Multiple blocks
-  BlockTests(type, 0, 1, 0L)  # uncompressed
-  BlockTests(type, lastBlock - 1, lastBlock, 0L)  # uncompressed
-  BlockTests(type, 0, lastBlock, 0L)  # uncompressed
+  blocktests(type, 0, 1, 0L)  # uncompressed
+  blocktests(type, last_block - 1, last_block, 0L)  # uncompressed
+  blocktests(type, 0, last_block, 0L)  # uncompressed
 
-  BlockTests(type, 0, 1, 40L)  # algorithm 1
-  BlockTests(type, lastBlock - 1, lastBlock, 40L)  # algorithm 1
-  BlockTests(type, 0, lastBlock, 40L)  # algorithm 1
+  blocktests(type, 0, 1, 40L)  # algorithm 1
+  blocktests(type, last_block - 1, last_block, 40L)  # algorithm 1
+  blocktests(type, 0, last_block, 40L)  # algorithm 1
 
-  # BlockTests(type, 0, 1, 80L)  # algorithm 2
-  # BlockTests(type, lastBlock - 1, lastBlock, 80L)  # algorithm 2
-  # BlockTests(type, 0, lastBlock, 80L)  # algorithm 2
+  blocktests(type, 0, 1, 80L)  # algorithm 2
+  blocktests(type, last_block - 1, last_block, 80L)  # algorithm 2
+  blocktests(type, 0, last_block, 80L)  # algorithm 2
 }
 
 
-blockSize = 4096
+block_size <- 4096
 
 # Test blocks
 test_that("Integer column block tests", {
-  BlockTestSingleType("Xint")
+  blocktestsingletype("Xint")
 })
 
 
 test_that("Logical column block tests", {
-  BlockTestSingleType("Ylog")
+  blocktestsingletype("Ylog")
 })
 
 
 test_that("Date column block tests", {
-  BlockTestSingleType("Date")
+  blocktestsingletype("Date")
 })
 
-blockSize = 2048
+block_size <- 2048
 
 
 # Test blocks
 test_that("Real column block tests", {
-  BlockTestSingleType("Zdoub")
+  blocktestsingletype("Zdoub")
 })
 
 
 test_that("Integer64 column block tests", {
-  BlockTestSingleType("Integer64")
+  blocktestsingletype("Integer64")
 })
 
-blockSize = 2047
+block_size <- 2047
 
 test_that("Character column block tests", {
-  BlockTestSingleType("Qchar")
+  blocktestsingletype("Qchar")
 })
 
 
 test_that("Factor column block tests", {
-  BlockTestSingleType("WFact")
+  blocktestsingletype("WFact")
 })
 
 
 test_that("Character column block tests with NA's", {
-  BlockTestSingleType("char_na")
+  blocktestsingletype("char_na")
 })
 
 
@@ -234,10 +245,14 @@ test_that("From and to row can be set", {
 
 
 test_that("Select columns", {
-  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date", "Integer64"), sel_columns = "Zdoub")
-  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date", "Integer64"), sel_columns = c("Ylog", "WFact"))
-  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date", "Integer64"), sel_columns = c("WFact", "Ylog"))
-  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date", "Integer64"), from = 7, to = 13, sel_columns = c("Ylog", "Qchar"))
+  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date", "Integer64"),
+    sel_columns = "Zdoub")
+  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date", "Integer64"),
+    sel_columns = c("Ylog", "WFact"))
+  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date", "Integer64"),
+    sel_columns = c("WFact", "Ylog"))
+  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date", "Integer64"),
+    from = 7, to = 13, sel_columns = c("Ylog", "Qchar"))
 })
 
 
@@ -250,6 +265,7 @@ test_that("Select unknown column", {
 test_that("Select out of range row number", {
   test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact"), from = 4, to = 7000)
   test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact"), from = 4, to = NULL)
-  expect_error(fstreadproxy("FactorStore/data1.fst", from = 12000, to = NULL), "Row selection is out of range")
+  expect_error(fstreadproxy("FactorStore/data1.fst", from = 12000, to = NULL),
+    "Row selection is out of range")
   expect_error(fstreadproxy("FactorStore/data1.fst", from = 0, to = NULL), "Parameter 'from' should have")
 })

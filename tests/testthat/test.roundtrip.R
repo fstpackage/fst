@@ -41,7 +41,7 @@ test_that("preserves special floating point values", {
 })
 
 test_that("doesn't lose precision", {
-  x <- c(1/3, sqrt(2), pi)
+  x <- c(1 / 3, sqrt(2), pi)
   expect_identical(roundtrip_vector(x), x)
 })
 
@@ -57,12 +57,14 @@ test_that("can have NA on end of string", {
   expect_identical(roundtrip_vector(x), x)
 })
 
+# nolint start
 # test_that("always coerces to UTF-8", {
 #   x <- iconv("é", to = "latin1")
 #   y <- roundtrip_vector(x)
 #
 #   expect_identical(x, y) # string comparison always re-encodes first
 # })
+# nolint end
 
 
 # Factor ------------------------------------------------------------------
@@ -91,7 +93,7 @@ test_that("preserves dates", {
 })
 
 
-# no lint start
+# nolint start
 # # Time --------------------------------------------------------------------
 #
 # test_that("preserves hms", {
@@ -133,4 +135,4 @@ test_that("preserves dates", {
 #
 #   expect_identical(x1, x2)
 # })
-# no lint end
+# nolint end

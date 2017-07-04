@@ -10,27 +10,23 @@ if (!file.exists("testoutput")) {
 }
 
 
-nrOfLevels <- 8
-char_vec <- function(nrOfRows) { sapply(1:nrOfRows, function(x) { paste(sample(LETTERS, sample(1:4)), collapse="") }) }
+nr_of_levels <- 8
+char_vec <- function(nr_of_rows) {
+  sapply(1:nr_of_rows,
+    function(x) {
+      paste(sample(LETTERS, sample(1:4)), collapse = "")
+    })
+  }
 
 # Sample data
-nrOfRows <- 10000L
-charNA <- char_vec(nrOfRows)
-charNA[sample(1:nrOfRows, 10)] <- NA
-dataTable <- data.frame(
-  Xint=1:nrOfRows,
-  Ylog=sample(c(TRUE, FALSE, NA), nrOfRows, replace=TRUE),
-  Zdoub=rnorm(nrOfRows),
-  Qchar=char_vec(nrOfRows),
-  WFact=factor(sample(char_vec(nrOfLevels), nrOfRows, replace = TRUE)),
-  CharNA = charNA,
+nr_of_rows <- 10000L
+char_na <- char_vec(nr_of_rows)
+char_na[sample(1:nr_of_rows, 10)] <- NA
+datatable <- data.frame(
+  Xint = 1:nr_of_rows,
+  Ylog = sample(c(TRUE, FALSE, NA), nr_of_rows, replace = TRUE),
+  Zdoub = rnorm(nr_of_rows),
+  Qchar = char_vec(nr_of_rows),
+  WFact = factor(sample(char_vec(nr_of_levels), nr_of_rows, replace = TRUE)),
+  char_na = char_na,
   stringsAsFactors = FALSE)
-
-# no lint start
-# test_that("Use rbind to bind rows",
-# {
-#   write.fst(dataTable[1:1000, ], "testoutput/1.fst")
-#
-#   fst.rbind("testoutput/1.fst", dataTable[1001:2000, ])
-# })
-# no lint end

@@ -19,3 +19,16 @@ Has class 'fstmetadata'.
 \description{
 Method for checking basic properties of the dataset stored in \code{path}.
 }
+\examples{
+# Sample dataset
+x <- data.frame(
+  First = 1:10,
+  Second = sample(c(TRUE, FALSE, NA), 10, replace = TRUE),
+  Last = sample(LETTERS, 10))
+
+# Write to fst file
+fstwrite(x, "dataset.fst")
+
+# Display meta information
+fstmeta("dataset.fst")
+}

@@ -15,19 +15,19 @@
 #' invisibly returns \code{x} (so you can use this function in a pipeline).
 #' @examples
 #' # Sample dataset
-# x <- data.frame(A = 1:10000, B = sample(c(TRUE, FALSE, NA), 10000, replace = TRUE))
-#
-# # Uncompressed
-# fstwrite(x, "dataset.fst")  # filesize: 41 KB
-# y <- fstread("dataset.fst") # read uncompressed data
-#
-# # Compressed
-# fstwrite(x, "dataset.fst", 100)  # fileSize: 4 KB
-# y <- fstread("dataset.fst") # read compressed data
-#
-# # Random access
-# y <- fstread("dataset.fst", "B") # read selection of columns
-# y <- fstread("dataset.fst", "A", 100, 200) # read selection of columns and rows
+#' x <- data.frame(A = 1:10000, B = sample(c(TRUE, FALSE, NA), 10000, replace = TRUE))
+#'
+#' # Uncompressed
+#' fstwrite(x, "dataset.fst")  # filesize: 41 KB
+#' y <- fstread("dataset.fst") # read uncompressed data
+#'
+#' # Compressed
+#' fstwrite(x, "dataset.fst", 100)  # fileSize: 4 KB
+#' y <- fstread("dataset.fst") # read compressed data
+#'
+#' # Random access
+#' y <- fstread("dataset.fst", "B") # read selection of columns
+#' y <- fstread("dataset.fst", "A", 100, 200) # read selection of columns and rows
 #' @export
 fstwrite <- function(x, path, compress = 0) {
   if (!is.character(path)) stop("Please specify a correct path.")
@@ -55,27 +55,27 @@ write.fst <- function(x, path, compress = 0) {
 #' @return Returns a list with meta information on the stored dataset in \code{path}.
 #' Has class 'fstmetadata'.
 #' @examples
-# # Sample dataset
-# x <- data.frame(
-#   First = 1:10,
-#   Second = sample(c(TRUE, FALSE, NA), 10, replace = TRUE),
-#   Last = sample(LETTERS, 10))
-#
-# # Write to fst file
-# fstwrite(x, "dataset.fst")
-#
-# # Display meta information
-# fstmeta("dataset.fst")
+#' # Sample dataset
+#' x <- data.frame(
+#'   First = 1:10,
+#'   Second = sample(c(TRUE, FALSE, NA), 10, replace = TRUE),
+#'   Last = sample(LETTERS, 10))
+#'
+#' # Write to fst file
+#' fstwrite(x, "dataset.fst")
+#'
+#' # Display meta information
+#' fstmeta("dataset.fst")
 #' @export
 fstmeta <- function(path) {
   metadata <- fstmetadata(normalizePath(path, mustWork = TRUE))
 
-  colinfo <- list(path = path, nrofrows = metadata$nrofrows,
-    keys = metadata$keynames, columnnames = metadata$colnames,
-    columntypes = metadata$coltypevec, keycolindex = metadata$keycolindex)
-  class(colinfo) <- "fstmetadata"
+  colInfo <- list(path = path, nrOfRows = metadata$nrOfRows,
+    keys = metadata$keyNames, columnNames = metadata$colNames,
+    columnTypes = metadata$colTypeVec, keyColIndex = metadata$keyColIndex)
+  class(colInfo) <- "fstmetadata"
 
-  colinfo
+  colInfo
 }
 
 
@@ -89,16 +89,16 @@ fst.metadata <- function(path) {
 #' @export
 print.fstmetadata <- function(x, ...) {
   cat("<fst file>\n")
-  cat(x$nrofrows, " rows, ", length(x$columnnames), " columns (", x$path,
+  cat(x$nrOfRows, " rows, ", length(x$columnNames), " columns (", x$path,
     ")\n\n", sep = "")
 
   types <- c("character", "integer", "double", "logical", "factor",
     "character", "factor", "integer", "double", "logical")
-  column_names <- format(encodeString(x$columnnames, quote = "'"))
+  colNames <- format(encodeString(x$columnNames, quote = "'"))
 
   # Table has no key columns
   if (is.null(x$keys)) {
-    cat(paste0("* ", column_names, ": ", types[x$columntypes], "\n"), sep = "")
+    cat(paste0("* ", colNames, ": ", types[x$columnTypes], "\n"), sep = "")
     return(invisible(NULL))
   }
 
@@ -108,16 +108,16 @@ print.fstmetadata <- function(x, ...) {
   keys <- data.table(k = x$keys, count = 1:length(x$keys))
   setkey(keys, k)
 
-  coltab <- data.table(c = x$columnnames, o = 1:length(x$columnnames))
-  setkey(coltab, c)
+  colTab <- data.table(c = x$columnNames, o = 1:length(x$columnNames))
+  setkey(colTab, c)
 
-  coltab <- keys[coltab]
-  coltab[!is.na(count), keylab := paste0(" (key ", count, ")")]
-  coltab[is.na(count), keylab := ""]
-  setkey(coltab, o)
+  colTab <- keys[colTab]
+  colTab[!is.na(count), keylab := paste0(" (key ", count, ")")]
+  colTab[is.na(count), keylab := ""]
+  setkey(colTab, o)
 
-  cat(paste0("* ", column_names, ": ", types[x$columntypes],
-    coltab$keylab, "\n"), sep = "")
+  cat(paste0("* ", colNames, ": ", types[x$columnTypes],
+    colTab$keylab, "\n"), sep = "")
 }
 
 
@@ -132,7 +132,7 @@ print.fstmetadata <- function(x, ...) {
 #' @export
 fstread <- function(path, columns = NULL, from = 1, to = NULL,
   as.data.table = FALSE) {
-  filename <- normalizePath(path, mustWork = TRUE)
+  fileName <- normalizePath(path, mustWork = TRUE)
 
   if (!is.null(columns)) {
     if (!is.character(columns)) {
@@ -154,16 +154,16 @@ fstread <- function(path, columns = NULL, from = 1, to = NULL,
     to <- as.integer(to)
   }
 
-  res <- fstretrieve(filename, columns, from, to)
+  res <- fstretrieve(fileName, columns, from, to)
 
   if (as.data.table) {
-    keynames <- res$keynames
-    res <- setDT(res$restable)  # nolint
-    if (length(keynames) > 0 ) attr(res, "sorted") <- keynames
+    keyNames <- res$keyNames
+    res <- setDT(res$resTable)  # nolint
+    if (length(keyNames) > 0 ) attr(res, "sorted") <- keyNames
     return(res)
   }
 
-  as.data.frame(res$restable, row.names = NULL, stringsAsFactors = FALSE,
+  as.data.frame(res$resTable, row.names = NULL, stringsAsFactors = FALSE,
     optional = TRUE)
 }
 
