@@ -25,7 +25,7 @@
         packageStartupMessage("\n!!! This development version of the package is rather old, please update !!!")
 
     # Check for OpenMP support
-    if (!hasOpenMP()) {
+    if (!hasopenmp()) {
       packageStartupMessage("(OpenMP was not detected, using single threaded mode)")
     } else {
       # Use only physical cores to maximize performance (no hyperthreading)

@@ -60,7 +60,7 @@ class IFstTable
 
   	virtual int* GetDateTimeWriter(unsigned int colNr) = 0;
 
-  	virtual long int* GetInt64Writer(unsigned int colNr) = 0;
+  	virtual long long* GetInt64Writer(unsigned int colNr) = 0;
 
     virtual double* GetDoubleWriter(unsigned int colNr) = 0;
 

@@ -41,15 +41,15 @@
 
 
 // [[Rcpp::export]]
-SEXP getNrOfActiveThreads();
+SEXP getnrofthreads();
 
 
 // [[Rcpp::export]]
-int setNrOfActiveThreads(SEXP nrOfThreads);
+int setnrofthreads(SEXP nrOfThreads);
 
 
 // [[Rcpp::export]]
-SEXP hasOpenMP();
+SEXP hasopenmp();
 
 
 int avoid_openmp_hang_within_fork();

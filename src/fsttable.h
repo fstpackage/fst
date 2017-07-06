@@ -103,7 +103,7 @@ class FstTable : public IFstTable
 
     int* GetDateTimeWriter(unsigned int colNr);
 
-    long int* GetInt64Writer(unsigned int colNr);
+    long long* GetInt64Writer(unsigned int colNr);
 
     double* GetDoubleWriter(unsigned int colNr);
 

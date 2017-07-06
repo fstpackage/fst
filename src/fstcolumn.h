@@ -182,9 +182,9 @@ public:
     UNPROTECT(1);
   }
 
-  long int* Data()
+  long long* Data()
   {
-    return (long int*)(REAL(int64Vec));
+    return (long long*)(REAL(int64Vec));
   }
 };
 

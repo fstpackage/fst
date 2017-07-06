@@ -1,6 +1,8 @@
 
 context("metadata")
 
+library(bit64, quietly = TRUE)
+
 
 # Clean testdata directory
 if (!file.exists("testdata")) {
@@ -10,8 +12,13 @@ if (!file.exists("testdata")) {
 }
 
 # Sample data
-x <- data.table(A = 1:10, B = sample(c(TRUE, FALSE, NA), 10, replace = TRUE))
-x_key <- readRDS("keyedTable.rds")  # import keyed table to avoid memory leaks in data.table (LeakSanitizer)
+x <- data.table(
+  A = 1:10,
+  B = sample(c(TRUE, FALSE, NA), 10, replace = TRUE),
+  C = sample(1:100, 10) / 100,
+  D = Sys.Date() + 1:10,
+  E = sample(LETTERS, 10),
+  F = factor(sample(LETTERS, 10)))
 
 
 test_that("Read meta of uncompressed file", {
@@ -21,8 +28,8 @@ test_that("Read meta of uncompressed file", {
   expect_equal(y$path, "testdata/meta.fst")
   expect_equal(y$nrOfRows, 10)
   expect_equal(y$keys, NULL)
-  expect_equal(y$columnNames, c("A", "B"))
-  expect_equal(y$columnTypes, c(8, 10))
+  expect_equal(y$columnNames, LETTERS[1:6])
+  expect_equal(y$columnBaseTypes, c(4, 6, 5, 7, 2, 3))
 })
 
 
@@ -33,17 +40,18 @@ test_that("Read meta of compressed file", {
   expect_equal(y$path, "testdata/meta.fst")
   expect_equal(y$nrOfRows, 10)
   expect_equal(y$keys, NULL)
-  expect_equal(y$columnNames, c("A", "B"))
-  expect_equal(y$columnTypes, c(8, 10))
+  expect_equal(y$columnNames, LETTERS[1:6])
+  expect_equal(y$columnBaseTypes, c(4, 6, 5, 7, 2, 3))
 })
 
 
 test_that("Read meta of sorted file", {
-  fstwriteproxy(x_key, "testdata/meta.fst")
+  setkey(x, B, C)
+  fstwriteproxy(x, "testdata/meta.fst")
   y <- fstmetaproxy("testdata/meta.fst")
   expect_equal(y$path, "testdata/meta.fst")
   expect_equal(y$nrOfRows, 10)
-  expect_equal(y$keys, "B")
-  expect_equal(y$columnNames, c("A", "B"))
-  expect_equal(y$columnTypes, c(8, 10))
+  expect_equal(y$keys, c("B", "C"))
+  expect_equal(y$columnNames, LETTERS[1:6])
+  expect_equal(y$columnBaseTypes, c(4, 6, 5, 7, 2, 3))
 })

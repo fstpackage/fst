@@ -201,12 +201,11 @@ List fstMeta_v1(String fileName)
       _["nrOfCols"]        = nrOfCols,
       _["nrOfRows"]        = nrOfRows,
       _["fstVersion"]      = 0,
-      _["colTypeVec"]      = colTypeVec,
-      _["keyColIndex"]     = keyColIndex,
       _["keyLength"]       = keyLength,
-      _["keyNames"]        = keyNames,
+      _["colBaseType"]     = colTypeVec,
       _["colNames"]        = colNames,
-      _["nrOfChunks"]      = 1);
+      _["keyColIndex"]     = keyColIndex,
+      _["keyNames"]        = keyNames);
   }
 
   UNPROTECT(1);
@@ -217,17 +216,16 @@ List fstMeta_v1(String fileName)
     _["nrOfRows"]        = nrOfRows,
     _["fstVersion"]      = 0,
     _["keyLength"]       = keyLength,
-    _["colTypeVec"]      = colTypeVec,
-    _["colNames"]        = colNames,
-    _["nrOfChunks"]      = 1);
+    _["colBaseType"]     = colTypeVec,
+    _["colNames"]        = colNames);
 }
 
 
-SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
+SEXP fstRead_v1(String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 {
   // Open file
   ifstream myfile;
-  myfile.open(CHAR(STRING_ELT(fileName, 0)), ios::binary);
+  myfile.open(fileName.get_cstring(), ios::binary);
 
   // Additional check compared to CRAN v0.7.2
   if (myfile.fail())
@@ -235,7 +233,6 @@ SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
     myfile.close();
     ::Rf_error("There was an error opening the fst file. Please check for a correct filename.");
   }
-
 
   // Read column size
   short int colSizes[2];
@@ -529,8 +526,6 @@ SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
     delete[] colTypes;
     delete[] keyColumns;
     delete[] allBlockPos;
-
-    Rf_warning("This fst file was created with a beta version of the fst package. Please re-write the data as this format will not be supported in future releases.");
 
     return List::create(
       _["keyNames"] = keyNames,

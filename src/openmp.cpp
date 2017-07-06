@@ -29,13 +29,13 @@
 
 
 
-SEXP getNrOfActiveThreads()
+SEXP getnrofthreads()
 {
     return Rf_ScalarInteger(GetFstThreads());
 }
 
 
-int setNrOfActiveThreads(SEXP nrOfThreads)
+int setnrofthreads(SEXP nrOfThreads)
 {
     SEXP intVal = Rf_coerceVector(nrOfThreads, INTSXP);
 
@@ -50,28 +50,17 @@ int setNrOfActiveThreads(SEXP nrOfThreads)
 }
 
 
-//
-// SEXP setDTthreads(SEXP threads) {
-//     if (!isInteger(threads) || length(threads) != 1 || INTEGER(threads)[0] < 0) {
-//         // catches NA too since NA is -ve
-//         error("Argument to setDTthreads must be a single integer >= 0. Default 0 is recommended to use all CPU.");
-//     }
-//     // do not call omp_set_num_threads() here as that affects other openMP
-//     // packages and base R as well potentially.
-//     int old = DTthreads;
-//     DTthreads = INTEGER(threads)[0];
-//     return ScalarInteger(old);
-// }
-
 // auto avoid deadlock when fst called from parallel::mclapply
 static int preFork_Fstthreads = 0;
 
-void when_fork() {
+void when_fork()
+{
     preFork_Fstthreads = GetFstThreads();
     SetFstThreads(1);
 }
 
-void when_fork_end() {
+void when_fork_end()
+{
     SetFstThreads(preFork_Fstthreads);
 }
 
@@ -87,7 +76,7 @@ int avoid_openmp_hang_within_fork()
 }
 
 
-SEXP hasOpenMP()
+SEXP hasopenmp()
 {
   return Rf_ScalarLogical(HasOpenMP());
 }

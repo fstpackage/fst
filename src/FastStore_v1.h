@@ -44,7 +44,7 @@
 
 Rcpp::List fstMeta_v1(Rcpp::String fileName);
 
-SEXP fstRead_v1(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
+SEXP fstRead_v1(Rcpp::String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
 
 
 #endif  // FASTSTORE_V1_H

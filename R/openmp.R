@@ -13,12 +13,12 @@
 #' (\code{fstsetthreads}).
 #' @export
 fstgetthreads <- function() {
-  return(getNrOfActiveThreads())
+  return(getnrofthreads())
 }
 
 #' @rdname fstgetthreads
 #' @param nrOfThreads number of threads to use
 #' @export
 fstsetthreads <- function(nrOfThreads) {
-  return(setNrOfActiveThreads(nrOfThreads))
+  return(setnrofthreads(nrOfThreads))
 }

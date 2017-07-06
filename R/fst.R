@@ -72,7 +72,7 @@ fstmeta <- function(path) {
 
   colInfo <- list(path = path, nrOfRows = metadata$nrOfRows,
     keys = metadata$keyNames, columnNames = metadata$colNames,
-    columnTypes = metadata$colTypeVec, keyColIndex = metadata$keyColIndex)
+    columnBaseTypes = metadata$colBaseType, keyColIndex = metadata$keyColIndex)
   class(colInfo) <- "fstmetadata"
 
   colInfo
@@ -92,13 +92,12 @@ print.fstmetadata <- function(x, ...) {
   cat(x$nrOfRows, " rows, ", length(x$columnNames), " columns (", x$path,
     ")\n\n", sep = "")
 
-  types <- c("character", "integer", "double", "logical", "factor",
-    "character", "factor", "integer", "double", "logical")
+  types <- c("unknown", "character", "factor", "integer", "double", "logical", "date", "integer64")
   colNames <- format(encodeString(x$columnNames, quote = "'"))
 
   # Table has no key columns
   if (is.null(x$keys)) {
-    cat(paste0("* ", colNames, ": ", types[x$columnTypes], "\n"), sep = "")
+    cat(paste0("* ", colNames, ": ", types[x$columnBaseTypes], "\n"), sep = "")
     return(invisible(NULL))
   }
 
@@ -116,7 +115,7 @@ print.fstmetadata <- function(x, ...) {
   colTab[is.na(count), keylab := ""]
   setkey(colTab, o)
 
-  cat(paste0("* ", colNames, ": ", types[x$columnTypes],
+  cat(paste0("* ", colNames, ": ", types[x$columnBaseTypes],
     colTab$keylab, "\n"), sep = "")
 }
 

@@ -13,15 +13,15 @@ fstretrieve <- function(fileName, columnSelection, startRow, endRow) {
     .Call('fst_fstretrieve', PACKAGE = 'fst', fileName, columnSelection, startRow, endRow)
 }
 
-getNrOfActiveThreads <- function() {
-    .Call('fst_getNrOfActiveThreads', PACKAGE = 'fst')
+getnrofthreads <- function() {
+    .Call('fst_getnrofthreads', PACKAGE = 'fst')
 }
 
-setNrOfActiveThreads <- function(nrOfThreads) {
-    .Call('fst_setNrOfActiveThreads', PACKAGE = 'fst', nrOfThreads)
+setnrofthreads <- function(nrOfThreads) {
+    .Call('fst_setnrofthreads', PACKAGE = 'fst', nrOfThreads)
 }
 
-hasOpenMP <- function() {
-    .Call('fst_hasOpenMP', PACKAGE = 'fst')
+hasopenmp <- function() {
+    .Call('fst_hasopenmp', PACKAGE = 'fst')
 }
 

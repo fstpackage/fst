@@ -14,14 +14,14 @@ test_that("Check OpenMP support on Windows and Linux", {
   os_name <- Sys.info()["sysname"]
 
   if (os_name == "Windows")  {
-    expect_true(fst:::hasOpenMP())
+    expect_true(fst:::hasopenmp())
   }
 
   if (os_name == "Linux") {
-    expect_true(fst:::hasOpenMP())
+    expect_true(fst:::hasopenmp())
   }
 
-  cat("OS:", os_name, " OpenMp:", fst:::hasOpenMP(), sep = "")
+  cat("OS:", os_name, " OpenMp:", fst:::hasopenmp(), sep = "")
 })
 
 

@@ -56,6 +56,7 @@ class FstStore
     unsigned long long* p_nrOfRows;
     int* keyColPos;
     unsigned short int* colTypes;
+    unsigned short int* colBaseTypes;
     unsigned int version;
     int nrOfCols, keyLength;
     IStringColumn* blockReader;

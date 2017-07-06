@@ -120,9 +120,22 @@ SEXP fstmetadata(String fileName)
     delete fstStore;
 
     // We may be looking at a fst v0.7.2 file format, this unsafe code will be removed later
-    if (std::strcmp(e.what(), FSTERROR_NON_FST_FILE))
+    if (std::strcmp(e.what(), FSTERROR_NON_FST_FILE) == 0)
     {
-      return fstMeta_v1(fileName);  // scans further for safety
+      List resOld = fstMeta_v1(fileName);  // scans further for safety
+
+      IntegerVector typeVec = resOld[4];
+
+      // change type ordering
+      int types[6] { 0, 2, 4, 5, 6, 3};
+      for (int pos = 0; pos < typeVec.size(); pos++)
+      {
+        int oldType = typeVec[pos];
+        typeVec[pos] = types[oldType];
+      }
+
+      resOld[4] = typeVec;
+      return resOld;  // scans further for safety
     }
 
     ::Rf_error(e.what());
@@ -133,9 +146,11 @@ SEXP fstmetadata(String fileName)
 
   // Convert to integer vector
   IntegerVector colTypeVec(fstStore->nrOfCols);
+  IntegerVector colBaseType(fstStore->nrOfCols);
   for (int col = 0; col != fstStore->nrOfCols; ++col)
   {
     colTypeVec[col] = fstStore->colTypes[col];
+    colBaseType[col] = fstStore->colBaseTypes[col];
   }
 
   List retList;
@@ -161,11 +176,11 @@ SEXP fstmetadata(String fileName)
       _["nNofCols"]        = fstStore->nrOfCols,
       _["nrOfRows"]        = *fstStore->p_nrOfRows,
       _["fstVersion"]      = fstStore->version,
-      _["colTypeVec"]      = colTypeVec,
-      _["keyColIndex"]     = keyColIndex,
       _["keyLength"]       = fstStore->keyLength,
-      _["keyNames"]        = keyNames,
-      _["colNames"]        = colNames);
+      _["colBaseType"]     = colBaseType,
+      _["colNames"]        = colNames,
+      _["keyColIndex"]     = keyColIndex,
+      _["keyNames"]        = keyNames);
   }
   else
   {
@@ -174,7 +189,7 @@ SEXP fstmetadata(String fileName)
       _["nrOfRows"]        = *fstStore->p_nrOfRows,
       _["fstVersion"]      = fstStore->version,
       _["keyLength"]       = fstStore->keyLength,
-      _["colTypeVec"]      = colTypeVec,
+      _["colBaseType"]     = colBaseType,
       _["colNames"]        = colNames);
   }
 
@@ -225,23 +240,35 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
     delete fstStore;
     delete colNames;
 
-    // ::Rf_warning(e.what());
-    // ::Rf_warning(FSTERROR_NON_FST_FILE);
-
     // We may be looking at a fst v0.7.2 file format, this unsafe code will be removed later
-    if (std::strcmp(e.what(), FSTERROR_NON_FST_FILE))
+    if (std::strcmp(e.what(), FSTERROR_NON_FST_FILE) == 0)
     {
       result = -1;
     }
-
-    // Re-throw uncatched errors
-    ::Rf_error(e.what());
+    else
+    {
+      // Re-throw uncatched errors
+      ::Rf_error(e.what());
+    }
   }
+
 
   // Test deprecated version format !!!
   if (result == -1)
   {
-    return fstRead_v1(fileName.get_sexp(), columnSelection, startRow, endRow);
+    try
+    {
+      SEXP res = fstRead_v1(fileName, columnSelection, startRow, endRow);
+
+      Rf_warning("This fst file was created with a beta version of the fst package. Please re-write the data as this format will not be supported in future releases.");
+
+      return res;
+    }
+    catch (const std::exception& ex)
+    {
+      // Re-throw uncatched errors
+      ::Rf_error(ex.what());
+    }
   }
 
   SEXP colNameVec = colNames->StrVector();

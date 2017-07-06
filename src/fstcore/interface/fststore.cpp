@@ -282,9 +282,9 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
       case FstColumnType::CHARACTER:
       {
         colTypes[colNr] = 6;
-		IStringWriter* blockRunner = fstTable.GetStringWriter(colNr);
+    		IStringWriter* blockRunner = fstTable.GetStringWriter(colNr);
         fdsWriteCharVec_v6(myfile, blockRunner, compress);   // column names
-		delete blockRunner;
+    		delete blockRunner;
         break;
       }
 
@@ -292,9 +292,9 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
       {
         colTypes[colNr] = 7;
         int* intP = fstTable.GetIntWriter(colNr);  // level values pointer
-		IStringWriter* blockRunner = fstTable.GetLevelWriter(colNr);
+    		IStringWriter* blockRunner = fstTable.GetLevelWriter(colNr);
         fdsWriteFactorVec_v7(myfile, intP, blockRunner, nrOfRows, compress);
-		delete blockRunner;
+		    delete blockRunner;
         break;
       }
 
@@ -333,7 +333,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
       case FstColumnType::INT_64:
       {
         colTypes[colNr] = 12;
-        long int* intP = fstTable.GetInt64Writer(colNr);
+        long long* intP = fstTable.GetInt64Writer(colNr);
         fdsWriteRealVec_v9(myfile, (double*) intP, nrOfRows, compress);
         break;
       }
@@ -404,7 +404,7 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
   int* p_nrOfCols                           = (int*) &metaDataBlock[tmpOffset + 28];
   // unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[tmpOffset + 32];
   colTypes                                  = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 2 * nrOfColsFirstChunk];
-  // unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 4 * nrOfColsFirstChunk];
+  colBaseTypes                              = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 4 * nrOfColsFirstChunk];
 
 
   nrOfCols = *p_nrOfCols;
@@ -478,8 +478,6 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
   // Use a pure C++ charVector implementation here for performance
   IStringColumn* blockReader = columnFactory->CreateStringColumn(nrOfCols);
   fdsReadCharVec_v6(myfile, blockReader, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
-
-  // SEXP colNames = ((BlockReaderChar*) blockReader)->StrVector();
 
   // TODO: read column attributes here
 
@@ -681,7 +679,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
 	  }
 
 	  // integer64 vector
-    case 12:
+	  case 12:
 	  {
 	    IInt64Column* int64Column = columnFactory->CreateInt64Column(length);
 	    fdsReadRealVec_v9(myfile, (double*) int64Column->Data(), pos, firstRow, length, nrOfRows);

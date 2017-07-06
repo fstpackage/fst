@@ -43,34 +43,34 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// getNrOfActiveThreads
-SEXP getNrOfActiveThreads();
-RcppExport SEXP fst_getNrOfActiveThreads() {
+// getnrofthreads
+SEXP getnrofthreads();
+RcppExport SEXP fst_getnrofthreads() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(getNrOfActiveThreads());
+    rcpp_result_gen = Rcpp::wrap(getnrofthreads());
     return rcpp_result_gen;
 END_RCPP
 }
-// setNrOfActiveThreads
-int setNrOfActiveThreads(SEXP nrOfThreads);
-RcppExport SEXP fst_setNrOfActiveThreads(SEXP nrOfThreadsSEXP) {
+// setnrofthreads
+int setnrofthreads(SEXP nrOfThreads);
+RcppExport SEXP fst_setnrofthreads(SEXP nrOfThreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type nrOfThreads(nrOfThreadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(setNrOfActiveThreads(nrOfThreads));
+    rcpp_result_gen = Rcpp::wrap(setnrofthreads(nrOfThreads));
     return rcpp_result_gen;
 END_RCPP
 }
-// hasOpenMP
-SEXP hasOpenMP();
-RcppExport SEXP fst_hasOpenMP() {
+// hasopenmp
+SEXP hasopenmp();
+RcppExport SEXP fst_hasopenmp() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(hasOpenMP());
+    rcpp_result_gen = Rcpp::wrap(hasopenmp());
     return rcpp_result_gen;
 END_RCPP
 }

@@ -101,7 +101,7 @@ class IInt64Column
 {
 public:
   virtual ~IInt64Column() {};
-  virtual long int* Data() = 0;
+  virtual long long* Data() = 0;
 };
 
 

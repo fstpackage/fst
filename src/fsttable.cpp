@@ -145,12 +145,12 @@ int* FstTable::GetDateTimeWriter(unsigned int colNr)
 }
 
 
-long int* FstTable::GetInt64Writer(unsigned int colNr)
+long long* FstTable::GetInt64Writer(unsigned int colNr)
 {
   cols = VECTOR_ELT(*rTable, colNr);  // retrieve column vector (no copy?)
 
   // Convert doubles to long integer type
-  return (long int*) (REAL(cols));
+  return (long long*) (REAL(cols));
 }
 
 
