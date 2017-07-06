@@ -101,22 +101,14 @@ print.fstmetadata <- function(x, ...) {
     return(invisible(NULL))
   }
 
-  k <- c <- count <- keylab <- o <- NULL  # avoid R CMD check note
-
   # Table has key columns
-  keys <- data.table(k = x$keys, count = 1:length(x$keys))
-  setkey(keys, k)
+  keys <- data.frame(k = x$keys, count = 1:length(x$keys))
+  colTab <- data.frame(k = x$columnNames, o = 1:length(x$columnNames))
+  colTab <- merge(colTab, keys, "k", all.x = TRUE)
+  colTab$l <- paste0(" (key ", colTab$count, ")")
+  colTab[is.na(colTab$count), "l"] <- ""
 
-  colTab <- data.table(c = x$columnNames, o = 1:length(x$columnNames))
-  setkey(colTab, c)
-
-  colTab <- keys[colTab]
-  colTab[!is.na(count), keylab := paste0(" (key ", count, ")")]
-  colTab[is.na(count), keylab := ""]
-  setkey(colTab, o)
-
-  cat(paste0("* ", colNames, ": ", types[x$columnBaseTypes],
-    colTab$keylab, "\n"), sep = "")
+  cat(paste0("* ", colNames, ": ", types[x$columnBaseTypes], colTab$l, "\n"), sep = "")
 }
 
 
@@ -156,8 +148,12 @@ fstread <- function(path, columns = NULL, from = 1, to = NULL,
   res <- fstretrieve(fileName, columns, from, to)
 
   if (as.data.table) {
+    if (!requireNamespace("data.table")) {
+      stop("Please install package data.table when using as.data.table = TRUE")
+    }
+
     keyNames <- res$keyNames
-    res <- setDT(res$resTable)  # nolint
+    res <- data.table::setDT(res$resTable)  # nolint
     if (length(keyNames) > 0 ) attr(res, "sorted") <- keyNames
     return(res)
   }

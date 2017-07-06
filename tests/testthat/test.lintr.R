@@ -1,7 +1,7 @@
 
 context("code quality")
 
-require(lintr)
+suppressMessages(library(lintr))
 
 # issues with lintr:
 #   * is.data.table method from data.table not recognized
@@ -14,7 +14,10 @@ if (requireNamespace("lintr", quietly = TRUE)) {
       c("object_usage_linter", "camel_case_linter", "commas_linter", "multiple_dots_linter"))]
 
     codeFiles <- list.files("../..", "R$", full.names = TRUE, recursive = TRUE)
-    codeFiles <- codeFiles[codeFiles != "../../R/RcppExports.R"]  # manualy remove RcppExports file
+
+    # manualy remove RcppExports file and few generated files
+    codeFiles <- codeFiles[!(codeFiles %in%
+      c("../../R/RcppExports.R", "../../fst-Ex.R", "../../00_pkg_src/fst/R/RcppExports.R"))]
 
     # Calculate lintr results for all code files
     lintResults <- lintr:::flatten_lints(lapply(codeFiles, function(file) {

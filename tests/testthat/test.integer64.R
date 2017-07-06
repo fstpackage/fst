@@ -1,7 +1,7 @@
 
-library(bit64, quietly = TRUE)
-
 context("integer64 column")
+
+suppressMessages(library(bit64))
 
 
 # Clean testdata directory

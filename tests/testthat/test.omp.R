@@ -20,8 +20,6 @@ test_that("Check OpenMP support on Windows and Linux", {
   if (os_name == "Linux") {
     expect_true(fst:::hasopenmp())
   }
-
-  cat("OS:", os_name, " OpenMp:", fst:::hasopenmp(), sep = "")
 })
 
 

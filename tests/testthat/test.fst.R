@@ -1,7 +1,7 @@
 
 context("subsetting and compression")
 
-library(bit64)
+suppressMessages(library(bit64))
 
 
 # Clean testdata directory
