@@ -1,7 +1,7 @@
 
 context("code quality")
 
-suppressMessages(library(lintr))
+library(lintr)
 
 # issues with lintr:
 #   * is.data.table method from data.table not recognized

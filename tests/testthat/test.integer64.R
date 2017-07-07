@@ -1,8 +1,8 @@
 
 context("integer64 column")
 
-suppressMessages(library(bit64))
-
+library(bit64)
+library(data.table)
 
 # Clean testdata directory
 if (!file.exists("testdata")) {
