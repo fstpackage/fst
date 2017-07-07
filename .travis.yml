@@ -15,9 +15,8 @@ os:
 
 r_packages:
   - covr
-
-r_github_packages:
-  - jimhester/lintr
+  - lintr
+  - bit64
 
 after_success:
   - Rscript -e 'library(covr); codecov()'
