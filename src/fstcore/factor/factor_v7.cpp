@@ -54,7 +54,7 @@ using namespace std;
 #define HEADER_SIZE_FACTOR 16
 #define VERSION_NUMBER_FACTOR 1
 
-void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunner, unsigned int size, unsigned int compression)
+void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunner, unsigned int size, unsigned int compression, StringEncoding stringEncoding)
 {
   unsigned long long blockPos = myfile.tellp();  // offset for factor
   unsigned int nrOfFactorLevels = blockRunner->vecLength;
@@ -70,7 +70,7 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
   {
 	  myfile.write(meta, HEADER_SIZE_FACTOR);  // number of levels
 	  *nrOfLevels = nrOfFactorLevels;
-	  fdsWriteCharVec_v6(myfile, blockRunner, compression);   // factor levels
+	  fdsWriteCharVec_v6(myfile, blockRunner, compression, stringEncoding);   // factor levels
 															  // Rewrite meta-data
 	  *versionNr = VERSION_NUMBER_FACTOR;
 	  *levelVecPos = myfile.tellp();  // offset for level vector

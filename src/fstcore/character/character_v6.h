@@ -44,7 +44,7 @@
 #include "interface/ifstcolumn.h"
 
 
-void fdsWriteCharVec_v6(std::ofstream &myfile, IStringWriter* blockRunner, int compression);
+void fdsWriteCharVec_v6(std::ofstream &myfile, IStringWriter* blockRunner, int compression, StringEncoding stringEncoding);
 
 
 void fdsReadCharVec_v6(std::istream &myfile, IStringColumn* blockReader, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size);

@@ -36,13 +36,15 @@
 #ifndef IFST_COLUMN_H
 #define IFST_COLUMN_H
 
+#include <interface/istringwriter.h>
+
 
 // Column types available in fst
 // Only add to the end to support previous format versions
 enum FstColumnType
 {
-  UNKNOWN = 1,
-  CHARACTER,
+	UNKNOWN = 1,
+	CHARACTER,
 	FACTOR,
 	INT_32,
 	DOUBLE_64,
@@ -60,10 +62,15 @@ class IStringArray
 public:
 
   virtual ~IStringArray() {};
+
   virtual void AllocateArray(int vecLength) = 0;
+
   virtual void SetElement(int elementNr, const char* str) = 0;
+
   virtual void SetElement(int elementNr, const char* str, int strLen) = 0;
+
   virtual const char* GetElement(int elementNr) = 0;
+
   virtual int Length() = 0;
 };
 
@@ -72,10 +79,15 @@ class IStringColumn
 {
 public:
 
-  virtual ~IStringColumn() {};
+  virtual ~IStringColumn() {}
+
   virtual void AllocateVec(unsigned int vecLength) = 0;
+
+  virtual void SetEncoding(StringEncoding stringEncoding) = 0;
+
   virtual void BufferToVec(unsigned int nrOfElements, unsigned int startElem, unsigned int endElem,
     unsigned int vecOffset, unsigned int* sizeMeta, char* buf) = 0;
+
   virtual const char* GetElement(int elementNr) = 0;
 };
 

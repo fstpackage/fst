@@ -37,6 +37,7 @@
 #define FSTDEFINES_H
 
 
+// Format related defines
 #define FST_VERSION         1                  // version of fst codebase
 #define TABLE_META_SIZE     24                 // size of table meta-data block
 #define FST_FILE_ID         0xa91c12f8b245a71d // identifies a fst file
@@ -57,11 +58,9 @@
 #define MAX_SIZE_COMPRESS_BLOCK_8		2048 * CACHEFACTOR			// Compression
 #define MAX_SIZE_COMPRESS_BLOCK_128		128 * CACHEFACTOR			// Compression
 #define MAX_COMPRESSBOUND				17036						// maximum compression buffer at source size of MAX_SIZE_COMPRESS_BLOCK
-//#define MAX_COMPRESSBOUND				33548						// maximum compression buffer at source size of MAX_SIZE_COMPRESS_BLOCK * CACHEFACTOR
 #define MAX_TARGET_BUFFER				BLOCKSIZE * CACHEFACTOR / 2 // 16384  / 2  (Compressor)
 #define BLOCKSIZE_REAL					2048 * CACHEFACTOR			// number of doubles in default compression block
 #define BLOCKSIZE_INT					4096 * CACHEFACTOR			// number of integers in default compression block
-
 
 // fst specific errors
 #define FSTERROR_NOT_IMPLEMENTED     "Feature not implemented yet"

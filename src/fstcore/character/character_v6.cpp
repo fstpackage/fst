@@ -85,7 +85,7 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IStringWriter*
   intBufSize = intCompressor->Compress((char*)(blockRunner->strSizes), strSizesBufLength, intBuf, compAlgorithm, blockNr);
   myfile.write(intBuf, intBufSize);
 
-  //intCompressor->WriteBlock(myfile, (char*)(blockRunner->strSizes), intBuf);
+  //intCompressor->WriteBlock(myfile, (char*)(stringWriter->strSizes), intBuf);
   algoInt = (unsigned short int) (compAlgorithm);  // store selected algorithm
 
   // Write NA bits uncompressed (add compression later ?)
@@ -100,7 +100,7 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IStringWriter*
   // Compress buffer
   int resSize = charCompressor->Compress(blockRunner->activeBuf, totSize, compBuf, compAlgorithm, blockNr);
   myfile.write(compBuf, resSize);
-  //charCompressor->WriteBlock(myfile, blockRunner->activeBuf, compBuf);
+  //charCompressor->WriteBlock(myfile, stringWriter->activeBuf, compBuf);
 
   algoChar = (unsigned short int) (compAlgorithm);  // store selected algorithm
 
@@ -111,9 +111,9 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IStringWriter*
 }
 
 
-void fdsWriteCharVec_v6(ofstream &myfile, IStringWriter* blockRunner, int compression)
+void fdsWriteCharVec_v6(ofstream &myfile, IStringWriter* stringWriter, int compression, StringEncoding stringEncoding)
 {
-  unsigned int vecLength = blockRunner->vecLength;  // expected to be larger than zero
+  unsigned int vecLength = stringWriter->vecLength;  // expected to be larger than zero
 
   unsigned long long curPos = myfile.tellp();
   unsigned int nrOfBlocks = (vecLength - 1) / BLOCKSIZE_CHAR;  // number of blocks minus 1
@@ -124,29 +124,29 @@ void fdsWriteCharVec_v6(ofstream &myfile, IStringWriter* blockRunner, int compre
     char *meta = new char[metaSize];  // first CHAR_HEADER_SIZE bytes store compression setting and block size
 
     // Set column header
-    unsigned int* isCompressed  = (unsigned int*) meta;
-    unsigned int* blockSizeChar = (unsigned int*) &meta[4];
+    unsigned int* isCompressed  = reinterpret_cast<unsigned int*>(meta);
+    unsigned int* blockSizeChar = reinterpret_cast<unsigned int*>(&meta[4]);
     *blockSizeChar = BLOCKSIZE_CHAR;  // check why 2047 and not 2048
-    *isCompressed = 0;
+	*isCompressed = stringEncoding << 1;
 
     myfile.write(meta, metaSize);  // write block offset index
 
-    unsigned long long* blockPos = (unsigned long long*) &meta[CHAR_HEADER_SIZE];
+    unsigned long long* blockPos = reinterpret_cast<unsigned long long*>(&meta[CHAR_HEADER_SIZE]);
     unsigned long long fullSize = metaSize;
 
     for (unsigned int block = 0; block < nrOfBlocks; ++block)
     {
-      unsigned int totSize = StoreCharBlock_v6(myfile, blockRunner, block * BLOCKSIZE_CHAR, (block + 1) * BLOCKSIZE_CHAR);
+      unsigned int totSize = StoreCharBlock_v6(myfile, stringWriter, block * BLOCKSIZE_CHAR, (block + 1) * BLOCKSIZE_CHAR);
       fullSize += totSize;
       blockPos[block] = fullSize;
     }
 
-    unsigned int totSize = StoreCharBlock_v6(myfile, blockRunner, nrOfBlocks * BLOCKSIZE_CHAR, vecLength);
+    unsigned int totSize = StoreCharBlock_v6(myfile, stringWriter, nrOfBlocks * BLOCKSIZE_CHAR, vecLength);
     fullSize += totSize;
     blockPos[nrOfBlocks] = fullSize;
 
     myfile.seekp(curPos + CHAR_HEADER_SIZE);
-    myfile.write((char*)(blockPos), (nrOfBlocks + 1) * 8);  // additional zero for index convenience
+    myfile.write(reinterpret_cast<char*>(blockPos), (nrOfBlocks + 1) * 8);  // additional zero for index convenience
     myfile.seekp(curPos + fullSize);  // back to end of file
 
     delete[] meta;
@@ -164,7 +164,7 @@ void fdsWriteCharVec_v6(ofstream &myfile, IStringWriter* blockRunner, int compre
   unsigned int* isCompressed  = (unsigned int*) meta;
   unsigned int* blockSizeChar = (unsigned int*) &meta[4];
   *blockSizeChar = BLOCKSIZE_CHAR;
-  *isCompressed = 1;  // set compression flag
+  *isCompressed = (stringEncoding << 1) | 1;  // set compression flag
 
   myfile.write(meta, metaSize);  // write block offset and algorithm index
 
@@ -210,8 +210,8 @@ void fdsWriteCharVec_v6(ofstream &myfile, IStringWriter* blockRunner, int compre
     unsigned short int* algoChar = (unsigned short int*) (blockP + 10);
     int* intBufSize = (int*) (blockP + 12);
 
-    blockRunner->SetBuffersFromVec(block * BLOCKSIZE_CHAR, (block + 1) * BLOCKSIZE_CHAR);
-    unsigned int totSize = storeCharBlockCompressed_v6(myfile, blockRunner, block * BLOCKSIZE_CHAR,
+    stringWriter->SetBuffersFromVec(block * BLOCKSIZE_CHAR, (block + 1) * BLOCKSIZE_CHAR);
+    unsigned int totSize = storeCharBlockCompressed_v6(myfile, stringWriter, block * BLOCKSIZE_CHAR,
       (block + 1) * BLOCKSIZE_CHAR, streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize, block);
 
     fullSize += totSize;
@@ -224,8 +224,8 @@ void fdsWriteCharVec_v6(ofstream &myfile, IStringWriter* blockRunner, int compre
   unsigned short int* algoChar = (unsigned short int*) (blockP + 10);
   int* intBufSize = (int*) (blockP + 12);
 
-  blockRunner->SetBuffersFromVec(nrOfBlocks * BLOCKSIZE_CHAR, vecLength);
-  unsigned int totSize = storeCharBlockCompressed_v6(myfile, blockRunner, nrOfBlocks * BLOCKSIZE_CHAR,
+  stringWriter->SetBuffersFromVec(nrOfBlocks * BLOCKSIZE_CHAR, vecLength);
+  unsigned int totSize = storeCharBlockCompressed_v6(myfile, stringWriter, nrOfBlocks * BLOCKSIZE_CHAR,
     vecLength, streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize, nrOfBlocks);
 
   fullSize += totSize;
@@ -334,6 +334,9 @@ void fdsReadCharVec_v6(istream &myfile, IStringColumn* blockReader, unsigned lon
   unsigned int meta[2];
   myfile.read((char*) meta, CHAR_HEADER_SIZE);
 
+  unsigned int compression = meta[0] & 1;  // maximum 8 encodings
+  StringEncoding stringEncoding = static_cast<StringEncoding>(meta[0] >> 1 & 7);  // at maximum 8 encodings
+
   unsigned int blockSizeChar = meta[1];
   unsigned int totNrOfBlocks = (size - 1) / blockSizeChar;  // total number of blocks minus 1
   unsigned int startBlock = startRow / blockSizeChar;
@@ -344,10 +347,10 @@ void fdsReadCharVec_v6(istream &myfile, IStringColumn* blockReader, unsigned lon
 
   // Create result vector
   blockReader->AllocateVec(vecLength);
+  blockReader->SetEncoding(stringEncoding);
 
   // Vector data is uncompressed
-
-  if (meta[0] == 0)
+  if (compression == 0)
   {
     unsigned long long *blockOffset = new unsigned long long[1 + nrOfBlocks];  // block positions
 

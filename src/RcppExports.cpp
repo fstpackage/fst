@@ -5,6 +5,17 @@
 
 using namespace Rcpp;
 
+// fststrencoding
+SEXP fststrencoding(SEXP str);
+RcppExport SEXP fst_fststrencoding(SEXP strSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type str(strSEXP);
+    rcpp_result_gen = Rcpp::wrap(fststrencoding(str));
+    return rcpp_result_gen;
+END_RCPP
+}
 // fststore
 SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression);
 RcppExport SEXP fst_fststore(SEXP fileNameSEXP, SEXP tableSEXP, SEXP compressionSEXP) {

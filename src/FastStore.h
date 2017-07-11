@@ -37,11 +37,13 @@
 #define FASTSTORE_H
 
 
+#include <Rcpp.h>
+
 #define FST_VERSION 1  // version number of the fst package (odd numbers are dev versions)
 
 
-#include <Rcpp.h>
-
+// [[Rcpp::export]]
+SEXP fststrencoding(SEXP str);
 
 // [[Rcpp::export]]
 SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression);

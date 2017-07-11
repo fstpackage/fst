@@ -244,7 +244,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
 
   // Serialize column names
   IStringWriter* blockRunner = fstTable.GetColNameWriter();
-  fdsWriteCharVec_v6(myfile, blockRunner, 0);   // column names
+  fdsWriteCharVec_v6(myfile, blockRunner, 0, StringEncoding::NATIVE);   // column names
   delete blockRunner;
 
   // TODO: Write column attributes here
@@ -282,9 +282,9 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
       case FstColumnType::CHARACTER:
       {
         colTypes[colNr] = 6;
-    		IStringWriter* blockRunner = fstTable.GetStringWriter(colNr);
-        fdsWriteCharVec_v6(myfile, blockRunner, compress);   // column names
-    		delete blockRunner;
+     		IStringWriter* stringWriter = fstTable.GetStringWriter(colNr);
+        fdsWriteCharVec_v6(myfile, stringWriter, compress, stringWriter->Encoding());   // column names
+     		delete stringWriter;
         break;
       }
 
@@ -292,9 +292,9 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
       {
         colTypes[colNr] = 7;
         int* intP = fstTable.GetIntWriter(colNr);  // level values pointer
-    		IStringWriter* blockRunner = fstTable.GetLevelWriter(colNr);
-        fdsWriteFactorVec_v7(myfile, intP, blockRunner, nrOfRows, compress);
-		    delete blockRunner;
+   		IStringWriter* stringWriter = fstTable.GetLevelWriter(colNr);
+        fdsWriteFactorVec_v7(myfile, intP, stringWriter, nrOfRows, compress, stringWriter->Encoding());
+	    delete stringWriter;
         break;
       }
 

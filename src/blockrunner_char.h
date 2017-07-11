@@ -57,7 +57,36 @@ class BlockWriterChar : public IStringWriter
 
   public:
     BlockWriterChar(SEXP &strVec, unsigned int vecLength, unsigned int stackBufSize);
+
     ~BlockWriterChar();
+
+    StringEncoding Encoding()
+    {
+      // Get first non-NA element and set encoding accordingly
+      // (expensive for vectors with lots of NA's at the start, solve!)
+
+      cetype_t encoding = cetype_t::CE_NATIVE;  // default
+      for (unsigned int pos = 0; pos < this->vecLength; pos++)
+      {
+        SEXP strElem = STRING_ELT(*strVec, pos);
+        if (strElem != NA_STRING)  // set NA bit
+        {
+          encoding = Rf_getCharCE(strElem);
+        }
+      }
+
+      switch (encoding)
+      {
+        case cetype_t::CE_LATIN1:
+          return StringEncoding::LATIN1;
+
+        case cetype_t::CE_UTF8:
+          return StringEncoding::UTF8;
+
+        default:
+          return StringEncoding::NATIVE;
+      }
+    }
 
     void SetBuffersFromVec(unsigned int startCount, unsigned int endCount);
 };
@@ -67,12 +96,36 @@ class BlockReaderChar : public IStringColumn
 {
   SEXP strVec;
   bool isProtected;
+  cetype_t strEncoding;
 
 public:
   BlockReaderChar() { isProtected = true; }
+
   ~BlockReaderChar(){ if (isProtected) UNPROTECT(1); }
 
   void AllocateVec(unsigned int vecLength);
+
+  void SetEncoding(StringEncoding stringEncoding)
+  {
+    switch (stringEncoding)
+    {
+      case StringEncoding::LATIN1:
+      {
+        strEncoding = cetype_t::CE_LATIN1;
+        break;
+      }
+
+      case StringEncoding::UTF8:
+      {
+        strEncoding = cetype_t::CE_UTF8;
+        break;
+      }
+
+      default:  // native or unknown encoding
+        strEncoding = cetype_t::CE_NATIVE;
+        break;
+    }
+  }
 
   void BufferToVec(unsigned int nrOfElements, unsigned int startElem, unsigned int endElem,
     unsigned int vecOffset, unsigned int* sizeMeta, char* buf);

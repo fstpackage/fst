@@ -159,7 +159,7 @@ void BlockReaderChar::BufferToVec(unsigned int nrOfElements, unsigned int startE
     for (unsigned int blockElem = startElem; blockElem <= endElem; ++blockElem)
     {
       unsigned int newPos = sizeMeta[blockElem];
-      SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
+      SEXP curStr = Rf_mkCharLenCE(buf + pos, newPos - pos, this->strEncoding);
       SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
       pos = newPos;  // update to new string offset
     }
@@ -191,7 +191,7 @@ void BlockReaderChar::BufferToVec(unsigned int nrOfElements, unsigned int startE
       // Get string from data stream
 
       unsigned int newPos = sizeMeta[blockElem];
-      SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
+      SEXP curStr = Rf_mkCharLenCE(buf + pos, newPos - pos, this->strEncoding);
       SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
       pos = newPos;  // update to new string offset
     }
@@ -216,7 +216,7 @@ void BlockReaderChar::BufferToVec(unsigned int nrOfElements, unsigned int startE
     // Get string from data stream
 
     unsigned int newPos = sizeMeta[blockElem];
-    SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
+    SEXP curStr = Rf_mkCharLenCE(buf + pos, newPos - pos, this->strEncoding);
     SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
     pos = newPos;  // update to new string offset
   }
@@ -233,7 +233,7 @@ void BlockReaderChar::BufferToVec(unsigned int nrOfElements, unsigned int startE
       for (unsigned int blockElem = cycle * 32; blockElem != middleCycleEnd; ++blockElem)
       {
         unsigned int newPos = sizeMeta[blockElem];
-        SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
+        SEXP curStr = Rf_mkCharLenCE(buf + pos, newPos - pos, this->strEncoding);
         SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
         pos = newPos;  // update to new string offset
       }
@@ -256,7 +256,7 @@ void BlockReaderChar::BufferToVec(unsigned int nrOfElements, unsigned int startE
 
       // Get string from data stream
 
-      SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
+      SEXP curStr = Rf_mkCharLenCE(buf + pos, newPos - pos, this->strEncoding);
       SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
       pos = newPos;  // update to new string offset
     }
@@ -281,7 +281,7 @@ void BlockReaderChar::BufferToVec(unsigned int nrOfElements, unsigned int startE
 
     // Get string from data stream
 
-    SEXP curStr = Rf_mkCharLen(buf + pos, newPos - pos);
+    SEXP curStr = Rf_mkCharLenCE(buf + pos, newPos - pos, this->strEncoding);
     SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
     pos = newPos;  // update to new string offset
   }

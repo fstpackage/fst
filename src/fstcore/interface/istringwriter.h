@@ -37,6 +37,13 @@
 #ifndef ISTRINGWRITER_H
 #define ISTRINGWRITER_H
 
+enum StringEncoding
+{
+	NATIVE = 0,
+	LATIN1,
+	UTF8
+};
+
 
 class IStringWriter
 {
@@ -47,7 +54,9 @@ public:
   char* activeBuf;
   unsigned int vecLength;
 
-  virtual ~IStringWriter() {};
+  virtual ~IStringWriter() {}
+
+  virtual StringEncoding Encoding() = 0;
 
   virtual void SetBuffersFromVec(unsigned int startCount, unsigned int endCount) = 0;
 };
