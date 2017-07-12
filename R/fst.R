@@ -11,6 +11,12 @@
 #' @param x a data frame to write to disk
 #' @param path path to fst file
 #' @param compress value in the range 0 to 100, indicating the amount of compression to use.
+#' @param uniform.encoding If TRUE, all character vectors will be assumed to have elements with equal encoding.
+#' The encoding (latin1, utf-8 or native) of the first non-NA element will used as encoding for the whole column.
+#' This will be a correct assumption for most use cases.
+#' If \code{uniform.encoding} is set to FALSE, no such assumption will be made and all elements will be converted
+#' to the same encoding. The latter is a relatively expensive operation and will reduce write performance for
+#' character columns.
 #' @return all methods return a data frame. \code{fstwrite}
 #' invisibly returns \code{x} (so you can use this function in a pipeline).
 #' @examples
@@ -29,12 +35,12 @@
 #' y <- fstread("dataset.fst", "B") # read selection of columns
 #' y <- fstread("dataset.fst", "A", 100, 200) # read selection of columns and rows
 #' @export
-fstwrite <- function(x, path, compress = 0) {
+fstwrite <- function(x, path, compress = 0, uniform.encoding = TRUE) {
   if (!is.character(path)) stop("Please specify a correct path.")
 
   if (!is.data.frame(x)) stop("Please make sure 'x' is a data frame.")
 
-  fststore(normalizePath(path, mustWork = FALSE), x, as.integer(compress))
+  fststore(normalizePath(path, mustWork = FALSE), x, as.integer(compress), uniform.encoding)
 
   invisible(x)
 }
@@ -42,8 +48,8 @@ fstwrite <- function(x, path, compress = 0) {
 
 #' @rdname fstwrite
 #' @export
-write.fst <- function(x, path, compress = 0) {
-  fstwrite(x, path, compress)
+write.fst <- function(x, path, compress = 0, uniform.encoding = TRUE) {
+  fstwrite(x, path, compress, uniform.encoding)
 }
 
 

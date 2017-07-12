@@ -5,8 +5,8 @@ fststrencoding <- function(str) {
     .Call('fst_fststrencoding', PACKAGE = 'fst', str)
 }
 
-fststore <- function(fileName, table, compression) {
-    .Call('fst_fststore', PACKAGE = 'fst', fileName, table, compression)
+fststore <- function(fileName, table, compression, uniformEncoding) {
+    .Call('fst_fststore', PACKAGE = 'fst', fileName, table, compression, uniformEncoding)
 }
 
 fstmetadata <- function(fileName) {

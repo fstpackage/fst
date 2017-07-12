@@ -46,7 +46,7 @@
 SEXP fststrencoding(SEXP str);
 
 // [[Rcpp::export]]
-SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression);
+SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression, SEXP uniformEncoding);
 
 // [[Rcpp::export]]
 SEXP fstmetadata(Rcpp::String fileName);

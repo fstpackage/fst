@@ -37,6 +37,8 @@
 #define BLOCKRUNNER_CHAR_H
 
 
+#include <stdexcept>
+
 #include <Rcpp.h>
 
 #include <interface/fstdefines.h>
@@ -47,7 +49,7 @@ class BlockWriterChar : public IStringWriter
   SEXP* strVec;
   unsigned int stackBufSize;
   unsigned int heapBufSize;
-  // char* buf;
+  int uniformEncoding;
   char *heapBuf;
 
   // Buffers for blockRunner (make these local !!!!)
@@ -56,22 +58,40 @@ class BlockWriterChar : public IStringWriter
   char buf[MAX_CHAR_STACK_SIZE];
 
   public:
-    BlockWriterChar(SEXP &strVec, unsigned int vecLength, unsigned int stackBufSize);
+    BlockWriterChar(SEXP &strVec, unsigned int vecLength, unsigned int stackBufSize, int uniformEncoding);
 
     ~BlockWriterChar();
 
     StringEncoding Encoding()
     {
       // Get first non-NA element and set encoding accordingly
-      // (expensive for vectors with lots of NA's at the start, solve!)
-
+      // This is expensive for vectors with lots of NA's at the start
       cetype_t encoding = cetype_t::CE_NATIVE;  // default
-      for (unsigned int pos = 0; pos < this->vecLength; pos++)
+      unsigned int pos;
+      for (pos = 0; pos < this->vecLength; pos++)
       {
         SEXP strElem = STRING_ELT(*strVec, pos);
         if (strElem != NA_STRING)  // set NA bit
         {
           encoding = Rf_getCharCE(strElem);
+          break;
+        }
+      }
+
+      // check remaining vector for elements with different encoding
+      if (!uniformEncoding)
+      {
+        for (; pos < this->vecLength; pos++)
+        {
+          SEXP strElem = STRING_ELT(*strVec, pos);
+          if (strElem != NA_STRING)  // set NA bit
+          {
+            cetype_t nextEncoding = Rf_getCharCE(strElem);
+            if (nextEncoding != encoding)
+            {
+              throw(std::runtime_error("Character vectors with mixed encodings are currently not supported"));
+            }
+          }
         }
       }
 

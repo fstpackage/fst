@@ -17,15 +17,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // fststore
-SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression);
-RcppExport SEXP fst_fststore(SEXP fileNameSEXP, SEXP tableSEXP, SEXP compressionSEXP) {
+SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression, SEXP uniformEncoding);
+RcppExport SEXP fst_fststore(SEXP fileNameSEXP, SEXP tableSEXP, SEXP compressionSEXP, SEXP uniformEncodingSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::String >::type fileName(fileNameSEXP);
     Rcpp::traits::input_parameter< SEXP >::type table(tableSEXP);
     Rcpp::traits::input_parameter< SEXP >::type compression(compressionSEXP);
-    rcpp_result_gen = Rcpp::wrap(fststore(fileName, table, compression));
+    Rcpp::traits::input_parameter< SEXP >::type uniformEncoding(uniformEncodingSEXP);
+    rcpp_result_gen = Rcpp::wrap(fststore(fileName, table, compression, uniformEncoding));
     return rcpp_result_gen;
 END_RCPP
 }

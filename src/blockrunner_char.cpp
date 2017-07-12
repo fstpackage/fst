@@ -47,13 +47,14 @@ using namespace std;
 using namespace Rcpp;
 
 
-BlockWriterChar::BlockWriterChar(SEXP &strVec, unsigned int vecLength, unsigned int stackBufSize)
+BlockWriterChar::BlockWriterChar(SEXP &strVec, unsigned int vecLength, unsigned int stackBufSize, int uniformEncoding)
 {
   this->strVec = &strVec;
   this->naInts = naInts_buf;
   this->strSizes = strSizes_buf;
   this->stackBufSize = stackBufSize;
   this->vecLength = vecLength;
+  this->uniformEncoding = uniformEncoding;
 
   heapBufSize = BASIC_HEAP_SIZE;
   heapBuf = new char[BASIC_HEAP_SIZE];

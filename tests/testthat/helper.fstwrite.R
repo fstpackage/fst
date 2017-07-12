@@ -1,8 +1,8 @@
 
 # Convenience method to tests on different versions of the package
 # Not used in the CRAN release
-fstwriteproxy <- function(x, path, compress = 0) {
-  fstwrite(x, path, compress)  # use current version of fst package
+fstwriteproxy <- function(x, path, compress = 0, uniform.encoding = TRUE) {
+  fstwrite(x, path, compress, uniform.encoding)  # use current version of fst package
 }
 
 

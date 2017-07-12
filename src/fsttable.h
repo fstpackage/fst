@@ -60,6 +60,7 @@ class FstTable : public IFstTable
   unsigned int nrOfCols;
   int nrOfRows;
   bool isProtected;
+  int uniformEncoding;
 
 
   public:
@@ -67,7 +68,7 @@ class FstTable : public IFstTable
 
     FstTable() {}
 
-    FstTable(SEXP &table);
+    FstTable(SEXP &table, int uniformEncoding);
 
     ~FstTable() { if (isProtected) UNPROTECT(1); }
 

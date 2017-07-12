@@ -86,8 +86,13 @@ inline int FindKey(StringVector colNameList, String item)
 }
 
 
-SEXP fststore(String fileName, SEXP table, SEXP compression)
+SEXP fststore(String fileName, SEXP table, SEXP compression, SEXP uniformEncoding)
 {
+  if (!Rf_isLogical(uniformEncoding))
+  {
+    ::Rf_error("Parameter uniform.encoding should be a logical value");
+  }
+
   if (!Rf_isInteger(compression))
   {
     ::Rf_error("Parameter compression should be an integer value between 0 and 100");
@@ -99,7 +104,7 @@ SEXP fststore(String fileName, SEXP table, SEXP compression)
     ::Rf_error("Parameter compression should be an integer value between 0 and 100");
   }
 
-  FstTable fstTable(table);
+  FstTable fstTable(table, *LOGICAL(uniformEncoding));
   FstStore fstStore(fileName.get_cstring());
 
   try

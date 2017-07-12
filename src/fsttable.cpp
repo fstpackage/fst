@@ -48,11 +48,12 @@
 using namespace Rcpp;
 
 
-FstTable::FstTable(SEXP &table)
+FstTable::FstTable(SEXP &table, int uniformEncoding)
 {
   this->rTable = &table;
   this->nrOfCols = 0;
   this->isProtected = false;
+  this->uniformEncoding = uniformEncoding;
 }
 
 
@@ -175,7 +176,7 @@ IStringWriter* FstTable::GetStringWriter(unsigned int colNr)
   // Assuming that nrOfRows is already set
   unsigned int nrOfVectorRows = LENGTH(cols);
 
-  return new BlockWriterChar(cols, nrOfVectorRows, MAX_CHAR_STACK_SIZE);
+  return new BlockWriterChar(cols, nrOfVectorRows, MAX_CHAR_STACK_SIZE, uniformEncoding);
 }
 
 
@@ -184,7 +185,7 @@ IStringWriter* FstTable::GetLevelWriter(unsigned int colNr)
   cols = VECTOR_ELT(*rTable, colNr);  // retrieve column vector
   cols = Rf_getAttrib(cols, Rf_mkString("levels"));
   unsigned int nrOfFactorLevels = LENGTH(cols);
-  return new BlockWriterChar(cols, nrOfFactorLevels, MAX_CHAR_STACK_SIZE);
+  return new BlockWriterChar(cols, nrOfFactorLevels, MAX_CHAR_STACK_SIZE, uniformEncoding);
 }
 
 
@@ -193,7 +194,7 @@ IStringWriter* FstTable::GetColNameWriter()
   cols = Rf_getAttrib(*rTable, R_NamesSymbol);
 
   // Assuming that nrOfCols is already set
-  return new BlockWriterChar(cols, nrOfCols, MAX_CHAR_STACK_SIZE);
+  return new BlockWriterChar(cols, nrOfCols, MAX_CHAR_STACK_SIZE, uniformEncoding);
 }
 
 

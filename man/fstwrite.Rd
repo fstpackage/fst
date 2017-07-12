@@ -7,9 +7,9 @@
 \alias{read.fst}
 \title{Read and write fst files.}
 \usage{
-fstwrite(x, path, compress = 0)
+fstwrite(x, path, compress = 0, uniform.encoding = TRUE)
 
-write.fst(x, path, compress = 0)
+write.fst(x, path, compress = 0, uniform.encoding = TRUE)
 
 fstread(path, columns = NULL, from = 1, to = NULL,
   as.data.table = FALSE)
@@ -23,6 +23,13 @@ read.fst(path, columns = NULL, from = 1, to = NULL,
 \item{path}{path to fst file}
 
 \item{compress}{value in the range 0 to 100, indicating the amount of compression to use.}
+
+\item{uniform.encoding}{If TRUE, all character vectors will be assumed to have elements with equal encoding.
+The encoding (latin1, utf-8 or native) of the first non-NA element will used as encoding for the whole column.
+This will be a correct assumption for most use cases.
+If \code{uniform.encoding} is set to FALSE, no such assumption will be made and all elements will be converted
+to the same encoding. The latter is a relatively expensive operation and will reduce write performance for
+character columns.}
 
 \item{columns}{Column names to read. The default is to read all all columns.}
 
