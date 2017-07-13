@@ -4,6 +4,7 @@
 *.html
 *.pdf
 *.o
+*.gcov
 *.a
 *.orig
 *.txt

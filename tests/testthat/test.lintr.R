@@ -14,9 +14,13 @@ test_that("Package Style", {
 
   codeFiles <- list.files("../..", "R$", full.names = TRUE, recursive = TRUE)
 
-  # manualy remove RcppExports file and few generated files
+  # manualy remove RcppExports file and few generated files (e.g. by codecov())
   codeFiles <- codeFiles[!(codeFiles %in%
-    c("../../R/RcppExports.R", "../../fst-Ex.R", "../../00_pkg_src/fst/R/RcppExports.R"))]
+    c("../../R/RcppExports.R",
+      "../../fst-Ex.R",
+      "../../00_pkg_src/fst/R/RcppExports.R",
+      "../../R-ex/fstmeta.R",
+      "../../R-ex/fstwrite.R"))]
 
   # Calculate lintr results for all code files
   lintResults <- lintr:::flatten_lints(lapply(codeFiles, function(file) {

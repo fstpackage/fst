@@ -19,4 +19,4 @@ r_packages:
   - bit64
 
 after_success:
-  - Rscript -e 'library(covr); codecov()'
+  - Rscript -e 'library(covr); codecov(quiet = FALSE)'
