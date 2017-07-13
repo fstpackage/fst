@@ -10,47 +10,63 @@ if (!file.exists("testdata")) {
 }
 
 
-testwriteread <- function(x, uniform.encoding = TRUE) {
+testwriteread <- function(x, encoding, uniform.encoding = TRUE) {
   fstwriteproxy(x, "testdata/encoding.fst", uniform.encoding)
   y <- fstreadproxy("testdata/encoding.fst")
+
+  for (col in 1:ncol(x)) {
+    if (typeof(x[[col]]) == "character") {
+      expect_equal(Encoding(y[[col]]), rep(encoding[col], nrow(x)))
+    }
+  }
+
   expect_equal(x, y)
 }
 
 
 test_that("utf8, native and latin1 encodings", {
   native <- data.frame(x = rep("Arende", 5), stringsAsFactors = FALSE)
-  utf8 <- data.frame(x = enc2utf8(rep("Ärende", 5)), stringsAsFactors = FALSE)
   latin1 <- data.frame(x = rep("Ärende", 5), stringsAsFactors = FALSE)
+  Encoding(latin1$x) <- "latin1"
+  utf8 <- data.frame(x = enc2utf8(rep("Ärende", 5)), stringsAsFactors = FALSE)
 
   # test encodings
-  testwriteread(native)
-  testwriteread(latin1)
-  testwriteread(utf8)
+  testwriteread(native, c("unknown"))
+  testwriteread(latin1, c("latin1"))
+  testwriteread(utf8, "UTF-8")
 })
 
 
 test_that("I can eat glass in various languages", {
   x <- read.csv2("datasets/utf8.csv", encoding = "UTF-8", stringsAsFactors = FALSE)
 
-  testwriteread(x)
+  testwriteread(x, c("unknown", "UTF-8"))
 })
 
 
 test_that("Mixed encodings", {
-  x <- data.frame(Mixed = c("native", "Ärende", enc2utf8("Ärende")), stringsAsFactors = FALSE)
+  x <- data.frame(Mixed = c("Ärende", enc2native("native"), enc2utf8("Ärende")), stringsAsFactors = FALSE)
+  Encoding(x$Mixed[1]) <- "latin1"  # be sure
 
   fstwriteproxy(x, "testdata/mixed.fst")
   y <- fstreadproxy("testdata/mixed.fst")
 
-  expect_failure(expect_equal(x, y))  # encoding is assumed to be latin1
+  expect_equal(Encoding(y$Mixed), c("latin1", "unknown", "latin1"))  # recoded to latin1
+
+  cat(Encoding(x$Mixed), " ")
+  cat(Encoding(y$Mixed))
+
+  expect_failure(expect_equal(x, y))  # mix of unknown, latin1 and UTF-8
 
   expect_error(fstwriteproxy(x, "testdata/mixed.fst", uniform.encoding = FALSE),
     "Character vectors with mixed encodings are currently not supported")
 
-  Encoding(x$Mixed[3]) <- "latin1"  # only latin1 and native encoding now
+  Encoding(x$Mixed[1]) <- "UTF-8"  # mix of unknown and UTF-8
   expect_error(fstwriteproxy(x, "testdata/mixed.fst", uniform.encoding = FALSE),
     "Character vectors with mixed encodings are currently not supported")
 
-  x <- data.frame(Uniform = LETTERS, stringsAsFactors = FALSE)
-  testwriteread(x, FALSE)
+  fstwriteproxy(x, "testdata/mixed.fst")
+  y <- fstreadproxy("testdata/mixed.fst")
+
+  expect_equal(Encoding(y$Mixed), c("UTF-8", "unknown", "UTF-8"))  # recoded to UTF-8
 })
