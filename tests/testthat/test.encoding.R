@@ -53,9 +53,6 @@ test_that("Mixed encodings", {
 
   expect_equal(Encoding(y$Mixed), c("latin1", "unknown", "latin1"))  # recoded to latin1
 
-  cat(Encoding(x$Mixed), " ")
-  cat(Encoding(y$Mixed))
-
   expect_failure(expect_equal(x, y))  # mix of unknown, latin1 and UTF-8
 
   expect_error(fstwriteproxy(x, "testdata/mixed.fst", uniform.encoding = FALSE),
