@@ -1,6 +1,5 @@
 /*
   fst - An R-package for ultra fast storage and retrieval of datasets.
-  Header File
   Copyright (C) 2017, Mark AJ Klik
 
   BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
@@ -33,23 +32,35 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef FASTSTORE_H
-#define FASTSTORE_H
+
+#ifndef ITYPE_FACTORY_H
+#define ITYPE_FACTORY_H
 
 
-#include <Rcpp.h>
+class IBlobContainer
+{
+public:
+	virtual ~IBlobContainer() {}
 
-#define FST_VERSION 1  // version number of the fst package (odd numbers are dev versions)
+	virtual unsigned char* Data() = 0;
 
-
-// [[Rcpp::export]]
-SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression, SEXP uniformEncoding);
-
-// [[Rcpp::export]]
-SEXP fstmetadata(Rcpp::String fileName);
-
-// [[Rcpp::export]]
-SEXP fstretrieve(Rcpp::String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
+	virtual unsigned long long Size() = 0;
+};
 
 
-#endif  // FASTSTORE_H
+class ITypeFactory
+{
+public:
+	virtual ~ITypeFactory() {}
+
+	/**
+	 * \brief Create a BlobContainer type of size indicated.
+	 * \param size Size of BlobContainer to create.
+	 * \return Pointer to the generated BlobContainer object;
+	 */
+	virtual IBlobContainer* CreateBlobContainer(unsigned long long size) = 0;
+};
+
+
+#endif // ITYPE_FACTORY_H
+

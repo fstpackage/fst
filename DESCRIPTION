@@ -10,7 +10,7 @@ LazyData: true
 Depends: R (>= 3.0.0)
 Imports: Rcpp
 LinkingTo: Rcpp
-SystemRequirements: little-endian platform
+SystemRequirements: little-endian platform, GNU make
 RoxygenNote: 6.0.1
 Suggests: testthat, bit64, data.table, lintr
 License: BSD_2_clause + file LICENSE

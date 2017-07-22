@@ -1,6 +1,5 @@
 /*
   fst - An R-package for ultra fast storage and retrieval of datasets.
-  Header File
   Copyright (C) 2017, Mark AJ Klik
 
   BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
@@ -33,23 +32,27 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef FASTSTORE_H
-#define FASTSTORE_H
-
 
 #include <Rcpp.h>
 
-#define FST_VERSION 1  // version number of the fst package (odd numbers are dev versions)
+#include <compression/compressor.h>
+
+using namespace Rcpp;
 
 
-// [[Rcpp::export]]
-SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression, SEXP uniformEncoding);
+SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression)
+{
+  SingleCompressor singleCompr(CompAlgo::LZ4, 0);
 
-// [[Rcpp::export]]
-SEXP fstmetadata(Rcpp::String fileName);
+  unsigned long long vecLength = Rf_xlength(rawVec);
 
-// [[Rcpp::export]]
-SEXP fstretrieve(Rcpp::String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
+  SEXP resVec;
+  PROTECT(resVec = Rf_allocVector(RAWSXP, vecLength));
 
+  // copy result in vector
 
-#endif  // FASTSTORE_H
+  UNPROTECT(1);
+
+  return resVec;
+}
+

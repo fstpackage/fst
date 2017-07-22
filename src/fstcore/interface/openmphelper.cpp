@@ -44,12 +44,12 @@ static int FstThreads = 0;
 
 int GetFstThreads()
 {
-  #ifdef _OPENMP
+#ifdef _OPENMP
 	int ans = FstThreads == 0 ? omp_get_max_threads() : std::min(FstThreads, omp_get_max_threads());
 	return std::max(1, ans);
-  #else
+#else
     return 1;
-  #endif
+#endif
 }
 
 int SetFstThreads(int nrOfThreads)
@@ -61,9 +61,9 @@ int SetFstThreads(int nrOfThreads)
 
 bool HasOpenMP()
 {
-  #ifdef _OPENMP
-    return true;
-  #else
-    return false;
-  #endif
+#ifdef _OPENMP
+  return true;
+#else
+  return false;
+#endif
 }

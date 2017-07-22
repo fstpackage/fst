@@ -9,9 +9,7 @@ r:
 
 os:
   - linux
-
-# No OpenMp support on Travis OSX build
-#  - osx
+  - osx
 
 r_packages:
   - covr

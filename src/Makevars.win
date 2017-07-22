@@ -1,18 +1,8 @@
 
-# solution from https://github.com/Rdatatable/data.table/issues/2161
-CXX=$(shell "${R_HOME}"/bin/R CMD config CXX)
-ifeq ($(shell $(CXX) -fopenmp -E -xc++ - 2>&1 >/dev/null && echo 'true'), true)
-	PKG_OPENMP_FLAG=$(SHLIB_OPENMP_CXXFLAGS) -I.
-	PKG_OPENMP_LIBS=$(SHLIB_OPENMP_CXXFLAGS) -L.
-else
-	PKG_OPENMP_FLAG=-I.
-	PKG_OPENMP_LIBS=-L.
-endif
-
-PKG_CPPFLAGS = $(PKG_OPENMP_FLAG) -Ifstcore -Ifstcore/LZ4 -Ifstcore/ZSTD -Ifstcore/ZSTD/common -Ifstcore/ZSTD/decompress \
+PKG_CPPFLAGS = $(SHLIB_OPENMP_CXXFLAGS) -I. -Ifstcore -Ifstcore/LZ4 -Ifstcore/ZSTD -Ifstcore/ZSTD/common -Ifstcore/ZSTD/decompress \
 	-Ifstcore/ZSTD/compress
 CXX_STD      = CXX11
-PKG_LIBS     = $(PKG_OPENMP_LIBS) -lFRAME -lCOMPRESSION -lLZ4 -lZSTD
+PKG_LIBS     = $(SHLIB_OPENMP_CXXFLAGS) -L. -lFRAME -lCOMPRESSION -lLZ4 -lZSTD
 
 # libraries
 LIBLZ4  = fstcore/LZ4/lz4.o

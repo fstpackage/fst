@@ -33,23 +33,16 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef FASTSTORE_H
-#define FASTSTORE_H
+
+#ifndef FSTCOMPRESS_H
+#define FSTCOMPRESS_H
 
 
 #include <Rcpp.h>
 
-#define FST_VERSION 1  // version number of the fst package (odd numbers are dev versions)
-
 
 // [[Rcpp::export]]
-SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression, SEXP uniformEncoding);
-
-// [[Rcpp::export]]
-SEXP fstmetadata(Rcpp::String fileName);
-
-// [[Rcpp::export]]
-SEXP fstretrieve(Rcpp::String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
+SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression);
 
 
 #endif  // FASTSTORE_H

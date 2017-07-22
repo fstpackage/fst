@@ -57,17 +57,6 @@ using namespace std;
 using namespace Rcpp;
 
 
-SEXP fststrencoding(SEXP str)
-{
-  SEXP strElem = STRING_ELT(str, 0);
-  int encoding = (int) Rf_getCharCE(strElem);
-
-  return Rcpp::List::create(
-    _["encoding"] = encoding);
-}
-
-
-
 inline int FindKey(StringVector colNameList, String item)
 {
   int index = -1;

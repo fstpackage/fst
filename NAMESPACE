@@ -2,6 +2,7 @@
 
 S3method(print,fstmetadata)
 export(fst.metadata)
+export(fstcompress)
 export(fstgetthreads)
 export(fstmeta)
 export(fstread)

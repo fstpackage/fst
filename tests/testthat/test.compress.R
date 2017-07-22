@@ -10,10 +10,22 @@ if (!file.exists("testdata")) {
 }
 
 
-test_that("interface for compressing general R object", {
-  x <- list(1, "A", 3.14, factor(LETTERS[2:5]))
+rawVec <- serialize(1:100000, NULL)
 
-  # no compression
-  y <- fst:::fstcompress(x, compressor = "LZ4", compression = 100)
+
+test_that("interface for compressing raw vectors", {
+  # defaults
+  y <- fstcompress(rawVec)
   expect_equal(typeof(y), "raw")
+
+  expect_error(fstcompress(5), "Parameter x is not set to a raw vector")
+
+  expect_error(fstcompress(rawVec, 4), "Parameter compressor should be set")
+
+  expect_error(fstcompress(rawVec, compression = TRUE), "Parameter compression should be a numeric value")
+})
+
+
+test_that("compress return format", {
+  y <- fstcompress(rawVec, compressor = "LZ4", compression = 0)
 })

@@ -5,17 +5,6 @@
 
 using namespace Rcpp;
 
-// fststrencoding
-SEXP fststrencoding(SEXP str);
-RcppExport SEXP fst_fststrencoding(SEXP strSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type str(strSEXP);
-    rcpp_result_gen = Rcpp::wrap(fststrencoding(str));
-    return rcpp_result_gen;
-END_RCPP
-}
 // fststore
 SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression, SEXP uniformEncoding);
 RcppExport SEXP fst_fststore(SEXP fileNameSEXP, SEXP tableSEXP, SEXP compressionSEXP, SEXP uniformEncodingSEXP) {
@@ -52,6 +41,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< SEXP >::type startRow(startRowSEXP);
     Rcpp::traits::input_parameter< SEXP >::type endRow(endRowSEXP);
     rcpp_result_gen = Rcpp::wrap(fstretrieve(fileName, columnSelection, startRow, endRow));
+    return rcpp_result_gen;
+END_RCPP
+}
+// fstcomp
+SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression);
+RcppExport SEXP fst_fstcomp(SEXP rawVecSEXP, SEXP compressorSEXP, SEXP compressionSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type rawVec(rawVecSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type compressor(compressorSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type compression(compressionSEXP);
+    rcpp_result_gen = Rcpp::wrap(fstcomp(rawVec, compressor, compression));
     return rcpp_result_gen;
 END_RCPP
 }
