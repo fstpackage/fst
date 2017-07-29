@@ -38,12 +38,13 @@
 
 
 #include <stdlib.h>
+#include <algorithm>
+#include <cstring>
 
 #include "compression/compressor.h"
 #include "interface/fstdefines.h"
 #include "interface/itypefactory.h"
 #include "interface/openmphelper.h"
-#include <algorithm>
 
 
 enum COMPRESSION_ALGORITHM
@@ -58,12 +59,14 @@ class FstCompressor
 {
 	Compressor* compressor = nullptr;
 	ITypeFactory* typeFactory;
+	COMPRESSION_ALGORITHM compAlgorithm;
 
 public:
 
 	FstCompressor(COMPRESSION_ALGORITHM compAlgorithm, unsigned int compressionLevel, ITypeFactory* typeFactory)
 	{
 		this->typeFactory = typeFactory;
+		this->compAlgorithm = compAlgorithm;
 
 		switch (compAlgorithm)
 		{
@@ -75,7 +78,7 @@ public:
 
 			case COMPRESSION_ALGORITHM::ALGORITHM_ZSTD:
 			{
-				compressor = new SingleCompressor(CompAlgo::LZ4, compressionLevel);
+				compressor = new SingleCompressor(CompAlgo::ZSTD, compressionLevel);
 				break;
 			}
 
@@ -93,29 +96,44 @@ public:
 	 * \param blobSource source buffer to compress.
 	 * \param blobLength Length of source buffer.
 	 */
-	IBlobContainer* CompressBlob(unsigned char* blobSource, unsigned long long blobLength) const
+	IBlobContainer* CompressBlob(unsigned char* blobSource, unsigned long long blobLength, int nrOfCompressionBlocks = -1) const
 	{
-		int nrOfBlocks = 1 + ((blobLength - 1) / BLOCKSIZE);
-		unsigned long long maxCompressSize = this->compressor->CompressBufferSize(BLOCKSIZE);
-		unsigned long long lastBlockSize = blobLength % BLOCKSIZE;
+		int nrOfThreads = GetFstThreads();
 
-		int nrOfThreads = std::max(1, std::min(GetFstThreads(), nrOfBlocks));  // at minimum a single block per thread
+		int prefNrOfBlocks = nrOfThreads * (1 + (PREV_NR_OF_BLOCKS - 1) / nrOfThreads);
+
+		if (nrOfCompressionBlocks != -1)
+		{
+			prefNrOfBlocks = nrOfCompressionBlocks;
+		}
+
+		// block size to use for compression has a lower bound for compression efficiency
+		unsigned long long blockSize = std::max(static_cast<unsigned long long>(BLOCKSIZE), 1 + (blobLength - 1) / prefNrOfBlocks);
+
+		int nrOfBlocks = static_cast<int>(1 + (blobLength - 1) / blockSize);
+		nrOfThreads = std::min(nrOfThreads, nrOfBlocks);
+
+		unsigned int maxCompressSize = this->compressor->CompressBufferSize(blockSize);
+		unsigned int lastBlockSize = blobLength % blockSize;
+
 		unsigned long long bufSize = nrOfBlocks * maxCompressSize;
-		float blocksPerThread = static_cast<float>(nrOfBlocks - 1) / nrOfThreads;  // skip last block here
+		float blocksPerThread = static_cast<float>(nrOfBlocks / nrOfThreads);
 
 		// Compressed sizes
-		int* compSizes = new int[nrOfBlocks];
+		unsigned long long* compSizes = new unsigned long long[nrOfBlocks];
+		unsigned long long* compBatchSizes = new unsigned long long[nrOfThreads];
 
 		// We need nrOfBlocks buffers
 		unsigned char* calcBuffer = new unsigned char[bufSize];
 
-#pragma omp parallel num_threads(nrOfThreads) shared(compSizes, nrOfThreads,blocksPerThread,maxCompressSize)
+#pragma omp parallel num_threads(nrOfThreads) shared(compSizes,nrOfThreads,blocksPerThread,maxCompressSize,lastBlockSize,compBatchSizes)
 		{
 #pragma omp for schedule(static, 1) nowait
-			for (int blockBatch = 0; blockBatch < nrOfThreads; blockBatch++)
+			for (int blockBatch = 0; blockBatch < (nrOfThreads - 1); blockBatch++)  // all but last batch
 			{
-				int blockNr = static_cast<int>(0.00001 + (blockBatch * blocksPerThread));
-				int nextblockNr = static_cast<int>(blocksPerThread + 0.00001 + (blockBatch * blocksPerThread));
+				float blockOffset = blockBatch * blocksPerThread;
+				int blockNr = static_cast<int>(0.00001 + blockOffset);
+				int nextblockNr = static_cast<int>(blocksPerThread + 0.00001 + blockOffset);
 				CompAlgo compAlgo;
 
 				unsigned char* threadBuf = calcBuffer + maxCompressSize * blockNr;  // buffer for compression results of current thread
@@ -125,39 +143,109 @@ public:
 				for (int block = blockNr; block < nextblockNr; block++)
 				{
 					int compSize = this->compressor->Compress(reinterpret_cast<char*>(threadBuf + bufPos), maxCompressSize,
-						reinterpret_cast<char*>(&blobSource[block * BLOCKSIZE]), BLOCKSIZE, compAlgo);
-					compSizes[block] = compSize;
+						reinterpret_cast<char*>(&blobSource[block * blockSize]), blockSize, compAlgo);
+					compSizes[block] = static_cast<unsigned long long>(compSize);
 					bufPos += compSize;
 				}
+
+				compBatchSizes[blockBatch] = bufPos;
 			}
 
-			// Compress last block with first thread that finishes
 #pragma omp single
 			{
-				int lastBlockNr = nrOfBlocks - 1;
-				unsigned char* threadBuf = calcBuffer + maxCompressSize * lastBlockNr;
+				int blockNr = static_cast<int>(0.00001 + (nrOfThreads - 1) * blocksPerThread);
+				int nextblockNr = static_cast<int>(0.00001 + (nrOfThreads * blocksPerThread)) - 1;  // exclude last block
 				CompAlgo compAlgo;
-				int compSize = this->compressor->Compress(reinterpret_cast<char*>(threadBuf), maxCompressSize,
-					reinterpret_cast<char*>(&blobSource[lastBlockNr * BLOCKSIZE]), BLOCKSIZE, compAlgo);
-				compSizes[lastBlockNr] = compSize;
+
+				unsigned char* threadBuf = calcBuffer + maxCompressSize * blockNr;  // buffer for compression results of current thread
+
+				// inner loop is executed by current thread
+				unsigned long long bufPos = 0;
+				for (int block = blockNr; block < nextblockNr; block++)
+				{
+					int compSize = this->compressor->Compress(reinterpret_cast<char*>(threadBuf + bufPos), maxCompressSize,
+						reinterpret_cast<char*>(&blobSource[block * blockSize]), blockSize, compAlgo);
+					compSizes[block] = static_cast<unsigned long long>(compSize);
+					bufPos += compSize;
+				}
+
+				// last block
+				int compSize = this->compressor->Compress(reinterpret_cast<char*>(threadBuf + bufPos), maxCompressSize,
+					reinterpret_cast<char*>(&blobSource[nextblockNr * blockSize]), lastBlockSize, compAlgo);
+				compSizes[nextblockNr] = static_cast<unsigned long long>(compSize);
+
+				compBatchSizes[nrOfThreads - 1] = bufPos + compSize;;
 			}
+
 		}  // end parallel region and join all threads
 
-		// Get total compressed size
-		unsigned long long outSize = 0;
-		for (int block = 0; block < nrOfBlocks; block++)
-		{
-			outSize += compSizes[block];
-		}
-
-		IBlobContainer* blobContainer = typeFactory->CreateBlobContainer(outSize);
-		unsigned char* blobData = blobContainer->Data();
-
+		unsigned long long totCompSize = 0;
 		for (int blockBatch = 0; blockBatch < nrOfThreads; blockBatch++)
 		{
-			// memcpy to outVec here!
+			totCompSize += compBatchSizes[blockBatch];
 		}
+
+		// In memory compression format:
+		// Size           | Type               | Description
+		// 4              | unsigned int       | fst marker
+		// 4              | int                | COMPRESSION_ALGORITHM
+		// 8              | unsigned long long | vecLength
+		// 8 * nrOfBlocks | unsigned long long | block offset
+		//                | unsigned char      | compressed data
+
+		unsigned long long headerSize = 8 * (nrOfBlocks + 2);
+		IBlobContainer* blobContainer = typeFactory->CreateBlobContainer(headerSize + totCompSize);
+		unsigned char* blobData = blobContainer->Data();
+
+		unsigned int* fstMarker = reinterpret_cast<unsigned int*>(blobData);
+		int* algo = reinterpret_cast<int*>(blobData + 4);
+		unsigned long long* vecLength = reinterpret_cast<unsigned long long*>(blobData + 8);
+		unsigned long long* blockOffsets = reinterpret_cast<unsigned long long*>(blobData + 16);
+
+		*fstMarker = FST_MEMORY_MARKER;
+		*algo = compAlgorithm;
+		*vecLength = blobLength;
+
+		// calculate offsets for memcpy
+		unsigned long long dataOffset = headerSize;
+		unsigned long long* dataOffsets = new unsigned long long[nrOfThreads];
+		for (int blockBatch = 0; blockBatch < nrOfThreads; blockBatch++)
+		{
+			dataOffsets[blockBatch] = dataOffset;
+			dataOffset += compBatchSizes[blockBatch];
+		}
+
+		// multi-threaded memcpy
+#pragma omp parallel for schedule(static, 1)
+		for (int blockBatch = 0; blockBatch < nrOfThreads; blockBatch++)
+		{
+			float blockOffset = blockBatch * blocksPerThread;
+			int blockNr = static_cast<int>(0.00001 + blockOffset);
+			unsigned char* threadBuf = calcBuffer + maxCompressSize * blockNr;  // buffer for compression results of current thread
+			std::memcpy(blobData + dataOffsets[blockBatch], threadBuf, compBatchSizes[blockBatch]);
+		}  // end parallel region
+
+		delete[] compBatchSizes;
+		delete[] calcBuffer;
+		delete[] dataOffsets;
+
+		unsigned long long blockOffset = headerSize;
+		for (int block = 0; block < nrOfBlocks; block++)
+		{
+			blockOffset += compSizes[block];
+			blockOffsets[block] = blockOffset;
+		}
+
+		delete[] compSizes;
+
+		return blobContainer;
 	}
+
+	// IBlobContainer* DecompressBlob(unsigned char* blobSource, unsigned long long blobLength) const
+	// {
+	//
+	// }
+
 };
 
 

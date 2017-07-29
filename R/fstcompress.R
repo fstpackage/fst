@@ -18,5 +18,5 @@ fstcompress <- function(x, compressor = "LZ4", compression = 0) {
     stop("Parameter x is not set to a raw vector.")
   }
 
-  fstcomp(x, compressor, as.integer(compression[1]))
+  fstcomp(x, compressor, as.integer(compression))
 }

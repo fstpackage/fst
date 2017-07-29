@@ -10,8 +10,8 @@ if (!file.exists("testdata")) {
 }
 
 
-rawVec <- serialize(1:100000, NULL)
-
+# Tarred executables of Mozilla 1.0 (Tru64 UNIX edition)
+rawVec <- serialize(sample(1:10, 25000000, replace = TRUE), NULL)
 
 test_that("interface for compressing raw vectors", {
   # defaults

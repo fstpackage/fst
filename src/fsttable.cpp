@@ -136,7 +136,10 @@ int* FstTable::GetDateTimeWriter(unsigned int colNr)
 {
   cols = VECTOR_ELT(*rTable, colNr);  // retrieve column vector (no copy?)
 
-  // Convert underlying type to INTSXP
+  // Convert underlying type to INTSXP:
+  // TODO 1: conversion can be done faster using SIMD casting
+  // TODO 2: conversion should be done in parallel with writing to disk, make it a default
+  // fst transformation
   if (TYPEOF(cols) == REALSXP)
   {
     cols = Rf_coerceVector(cols, INTSXP);  // PROTECT needed here?: if so use list container

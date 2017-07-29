@@ -292,9 +292,9 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
       {
         colTypes[colNr] = 7;
         int* intP = fstTable.GetIntWriter(colNr);  // level values pointer
-   		IStringWriter* stringWriter = fstTable.GetLevelWriter(colNr);
+     		IStringWriter* stringWriter = fstTable.GetLevelWriter(colNr);
         fdsWriteFactorVec_v7(myfile, intP, stringWriter, nrOfRows, compress, stringWriter->Encoding());
-	    delete stringWriter;
+	      delete stringWriter;
         break;
       }
 

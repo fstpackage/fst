@@ -41,6 +41,7 @@
 #define FST_VERSION         1                  // version of fst codebase
 #define TABLE_META_SIZE     24                 // size of table meta-data block
 #define FST_FILE_ID         0xa91c12f8b245a71d // identifies a fst file
+#define FST_MEMORY_MARKER   1741712983         // identifies a in-memory compressed block
 #define CHUNK_INDEX_SIZE    144                // size of fixed component of vertical chunk index
 #define CHAR_HEADER_SIZE    8                  // meta data header size
 #define CHAR_INDEX_SIZE     16                 // size of 1 index entry
@@ -48,6 +49,7 @@
 
 // Cache-size related defines
 #define CACHEFACTOR						1
+#define PREV_NR_OF_BLOCKS               48                          // default number of blocks for in-memory compression
 #define BLOCKSIZE						16384 * CACHEFACTOR			// number of bytes in default compression block
 #define MAX_CHAR_STACK_SIZE				32768						// number of characters in default compression block
 #define BLOCKSIZE_CHAR					2047						// number of characters in default compression block

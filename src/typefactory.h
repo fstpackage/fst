@@ -33,42 +33,62 @@
 */
 
 
-#include <Rcpp.h>
-
-#include <interface/fstcompressor.h>
-
-#include <typefactory.h>
-
-using namespace Rcpp;
+#ifndef TYPE_FACTORY_H
+#define TYPE_FACTORY_H
 
 
-SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression)
+#include <interface/itypefactory.h>
+
+
+class BlobContainer : public IBlobContainer
 {
-  ITypeFactory* typeFactory = new TypeFactory();
-  COMPRESSION_ALGORITHM algo;
+  SEXP rawVec;
 
-  if (Rf_NonNullStringMatch(STRING_ELT(compressor, 0), Rf_mkChar("LZ4")))
+public:
+  BlobContainer(unsigned long long size)
   {
-    algo = COMPRESSION_ALGORITHM::ALGORITHM_LZ4;
-  } else if (Rf_NonNullStringMatch(STRING_ELT(compressor, 0), Rf_mkChar("ZSTD")))
-  {
-    algo = COMPRESSION_ALGORITHM::ALGORITHM_ZSTD;
-  } else
-  {
-    Rf_error("Unknown compression algorithm selected");
+    rawVec = Rf_allocVector(RAWSXP, size);
+    PROTECT(rawVec);
   }
 
-  FstCompressor fstcompressor(algo, *INTEGER(compression), (ITypeFactory*) typeFactory);
+  ~BlobContainer()
+  {
+    UNPROTECT(1);
+  }
 
-  unsigned long long vecLength = Rf_xlength(rawVec);
-  unsigned char* data = (unsigned char*) RAW(rawVec);
-  BlobContainer* blobContainer = (BlobContainer*) fstcompressor.CompressBlob(data, vecLength);
+  unsigned char* Data()
+  {
+    return RAW(rawVec);
+  }
 
-  SEXP resVec = blobContainer->RVector();
+  SEXP RVector()
+  {
+    return rawVec;
+  }
 
-  delete typeFactory;
-  delete blobContainer;
+  unsigned long long Size()
+  {
+    return Rf_xlength(rawVec);
+  }
+};
 
-  return resVec;
-}
+
+class TypeFactory : public ITypeFactory
+{
+public:
+  ~TypeFactory() { }
+
+  /**
+   * \brief Create a BlobContainer type of size indicated.
+   * \param size Size of BlobContainer to create.
+   * \return Pointer to the generated BlobContainer object;
+   */
+  IBlobContainer* CreateBlobContainer(unsigned long long size)
+  {
+    return new BlobContainer(size);
+  }
+};
+
+
+#endif  // TYPE_FACTORY_H
 
