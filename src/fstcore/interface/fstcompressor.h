@@ -57,7 +57,7 @@ enum COMPRESSION_ALGORITHM
 
 class FstCompressor
 {
-	Compressor* compressor = nullptr;
+	Compressor* compressor;
 	ITypeFactory* typeFactory;
 	COMPRESSION_ALGORITHM compAlgorithm;
 
