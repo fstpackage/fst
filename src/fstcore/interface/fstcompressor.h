@@ -100,6 +100,7 @@ public:
 	{
 		int nrOfThreads = GetFstThreads();
 
+		// Get the closest multiple of nrOfThreads equal or larger than PREV_NR_OF_BLOCKS
 		int prefNrOfBlocks = nrOfThreads * (1 + (PREV_NR_OF_BLOCKS - 1) / nrOfThreads);
 
 		if (nrOfCompressionBlocks != -1)
@@ -187,24 +188,30 @@ public:
 
 		// In memory compression format:
 		// Size           | Type               | Description
-		// 4              | unsigned int       | fst marker
+		// 8              | unsigned long long | fst marker
+		// 4              | unsigned int       | version
 		// 4              | int                | COMPRESSION_ALGORITHM
 		// 8              | unsigned long long | vecLength
+		// 8              | unsigned long long | blockSize
 		// 8 * nrOfBlocks | unsigned long long | block offset
 		//                | unsigned char      | compressed data
 
-		unsigned long long headerSize = 8 * (nrOfBlocks + 2);
+		unsigned long long headerSize = 8 * (nrOfBlocks + 4);
 		IBlobContainer* blobContainer = typeFactory->CreateBlobContainer(headerSize + totCompSize);
 		unsigned char* blobData = blobContainer->Data();
 
-		unsigned int* fstMarker = reinterpret_cast<unsigned int*>(blobData);
-		int* algo = reinterpret_cast<int*>(blobData + 4);
-		unsigned long long* vecLength = reinterpret_cast<unsigned long long*>(blobData + 8);
-		unsigned long long* blockOffsets = reinterpret_cast<unsigned long long*>(blobData + 16);
+		unsigned long long* fstMarker = reinterpret_cast<unsigned long long*>(blobData);
+		unsigned int* version = reinterpret_cast<unsigned int*>(blobData + 8);
+		int* algo = reinterpret_cast<int*>(blobData + 12);
+		unsigned long long* vecLength = reinterpret_cast<unsigned long long*>(blobData + 16);
+		unsigned long long* pBlockSize = reinterpret_cast<unsigned long long*>(blobData + 24);
+		unsigned long long* blockOffsets = reinterpret_cast<unsigned long long*>(blobData + 32);
 
-		*fstMarker = FST_MEMORY_MARKER;
+		*fstMarker = FST_FILE_ID;
+		*version = 1;
 		*algo = compAlgorithm;
 		*vecLength = blobLength;
+		*pBlockSize = blockSize;
 
 		// calculate offsets for memcpy
 		unsigned long long dataOffset = headerSize;
