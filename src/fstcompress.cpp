@@ -62,12 +62,62 @@ SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression)
 
   unsigned long long vecLength = Rf_xlength(rawVec);
   unsigned char* data = (unsigned char*) RAW(rawVec);
-  BlobContainer* blobContainer = (BlobContainer*) fstcompressor.CompressBlob(data, vecLength);
+  BlobContainer* blobContainer;
+
+  try
+  {
+    blobContainer = (BlobContainer*) fstcompressor.CompressBlob(data, vecLength);
+  }
+  catch(const std::runtime_error& e)
+  {
+    delete typeFactory;
+    ::Rf_error(e.what());
+  }
+  catch ( ... )
+  {
+    delete typeFactory;
+    ::Rf_error("Unexpected error detected while compressing data.");
+  }
 
   SEXP resVec = blobContainer->RVector();
 
   delete typeFactory;
   delete blobContainer;
+
+  return resVec;
+}
+
+
+SEXP fstdecomp(SEXP rawVec)
+{
+  ITypeFactory* typeFactory = new TypeFactory();
+
+  FstCompressor fstcompressor((ITypeFactory*) typeFactory);
+
+  unsigned long long vecLength = Rf_xlength(rawVec);
+  unsigned char* data = (unsigned char*) (RAW(rawVec));
+
+  BlobContainer* resultContainer;
+
+  try
+  {
+    resultContainer = static_cast<BlobContainer*>(fstcompressor.DecompressBlob(data, vecLength));
+  }
+  catch(const std::runtime_error& e)
+  {
+    delete typeFactory;
+    ::Rf_error(e.what());
+  }
+  catch ( ... )
+  {
+    delete typeFactory;
+    ::Rf_error("Error detected while decompressing data.");
+  }
+
+  SEXP resVec = resultContainer->RVector();
+
+  delete typeFactory;
+  delete resultContainer;
 
   return resVec;
 }

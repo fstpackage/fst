@@ -37,34 +37,33 @@
 
 #include "openmp.h"
 #include "FastStore.h"
+#include "fstcompress.h"
+
 
 /* FIXME:
- Check these declarations against the C/Fortran source code.
+   Check these declarations against the C/Fortran source code.
 */
 
-
 /* .Call calls */
-// extern SEXP fst_BytesConvert(SEXP);
-// extern SEXP fst_compChar(SEXP, SEXP);
-// extern SEXP fst_FirstIntEqualHigher(SEXP, SEXP, SEXP, SEXP);
-// extern SEXP fst_fstMeta(SEXP);
-// extern SEXP fst_fstRetrieve(SEXP, SEXP, SEXP, SEXP);
-// extern SEXP fst_fstStore(SEXP, SEXP, SEXP);
-// extern SEXP fst_getDTthreads();
-// extern SEXP fst_hasOpenMP();
-// extern SEXP fst_IsSortedTable(SEXP, SEXP);
-// extern SEXP fst_LastIntEqualLower(SEXP, SEXP, SEXP, SEXP);
-// extern SEXP fst_LowerBoundIndex(SEXP, SEXP, SEXP, SEXP);
-// extern SEXP fst_SType(SEXP);
+// extern SEXP _fst_fstcomp(SEXP, SEXP, SEXP);
+// extern SEXP _fst_fstdecomp(SEXP);
+// extern SEXP _fst_fstmetadata(SEXP);
+// extern SEXP _fst_fstretrieve(SEXP, SEXP, SEXP, SEXP);
+// extern SEXP _fst_fststore(SEXP, SEXP, SEXP, SEXP);
+// extern SEXP _fst_getnrofthreads();
+// extern SEXP _fst_hasopenmp();
+// extern SEXP _fst_setnrofthreads(SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
-  {"fst_fstmetadata",           (DL_FUNC) &fstmetadata,           1},
-  {"fst_fstretrieve",           (DL_FUNC) &fstretrieve,           4},
-  {"fst_fststore",              (DL_FUNC) &fststore,              3},
-  {"fst_getnrofthreads",        (DL_FUNC) &getnrofthreads,        0},
-  {"fst_setnrofthreads",        (DL_FUNC) &setnrofthreads,        1},
-  {"fst_hasopenmp",             (DL_FUNC) &hasopenmp,             0},
-  {NULL, NULL, 0}
+    {"_fst_fstcomp",        (DL_FUNC) &fstcomp,        3},
+    {"_fst_fstdecomp",      (DL_FUNC) &fstdecomp,      1},
+    {"_fst_fstmetadata",    (DL_FUNC) &fstmetadata,    1},
+    {"_fst_fstretrieve",    (DL_FUNC) &fstretrieve,    4},
+    {"_fst_fststore",       (DL_FUNC) &fststore,       4},
+    {"_fst_getnrofthreads", (DL_FUNC) &getnrofthreads, 0},
+    {"_fst_hasopenmp",      (DL_FUNC) &hasopenmp,      0},
+    {"_fst_setnrofthreads", (DL_FUNC) &setnrofthreads, 1},
+    {NULL, NULL, 0}
 };
 
 

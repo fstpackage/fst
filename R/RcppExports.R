@@ -2,30 +2,34 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 fststore <- function(fileName, table, compression, uniformEncoding) {
-    .Call('fst_fststore', PACKAGE = 'fst', fileName, table, compression, uniformEncoding)
+    .Call('_fst_fststore', PACKAGE = 'fst', fileName, table, compression, uniformEncoding)
 }
 
 fstmetadata <- function(fileName) {
-    .Call('fst_fstmetadata', PACKAGE = 'fst', fileName)
+    .Call('_fst_fstmetadata', PACKAGE = 'fst', fileName)
 }
 
 fstretrieve <- function(fileName, columnSelection, startRow, endRow) {
-    .Call('fst_fstretrieve', PACKAGE = 'fst', fileName, columnSelection, startRow, endRow)
+    .Call('_fst_fstretrieve', PACKAGE = 'fst', fileName, columnSelection, startRow, endRow)
 }
 
 fstcomp <- function(rawVec, compressor, compression) {
-    .Call('fst_fstcomp', PACKAGE = 'fst', rawVec, compressor, compression)
+    .Call('_fst_fstcomp', PACKAGE = 'fst', rawVec, compressor, compression)
+}
+
+fstdecomp <- function(rawVec) {
+    .Call('_fst_fstdecomp', PACKAGE = 'fst', rawVec)
 }
 
 getnrofthreads <- function() {
-    .Call('fst_getnrofthreads', PACKAGE = 'fst')
+    .Call('_fst_getnrofthreads', PACKAGE = 'fst')
 }
 
 setnrofthreads <- function(nrOfThreads) {
-    .Call('fst_setnrofthreads', PACKAGE = 'fst', nrOfThreads)
+    .Call('_fst_setnrofthreads', PACKAGE = 'fst', nrOfThreads)
 }
 
 hasopenmp <- function() {
-    .Call('fst_hasopenmp', PACKAGE = 'fst')
+    .Call('_fst_hasopenmp', PACKAGE = 'fst')
 }
 

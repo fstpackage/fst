@@ -40,12 +40,14 @@
 #include <stdlib.h>
 #include <algorithm>
 #include <cstring>
+#include <stdexcept>
 
 #include "compression/compressor.h"
 #include "interface/fstdefines.h"
 #include "interface/itypefactory.h"
 #include "interface/openmphelper.h"
 
+#include "ZSTD/common/xxhash.h"
 
 enum COMPRESSION_ALGORITHM
 {
@@ -62,6 +64,12 @@ class FstCompressor
 	COMPRESSION_ALGORITHM compAlgorithm;
 
 public:
+
+	FstCompressor(ITypeFactory* typeFactory)
+	{
+		this->typeFactory = typeFactory;
+		compressor = nullptr;  // only use this class for decompression (not checked!)
+	}
 
 	FstCompressor(COMPRESSION_ALGORITHM compAlgorithm, unsigned int compressionLevel, ITypeFactory* typeFactory)
 	{
@@ -96,35 +104,46 @@ public:
 	 * \param blobSource source buffer to compress.
 	 * \param blobLength Length of source buffer.
 	 */
-	IBlobContainer* CompressBlob(unsigned char* blobSource, unsigned long long blobLength, int nrOfCompressionBlocks = -1) const
+	IBlobContainer* CompressBlob(unsigned char* blobSource, unsigned long long blobLength, bool hash = true) const
 	{
 		int nrOfThreads = GetFstThreads();
 
-		// Get the closest multiple of nrOfThreads equal or larger than PREV_NR_OF_BLOCKS
-		int prefNrOfBlocks = nrOfThreads * (1 + (PREV_NR_OF_BLOCKS - 1) / nrOfThreads);
-
-		if (nrOfCompressionBlocks != -1)
+		// Check for empty source
+		if (blobLength == 0)
 		{
-			prefNrOfBlocks = nrOfCompressionBlocks;
+			throw(std::runtime_error("Source contains no data."));
 		}
 
+
 		// block size to use for compression has a lower bound for compression efficiency
-		unsigned long long blockSize = std::max(static_cast<unsigned long long>(BLOCKSIZE), 1 + (blobLength - 1) / prefNrOfBlocks);
+		unsigned long long minBlock = std::max(static_cast<unsigned long long>(BLOCKSIZE),
+			1 + (blobLength - 1) / PREV_NR_OF_BLOCKS);
+
+		// And a higher bound for compressor compatability
+		unsigned int blockSize = static_cast<unsigned int>(std::min(minBlock, static_cast<unsigned long long>(INT_MAX)));
 
 		int nrOfBlocks = static_cast<int>(1 + (blobLength - 1) / blockSize);
 		nrOfThreads = std::min(nrOfThreads, nrOfBlocks);
 
 		unsigned int maxCompressSize = this->compressor->CompressBufferSize(blockSize);
-		unsigned int lastBlockSize = blobLength % blockSize;
+		unsigned int lastBlockSize = 1 + (blobLength - 1) % blockSize;
 
 		unsigned long long bufSize = nrOfBlocks * maxCompressSize;
-		float blocksPerThread = static_cast<float>(nrOfBlocks / nrOfThreads);
+		float blocksPerThread = static_cast<float>(nrOfBlocks) / nrOfThreads;
 
 		// Compressed sizes
-		unsigned long long* compSizes = new unsigned long long[nrOfBlocks];
+		unsigned long long* compSizes = new unsigned long long[nrOfBlocks + 1];
 		unsigned long long* compBatchSizes = new unsigned long long[nrOfThreads];
 
+		unsigned int* blockHashes = nullptr;
+
+		if (hash)
+		{
+			blockHashes = new unsigned int[nrOfBlocks];
+		}
+
 		// We need nrOfBlocks buffers
+		unsigned int compressionAlgo;
 		unsigned char* calcBuffer = new unsigned char[bufSize];
 
 #pragma omp parallel num_threads(nrOfThreads) shared(compSizes,nrOfThreads,blocksPerThread,maxCompressSize,lastBlockSize,compBatchSizes)
@@ -132,10 +151,10 @@ public:
 #pragma omp for schedule(static, 1) nowait
 			for (int blockBatch = 0; blockBatch < (nrOfThreads - 1); blockBatch++)  // all but last batch
 			{
+				CompAlgo compAlgo;
 				float blockOffset = blockBatch * blocksPerThread;
 				int blockNr = static_cast<int>(0.00001 + blockOffset);
 				int nextblockNr = static_cast<int>(blocksPerThread + 0.00001 + blockOffset);
-				CompAlgo compAlgo;
 
 				unsigned char* threadBuf = calcBuffer + maxCompressSize * blockNr;  // buffer for compression results of current thread
 
@@ -147,6 +166,12 @@ public:
 						reinterpret_cast<char*>(&blobSource[block * blockSize]), blockSize, compAlgo);
 					compSizes[block] = static_cast<unsigned long long>(compSize);
 					bufPos += compSize;
+
+					// Hash compression result
+					if(hash)
+					{
+						blockHashes[block] = XXH32(threadBuf + bufPos, compSize, FST_HASH_SEED);
+					}
 				}
 
 				compBatchSizes[blockBatch] = bufPos;
@@ -154,9 +179,9 @@ public:
 
 #pragma omp single
 			{
+				CompAlgo compAlgo;
 				int blockNr = static_cast<int>(0.00001 + (nrOfThreads - 1) * blocksPerThread);
 				int nextblockNr = static_cast<int>(0.00001 + (nrOfThreads * blocksPerThread)) - 1;  // exclude last block
-				CompAlgo compAlgo;
 
 				unsigned char* threadBuf = calcBuffer + maxCompressSize * blockNr;  // buffer for compression results of current thread
 
@@ -168,6 +193,12 @@ public:
 						reinterpret_cast<char*>(&blobSource[block * blockSize]), blockSize, compAlgo);
 					compSizes[block] = static_cast<unsigned long long>(compSize);
 					bufPos += compSize;
+
+					// Hash compression result
+					if (hash)
+					{
+						blockHashes[block] = XXH32(threadBuf + bufPos, compSize, FST_HASH_SEED);
+					}
 				}
 
 				// last block
@@ -175,10 +206,28 @@ public:
 					reinterpret_cast<char*>(&blobSource[nextblockNr * blockSize]), lastBlockSize, compAlgo);
 				compSizes[nextblockNr] = static_cast<unsigned long long>(compSize);
 
-				compBatchSizes[nrOfThreads - 1] = bufPos + compSize;;
+				compBatchSizes[nrOfThreads - 1] = bufPos + compSize;
+				compressionAlgo = static_cast<unsigned int>(compAlgo);
+
+				// Hash compression result
+				if (hash)
+				{
+					blockHashes[nextblockNr] = XXH32(threadBuf + bufPos, compSize, FST_HASH_SEED);
+				}
+
 			}
 
 		}  // end parallel region and join all threads
+
+
+		unsigned int allBlockHash = 0;
+
+		if (hash)
+		{
+			allBlockHash = XXH32(blockHashes, nrOfBlocks * 4, FST_HASH_SEED);
+
+			delete[] blockHashes;
+		}
 
 		unsigned long long totCompSize = 0;
 		for (int blockBatch = 0; blockBatch < nrOfThreads; blockBatch++)
@@ -187,31 +236,34 @@ public:
 		}
 
 		// In memory compression format:
-		// Size           | Type               | Description
-		// 8              | unsigned long long | fst marker
-		// 4              | unsigned int       | version
-		// 4              | int                | COMPRESSION_ALGORITHM
-		// 8              | unsigned long long | vecLength
-		// 8              | unsigned long long | blockSize
-		// 8 * nrOfBlocks | unsigned long long | block offset
-		//                | unsigned char      | compressed data
+		// Size                 | Type               | Description
+		// 8                    | unsigned long long | fst marker
+		// 4                    | unsigned int       | version
+		// 4                    | unsigned int       | COMPRESSION_ALGORITHM and upper bit isHashed
+		// 8                    | unsigned long long | vecLength
+		// 4                    | unsigned int       | blockSize
+		// 4                    | unsigned int       | block hash result
+		// 8 * (nrOfBlocks + 1) | unsigned long long | block offset
+		//                      | unsigned char      | compressed data
 
-		unsigned long long headerSize = 8 * (nrOfBlocks + 4);
+		unsigned long long headerSize = 8 * (nrOfBlocks + 5);
 		IBlobContainer* blobContainer = typeFactory->CreateBlobContainer(headerSize + totCompSize);
 		unsigned char* blobData = blobContainer->Data();
 
 		unsigned long long* fstMarker = reinterpret_cast<unsigned long long*>(blobData);
 		unsigned int* version = reinterpret_cast<unsigned int*>(blobData + 8);
-		int* algo = reinterpret_cast<int*>(blobData + 12);
+		unsigned int* algo = reinterpret_cast<unsigned int*>(blobData + 12);
 		unsigned long long* vecLength = reinterpret_cast<unsigned long long*>(blobData + 16);
-		unsigned long long* pBlockSize = reinterpret_cast<unsigned long long*>(blobData + 24);
+		unsigned int* pBlockSize = reinterpret_cast<unsigned int*>(blobData + 24);
+		unsigned int* hashResult = reinterpret_cast<unsigned int*>(blobData + 28);
 		unsigned long long* blockOffsets = reinterpret_cast<unsigned long long*>(blobData + 32);
 
 		*fstMarker = FST_FILE_ID;
 		*version = 1;
-		*algo = compAlgorithm;
+		*algo = compressionAlgo | ((1 << 31) * hash);  // upper bit signals isHashed
 		*vecLength = blobLength;
 		*pBlockSize = blockSize;
+		*hashResult = allBlockHash;
 
 		// calculate offsets for memcpy
 		unsigned long long dataOffset = headerSize;
@@ -239,19 +291,230 @@ public:
 		unsigned long long blockOffset = headerSize;
 		for (int block = 0; block < nrOfBlocks; block++)
 		{
-			blockOffset += compSizes[block];
 			blockOffsets[block] = blockOffset;
+			blockOffset += compSizes[block];
 		}
+		blockOffsets[nrOfBlocks] = blockOffset;
 
 		delete[] compSizes;
 
 		return blobContainer;
 	}
 
-	// IBlobContainer* DecompressBlob(unsigned char* blobSource, unsigned long long blobLength) const
-	// {
-	//
-	// }
+	// In memory compression format:
+	// Size                 | Type               | Description
+	// 8                    | unsigned long long | fst marker
+	// 4                    | unsigned int       | version
+	// 4                    | unsigned int       | COMPRESSION_ALGORITHM and upper bit isHashed
+	// 8                    | unsigned long long | vecLength
+	// 4                    | unsigned int       | blockSize
+	// 4                    | unsigned int       | block hash result
+	// 8 * (nrOfBlocks + 1) | unsigned long long | block offset
+	//                      | unsigned char      | compressed data
+	
+	IBlobContainer* DecompressBlob(unsigned char* blobSource, unsigned long long blobLength, bool checkHashes = true) const
+	{
+		Decompressor decompressor;
+		int nrOfThreads = GetFstThreads();  // available threads
+
+		// Minimum length of compressed data format
+		if (blobLength < 40)
+		{
+			throw(std::runtime_error("Data format not recognised as compressed fst format, compressed size is too small."));
+		}
+
+		// Meta data of compressed blocks
+
+		unsigned long long* fstMarker = reinterpret_cast<unsigned long long*>(blobSource);
+		//unsigned int* version = reinterpret_cast<unsigned int*>(blobSource + 8);
+		unsigned int* algo = reinterpret_cast<unsigned int*>(blobSource + 12);
+		unsigned long long* vecLength = reinterpret_cast<unsigned long long*>(blobSource + 16);
+		unsigned int* blockSize = reinterpret_cast<unsigned int*>(blobSource + 24);
+		unsigned int* hashResult = reinterpret_cast<unsigned int*>(blobSource + 28);
+		unsigned long long* blockOffsets = reinterpret_cast<unsigned long long*>(blobSource + 32);
+
+		bool hash = checkHashes && static_cast<bool>(((*algo) >> 31) & 1);
+		*algo = (*algo) & 0x7fffffff;  // highest bit signals hash
+
+		// Check fst magic marker
+		if (*fstMarker != FST_FILE_ID)
+		{
+			throw(std::runtime_error("Data format is not recognised as compressed fst format."));
+		}
+
+		// Calculate number of blocks
+		int nrOfBlocks = static_cast<int>(1 + (*vecLength - 1) / *blockSize);  // including (partial) last
+
+		// Version checks here
+
+		// Minimum length of compressed data format including block offset header information
+		if (blobLength <= 8 * (static_cast<unsigned long long>(nrOfBlocks) + 5))
+		{
+			throw(std::runtime_error("Compressed data vector has incorrect size."));
+		}
+
+		// Create result blob
+		IBlobContainer* blobContainer = typeFactory->CreateBlobContainer(*vecLength);  // create result blob
+		unsigned char* blobData = blobContainer->Data();
+
+		// blockOffsets must be monotomically increasing
+		long long prevOffset = 0;
+		for (int block = 0; block <= nrOfBlocks; block++)
+		{
+			long long diff = std::abs(static_cast<long long>(blockOffsets[block]) - prevOffset - 1);  // can be negative
+			prevOffset += 1 + diff;  // must be at least 1 byte larger
+		}
+
+		// Correct if monotomically increasing
+		if (prevOffset != static_cast<long long>(blockOffsets[nrOfBlocks]))
+		{
+			delete blobContainer;
+			throw(std::runtime_error("Error detected in compressed data format."));
+		}
+
+		// Source vector has correct length
+		if (prevOffset != static_cast<long long>(blobLength))
+		{
+			delete blobContainer;
+			throw(std::runtime_error("Compressed data vector has incorrect size."));
+		}
+
+		// Determine required number of threads
+		nrOfThreads = std::min(nrOfBlocks, nrOfThreads);
+
+		// Check compressed data length
+		if (*(blockOffsets + nrOfBlocks) != blobLength)
+		{
+			delete blobContainer;
+			throw(std::runtime_error("Compressed data has incorrect size."));
+		}
+
+		// Determine number of blocks per (thread) batch
+		float batchFactor = static_cast<float>(nrOfBlocks) / nrOfThreads;
+
+		bool error = false;
+
+		if (hash)
+		{
+			unsigned int* blockHashes = new unsigned int[nrOfBlocks];
+
+#pragma omp parallel num_threads(nrOfThreads)
+			{
+#pragma omp for schedule(static, 1) nowait
+				for (int batch = 0; batch < (nrOfThreads - 1); batch++)  // all but last batch
+				{
+					int fromBlock = static_cast<int>(batch * batchFactor + 0.000001);  // start block
+					int toBlock = static_cast<int>((batch + 1) * batchFactor + 0.000001);  // end block
+
+				   // iterate block range
+					for (int block = fromBlock; block < toBlock; block++)
+					{
+						unsigned long long blockStart = blockOffsets[block];
+						unsigned long long blockEnd = blockOffsets[block + 1];
+
+						blockHashes[block] = XXH32(blobSource + blockStart, blockEnd - blockStart, FST_HASH_SEED);
+					}
+				}
+
+#pragma omp single
+				{
+					int fromBlock = static_cast<int>((nrOfThreads - 1) * batchFactor + 0.000001);  // start block
+					int toBlock = static_cast<int>(nrOfThreads * batchFactor + 0.000001);  // end block
+
+				   // iterate block range with full blocks
+					for (int block = fromBlock; block < (toBlock - 1); block++)
+					{
+						unsigned long long blockStart = blockOffsets[block];
+						unsigned long long blockEnd = blockOffsets[block + 1];
+
+						blockHashes[block] = XXH32(blobSource + blockStart, blockEnd - blockStart, FST_HASH_SEED);
+					}
+
+					// last block
+					unsigned long long blockStart = blockOffsets[toBlock - 1];
+					unsigned long long blockEnd = blockOffsets[toBlock];
+
+					blockHashes[toBlock - 1] = XXH32(blobSource + blockStart, blockEnd - blockStart, FST_HASH_SEED);
+				}
+			}
+
+			unsigned int totHashes = XXH32(blockHashes, 4 * nrOfBlocks, FST_HASH_SEED);
+
+			delete[] blockHashes;
+
+			if (totHashes != *hashResult)
+			{
+				delete blobContainer;
+				throw(std::runtime_error("Incorrect input vector: format hash does not match."));
+			}
+		}
+
+#pragma omp parallel num_threads(nrOfThreads)
+		{
+#pragma omp for schedule(static, 1) nowait
+			for (int batch = 0; batch < (nrOfThreads - 1); batch++)  // all but last batch
+			{
+				int fromBlock = static_cast<int>(batch * batchFactor + 0.000001);  // start block
+				int toBlock = static_cast<int>((batch + 1) * batchFactor + 0.000001);  // end block
+
+				// iterate block range
+				for (int block = fromBlock; block < toBlock; block++)
+				{
+					unsigned long long blockStart = blockOffsets[block];
+					unsigned long long blockEnd = blockOffsets[block + 1];
+
+					unsigned int errorCode = decompressor.Decompress(*algo, reinterpret_cast<char*>(blobData) + *blockSize * block,
+						*blockSize, reinterpret_cast<const char*>(blobSource + blockStart), blockEnd - blockStart);
+
+					if (errorCode != 0)
+					{
+						error = true;
+					}
+				}
+			}
+
+#pragma omp single
+			{
+				int fromBlock = static_cast<int>((nrOfThreads - 1) * batchFactor + 0.000001);  // start block
+				int toBlock = static_cast<int>(nrOfThreads * batchFactor + 0.000001);  // end block
+
+				// iterate block range with full blocks
+				for (int block = fromBlock; block < (toBlock - 1); block++)
+				{
+					unsigned long long blockStart = blockOffsets[block];
+					unsigned long long blockEnd = blockOffsets[block + 1];
+					unsigned int errorCode = decompressor.Decompress(*algo, reinterpret_cast<char*>(blobData) + *blockSize * block, *blockSize,
+						reinterpret_cast<const char*>(blobSource + blockStart), blockEnd - blockStart);
+
+					if (errorCode != 0)
+					{
+						error = true;
+					}
+				}
+
+				// last block
+				int lastBlockSize = 1 + (*vecLength - 1) % *blockSize;
+				unsigned long long blockStart = blockOffsets[toBlock - 1];
+				unsigned long long blockEnd = blockOffsets[toBlock];
+				unsigned int errorCode = decompressor.Decompress(*algo, reinterpret_cast<char*>(blobData) + *blockSize * (toBlock - 1), lastBlockSize,
+					reinterpret_cast<const char*>(blobSource + blockStart), blockEnd - blockStart);
+
+				if (errorCode != 0)
+				{
+					error = true;
+				}
+			}
+		}
+
+
+		if (error)
+		{
+			delete blobContainer;
+			throw(std::runtime_error("An error was detected in the compressed data stream."));
+		}
+
+		return blobContainer;
+	}
 
 };
 

@@ -1,7 +1,7 @@
 
-#' Compress any object using the LZ4 or ZSTD compressor.
+#' Compress a raw vector using the LZ4 or ZSTD compressor.
 #'
-#' @param x object to be serialized.
+#' @param x raw vector.
 #' @param compressor compressor to use for compressing \code{x}. Valid options are "LZ4" (default) and "ZSTD".
 #' @param compression compression factor used. Must be in the range 0 (lowest compression) to 100 (maximum compression).
 #' @export
@@ -19,4 +19,20 @@ fstcompress <- function(x, compressor = "LZ4", compression = 0) {
   }
 
   fstcomp(x, compressor, as.integer(compression))
+}
+
+
+#' Decompress a raw vector with compressed data.
+#'
+#' @param x raw vector with data previously compressed with \code{fstcompress}.
+#'
+#' @return a raw vector with previously compressed data.
+#' @export
+fstdecompress <- function(x) {
+
+  if (!is.raw(x)) {
+    stop("Parameter x should be a raw vector with compressed data.")
+  }
+
+  fstdecomp(x)
 }

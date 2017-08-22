@@ -44,5 +44,8 @@
 // [[Rcpp::export]]
 SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression);
 
+// [[Rcpp::export]]
+SEXP fstdecomp(SEXP rawVec);
+
 
 #endif  // FASTSTORE_H

@@ -94,7 +94,7 @@ public:
   Decompressor() {};
 
   ~Decompressor() { };
-	
+
   static int Decompress(unsigned int algo, char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize);
 };
 
