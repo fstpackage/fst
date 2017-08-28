@@ -48,6 +48,7 @@
 #include <character/character_v6.h>
 #include <factor/factor_v7.h>
 #include <integer/integer_v8.h>
+#include <byte/byte_v13.h>
 #include <double/double_v9.h>
 #include <logical/logical_v10.h>
 
@@ -338,7 +339,15 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
         break;
       }
 
-      default:
+	  case FstColumnType::BYTE:
+	  {
+		  colTypes[colNr] = 13;
+		  char* byteP = fstTable.GetByteWriter(colNr);
+		  fdsWriteByteVec_v13(myfile, byteP, nrOfRows, compress);
+		  break;
+	  }
+
+    default:
         delete[] metaDataBlock;
         delete[] chunkIndex;
         myfile.close();
@@ -354,6 +363,12 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
 
   myfile.seekp(*chunkPos - CHUNK_INDEX_SIZE);
   myfile.write((char*)(chunkIndex), CHUNK_INDEX_SIZE + 8 * nrOfCols);  // vertical chunkset index and positiondata
+
+  if (myfile.fail())
+  {
+	  myfile.close();
+	  throw(runtime_error("There was an error during the write operation, fst file might be corrupted. Please check available disk space and access rights."));
+  }
 
   myfile.close();
 
@@ -686,6 +701,16 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
 	    tableReader.SetInt64Column(int64Column, colSel);
 	    delete int64Column;
 	    break;
+	  }
+
+	  // byte vector
+	  case 13:
+	  {
+		  IByteColumn* byteColumn = columnFactory->CreateByteColumn(length);
+		  fdsReadByteVec_v13(myfile, byteColumn->Data(), pos, firstRow, length, nrOfRows);
+		  tableReader.SetByteColumn(byteColumn, colSel);
+		  delete byteColumn;
+		  break;
 	  }
 
     default:

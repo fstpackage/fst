@@ -63,6 +63,7 @@
 #define MAX_TARGET_BUFFER				BLOCKSIZE * CACHEFACTOR / 2 // 16384  / 2  (Compressor)
 #define BLOCKSIZE_REAL					2048 * CACHEFACTOR			// number of doubles in default compression block
 #define BLOCKSIZE_INT					4096 * CACHEFACTOR			// number of integers in default compression block
+#define BLOCKSIZE_BYTE					16384 * CACHEFACTOR			// number of integers in default compression block
 
 // fst specific errors
 #define FSTERROR_NOT_IMPLEMENTED     "Feature not implemented yet"

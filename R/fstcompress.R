@@ -4,8 +4,13 @@
 #' @param x raw vector.
 #' @param compressor compressor to use for compressing \code{x}. Valid options are "LZ4" (default) and "ZSTD".
 #' @param compression compression factor used. Must be in the range 0 (lowest compression) to 100 (maximum compression).
+#' @param hash Compute hash of compressed data. This hash is stored in the resulting raw vector and
+#' can be used during decompression to check the validity of the compressed vector. Hash
+#' computation is done with the very fast xxHash algorithm and implemented as a parallel operation,
+#' so the performance hit will be very small.
+#'
 #' @export
-fstcompress <- function(x, compressor = "LZ4", compression = 0) {
+fstcompress <- function(x, compressor = "LZ4", compression = 0, hash = FALSE) {
   if (!is.numeric(compression)) {
     stop("Parameter compression should be a numeric value in the range 0 to 100")
   }
@@ -18,7 +23,7 @@ fstcompress <- function(x, compressor = "LZ4", compression = 0) {
     stop("Parameter x is not set to a raw vector.")
   }
 
-  fstcomp(x, compressor, as.integer(compression))
+  fstcomp(x, compressor, as.integer(compression), hash)
 }
 
 

@@ -46,6 +46,7 @@ datatable <- data.frame(
   CharLong = char_veclong(nrofrows),
   Date = date_vec(nrofrows),
   Integer64 = as.integer64(sample(c(2345612345679, 10, 8714567890), nrofrows, replace = TRUE)),
+  Raw = as.raw(sample(0:255, nrofrows, replace = TRUE)),
   stringsAsFactors = FALSE)
 
 

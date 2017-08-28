@@ -50,7 +50,8 @@ enum FstColumnType
 	DOUBLE_64,
 	BOOL_32,
 	DATE_INT,
-	INT_64
+	INT_64,
+	BYTE
 };
 
 
@@ -122,6 +123,14 @@ class IIntegerColumn
 public:
   virtual ~IIntegerColumn() {};
   virtual int* Data() = 0;
+};
+
+
+class IByteColumn
+{
+public:
+	virtual ~IByteColumn() {};
+	virtual char* Data() = 0;
 };
 
 

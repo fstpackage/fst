@@ -4,7 +4,7 @@
 \alias{fstcompress}
 \title{Compress a raw vector using the LZ4 or ZSTD compressor.}
 \usage{
-fstcompress(x, compressor = "LZ4", compression = 0)
+fstcompress(x, compressor = "LZ4", compression = 0, hash = FALSE)
 }
 \arguments{
 \item{x}{raw vector.}
@@ -12,6 +12,11 @@ fstcompress(x, compressor = "LZ4", compression = 0)
 \item{compressor}{compressor to use for compressing \code{x}. Valid options are "LZ4" (default) and "ZSTD".}
 
 \item{compression}{compression factor used. Must be in the range 0 (lowest compression) to 100 (maximum compression).}
+
+\item{hash}{Compute hash of compressed data. This hash is stored in the resulting raw vector and
+can be used during decompression to check the validity of the compressed vector. Hash
+computation is done with the very fast xxHash algorithm and implemented as a parallel operation,
+so the performance hit will be very small.}
 }
 \description{
 Compress a raw vector using the LZ4 or ZSTD compressor.

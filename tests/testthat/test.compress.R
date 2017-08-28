@@ -3,7 +3,9 @@ context("in-memory compression")
 
 
 # Sample raw vector
-RawVec <- function(length) { as.raw(sample(1:10, length, replace = TRUE)) }
+RawVec <- function(length) {
+  as.raw(sample(1:10, length, replace = TRUE))
+}
 
 rawVec <- RawVec(100)  # vector size less than single block
 
@@ -22,17 +24,18 @@ test_that("interface for compressing raw vectors", {
 })
 
 
-TestRoundCycle <- function(vec, compressor, compression)
-{
+# rest write / read cycle for single vector and compression settings
+TestRoundCycle <- function(vec, compressor, compression) {
   y <- fstcompress(rawVec, compressor, compression)
   z <- fstdecompress(y)
-  expect_equal(rawVec, z)  # return type
+  expect_equal(rawVec, z, info = paste("compressor:", compressor, "compression:", compression))  # return type
 
   y
 }
 
-TestVec <- function(rawVec)
-{
+
+# rest write / read cycle for multiple compression settings
+TestVec <- function(rawVec) {
   TestRoundCycle(rawVec, "LZ4", 0)
   TestRoundCycle(rawVec, "LZ4", 100)
   TestRoundCycle(rawVec, "ZSTD", 0)
@@ -141,8 +144,10 @@ test_that("erroneous compressed data", {
 
   z <- fstcompress(rawVec, compressor = "LZ4", compression = 100)  # note: very bad compression ratio
 
+  # crash here -> hash the index and check hash for safety
+
   y <- z
-  y[41:48] <- as.raw(0L)  # mess up block offsets
+  y[41:48] <- as.raw(0L)  # mess up second block offset
   expect_error(fstdecompress(y), "An error was detected in the compressed data stream")
 
   y <- z
@@ -151,17 +156,14 @@ test_that("erroneous compressed data", {
 
   y <- z
   y[17:24] <- as.raw(100L)  # set vector length to very big value
-  expect_error(fstdecompress(y), "vector is too large")
+  expect_error(fstdecompress(y), "Compressed data vector has incorrect size")
 
   y <- z
   y[17:24] <- as.raw(c(0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L))  # set vector length to very big value
-  expect_error(fstdecompress(y), "Error detected in compressed data format")
+  expect_error(fstdecompress(y), "Compressed data vector has incorrect size")
 
-  expect_equal(rawVec, z)  # return type
-
-  y <- fstcompress(rawVec, compressor = "LZ4", compression = 100)
-  z <- fstdecompress(y)
-  expect_equal(rawVec, z)  # return type
+  y <- fstdecompress(z)
+  expect_equal(rawVec, y)  # return type
 
   y <- fstcompress(rawVec, compressor = "ZSTD", compression = 0)
   z <- fstdecompress(y)

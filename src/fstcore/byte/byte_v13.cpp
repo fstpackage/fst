@@ -32,74 +32,53 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
+#include <byte/byte_v13.h>
+#include <blockstreamer/blockstreamer_v2.h>
 
-#ifndef COLUMN_FACTORY_H
-#define COLUMN_FACTORY_H
+// External libraries
+#include <compression/compressor.h>
 
-#include <iostream>
-#include <vector>
-
-#include <Rcpp.h>
-
-#include <interface/icolumnfactory.h>
-#include <interface/ifstcolumn.h>
-#include <interface/ifsttable.h>
-
-#include <fstcolumn.h>
-#include <blockrunner_char.h>
+using namespace std;
 
 
-class ColumnFactory : public IColumnFactory
+void fdsWriteByteVec_v13(ofstream &myfile, char* byteVector, unsigned int nrOfRows, unsigned int compression)
 {
-public:
-  ~ColumnFactory() {};
+  int blockSize = BLOCKSIZE_BYTE;  // block size in bytes
 
-  IFactorColumn* CreateFactorColumn(int nrOfRows)
+  if (compression == 0)
   {
-    return new FactorColumn(nrOfRows);
+    return fdsStreamUncompressed_v2(myfile, byteVector, nrOfRows, 1, BLOCKSIZE_BYTE, nullptr);
   }
 
-  ILogicalColumn* CreateLogicalColumn(int nrOfRows)
+  if (compression <= 50)  // low compression: linear mix of uncompressed and LZ4_SHUF
   {
-    return new LogicalColumn(nrOfRows);
+    Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4, 0);
+
+    StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, 2 * compression);
+
+    streamCompressor->CompressBufferSize(blockSize);
+    fdsStreamcompressed_v2(myfile, byteVector, nrOfRows, 1, streamCompressor, BLOCKSIZE_BYTE);
+
+    delete compress1;
+    delete streamCompressor;
+    return;
   }
 
-  IDoubleColumn* CreateDoubleColumn(int nrOfRows)
-  {
-    return new DoubleColumn(nrOfRows);
-  }
+  Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4, 0);
+  Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD, 0);
+  StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
+  streamCompressor->CompressBufferSize(blockSize);
+  fdsStreamcompressed_v2(myfile, byteVector, nrOfRows, 1, streamCompressor, BLOCKSIZE_BYTE);
 
-  IIntegerColumn* CreateIntegerColumn(int nrOfRows)
-  {
-    return new IntegerColumn(nrOfRows);
-  }
+  delete compress1;
+  delete compress2;
+  delete streamCompressor;
 
-  IByteColumn* CreateByteColumn(int nrOfRows)
-  {
-    return new ByteColumn(nrOfRows);
-  }
-
-  IDateTimeColumn* CreateDateTimeColumn(int nrOfRows)
-  {
-    return new DateTimeColumn(nrOfRows);
-  }
-
-  IInt64Column* CreateInt64Column(int nrOfRows)
-  {
-    return new Int64Column(nrOfRows);
-  }
-
-  IStringArray* CreateStringArray()
-  {
-    return new StringArray();
-  }
-
-  IStringColumn* CreateStringColumn(int nrOfRows)
-  {
-    return new BlockReaderChar();
-  }
-};
+  return;
+}
 
 
-#endif  // COLUMN_FACTORY_H
-
+void fdsReadByteVec_v13(istream &myfile, char* byteVec, unsigned long long blockPos, unsigned int startRow, unsigned int length, unsigned int size)
+{
+  return fdsReadColumn_v2(myfile, byteVec, blockPos, startRow, length, size, 1);
+}

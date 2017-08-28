@@ -235,4 +235,27 @@ public:
 };
 
 
+class ByteColumn : public IByteColumn
+{
+public:
+  SEXP colVec;
+
+  ByteColumn(int nrOfRows)
+  {
+    colVec = Rf_allocVector(RAWSXP, nrOfRows);
+    PROTECT(colVec);
+  }
+
+  ~ByteColumn()
+  {
+    UNPROTECT(1);
+  }
+
+  char* Data()
+  {
+    return (char*) RAW(colVec);
+  }
+};
+
+
 #endif  // FST_COLUMN_H

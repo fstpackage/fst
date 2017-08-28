@@ -1,5 +1,6 @@
 /*
   fst - An R-package for ultra fast storage and retrieval of datasets.
+  Header File
   Copyright (C) 2017, Mark AJ Klik
 
   BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
@@ -32,27 +33,14 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
+#ifndef BYTE_V13_H
+#define BYTE_V13_H
 
-#ifndef IFST_COLUMN_FACTORY_H
-#define IFST_COLUMN_FACTORY_H
 
+#include <fstream>
 
-#include "ifstcolumn.h"
+void fdsWriteByteVec_v13(std::ofstream &myfile, char* byteVector, unsigned int nrOfRows, unsigned int compression);
 
-class IColumnFactory
-{
-public:
-  virtual ~IColumnFactory() {};
-  virtual IFactorColumn*  CreateFactorColumn(int nrOfRows) = 0;
-  virtual ILogicalColumn* CreateLogicalColumn(int nrOfRows) = 0;
-  virtual IDoubleColumn* CreateDoubleColumn(int nrOfRows) = 0;
-  virtual IIntegerColumn* CreateIntegerColumn(int nrOfRows) = 0;
-  virtual IByteColumn* CreateByteColumn(int nrOfRows) = 0;
-  virtual IDateTimeColumn* CreateDateTimeColumn(int nrOfRows) = 0;
-  virtual IInt64Column* CreateInt64Column(int nrOfRows) = 0;
-  virtual IStringColumn* CreateStringColumn(int nrOfRows) = 0;
-  virtual IStringArray* CreateStringArray() = 0;
-};
+void fdsReadByteVec_v13(std::istream &myfile, char* byteVector, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
 
-#endif // IFST_COLUMN_FACTORY_H
-
+#endif // INTEGER_V8_H

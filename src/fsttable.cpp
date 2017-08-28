@@ -119,6 +119,10 @@ FstColumnType FstTable::ColumnType(unsigned int colNr)
     case LGLSXP:
       return FstColumnType::BOOL_32;
 
+  case RAWSXP:
+    return FstColumnType::BYTE;
+
+
     default:
       return FstColumnType::UNKNOWN;
   }
@@ -162,6 +166,13 @@ int* FstTable::GetIntWriter(unsigned int colNr)
 {
   cols = VECTOR_ELT(*rTable, colNr);  // retrieve column vector
   return INTEGER(cols);
+}
+
+
+char* FstTable::GetByteWriter(unsigned int colNr)
+{
+  cols = VECTOR_ELT(*rTable, colNr);  // retrieve column vector
+  return (char*) RAW(cols);
 }
 
 
@@ -298,6 +309,13 @@ void FstTable::SetIntegerColumn(IIntegerColumn* integerColumn, int colNr)
 {
   IntegerColumn* iColumn = (IntegerColumn*) integerColumn;
   SET_VECTOR_ELT(resTable, colNr, iColumn->colVec);
+}
+
+
+void FstTable::SetByteColumn(IByteColumn* byteColumn, int colNr)
+{
+  ByteColumn* bColumn = (ByteColumn*) byteColumn;
+  SET_VECTOR_ELT(resTable, colNr, bColumn->colVec);
 }
 
 

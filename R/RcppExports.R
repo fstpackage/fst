@@ -13,8 +13,8 @@ fstretrieve <- function(fileName, columnSelection, startRow, endRow) {
     .Call('_fst_fstretrieve', PACKAGE = 'fst', fileName, columnSelection, startRow, endRow)
 }
 
-fstcomp <- function(rawVec, compressor, compression) {
-    .Call('_fst_fstcomp', PACKAGE = 'fst', rawVec, compressor, compression)
+fstcomp <- function(rawVec, compressor, compression, hash) {
+    .Call('_fst_fstcomp', PACKAGE = 'fst', rawVec, compressor, compression, hash)
 }
 
 fstdecomp <- function(rawVec) {

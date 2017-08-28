@@ -42,10 +42,16 @@
 using namespace Rcpp;
 
 
-SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression)
+SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash)
 {
   ITypeFactory* typeFactory = new TypeFactory();
   COMPRESSION_ALGORITHM algo;
+
+  if (!Rf_isLogical(hash))
+  {
+    delete typeFactory;
+    Rf_error("Please specify true of false for parameter hash.");
+  }
 
   if (Rf_NonNullStringMatch(STRING_ELT(compressor, 0), Rf_mkChar("LZ4")))
   {
@@ -55,6 +61,7 @@ SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression)
     algo = COMPRESSION_ALGORITHM::ALGORITHM_ZSTD;
   } else
   {
+    delete typeFactory;
     Rf_error("Unknown compression algorithm selected");
   }
 
@@ -66,7 +73,7 @@ SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression)
 
   try
   {
-    blobContainer = (BlobContainer*) fstcompressor.CompressBlob(data, vecLength);
+    blobContainer = (BlobContainer*) fstcompressor.CompressBlob(data, vecLength, *LOGICAL(hash));
   }
   catch(const std::runtime_error& e)
   {
