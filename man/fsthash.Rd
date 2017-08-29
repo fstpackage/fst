@@ -4,12 +4,14 @@
 \alias{fsthash}
 \title{Parallel calculation of the hash of a raw vector}
 \usage{
-fsthash(x, seed = NULL)
+fsthash(x, seed = NULL, block_size = 1024)
 }
 \arguments{
 \item{x}{raw vector that you want to hash}
 
 \item{seed}{The seed value for the hashing algorithm. If NULL, a default seed will be used.}
+
+\item{block_size}{minimum block size to use for hashing.}
 }
 \value{
 hash value

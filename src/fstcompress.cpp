@@ -43,7 +43,7 @@
 using namespace Rcpp;
 
 
-SEXP fsthasher(SEXP rawVec, SEXP seed)
+SEXP fsthasher(SEXP rawVec, SEXP seed, SEXP blockSize)
 {
   FstHasher hasher;
 
@@ -61,7 +61,8 @@ SEXP fsthasher(SEXP rawVec, SEXP seed)
     return res;
   }
 
-  *uintP = hasher.HashBlob((unsigned char*) RAW(rawVec), Rf_length(rawVec), *((unsigned int*) INTEGER(seed)));
+  *uintP = hasher.HashBlob((unsigned char*) RAW(rawVec), Rf_length(rawVec),
+    *((unsigned int*) INTEGER(seed)), *INTEGER(blockSize));
 
   UNPROTECT(1);
   return res;
