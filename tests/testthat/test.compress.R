@@ -137,39 +137,43 @@ test_that("compress round cycle blocksize larger than 16kB", {
 })
 
 
-rawVec <- RawVec(50000)  # 3 blocks
+rawVec <- RawVec(50000)  # 4 blocks
 
 
 test_that("erroneous compressed data", {
 
+  # Test LZ4 compressor
   z <- fstcompress(rawVec, compressor = "LZ4", compression = 100)  # note: very bad compression ratio
-
-  # crash here -> hash the index and check hash for safety
 
   y <- z
   y[41:48] <- as.raw(0L)  # mess up second block offset
-  expect_error(fstdecompress(y), "An error was detected in the compressed data stream")
+  expect_error(fstdecompress(y), "Incorrect header information found")
 
   y <- z
   y[17:24] <- as.raw(0L)  # set vector length to zero
-  expect_error(fstdecompress(y), "Compressed data vector has incorrect size")
-
-  y <- z
-  y[17:24] <- as.raw(100L)  # set vector length to very big value
-  expect_error(fstdecompress(y), "Compressed data vector has incorrect size")
-
-  y <- z
-  y[17:24] <- as.raw(c(0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L))  # set vector length to very big value
-  expect_error(fstdecompress(y), "Compressed data vector has incorrect size")
+  expect_error(fstdecompress(y), "Incorrect header information found")
 
   y <- fstdecompress(z)
   expect_equal(rawVec, y)  # return type
 
+  # Test ZSTD compressor
   y <- fstcompress(rawVec, compressor = "ZSTD", compression = 0)
   z <- fstdecompress(y)
   expect_equal(rawVec, z)  # return type
 
-  y <- fstcompress(rawVec, compressor = "ZSTD", compression = 100)
+  y <- fstcompress(rawVec, compressor = "ZSTD", compression = 100)  # maximum compression
   z <- fstdecompress(y)
   expect_equal(rawVec, z)  # return type
+
+  # Mess up compressed data block
+  # Header has length 76, so data of first block starts at byte 77
+
+  # This error is catched by ZSTD
+  y[77] <- as.raw(0L)  # set vector length to zero
+  expect_error(fstdecompress(y), "An error was detected in the compressed data stream")
+
+  # If using block hashes, erro is catched by fst
+  y <- fstcompress(rawVec, compressor = "ZSTD", compression = 100, hash = TRUE)  # hash data blocks
+  y[77] <- as.raw(0L)  # set vector length to zero
+  expect_error(fstdecompress(y), "Incorrect input vector")
 })

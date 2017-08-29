@@ -9,6 +9,8 @@
 2. Support for `DateTime` column type.
 3. Support for `integer64` column type.
 4. Support for `nanotime` column type.
+5. Added methods `fstcompress` and `fstdecompress` for in-memory data compression with LZ4 and ZSTD. This method uses a multi-threaded implementation with OpenMP to achieve high compression and decompression speeds.
+
 
 
 #### Bug fixes
