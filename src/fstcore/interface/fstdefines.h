@@ -51,6 +51,7 @@
 #define CACHEFACTOR						1
 #define PREV_NR_OF_BLOCKS               48                          // default number of blocks for in-memory compression
 #define BLOCKSIZE						16384 * CACHEFACTOR			// number of bytes in default compression block
+#define HASH_SIZE						1024            			// number of bytes in default compression block
 #define MAX_CHAR_STACK_SIZE				32768						// number of characters in default compression block
 #define BLOCKSIZE_CHAR					2047						// number of characters in default compression block
 #define PREF_BLOCK_SIZE					16384 * CACHEFACTOR			// BlockStreamer

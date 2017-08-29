@@ -513,4 +513,4 @@ public:
 };
 
 
-#endif  // FST_STORE_H
+#endif  // FST_COMPRESSOR_H
