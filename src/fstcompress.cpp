@@ -36,10 +36,36 @@
 #include <Rcpp.h>
 
 #include <interface/fstcompressor.h>
+#include <interface/fsthash.h>
 
 #include <typefactory.h>
 
 using namespace Rcpp;
+
+
+SEXP fsthasher(SEXP rawVec, SEXP seed)
+{
+  FstHasher hasher;
+
+  SEXP res = PROTECT(Rf_allocVector(INTSXP, 1));
+
+  unsigned int* uintP = (unsigned int*)(INTEGER(res));
+
+  *uintP = 5;
+
+  if (Rf_isNull(seed))
+  {
+    *uintP = hasher.HashBlob((unsigned char*) RAW(rawVec), Rf_length(rawVec));
+
+    UNPROTECT(1);
+    return res;
+  }
+
+  *uintP = hasher.HashBlob((unsigned char*) RAW(rawVec), Rf_length(rawVec), *((unsigned int*) INTEGER(seed)));
+
+  UNPROTECT(1);
+  return res;
+}
 
 
 SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash)

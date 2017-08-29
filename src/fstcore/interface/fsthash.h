@@ -57,12 +57,18 @@ public:
 	{
 	}
 
+	unsigned int HashBlob(unsigned char* blobSource, unsigned long long blobLength) const
+	{
+		return HashBlob(blobSource, blobLength, FST_HASH_SEED);
+	}
+
 	/**
 	 * \brief Compress data with the 'LZ4' or 'ZSTD' compressor.
 	 * \param blobSource source buffer to compress.
 	 * \param blobLength Length of source buffer.
+	 * \param seed Seed for hashing
 	 */
-	unsigned int HashBlob(unsigned char* blobSource, unsigned long long blobLength) const
+	unsigned int HashBlob(unsigned char* blobSource, unsigned long long blobLength, unsigned int seed) const
 	{
 		int nrOfThreads = GetFstThreads();
 
@@ -101,7 +107,7 @@ public:
 				for (int block = blockNr; block < nextblockNr; block++)
 				{
 					// Block hash
-					blockHashes[block] = XXH32(&blobSource[block * blockSize], blockSize, FST_HASH_SEED);
+					blockHashes[block] = XXH32(&blobSource[block * blockSize], blockSize, seed);
 				}
 			}
 
@@ -114,17 +120,17 @@ public:
 				for (int block = blockNr; block < nextblockNr; block++)
 				{
 					// Block hash
-					blockHashes[block] = XXH32(&blobSource[block * blockSize], blockSize, FST_HASH_SEED);
+					blockHashes[block] = XXH32(&blobSource[block * blockSize], blockSize, seed);
 				}
 
 				// Last block hash
-				blockHashes[nextblockNr] = XXH32(&blobSource[nextblockNr * blockSize], lastBlockSize, FST_HASH_SEED);
+				blockHashes[nextblockNr] = XXH32(&blobSource[nextblockNr * blockSize], lastBlockSize, seed);
 			}
 
 		}  // end parallel region and join all threads
 
 
-		unsigned allBlockHash = XXH32(blockHashes, nrOfBlocks * 4, FST_HASH_SEED);
+		unsigned allBlockHash = XXH32(blockHashes, nrOfBlocks * 4, seed);
 		delete[] blockHashes;
 
 		return allBlockHash;

@@ -61,6 +61,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_fst_fstretrieve",    (DL_FUNC) &fstretrieve,    4},
     {"_fst_fststore",       (DL_FUNC) &fststore,       4},
     {"_fst_getnrofthreads", (DL_FUNC) &getnrofthreads, 0},
+    {"_fst_fsthasher",      (DL_FUNC) &fsthasher,      0},
     {"_fst_hasopenmp",      (DL_FUNC) &hasopenmp,      0},
     {"_fst_setnrofthreads", (DL_FUNC) &setnrofthreads, 1},
     {NULL, NULL, 0}

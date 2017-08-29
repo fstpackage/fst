@@ -44,6 +44,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// fsthasher
+SEXP fsthasher(SEXP rawVec, SEXP seed);
+RcppExport SEXP _fst_fsthasher(SEXP rawVecSEXP, SEXP seedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type rawVec(rawVecSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type seed(seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(fsthasher(rawVec, seed));
+    return rcpp_result_gen;
+END_RCPP
+}
 // fstcomp
 SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash);
 RcppExport SEXP _fst_fstcomp(SEXP rawVecSEXP, SEXP compressorSEXP, SEXP compressionSEXP, SEXP hashSEXP) {

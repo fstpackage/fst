@@ -42,7 +42,12 @@
 
 
 // [[Rcpp::export]]
+SEXP fsthasher(SEXP rawVec, SEXP seed);
+
+
+// [[Rcpp::export]]
 SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash);
+
 
 // [[Rcpp::export]]
 SEXP fstdecomp(SEXP rawVec);

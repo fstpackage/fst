@@ -177,3 +177,17 @@ test_that("erroneous compressed data", {
   y[77] <- as.raw(0L)  # set vector length to zero
   expect_error(fstdecompress(y), "Incorrect input vector")
 })
+
+
+test_that("erroneous compressed data", {
+  hash1 <- fsthash(rawVec)
+  hash2 <- fsthash(rawVec, 345345)
+
+  # alter vector in two places
+  rawVec[100] <- as.raw( (as.integer(rawVec[100]) + 2) %% 256)
+  rawVec[200] <- as.raw( (as.integer(rawVec[200]) + 2) %% 256)
+  hash3 <- fsthash(rawVec)
+
+  expect_true(hash1 != hash2)
+  expect_true(hash1 != hash3)
+})
