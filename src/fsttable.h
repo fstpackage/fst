@@ -94,7 +94,7 @@ class FstTable : public IFstTable
 
     void SetKeyColumns(int* keyColPos, unsigned int nrOfKeys);
 
-    FstColumnType ColumnType(unsigned int colNr);
+    FstColumnType ColumnType(unsigned int colNr, FstColumnAttribute &columnAttribute);
 
     IStringWriter* GetStringWriter(unsigned int colNr);
 

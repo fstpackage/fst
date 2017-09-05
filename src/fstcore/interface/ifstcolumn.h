@@ -60,7 +60,8 @@ enum FstColumnType
 enum FstColumnAttribute
 {
 	NONE = 1,             // column has no special attributes
-	INT_64_DATE_NANO = 2  // number of nanoseconds since epoch
+	INT_64_DATE_NANO,     // number of nanoseconds since epoch
+	INT_64_DATE_MICRO     // number of microseconds since epoch
 };
 
 

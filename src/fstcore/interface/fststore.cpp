@@ -195,7 +195,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
   unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[offset + 16];
   unsigned int* p_version                = (unsigned int*) &metaDataBlock[offset + 24];
   int* p_nrOfCols                        = (int*) &metaDataBlock[offset + 28];
-  // unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[offset + 32];
+  unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[offset + 32];
   unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[offset + 32 + 2 * nrOfCols];
   unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[offset + 32 + 4 * nrOfCols];
 
@@ -249,8 +249,6 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
   fdsWriteCharVec_v6(myfile, blockRunner, 0, StringEncoding::NATIVE);   // column names
   delete blockRunner;
 
-  // TODO: Write column attributes here
-
   // Vertical chunkset index or index of index
   char* chunkIndex = new char[CHUNK_INDEX_SIZE + 8 * nrOfCols];
 
@@ -273,8 +271,11 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
   for (int colNr = 0; colNr < nrOfCols; ++colNr)
   {
     positionData[colNr] = myfile.tellp();  // current location
-    FstColumnType colType = fstTable.ColumnType(colNr);
+	FstColumnAttribute colAttribute;
+    FstColumnType colType = fstTable.ColumnType(colNr, colAttribute);
+
     colBaseTypes[colNr] = static_cast<unsigned short int>(colType);
+	colAttributeTypes[colNr] = static_cast<unsigned short int>(colAttribute);
 
     // Store attributes here if any
     // unsigned int attrBlockSize = SerializeObjectAttributes(ofstream &myfile, RObject rObject, serializer);
@@ -336,7 +337,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
       {
         colTypes[colNr] = 12;
         long long* intP = fstTable.GetInt64Writer(colNr);
-        fdsWriteRealVec_v9(myfile, (double*) intP, nrOfRows, compress);
+		fdsWriteInt64Vec_v12(myfile, (long long*) intP, nrOfRows, compress);
         break;
       }
 
@@ -479,7 +480,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
   // unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[tmpOffset + 16];
   // unsigned int* p_version                = (unsigned int*) &metaDataBlock[tmpOffset + 24];
   int* p_nrOfCols                        = (int*) &metaDataBlock[tmpOffset + 28];
-  // unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[tmpOffset + 32];
+  unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[tmpOffset + 32];
   unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 2 * nrOfColsFirstChunk];
   // unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 4 * nrOfColsFirstChunk];
 
@@ -636,7 +637,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
     // Character vector
       case 6:
       {
-        IStringColumn* stringColumn = columnFactory->CreateStringColumn(length, FstColumnAttribute::NONE);
+        IStringColumn* stringColumn = columnFactory->CreateStringColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]));
         fdsReadCharVec_v6(myfile, stringColumn, pos, firstRow, length, nrOfRows);
         tableReader.SetStringColumn(stringColumn, colSel);
         delete stringColumn;
@@ -646,7 +647,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
       // Integer vector
       case 8:
       {
-        IIntegerColumn* integerColumn = columnFactory->CreateIntegerColumn(length, FstColumnAttribute::NONE);
+        IIntegerColumn* integerColumn = columnFactory->CreateIntegerColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]));
         fdsReadIntVec_v8(myfile, integerColumn->Data(), pos, firstRow, length, nrOfRows);
 
         tableReader.SetIntegerColumn(integerColumn, colSel);
@@ -657,7 +658,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
       // Real vector
       case 9:
       {
-        IDoubleColumn* doubleColumn = columnFactory->CreateDoubleColumn(length, FstColumnAttribute::NONE);
+        IDoubleColumn* doubleColumn = columnFactory->CreateDoubleColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]));
         fdsReadRealVec_v9(myfile, doubleColumn->Data(), pos, firstRow, length, nrOfRows);
         tableReader.SetDoubleColumn(doubleColumn, colSel);
         delete doubleColumn;
@@ -667,7 +668,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
       // Logical vector
       case 10:
       {
-        ILogicalColumn* logicalColumn = columnFactory->CreateLogicalColumn(length, FstColumnAttribute::NONE);
+        ILogicalColumn* logicalColumn = columnFactory->CreateLogicalColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]));
         fdsReadLogicalVec_v10(myfile, logicalColumn->Data(), pos, firstRow, length, nrOfRows);
         tableReader.SetLogicalColumn(logicalColumn, colSel);
         delete logicalColumn;
@@ -677,7 +678,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
       // Factor vector
       case 7:
       {
-        IFactorColumn* factorColumn = columnFactory->CreateFactorColumn(length, FstColumnAttribute::NONE);
+        IFactorColumn* factorColumn = columnFactory->CreateFactorColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]));
         fdsReadFactorVec_v7(myfile, factorColumn->Levels(), factorColumn->LevelData(), pos, firstRow, length, nrOfRows);
         tableReader.SetFactorColumn(factorColumn, colSel);
         delete factorColumn;
@@ -687,7 +688,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
 	  // Date vector
 	  case 11:
 	  {
-		  IDateTimeColumn* dateTimeColumn = columnFactory->CreateDateTimeColumn(length, FstColumnAttribute::NONE);
+		  IDateTimeColumn* dateTimeColumn = columnFactory->CreateDateTimeColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]));
 		  fdsReadIntVec_v8(myfile, dateTimeColumn->Data(), pos, firstRow, length, nrOfRows);
 		  tableReader.SetDateTimeColumn(dateTimeColumn, colSel);
 		  delete dateTimeColumn;
@@ -697,7 +698,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
 	  // integer64 vector
 	  case 12:
 	  {
-	    IInt64Column* int64Column = columnFactory->CreateInt64Column(length, FstColumnAttribute::NONE);
+	    IInt64Column* int64Column = columnFactory->CreateInt64Column(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]));
 		fdsReadInt64Vec_v12(myfile, int64Column->Data(), pos, firstRow, length, nrOfRows);
 	    tableReader.SetInt64Column(int64Column, colSel);
 	    delete int64Column;
@@ -707,7 +708,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
 	  // byte vector
 	  case 13:
 	  {
-		  IByteColumn* byteColumn = columnFactory->CreateByteColumn(length, FstColumnAttribute::NONE);
+		  IByteColumn* byteColumn = columnFactory->CreateByteColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]));
 		  fdsReadByteVec_v13(myfile, byteColumn->Data(), pos, firstRow, length, nrOfRows);
 		  tableReader.SetByteColumn(byteColumn, colSel);
 		  delete byteColumn;

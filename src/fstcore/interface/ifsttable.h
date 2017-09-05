@@ -49,7 +49,7 @@ class IFstTable
   public:
     virtual ~IFstTable() {};
 
-    virtual FstColumnType ColumnType(unsigned int colNr) = 0;
+    virtual FstColumnType ColumnType(unsigned int colNr, FstColumnAttribute &columnAttribute) = 0;
 
 	// Writer interface
     virtual IStringWriter* GetStringWriter(unsigned int colNr) = 0;
@@ -95,7 +95,7 @@ class IFstTable
 
   	virtual void SetInt64Column(IInt64Column* int64Column, int colNr) = 0;
 
-	virtual void SetByteColumn(IByteColumn* byteColumn, int colNr) = 0;
+  	virtual void SetByteColumn(IByteColumn* byteColumn, int colNr) = 0;
 
 //  	virtual void SetColNames() = 0;
 

@@ -14,6 +14,7 @@ r_packages:
   - covr
   - lintr
   - bit64
+  - nanotime
 
 after_success:
   - Rscript -e 'library(covr); codecov()'

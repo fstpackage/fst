@@ -169,7 +169,7 @@ class Int64Column : public IInt64Column
 public:
   SEXP int64Vec;
 
-  Int64Column(int nrOfRows)
+  Int64Column(int nrOfRows, FstColumnAttribute columnAttribute = FstColumnAttribute::NONE)
   {
     int64Vec = Rf_allocVector(REALSXP, nrOfRows);
     PROTECT(int64Vec);
@@ -185,6 +185,11 @@ public:
   long long* Data()
   {
     return (long long*)(REAL(int64Vec));
+  }
+
+  FstColumnAttribute ColumnAttribute()
+  {
+    return FstColumnAttribute::NONE;
   }
 };
 

@@ -32,6 +32,7 @@ build_script:
   - set _R_CHECK_FORCE_SUGGESTS_=false
   - travis-tool.sh r_install Rcpp
   - travis-tool.sh r_install bit64
+  - travis-tool.sh r_install nanotime
   - travis-tool.sh r_install testthat
   - travis-tool.sh r_install data.table
   - travis-tool.sh r_install lintr

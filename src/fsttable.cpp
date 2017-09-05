@@ -82,7 +82,7 @@ unsigned int FstTable::NrOfRows()
 }
 
 
-FstColumnType FstTable::ColumnType(unsigned int colNr)
+FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &columnAttribute)
 {
   SEXP colVec = VECTOR_ELT(*rTable, colNr);  // retrieve column vector
 
@@ -106,7 +106,14 @@ FstColumnType FstTable::ColumnType(unsigned int colNr)
     case REALSXP:
       if (Rf_inherits(colVec, "Date"))
       {
+        columnAttribute = FstColumnAttribute::INT_64_DATE_MICRO;
         return FstColumnType::DATE_INT;
+      }
+
+      if (Rf_inherits(colVec, "nanotime"))
+      {
+        columnAttribute = FstColumnAttribute::INT_64_DATE_NANO;
+        return FstColumnType::INT_64;
       }
 
       if (Rf_inherits(colVec, "integer64"))
