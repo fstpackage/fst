@@ -55,6 +55,15 @@ enum FstColumnType
 };
 
 
+// Column attributes available in fst
+// Only add to the end to support previous format versions
+enum FstColumnAttribute
+{
+	NONE = 1,             // column has no special attributes
+	INT_64_DATE_NANO = 2  // number of nanoseconds since epoch
+};
+
+
 // The abstract column and array interfaces function as a bridge between the actual data and fst
 
 

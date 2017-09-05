@@ -54,49 +54,49 @@ class ColumnFactory : public IColumnFactory
 public:
   ~ColumnFactory() {};
 
-  IFactorColumn* CreateFactorColumn(int nrOfRows)
+  IFactorColumn* CreateFactorColumn(int nrOfRows, FstColumnAttribute columnAttribute)
   {
     return new FactorColumn(nrOfRows);
   }
 
-  ILogicalColumn* CreateLogicalColumn(int nrOfRows)
+  ILogicalColumn* CreateLogicalColumn(int nrOfRows, FstColumnAttribute columnAttribute)
   {
     return new LogicalColumn(nrOfRows);
   }
 
-  IDoubleColumn* CreateDoubleColumn(int nrOfRows)
+  IDoubleColumn* CreateDoubleColumn(int nrOfRows, FstColumnAttribute columnAttribute)
   {
     return new DoubleColumn(nrOfRows);
   }
 
-  IIntegerColumn* CreateIntegerColumn(int nrOfRows)
+  IIntegerColumn* CreateIntegerColumn(int nrOfRows, FstColumnAttribute columnAttribute)
   {
     return new IntegerColumn(nrOfRows);
   }
 
-  IByteColumn* CreateByteColumn(int nrOfRows)
+  IByteColumn* CreateByteColumn(int nrOfRows, FstColumnAttribute columnAttribute)
   {
     return new ByteColumn(nrOfRows);
   }
 
-  IDateTimeColumn* CreateDateTimeColumn(int nrOfRows)
+  IDateTimeColumn* CreateDateTimeColumn(int nrOfRows, FstColumnAttribute columnAttribute)
   {
     return new DateTimeColumn(nrOfRows);
   }
 
-  IInt64Column* CreateInt64Column(int nrOfRows)
+  IInt64Column* CreateInt64Column(int nrOfRows, FstColumnAttribute columnAttribute)
   {
     return new Int64Column(nrOfRows);
   }
 
-  IStringArray* CreateStringArray()
-  {
-    return new StringArray();
-  }
-
-  IStringColumn* CreateStringColumn(int nrOfRows)
+  IStringColumn* CreateStringColumn(int nrOfRows, FstColumnAttribute columnAttribute)
   {
     return new BlockReaderChar();
+  }
+
+    IStringArray* CreateStringArray()
+  {
+    return new StringArray();
   }
 };
 

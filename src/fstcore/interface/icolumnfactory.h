@@ -43,14 +43,14 @@ class IColumnFactory
 {
 public:
   virtual ~IColumnFactory() {};
-  virtual IFactorColumn*  CreateFactorColumn(int nrOfRows) = 0;
-  virtual ILogicalColumn* CreateLogicalColumn(int nrOfRows) = 0;
-  virtual IDoubleColumn* CreateDoubleColumn(int nrOfRows) = 0;
-  virtual IIntegerColumn* CreateIntegerColumn(int nrOfRows) = 0;
-  virtual IByteColumn* CreateByteColumn(int nrOfRows) = 0;
-  virtual IDateTimeColumn* CreateDateTimeColumn(int nrOfRows) = 0;
-  virtual IInt64Column* CreateInt64Column(int nrOfRows) = 0;
-  virtual IStringColumn* CreateStringColumn(int nrOfRows) = 0;
+  virtual IFactorColumn*  CreateFactorColumn(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
+  virtual ILogicalColumn* CreateLogicalColumn(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
+  virtual IDoubleColumn* CreateDoubleColumn(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
+  virtual IIntegerColumn* CreateIntegerColumn(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
+  virtual IByteColumn* CreateByteColumn(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
+  virtual IDateTimeColumn* CreateDateTimeColumn(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
+  virtual IInt64Column* CreateInt64Column(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
+  virtual IStringColumn* CreateStringColumn(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
   virtual IStringArray* CreateStringArray() = 0;
 };
 
