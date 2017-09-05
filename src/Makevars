@@ -14,7 +14,7 @@ LIBCOMPRESSION  = fstcore/compression/compression.o fstcore/compression/compress
 LIBFRAME = fstcore/interface/openmphelper.o fstcore/interface/fstmetadata.o fstcore/interface/fststore.o fstcore/logical/logical_v4.o \
   fstcore/logical/logical_v10.o fstcore/integer/integer_v2.o fstcore/integer/integer_v8.o fstcore/byte/byte_v13.o \
 	fstcore/double/double_v3.o fstcore/double/double_v9.o fstcore/character/character_v1.o fstcore/character/character_v6.o \
-	fstcore/factor/factor_v5.o fstcore/factor/factor_v7.o fstcore/blockstreamer/blockstreamer_v2.o
+	fstcore/factor/factor_v5.o fstcore/factor/factor_v7.o fstcore/blockstreamer/blockstreamer_v2.o fstcore/integer64/integer64_v12.o
 
 $(SHLIB): libLZ4.a libZSTD.a libCOMPRESSION.a libFRAME.a
 

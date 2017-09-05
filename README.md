@@ -4,7 +4,7 @@
 
 [![Linux/OSX Build Status](https://travis-ci.org/fstpackage/fst.svg?branch=master)](https://travis-ci.org/fstpackage/fst) [![WIndows Build status](https://ci.appveyor.com/api/projects/status/h112s8krscuayohu/branch/develop?svg=true)](https://ci.appveyor.com/project/MarcusKlik/fst-6acb8/branch/develop)
 [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/fst)](https://cran.r-project.org/package=fst)
-[![Code coverage](https://codecov.io/gh/fstpackage/fst/branch/develop/graph/badge.svg)](https://codecov.io/gh/fstpackage/fst)
+[![Code coverage](https://codecov.io/gh/fstpackage/fst/branch/develop/graph/badge.svg)](https://codecov.io/gh/fstpackage/fst/branch/develop)
 [![Downloads](https://cranlogs.r-pkg.org/badges/fst)](https://www.rdocumentation.org/packages/fst)
 
 Overview

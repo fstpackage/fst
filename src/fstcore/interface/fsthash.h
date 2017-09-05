@@ -59,7 +59,7 @@ public:
 
 	unsigned int HashBlob(unsigned char* blobSource, unsigned long long blobLength) const
 	{
-		return HashBlob(blobSource, blobLength, FST_HASH_SEED, HASH_SIZE);
+		return HashBlob(blobSource, blobLength, FST_HASH_SEED);
 	}
 
 	/**
@@ -68,7 +68,7 @@ public:
 	 * \param blobLength Length of source buffer.
 	 * \param seed Seed for hashing
 	 */
-	unsigned int HashBlob(unsigned char* blobSource, unsigned long long blobLength, unsigned int seed, unsigned int minBlockSize) const
+	unsigned int HashBlob(unsigned char* blobSource, unsigned long long blobLength, unsigned int seed) const
 	{
 		int nrOfThreads = GetFstThreads();
 
@@ -79,7 +79,7 @@ public:
 		}
 
 		// block size to use for hashing has a lower bound for compression efficiency
-		unsigned long long minBlock = std::max(static_cast<unsigned long long>(minBlockSize),
+		unsigned long long minBlock = std::max(static_cast<unsigned long long>(HASH_SIZE),
 			1 + (blobLength - 1) / PREV_NR_OF_BLOCKS);
 
 		// And a higher bound for hasher compatability

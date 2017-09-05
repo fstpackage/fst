@@ -33,26 +33,15 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef FASTSTORE_H
-#define FASTSTORE_H
+#ifndef INT64_V12_H
+#define INT64_V12_H
+
+// System libraries
+#include <ostream>
 
 
-#include <Rcpp.h>
+void fdsWriteInt64Vec_v12(std::ofstream &myfile, long long* int64Vector, unsigned int nrOfRows, unsigned int compression);
 
-#define FST_VERSION 1  // version number of the fst package (odd numbers are dev versions)
+void fdsReadInt64Vec_v12(std::istream &myfile, long long* int64Vector, unsigned long long blockPos, unsigned int startRow, unsigned int length, unsigned int size);
 
-
-// [[Rcpp::export]]
-SEXP DoubleToNano(SEXP realVec);
-
-// [[Rcpp::export]]
-SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression, SEXP uniformEncoding);
-
-// [[Rcpp::export]]
-SEXP fstmetadata(Rcpp::String fileName);
-
-// [[Rcpp::export]]
-SEXP fstretrieve(Rcpp::String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
-
-
-#endif  // FASTSTORE_H
+#endif // INT64_V12_H

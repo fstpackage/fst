@@ -42,7 +42,7 @@
 
 
 // [[Rcpp::export]]
-SEXP fsthasher(SEXP rawVec, SEXP seed, SEXP blockSize);
+SEXP fsthasher(SEXP rawVec, SEXP seed);
 
 
 // [[Rcpp::export]]

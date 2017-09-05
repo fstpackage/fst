@@ -48,9 +48,10 @@
 #include <character/character_v6.h>
 #include <factor/factor_v7.h>
 #include <integer/integer_v8.h>
-#include <byte/byte_v13.h>
 #include <double/double_v9.h>
 #include <logical/logical_v10.h>
+#include <integer64/integer64_v12.h>
+#include <byte/byte_v13.h>
 
 
 using namespace std;
@@ -697,7 +698,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
 	  case 12:
 	  {
 	    IInt64Column* int64Column = columnFactory->CreateInt64Column(length);
-	    fdsReadRealVec_v9(myfile, (double*) int64Column->Data(), pos, firstRow, length, nrOfRows);
+		fdsReadInt64Vec_v12(myfile, int64Column->Data(), pos, firstRow, length, nrOfRows);
 	    tableReader.SetInt64Column(int64Column, colSel);
 	    delete int64Column;
 	    break;

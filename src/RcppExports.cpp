@@ -5,6 +5,17 @@
 
 using namespace Rcpp;
 
+// DoubleToNano
+SEXP DoubleToNano(SEXP realVec);
+RcppExport SEXP _fst_DoubleToNano(SEXP realVecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type realVec(realVecSEXP);
+    rcpp_result_gen = Rcpp::wrap(DoubleToNano(realVec));
+    return rcpp_result_gen;
+END_RCPP
+}
 // fststore
 SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression, SEXP uniformEncoding);
 RcppExport SEXP _fst_fststore(SEXP fileNameSEXP, SEXP tableSEXP, SEXP compressionSEXP, SEXP uniformEncodingSEXP) {
@@ -45,15 +56,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // fsthasher
-SEXP fsthasher(SEXP rawVec, SEXP seed, SEXP blockSize);
-RcppExport SEXP _fst_fsthasher(SEXP rawVecSEXP, SEXP seedSEXP, SEXP blockSizeSEXP) {
+SEXP fsthasher(SEXP rawVec, SEXP seed);
+RcppExport SEXP _fst_fsthasher(SEXP rawVecSEXP, SEXP seedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type rawVec(rawVecSEXP);
     Rcpp::traits::input_parameter< SEXP >::type seed(seedSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type blockSize(blockSizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(fsthasher(rawVec, seed, blockSize));
+    rcpp_result_gen = Rcpp::wrap(fsthasher(rawVec, seed));
     return rcpp_result_gen;
 END_RCPP
 }
