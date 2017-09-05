@@ -19,4 +19,13 @@ dt_nanotime <- data.frame(
 
 test_that("Cycle return the nanotime type", {
   expect_true(inherits(dt_nanotime$Nano, "nanotime"))
+
+  # Write to fst
+  fstwriteproxy(dt_nanotime, "testdata/dt_nanotime.fst")
+  dt_nanotime_read <- fstreadproxy("testdata/dt_nanotime.fst")
+
+  # nanotime type preserved:
+  expect_true(inherits(dt_nanotime_read$Nano, "nanotime"))
+
+  expect_identical(dt_nanotime, dt_nanotime_read)
 })

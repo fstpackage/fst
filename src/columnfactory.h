@@ -86,7 +86,7 @@ public:
 
   IInt64Column* CreateInt64Column(int nrOfRows, FstColumnAttribute columnAttribute)
   {
-    return new Int64Column(nrOfRows);
+    return new Int64Column(nrOfRows, columnAttribute);
   }
 
   IStringColumn* CreateStringColumn(int nrOfRows, FstColumnAttribute columnAttribute)

@@ -169,10 +169,28 @@ class Int64Column : public IInt64Column
 public:
   SEXP int64Vec;
 
-  Int64Column(int nrOfRows, FstColumnAttribute columnAttribute = FstColumnAttribute::NONE)
+  Int64Column(int nrOfRows, FstColumnAttribute columnAttribute)
   {
     int64Vec = Rf_allocVector(REALSXP, nrOfRows);
     PROTECT(int64Vec);
+
+    // test for nanotime type
+    if (columnAttribute == FstColumnAttribute::INT_64_DATE_NANO)
+    {
+      SEXP classAttr;
+
+      PROTECT(classAttr = Rf_mkString("nanotime"));
+      Rf_setAttrib(classAttr, Rf_mkString("package"), Rf_mkString("nanotime"));
+
+      UNPROTECT(1);  // necessary?
+      Rf_classgets(int64Vec, classAttr);
+
+      Rf_setAttrib(int64Vec, Rf_mkString(".S3Class"), Rf_mkString("integer64"));
+      SET_S4_OBJECT(int64Vec);
+
+      return;
+    }
+
 
     Rf_setAttrib(int64Vec, Rf_mkString("class"), Rf_mkString("integer64"));
   }
