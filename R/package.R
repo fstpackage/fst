@@ -1,5 +1,5 @@
 
-#' @useDynLib fst
+#' @useDynLib fst, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
 #' @importFrom utils packageVersion
 #' @importFrom parallel detectCores
