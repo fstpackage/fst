@@ -32,43 +32,43 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-
-// Framework libraries
+#include <byte/byte_v12.h>
 #include <blockstreamer/blockstreamer_v2.h>
+
+// External libraries
 #include <compression/compressor.h>
-#include <interface/fstdefines.h>
 
 using namespace std;
 
 
-void fdsWriteInt64Vec_v12(ofstream &myfile, long long* int64Vector, unsigned int nrOfRows, unsigned int compression)
+void fdsWriteByteVec_v12(ofstream &myfile, char* byteVector, unsigned int nrOfRows, unsigned int compression)
 {
-  int blockSize = 8 * BLOCKSIZE_INT64;  // block size in bytes
+  int blockSize = BLOCKSIZE_BYTE;  // block size in bytes
 
   if (compression == 0)
   {
-    return fdsStreamUncompressed_v2(myfile, reinterpret_cast<char*>(int64Vector), nrOfRows, 8, BLOCKSIZE_INT64, nullptr);
+    return fdsStreamUncompressed_v2(myfile, byteVector, nrOfRows, 1, BLOCKSIZE_BYTE, nullptr);
   }
 
-  if (compression <= 50)  // low compression: linear mix of uncompressed and LZ4_SHUF8
+  if (compression <= 50)  // low compression: linear mix of uncompressed and LZ4_SHUF
   {
-    Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4_SHUF8, 2 * compression);
+    Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4, 0);
+
     StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, 2 * compression);
+
     streamCompressor->CompressBufferSize(blockSize);
-    fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(int64Vector), nrOfRows, 8, streamCompressor, BLOCKSIZE_INT64);
+    fdsStreamcompressed_v2(myfile, byteVector, nrOfRows, 1, streamCompressor, BLOCKSIZE_BYTE);
 
     delete compress1;
     delete streamCompressor;
     return;
   }
 
-  // higher compression: linear mix of LZ4_SHUF8 and ZSTD_SHUF8
-
-  Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4_SHUF8, 100);
-  Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD_SHUF8, compression - 50);
+  Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4, 0);
+  Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD, 0);
   StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
   streamCompressor->CompressBufferSize(blockSize);
-  fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(int64Vector), nrOfRows, 8, streamCompressor, BLOCKSIZE_INT64);
+  fdsStreamcompressed_v2(myfile, byteVector, nrOfRows, 1, streamCompressor, BLOCKSIZE_BYTE);
 
   delete compress1;
   delete compress2;
@@ -78,7 +78,7 @@ void fdsWriteInt64Vec_v12(ofstream &myfile, long long* int64Vector, unsigned int
 }
 
 
-void fdsReadInt64Vec_v12(istream &myfile, long long* int64Vector, unsigned long long blockPos, unsigned int startRow, unsigned int length, unsigned int size)
+void fdsReadByteVec_v12(istream &myfile, char* byteVec, unsigned long long blockPos, unsigned int startRow, unsigned int length, unsigned int size)
 {
-  return fdsReadColumn_v2(myfile, reinterpret_cast<char*>(int64Vector), blockPos, startRow, length, size, 8);
+  return fdsReadColumn_v2(myfile, byteVec, blockPos, startRow, length, size, 1);
 }

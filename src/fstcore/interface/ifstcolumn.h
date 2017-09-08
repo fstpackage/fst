@@ -49,7 +49,6 @@ enum FstColumnType
 	INT_32,
 	DOUBLE_64,
 	BOOL_32,
-	DATE_INT,
 	INT_64,
 	BYTE
 };
@@ -59,9 +58,20 @@ enum FstColumnType
 // Only add to the end to support previous format versions
 enum FstColumnAttribute
 {
-	NONE = 1,             // column has no special attributes
-	INT_64_DATE_NANO,     // number of nanoseconds since epoch
-	INT_64_DATE_MICRO     // number of microseconds since epoch
+	NONE = 1,                // unknown type
+	CHARACTER_BASE,          // default character type
+	FACTOR_BASE,             // default factor type (character vector levels with integer vector)
+	INT_32_BASE,             // default integer type
+	INT_32_TIME_SECONDS,     // number of seconds since epoch
+	INT_32_DATE_DAYS,        // number of days since epoch
+	DOUBLE_64_BASE,          // default double type
+	DOUBLE_64_DATE_DAYS,     // number of days since epoch
+	DOUBLE_64_TIME_SECONDS,  // number of fractional seconds since epoch
+	BOOL_32_BASE,            // 3 value boolean: 0 (false), 1 (true) and INT_MIN (NA)
+	INT_64_BASE,             // default int64 type
+	INT_64_TIME_NANO,        // number of nanoseconds since epoch
+	INT_64_TIME_MICRO,       // number of microseconds since epoch
+	BYTE_BASE                // default byte type
 };
 
 
@@ -109,14 +119,6 @@ public:
   virtual ~IFactorColumn() {};
   virtual int* LevelData() = 0;
   virtual IStringColumn* Levels() = 0;
-};
-
-
-class IDateTimeColumn
-{
-public:
-	virtual ~IDateTimeColumn() {};
-	virtual int* Data() = 0;
 };
 
 

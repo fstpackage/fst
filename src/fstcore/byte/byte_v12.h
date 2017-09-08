@@ -33,15 +33,14 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#ifndef INT64_V12_H
-#define INT64_V12_H
-
-// System libraries
-#include <ostream>
+#ifndef BYTE_V12_H
+#define BYTE_V12_H
 
 
-void fdsWriteInt64Vec_v12(std::ofstream &myfile, long long* int64Vector, unsigned int nrOfRows, unsigned int compression);
+#include <fstream>
 
-void fdsReadInt64Vec_v12(std::istream &myfile, long long* int64Vector, unsigned long long blockPos, unsigned int startRow, unsigned int length, unsigned int size);
+void fdsWriteByteVec_v12(std::ofstream &myfile, char* byteVector, unsigned int nrOfRows, unsigned int compression);
 
-#endif // INT64_V12_H
+void fdsReadByteVec_v12(std::istream &myfile, char* byteVector, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
+
+#endif // BYTE_V12_H

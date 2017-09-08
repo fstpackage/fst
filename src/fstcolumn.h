@@ -139,31 +139,6 @@ public:
 };
 
 
-class DateTimeColumn : public IDateTimeColumn
-{
-public:
-  SEXP dateTimeVec;
-
-  DateTimeColumn(int nrOfRows)
-  {
-    dateTimeVec = Rf_allocVector(INTSXP, nrOfRows);
-    PROTECT(dateTimeVec);
-
-    Rf_setAttrib(dateTimeVec, Rf_mkString("class"), Rf_mkString("Date"));
-  }
-
-  ~DateTimeColumn()
-  {
-    UNPROTECT(1);
-  }
-
-  int* Data()
-  {
-    return INTEGER(dateTimeVec);
-  }
-};
-
-
 class Int64Column : public IInt64Column
 {
 public:
@@ -175,7 +150,7 @@ public:
     PROTECT(int64Vec);
 
     // test for nanotime type
-    if (columnAttribute == FstColumnAttribute::INT_64_DATE_NANO)
+    if (columnAttribute == FstColumnAttribute::INT_64_TIME_NANO)
     {
       SEXP classAttr;
 
@@ -191,7 +166,7 @@ public:
       return;
     }
 
-
+    // default int64 column type
     Rf_setAttrib(int64Vec, Rf_mkString("class"), Rf_mkString("integer64"));
   }
 
@@ -217,10 +192,23 @@ class DoubleColumn : public IDoubleColumn
   public:
     SEXP colVec;
 
-    DoubleColumn(int nrOfRows)
+    DoubleColumn(int nrOfRows, FstColumnAttribute columnAttribute)
     {
-      colVec = Rf_allocVector(REALSXP, nrOfRows);
-      PROTECT(colVec);
+      PROTECT(colVec = Rf_allocVector(REALSXP, nrOfRows));
+
+      if (columnAttribute == FstColumnAttribute::DOUBLE_64_DATE_DAYS)
+      {
+        // Add Date type
+        Rf_classgets(colVec, Rf_mkString("Date"));
+        return;
+      }
+
+      if (columnAttribute == FstColumnAttribute::DOUBLE_64_TIME_SECONDS)
+      {
+        // Add Date type
+        Rf_classgets(colVec, Rf_mkString("POSIXct"));
+        return;
+      }
     }
 
     ~DoubleColumn()
@@ -240,10 +228,30 @@ class IntegerColumn : public IIntegerColumn
 public:
   SEXP colVec;
 
-  IntegerColumn(int nrOfRows)
+  IntegerColumn(int nrOfRows, FstColumnAttribute columnAttribute)
   {
     colVec = Rf_allocVector(INTSXP, nrOfRows);
     PROTECT(colVec);
+
+    if (columnAttribute == FstColumnAttribute::INT_32_DATE_DAYS)
+    {
+      SEXP classAttr;
+
+      PROTECT(classAttr = Rf_allocVector(STRSXP, 2));
+      SET_STRING_ELT(classAttr, 0, Rf_mkChar("IDate"));
+      SET_STRING_ELT(classAttr, 1, Rf_mkChar("Date"));
+
+      UNPROTECT(1);
+      Rf_classgets(colVec, classAttr);
+
+      return;
+    }
+
+    if (columnAttribute == FstColumnAttribute::INT_32_TIME_SECONDS)
+    {
+      Rf_classgets(colVec, Rf_mkString("POSIXct"));
+      return;
+    }
   }
 
   ~IntegerColumn()

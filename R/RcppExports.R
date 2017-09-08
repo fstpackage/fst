@@ -2,42 +2,42 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 DoubleToNano <- function(realVec) {
-    .Call('_fst_DoubleToNano', PACKAGE = 'fst', realVec)
+    .Call(`_fst_DoubleToNano`, realVec)
 }
 
 fststore <- function(fileName, table, compression, uniformEncoding) {
-    .Call('_fst_fststore', PACKAGE = 'fst', fileName, table, compression, uniformEncoding)
+    .Call(`_fst_fststore`, fileName, table, compression, uniformEncoding)
 }
 
 fstmetadata <- function(fileName) {
-    .Call('_fst_fstmetadata', PACKAGE = 'fst', fileName)
+    .Call(`_fst_fstmetadata`, fileName)
 }
 
 fstretrieve <- function(fileName, columnSelection, startRow, endRow) {
-    .Call('_fst_fstretrieve', PACKAGE = 'fst', fileName, columnSelection, startRow, endRow)
+    .Call(`_fst_fstretrieve`, fileName, columnSelection, startRow, endRow)
 }
 
 fsthasher <- function(rawVec, seed) {
-    .Call('_fst_fsthasher', PACKAGE = 'fst', rawVec, seed)
+    .Call(`_fst_fsthasher`, rawVec, seed)
 }
 
 fstcomp <- function(rawVec, compressor, compression, hash) {
-    .Call('_fst_fstcomp', PACKAGE = 'fst', rawVec, compressor, compression, hash)
+    .Call(`_fst_fstcomp`, rawVec, compressor, compression, hash)
 }
 
 fstdecomp <- function(rawVec) {
-    .Call('_fst_fstdecomp', PACKAGE = 'fst', rawVec)
+    .Call(`_fst_fstdecomp`, rawVec)
 }
 
 getnrofthreads <- function() {
-    .Call('_fst_getnrofthreads', PACKAGE = 'fst')
+    .Call(`_fst_getnrofthreads`)
 }
 
 setnrofthreads <- function(nrOfThreads) {
-    .Call('_fst_setnrofthreads', PACKAGE = 'fst', nrOfThreads)
+    .Call(`_fst_setnrofthreads`, nrOfThreads)
 }
 
 hasopenmp <- function() {
-    .Call('_fst_hasopenmp', PACKAGE = 'fst')
+    .Call(`_fst_hasopenmp`)
 }
 

@@ -18,7 +18,7 @@ test_that("Type double Date issue #22 and #33", {
 
   u2 <- fstreadproxy("testdata/u1.fst")
   expect_equal(u1, u2)
-  expect_equal(typeof(u2$DT), "integer")  # converted to integer type date
+  expect_equal(typeof(u2$DT), "double")  # remains double (no conversion to integer like in feather)
 })
 
 
@@ -29,8 +29,9 @@ test_that("Include NA dates", {
 
   u2 <- fstreadproxy("testdata/u1.fst")
   expect_equal(u1, u2)
-  expect_equal(typeof(u2$DT), "integer")  # converted to integer type date
+  expect_equal(typeof(u2$DT), "double")  # converted to integer type date
 })
+
 
 test_that("Include NA dates on integer Date vector", {
   u1 <- data.frame(DT = as.Date("2010-01-01") + c(0L, 365L, NA))
@@ -41,6 +42,8 @@ test_that("Include NA dates on integer Date vector", {
   expect_equal(typeof(u1$DT), "integer")  # integer type date
 
   u2 <- fstreadproxy("testdata/u1.fst")
-  expect_equal(u1, u2)
   expect_equal(typeof(u2$DT), "integer")  # still integer type date
+  expect_equal(as.integer(u1$DT), as.integer(u2$DT))  # integer values identical
+
+  expect_equal(class(u2$DT), c("IDate", "Date"))  # integer values identical
 })

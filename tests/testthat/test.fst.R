@@ -30,7 +30,7 @@ char_veclong <- function(nrofrows) {
 
 date_vec <- function(nrofrows) {
   date_vec <- sample(1:nrofrows, replace = TRUE)
-  class(date_vec) <- "Date"
+  class(date_vec) <- c("IDate", "Date")
   date_vec
 }
 
@@ -46,6 +46,7 @@ datatable <- data.frame(
   char_na = char_na,
   CharLong = char_veclong(nrofrows),
   Date = date_vec(nrofrows),
+  DateDouble = as.Date("2015-01-01") + 1:nrofrows,
   Integer64 = as.integer64(sample(c(2345612345679, 10, 8714567890), nrofrows, replace = TRUE)),
   Nanotime = nanotime(sample(1000000:2000000, nrofrows, replace = TRUE)),
   Raw = as.raw(sample(0:255, nrofrows, replace = TRUE)),

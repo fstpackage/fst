@@ -42,7 +42,6 @@
 
 #include <blockrunner_char.h>
 #include <fstcolumn.h>
-
 #include <fsttable.h>
 
 using namespace Rcpp;
@@ -89,48 +88,69 @@ FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &colum
   switch (TYPEOF(colVec))
   {
     case STRSXP:
+      columnAttribute = FstColumnAttribute::CHARACTER_BASE;
       return FstColumnType::CHARACTER;
 
     case INTSXP:
       if (Rf_isFactor(colVec))  // factor
       {
+        columnAttribute = FstColumnAttribute::FACTOR_BASE;
         return FstColumnType::FACTOR;
       }
-      else if (Rf_inherits(colVec, "Date"))
+
+      if (Rf_inherits(colVec, "Date"))
       {
-        return FstColumnType::DATE_INT;
+        columnAttribute = FstColumnAttribute::INT_32_DATE_DAYS;
+        return FstColumnType::INT_32;
       }
 
+      if (Rf_inherits(colVec, "POSIXct"))
+      {
+        columnAttribute = FstColumnAttribute::INT_32_TIME_SECONDS;
+        return FstColumnType::INT_32;
+      }
+
+      columnAttribute = FstColumnAttribute::INT_32_BASE;
       return FstColumnType::INT_32;
 
     case REALSXP:
       if (Rf_inherits(colVec, "Date"))
       {
-        columnAttribute = FstColumnAttribute::INT_64_DATE_MICRO;
-        return FstColumnType::DATE_INT;
+        columnAttribute = FstColumnAttribute::DOUBLE_64_DATE_DAYS;
+        return FstColumnType::DOUBLE_64;
+      }
+
+      if (Rf_inherits(colVec, "POSIXct"))
+      {
+        columnAttribute = FstColumnAttribute::DOUBLE_64_TIME_SECONDS;
+        return FstColumnType::DOUBLE_64;
       }
 
       if (Rf_inherits(colVec, "nanotime"))
       {
-        columnAttribute = FstColumnAttribute::INT_64_DATE_NANO;
+        columnAttribute = FstColumnAttribute::INT_64_TIME_NANO;
         return FstColumnType::INT_64;
       }
 
       if (Rf_inherits(colVec, "integer64"))
       {
+        columnAttribute = FstColumnAttribute::INT_64_BASE;
         return FstColumnType::INT_64;
       }
 
+      columnAttribute = FstColumnAttribute::DOUBLE_64_BASE;
       return FstColumnType::DOUBLE_64;
 
     case LGLSXP:
+      columnAttribute = FstColumnAttribute::BOOL_32_BASE;
       return FstColumnType::BOOL_32;
 
-  case RAWSXP:
-    return FstColumnType::BYTE;
-
+    case RAWSXP:
+      columnAttribute = FstColumnAttribute::BYTE_BASE;
+      return FstColumnType::BYTE;
 
     default:
+      columnAttribute = FstColumnAttribute::NONE;
       return FstColumnType::UNKNOWN;
   }
 }
@@ -140,23 +160,6 @@ int* FstTable::GetLogicalWriter(unsigned int colNr)
 {
   cols = VECTOR_ELT(*rTable, colNr);  // retrieve column vector
   return LOGICAL(cols);
-}
-
-
-int* FstTable::GetDateTimeWriter(unsigned int colNr)
-{
-  cols = VECTOR_ELT(*rTable, colNr);  // retrieve column vector (no copy?)
-
-  // Convert underlying type to INTSXP:
-  // TODO 1: conversion can be done faster using SIMD casting
-  // TODO 2: conversion should be done in parallel with writing to disk, make it a default
-  // fst transformation
-  if (TYPEOF(cols) == REALSXP)
-  {
-    cols = Rf_coerceVector(cols, INTSXP);  // PROTECT needed here?: if so use list container
-  }
-
-  return INTEGER(cols);
 }
 
 
@@ -288,13 +291,6 @@ void FstTable::SetLogicalColumn(ILogicalColumn* logicalColumn, int colNr)
 {
   LogicalColumn* lColumn = (LogicalColumn*) logicalColumn;
   SET_VECTOR_ELT(resTable, colNr, lColumn->boolVec);
-}
-
-
-void FstTable::SetDateTimeColumn(IDateTimeColumn* dateTimeColumn, int colNr)
-{
-  DateTimeColumn* dTimeColumn = (DateTimeColumn*) dateTimeColumn;
-  SET_VECTOR_ELT(resTable, colNr, dTimeColumn->dateTimeVec);
 }
 
 

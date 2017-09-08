@@ -66,22 +66,17 @@ public:
 
   IDoubleColumn* CreateDoubleColumn(int nrOfRows, FstColumnAttribute columnAttribute)
   {
-    return new DoubleColumn(nrOfRows);
+    return new DoubleColumn(nrOfRows, columnAttribute);
   }
 
   IIntegerColumn* CreateIntegerColumn(int nrOfRows, FstColumnAttribute columnAttribute)
   {
-    return new IntegerColumn(nrOfRows);
+    return new IntegerColumn(nrOfRows, columnAttribute);
   }
 
   IByteColumn* CreateByteColumn(int nrOfRows, FstColumnAttribute columnAttribute)
   {
     return new ByteColumn(nrOfRows);
-  }
-
-  IDateTimeColumn* CreateDateTimeColumn(int nrOfRows, FstColumnAttribute columnAttribute)
-  {
-    return new DateTimeColumn(nrOfRows);
   }
 
   IInt64Column* CreateInt64Column(int nrOfRows, FstColumnAttribute columnAttribute)

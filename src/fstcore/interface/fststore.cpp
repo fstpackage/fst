@@ -50,8 +50,8 @@
 #include <integer/integer_v8.h>
 #include <double/double_v9.h>
 #include <logical/logical_v10.h>
-#include <integer64/integer64_v12.h>
-#include <byte/byte_v13.h>
+#include <integer64/integer64_v11.h>
+#include <byte/byte_v12.h>
 
 
 using namespace std;
@@ -325,27 +325,19 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
         break;
       }
 
-  	  case FstColumnType::DATE_INT:
-  	  {
-  		  colTypes[colNr] = 11;
-  		  int* intP = fstTable.GetDateTimeWriter(colNr);
-  		  fdsWriteIntVec_v8(myfile, intP, nrOfRows, compress);
-  		  break;
-  	  }
-
       case FstColumnType::INT_64:
       {
-        colTypes[colNr] = 12;
+        colTypes[colNr] = 11;
         long long* intP = fstTable.GetInt64Writer(colNr);
-		fdsWriteInt64Vec_v12(myfile, (long long*) intP, nrOfRows, compress);
+		fdsWriteInt64Vec_v11(myfile, (long long*) intP, nrOfRows, compress);
         break;
       }
 
 	  case FstColumnType::BYTE:
 	  {
-		  colTypes[colNr] = 13;
+		  colTypes[colNr] = 12;
 		  char* byteP = fstTable.GetByteWriter(colNr);
-		  fdsWriteByteVec_v13(myfile, byteP, nrOfRows, compress);
+		  fdsWriteByteVec_v12(myfile, byteP, nrOfRows, compress);
 		  break;
 	  }
 
@@ -405,7 +397,6 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
 	throw(runtime_error(FSTERROR_NON_FST_FILE));
   }
 
-
   // Continue reading table metadata
   int metaSize = 32 + 4 * keyLength + 6 * nrOfColsFirstChunk;
   metaDataBlock = new char[metaSize];
@@ -419,13 +410,12 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
   p_nrOfRows                                = (unsigned long long*) &metaDataBlock[tmpOffset + 16];
   // unsigned int* p_version                = (unsigned int*) &metaDataBlock[tmpOffset + 24];
   int* p_nrOfCols                           = (int*) &metaDataBlock[tmpOffset + 28];
-  // unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[tmpOffset + 32];
+  colAttributeTypes                         = (unsigned short int*) &metaDataBlock[tmpOffset + 32];
   colTypes                                  = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 2 * nrOfColsFirstChunk];
   colBaseTypes                              = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 4 * nrOfColsFirstChunk];
 
 
   nrOfCols = *p_nrOfCols;
-
 
   // Read column names
   unsigned long long offset = metaSize + TABLE_META_SIZE;
@@ -685,31 +675,21 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
         break;
       }
 
-	  // Date vector
+	  // integer64 vector
 	  case 11:
 	  {
-		  IDateTimeColumn* dateTimeColumn = columnFactory->CreateDateTimeColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]));
-		  fdsReadIntVec_v8(myfile, dateTimeColumn->Data(), pos, firstRow, length, nrOfRows);
-		  tableReader.SetDateTimeColumn(dateTimeColumn, colSel);
-		  delete dateTimeColumn;
-		  break;
-	  }
-
-	  // integer64 vector
-	  case 12:
-	  {
 	    IInt64Column* int64Column = columnFactory->CreateInt64Column(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]));
-		fdsReadInt64Vec_v12(myfile, int64Column->Data(), pos, firstRow, length, nrOfRows);
+		fdsReadInt64Vec_v11(myfile, int64Column->Data(), pos, firstRow, length, nrOfRows);
 	    tableReader.SetInt64Column(int64Column, colSel);
 	    delete int64Column;
 	    break;
 	  }
 
 	  // byte vector
-	  case 13:
+	  case 12:
 	  {
 		  IByteColumn* byteColumn = columnFactory->CreateByteColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]));
-		  fdsReadByteVec_v13(myfile, byteColumn->Data(), pos, firstRow, length, nrOfRows);
+		  fdsReadByteVec_v12(myfile, byteColumn->Data(), pos, firstRow, length, nrOfRows);
 		  tableReader.SetByteColumn(byteColumn, colSel);
 		  delete byteColumn;
 		  break;

@@ -82,8 +82,6 @@ class FstTable : public IFstTable
 
     void SetByteColumn(IByteColumn* byteColumn, int colNr);
 
-    void SetDateTimeColumn(IDateTimeColumn* dateTimeColumn, int colNr);
-
     void SetInt64Column(IInt64Column* int64Column, int colNr);
 
     void SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr);
@@ -105,8 +103,6 @@ class FstTable : public IFstTable
     int* GetIntWriter(unsigned int colNr);
 
     char* GetByteWriter(unsigned int colNr);
-
-    int* GetDateTimeWriter(unsigned int colNr);
 
     long long* GetInt64Writer(unsigned int colNr);
 

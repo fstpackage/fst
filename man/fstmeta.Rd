@@ -14,7 +14,7 @@ fst.metadata(path)
 }
 \value{
 Returns a list with meta information on the stored dataset in \code{path}.
-Has class 'fstmetadata'.
+Has class \code{fstmetadata}.
 }
 \description{
 Method for checking basic properties of the dataset stored in \code{path}.

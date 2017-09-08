@@ -16,16 +16,14 @@ roundtrip <- function(df) {
 }
 
 
-# Logical -----------------------------------------------------------------
-
+# Logical
 test_that("preserves three logical values", {
   x <- c(FALSE, TRUE, NA)
   expect_identical(roundtrip_vector(x), x)
 })
 
 
-# Integer ----------------------------------------------------------------
-
+# Integer
 test_that("preserves integer values", {
   x <- 1:10
   x[sample(1:10, 3)] <- NA
@@ -33,32 +31,33 @@ test_that("preserves integer values", {
 })
 
 
-# Double -----------------------------------------------------------------
-
+# Double
 test_that("preserves special floating point values", {
   x <- c(Inf, -Inf, NaN, NA)
   expect_identical(roundtrip_vector(x), x)
 })
+
 
 test_that("doesn't lose precision", {
   x <- c(1 / 3, sqrt(2), pi)
   expect_identical(roundtrip_vector(x), x)
 })
 
-# Character ---------------------------------------------------------------
 
+# Character
 test_that("preserves character values", {
   x <- c("this is a string", "", NA, "another string")
   expect_identical(roundtrip_vector(x), x)
 })
+
 
 test_that("can have NA on end of string", {
   x <- c("this is a string", NA)
   expect_identical(roundtrip_vector(x), x)
 })
 
-# Factor ------------------------------------------------------------------
 
+# Factor
 test_that("preserves simple factor", {
   x <- factor(c("abc", "def"))
   expect_identical(roundtrip_vector(x), x)
@@ -74,13 +73,15 @@ test_that("preserves NA in factor and levels", {
 })
 
 
-# Date --------------------------------------------------------------------
-
+# Date
 test_that("preserves dates", {
   x <- as.Date("2010-01-01") + c(0L, 365L, NA)
   mode(x) <- "integer"
-  expect_identical(roundtrip_vector(x), x)
+  res <- roundtrip_vector(x)
+  class(res) <- c("IDate", "Date")  # gains class IDate from data.table
+  expect_identical(as.integer(res), as.integer(x))
 })
+
 
 
 # nolint start

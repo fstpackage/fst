@@ -12,7 +12,7 @@
 #' @param path path to fst file
 #' @param compress value in the range 0 to 100, indicating the amount of compression to use.
 #' @param uniform.encoding If TRUE, all character vectors will be assumed to have elements with equal encoding.
-#' The encoding (latin1, utf-8 or native) of the first non-NA element will used as encoding for the whole column.
+#' The encoding (latin1, UTF8 or native) of the first non-NA element will used as encoding for the whole column.
 #' This will be a correct assumption for most use cases.
 #' If \code{uniform.encoding} is set to FALSE, no such assumption will be made and all elements will be converted
 #' to the same encoding. The latter is a relatively expensive operation and will reduce write performance for
@@ -59,7 +59,7 @@ write.fst <- function(x, path, compress = 0, uniform.encoding = TRUE) {
 #'
 #' @param path path to fst file
 #' @return Returns a list with meta information on the stored dataset in \code{path}.
-#' Has class 'fstmetadata'.
+#' Has class \code{fstmetadata}.
 #' @examples
 #' # Sample dataset
 #' x <- data.frame(
@@ -78,7 +78,8 @@ fstmeta <- function(path) {
 
   colInfo <- list(path = path, nrOfRows = metadata$nrOfRows,
     keys = metadata$keyNames, columnNames = metadata$colNames,
-    columnBaseTypes = metadata$colBaseType, keyColIndex = metadata$keyColIndex)
+    columnBaseTypes = metadata$colBaseType, keyColIndex = metadata$keyColIndex,
+    columnTypes = metadata$colType)
   class(colInfo) <- "fstmetadata"
 
   colInfo
@@ -98,12 +99,14 @@ print.fstmetadata <- function(x, ...) {
   cat(x$nrOfRows, " rows, ", length(x$columnNames), " columns (", x$path,
     ")\n\n", sep = "")
 
-  types <- c("unknown", "character", "factor", "integer", "double", "logical", "date", "integer64")
+  types <- c("unknown", "character", "factor", "integer", "POSIXct", "IDate", "double", "Date", "POSIXct", "logical",
+    "integer64", "nanotime", "POSIXct", "raw")
+
   colNames <- format(encodeString(x$columnNames, quote = "'"))
 
   # Table has no key columns
   if (is.null(x$keys)) {
-    cat(paste0("* ", colNames, ": ", types[x$columnBaseTypes], "\n"), sep = "")
+    cat(paste0("* ", colNames, ": ", types[x$columnTypes], "\n"), sep = "")
     return(invisible(NULL))
   }
 
@@ -114,7 +117,7 @@ print.fstmetadata <- function(x, ...) {
   colTab$l <- paste0(" (key ", colTab$count, ")")
   colTab[is.na(colTab$count), "l"] <- ""
 
-  cat(paste0("* ", colNames, ": ", types[x$columnBaseTypes], colTab$l, "\n"), sep = "")
+  cat(paste0("* ", colNames, ": ", types[x$columnTypes], colTab$l, "\n"), sep = "")
 }
 
 

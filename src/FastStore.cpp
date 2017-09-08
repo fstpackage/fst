@@ -163,13 +163,16 @@ SEXP fstmetadata(String fileName)
   // R internals part
   SEXP colNames = ((BlockReaderChar*) fstStore->blockReader)->StrVector();
 
-  // Convert to integer vector
+  // Convert column info to integer vector
   IntegerVector colTypeVec(fstStore->nrOfCols);
   IntegerVector colBaseType(fstStore->nrOfCols);
+  IntegerVector colAttributeTypes(fstStore->nrOfCols);
+
   for (int col = 0; col != fstStore->nrOfCols; ++col)
   {
     colTypeVec[col] = fstStore->colTypes[col];
     colBaseType[col] = fstStore->colBaseTypes[col];
+    colAttributeTypes[col] = fstStore->colAttributeTypes[col];
   }
 
   List retList;
@@ -192,14 +195,15 @@ SEXP fstmetadata(String fileName)
     UNPROTECT(1);  // keyNames
 
     retList = List::create(
-      _["nNofCols"]        = fstStore->nrOfCols,
-      _["nrOfRows"]        = *fstStore->p_nrOfRows,
-      _["fstVersion"]      = fstStore->version,
-      _["keyLength"]       = fstStore->keyLength,
-      _["colBaseType"]     = colBaseType,
-      _["colNames"]        = colNames,
-      _["keyColIndex"]     = keyColIndex,
-      _["keyNames"]        = keyNames);
+      _["nNofCols"]         = fstStore->nrOfCols,
+      _["nrOfRows"]         = *(fstStore->p_nrOfRows),
+      _["fstVersion"]       = fstStore->version,
+      _["keyLength"]        = fstStore->keyLength,
+      _["colBaseType"]      = colBaseType,
+      _["colType"]          = colAttributeTypes,
+      _["colNames"]         = colNames,
+      _["keyColIndex"]      = keyColIndex,
+      _["keyNames"]         = keyNames);
   }
   else
   {
@@ -209,6 +213,7 @@ SEXP fstmetadata(String fileName)
       _["fstVersion"]      = fstStore->version,
       _["keyLength"]       = fstStore->keyLength,
       _["colBaseType"]     = colBaseType,
+      _["colType"] = colAttributeTypes,
       _["colNames"]        = colNames);
   }
 

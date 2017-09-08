@@ -48,7 +48,6 @@ public:
   virtual IDoubleColumn* CreateDoubleColumn(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
   virtual IIntegerColumn* CreateIntegerColumn(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
   virtual IByteColumn* CreateByteColumn(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
-  virtual IDateTimeColumn* CreateDateTimeColumn(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
   virtual IInt64Column* CreateInt64Column(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
   virtual IStringColumn* CreateStringColumn(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
   virtual IStringArray* CreateStringArray() = 0;
