@@ -81,7 +81,7 @@ unsigned int FstTable::NrOfRows()
 }
 
 
-FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &columnAttribute)
+FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &columnAttribute, std::string &annotation)
 {
   SEXP colVec = VECTOR_ELT(*rTable, colNr);  // retrieve column vector
 
@@ -107,6 +107,10 @@ FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &colum
       if (Rf_inherits(colVec, "POSIXct"))
       {
         columnAttribute = FstColumnAttribute::INT_32_TIME_SECONDS;
+
+        SEXP tzoneR = Rf_getAttrib(colVec, Rf_install("tzone"));
+        annotation = Rf_isNull(tzoneR) ? "UTC" : Rf_translateCharUTF8(STRING_ELT(tzoneR, 0));
+
         return FstColumnType::INT_32;
       }
 

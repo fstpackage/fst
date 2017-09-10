@@ -49,7 +49,7 @@ class IFstTable
   public:
     virtual ~IFstTable() {};
 
-    virtual FstColumnType ColumnType(unsigned int colNr, FstColumnAttribute &columnAttribute) = 0;
+    virtual FstColumnType ColumnType(unsigned int colNr, FstColumnAttribute &columnAttribute, std::string &annotation) = 0;
 
 	// Writer interface
     virtual IStringWriter* GetStringWriter(unsigned int colNr) = 0;

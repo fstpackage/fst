@@ -92,11 +92,9 @@ class FstTable : public IFstTable
 
     void SetKeyColumns(int* keyColPos, unsigned int nrOfKeys);
 
-    FstColumnType ColumnType(unsigned int colNr, FstColumnAttribute &columnAttribute);
+    FstColumnType ColumnType(unsigned int colNr, FstColumnAttribute &columnAttribute, std::string &annotation);
 
     IStringWriter* GetStringWriter(unsigned int colNr);
-
-    // void AddCharColumn(IBlockReader* stringColumn, int colNr);
 
     int* GetLogicalWriter(unsigned int colNr);
 

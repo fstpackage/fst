@@ -36,6 +36,8 @@
 #ifndef IFST_COLUMN_H
 #define IFST_COLUMN_H
 
+#include <string>
+
 #include <interface/istringwriter.h>
 
 
@@ -151,6 +153,7 @@ class IDoubleColumn
 public:
   virtual ~IDoubleColumn() {};
   virtual double* Data() = 0;
+  virtual void Annotate(std::string annotation) = 0;
 };
 
 

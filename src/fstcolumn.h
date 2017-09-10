@@ -189,6 +189,8 @@ public:
 
 class DoubleColumn : public IDoubleColumn
 {
+  FstColumnAttribute columnAttribute;
+
   public:
     SEXP colVec;
 
@@ -196,16 +198,19 @@ class DoubleColumn : public IDoubleColumn
     {
       PROTECT(colVec = Rf_allocVector(REALSXP, nrOfRows));
 
+      // store for later reference
+      this->columnAttribute = columnAttribute;
+
+      // Date type
       if (columnAttribute == FstColumnAttribute::DOUBLE_64_DATE_DAYS)
       {
-        // Add Date type
         Rf_classgets(colVec, Rf_mkString("Date"));
         return;
       }
 
+      // POSIXct type
       if (columnAttribute == FstColumnAttribute::DOUBLE_64_TIME_SECONDS)
       {
-        // Add Date type
         Rf_classgets(colVec, Rf_mkString("POSIXct"));
         return;
       }
@@ -219,6 +224,15 @@ class DoubleColumn : public IDoubleColumn
     double* Data()
     {
       return REAL(colVec);
+    }
+
+    void Annotate(std::string annotation)
+    {
+      // annotation is used to set timezone
+      if (this->columnAttribute == FstColumnAttribute::DOUBLE_64_TIME_SECONDS)
+      {
+        Rf_setAttrib(colVec, Rf_install("tzone"), Rf_install(annotation.c_str()));
+      }
     }
 };
 

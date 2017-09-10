@@ -272,7 +272,8 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
   {
     positionData[colNr] = myfile.tellp();  // current location
 	FstColumnAttribute colAttribute;
-    FstColumnType colType = fstTable.ColumnType(colNr, colAttribute);
+	std::string annotation = "";
+    FstColumnType colType = fstTable.ColumnType(colNr, colAttribute, annotation);
 
     colBaseTypes[colNr] = static_cast<unsigned short int>(colType);
 	colAttributeTypes[colNr] = static_cast<unsigned short int>(colAttribute);
