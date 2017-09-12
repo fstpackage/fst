@@ -7,6 +7,7 @@ roundtrip_vector <- function(x) {
   roundtrip(df)$x
 }
 
+
 roundtrip <- function(df) {
   temp <- tempfile()
   fstwriteproxy(df, temp)
@@ -83,9 +84,34 @@ test_that("preserves dates", {
 })
 
 
+# POSIXct
+test_that("preserves times", {
+  x1 <- ISOdate(2001, 10, 10, tz = "US/Pacific") + c(0, NA)
+  x2 <- roundtrip_vector(x1)
+
+  expect_identical(attr(x1, "tzone"), attr(x2, "tzone"))
+  expect_identical(attr(x1, "class"), attr(x1, "class"))
+  expect_identical(unclass(x1), unclass(x2))
+
+  mode(x1) <- "integer"
+  x2 <- roundtrip_vector(x1)
+
+  expect_identical(attr(x1, "tzone"), attr(x2, "tzone"))
+  expect_identical(attr(x1, "class"), attr(x1, "class"))
+  expect_identical(unclass(x1), unclass(x2))
+
+})
+
+test_that("throws error on POSIXlt", {
+  df <- data.frame(x = Sys.time())
+  df$x <- as.POSIXlt(df$x)
+
+  expect_error(roundtrip(df), "Unknown type found in column")
+})
+
 
 # nolint start
-# # Time --------------------------------------------------------------------
+# Time --------------------------------------------------------------------
 #
 # test_that("preserves hms", {
 #   x <- hms::hms(1:100)
@@ -100,23 +126,6 @@ test_that("preserves dates", {
 # })
 #
 #
-# # Timestamp/POSIXct -------------------------------------------------------
-#
-# test_that("preserves times", {
-#   x1 <- ISOdate(2001, 10, 10, tz = "US/Pacific") + c(0, NA)
-#   x2 <- roundtrip_vector(x1)
-#
-#   expect_identical(attr(x1, "tzone"), attr(x2, "tzone"))
-#   expect_identical(attr(x1, "class"), attr(x1, "class"))
-#   expect_identical(unclass(x1), unclass(x2))
-# })
-#
-# test_that("throws error on POSIXlt", {
-#   df <- data.frame(x = Sys.time())
-#   df$x <- as.POSIXlt(df$x)
-#
-#   expect_error(roundtrip(df), "Can not write POSIXlt")
-# })
 #
 #
 # test_that("doesn't lose undue precision", {

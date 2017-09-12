@@ -275,9 +275,9 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
 	std::string annotation = "";
 
 	// get type and add annotation
-    FstColumnType colType = fstTable.ColumnType(colNr, colAttribute, annotation);
+  FstColumnType colType = fstTable.ColumnType(colNr, colAttribute, annotation);
 
-    colBaseTypes[colNr] = static_cast<unsigned short int>(colType);
+  colBaseTypes[colNr] = static_cast<unsigned short int>(colType);
 	colAttributeTypes[colNr] = static_cast<unsigned short int>(colAttribute);
 
     // Store attributes here if any
@@ -332,7 +332,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
       {
         colTypes[colNr] = 11;
         long long* intP = fstTable.GetInt64Writer(colNr);
-		fdsWriteInt64Vec_v11(myfile, (long long*) intP, nrOfRows, compress, annotation);
+        fdsWriteInt64Vec_v11(myfile, (long long*) intP, nrOfRows, compress, annotation);
         break;
       }
 
@@ -641,19 +641,20 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
       case 8:
       {
         IIntegerColumn* integerColumn = columnFactory->CreateIntegerColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]));
-        fdsReadIntVec_v8(myfile, integerColumn->Data(), pos, firstRow, length, nrOfRows);
-
-        tableReader.SetIntegerColumn(integerColumn, colSel);
+        std::string annotation = "";
+        fdsReadIntVec_v8(myfile, integerColumn->Data(), pos, firstRow, length, nrOfRows, annotation);
+        tableReader.SetIntegerColumn(integerColumn, colSel, annotation);
         delete integerColumn;
         break;
       }
 
-      // Real vector
+      // Double vector
       case 9:
       {
         IDoubleColumn* doubleColumn = columnFactory->CreateDoubleColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]));
-        fdsReadRealVec_v9(myfile, doubleColumn->Data(), pos, firstRow, length, nrOfRows);
-        tableReader.SetDoubleColumn(doubleColumn, colSel);
+        std::string annotation = "";
+        fdsReadRealVec_v9(myfile, doubleColumn->Data(), pos, firstRow, length, nrOfRows, annotation);
+        tableReader.SetDoubleColumn(doubleColumn, colSel, annotation);
         delete doubleColumn;
         break;
       }

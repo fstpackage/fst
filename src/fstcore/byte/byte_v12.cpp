@@ -80,5 +80,7 @@ void fdsWriteByteVec_v12(ofstream &myfile, char* byteVector, unsigned int nrOfRo
 
 void fdsReadByteVec_v12(istream &myfile, char* byteVec, unsigned long long blockPos, unsigned int startRow, unsigned int length, unsigned int size)
 {
-  return fdsReadColumn_v2(myfile, byteVec, blockPos, startRow, length, size, 1);
+  std::string annotation;
+
+  return fdsReadColumn_v2(myfile, byteVec, blockPos, startRow, length, size, 1, annotation);
 }

@@ -75,7 +75,8 @@ void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned int nrO
 }
 
 
-void fdsReadRealVec_v9(istream &myfile, double* doubleVector, unsigned long long blockPos, unsigned int startRow, unsigned int length, unsigned int size)
+void fdsReadRealVec_v9(istream &myfile, double* doubleVector, unsigned long long blockPos, unsigned int startRow, unsigned int length,
+  unsigned int size, std::string &annotation)
 {
-  return fdsReadColumn_v2(myfile, reinterpret_cast<char*>(doubleVector), blockPos, startRow, length, size, 8);
+  return fdsReadColumn_v2(myfile, reinterpret_cast<char*>(doubleVector), blockPos, startRow, length, size, 8, annotation);
 }

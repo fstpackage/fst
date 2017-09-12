@@ -231,7 +231,12 @@ class DoubleColumn : public IDoubleColumn
       // annotation is used to set timezone
       if (this->columnAttribute == FstColumnAttribute::DOUBLE_64_TIME_SECONDS)
       {
-        Rf_setAttrib(colVec, Rf_install("tzone"), Rf_install(annotation.c_str()));
+        if (annotation.length() > 0)
+        {
+          SEXP timeZone = Rf_ScalarString(Rf_mkCharLen(annotation.c_str(), annotation.length()));
+          Rf_setAttrib(colVec, Rf_install("tzone"), timeZone);
+          return;
+        }
       }
     }
 };
@@ -239,6 +244,8 @@ class DoubleColumn : public IDoubleColumn
 
 class IntegerColumn : public IIntegerColumn
 {
+  FstColumnAttribute columnAttribute;
+
 public:
   SEXP colVec;
 
@@ -246,6 +253,9 @@ public:
   {
     colVec = Rf_allocVector(INTSXP, nrOfRows);
     PROTECT(colVec);
+
+    // store for later reference
+    this->columnAttribute = columnAttribute;
 
     if (columnAttribute == FstColumnAttribute::INT_32_DATE_DAYS)
     {
@@ -276,6 +286,20 @@ public:
   int* Data()
   {
     return INTEGER(colVec);
+  }
+
+  void Annotate(std::string annotation)
+  {
+    // annotation is used to set timezone
+    if (this->columnAttribute == FstColumnAttribute::INT_32_TIME_SECONDS)
+    {
+      if (annotation.length() > 0)
+      {
+        SEXP timeZone = Rf_ScalarString(Rf_mkCharLen(annotation.c_str(), annotation.length()));
+        Rf_setAttrib(colVec, Rf_install("tzone"), timeZone);
+        return;
+      }
+    }
   }
 };
 

@@ -93,5 +93,6 @@ void fdsWriteLogicalVec_v10(ofstream &myfile, int* boolVector, unsigned nrOfLogi
 void fdsReadLogicalVec_v10(istream &myfile, int* boolVector, unsigned long long blockPos, unsigned int startRow,
   unsigned int length, unsigned int size)
 {
-  return fdsReadColumn_v2(myfile, (char*) boolVector, blockPos, startRow, length, size, 4);
+  std::string annotation;
+  return fdsReadColumn_v2(myfile, (char*) boolVector, blockPos, startRow, length, size, 4, annotation);
 }

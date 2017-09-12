@@ -63,33 +63,21 @@ You can contact the author at :
 using namespace std;
 
 
-//inline unsigned long long CompressBlock_v2(StreamCompressor* streamCompressor, ofstream &myfile, char* vecP, char* compBuf, char* blockIndex,
-//  int block, unsigned long long blockIndexPos, unsigned int *maxCompSize, int sourceBlockSize)
-//{
-//  // 1 long file pointer and 1 short algorithmID per block
-//  unsigned long long* blockPosition = reinterpret_cast<unsigned long long*>(&blockIndex[COL_META_SIZE + block * 8]);
-//
-//  // unsigned short blockAlgorithm = (unsigned short*) &blockIndex[COL_META_SIZE + 8 + block * 8];
-//
-//  // Compress block
-//  CompAlgo compAlgo;
-//  unsigned int compSize = static_cast<unsigned int>(streamCompressor->Compress(myfile, vecP, sourceBlockSize, compBuf, compAlgo));
-//  if (compSize > *maxCompSize) *maxCompSize = compSize;
-//  unsigned int blockAlgorithm = static_cast<unsigned int>(compAlgo);
-//
-//  *blockPosition = blockIndexPos | (static_cast<unsigned long long>(blockAlgorithm) << 48); // starting position and algorithm in 2 high bytes
-//
-//  return compSize;  // compressed block length
-//}
-
-
 // Method for writing column data of any type to a ofstream.
 void fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLength, int elementSize, int blockSizeElems,
   FixedRatioCompressor* fixedRatioCompressor, std::string annotation)
 {
+  unsigned int annotationLength = annotation.length();
   int nrOfBlocks = 1 + (vecLength - 1) / blockSizeElems;  // number of compressed / uncompressed blocks
   int remain = 1 + (vecLength + blockSizeElems - 1) % blockSizeElems;  // number of elements in last incomplete block
   int blockSize = blockSizeElems * elementSize;
+
+  myfile.write((char*) &annotationLength, 4);
+
+  if (annotationLength > 0)
+  {
+    myfile.write(annotation.c_str(), annotationLength);
+  }
 
   // Write uncompressed vector to disk in blocks
   --nrOfBlocks;  // Do last block later
@@ -102,8 +90,8 @@ void fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLengt
 
     uint64_t blockPos = 0;
 
-	// use larger blocks here for faster writing !
-	// and test for parallel improvements (use multiple cores to fetch data from main memory
+    // use larger blocks here for faster writing !
+    // and test for parallel improvements (use multiple cores to fetch data from main memory
   	// and use (thread-) local cache for writing)
     for (int block = 0; block != nrOfBlocks; ++block)
     {
@@ -178,15 +166,22 @@ void fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLengt
 void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRows, int elementSize,
   StreamCompressor* streamCompressor, int blockSizeElems, std::string annotation)
 {
+  unsigned int annotationLength = annotation.length();
   int nrOfBlocks = 1 + (nrOfRows - 1) / blockSizeElems;  // number of compressed / uncompressed blocks
   int remain = 1 + (nrOfRows + blockSizeElems - 1) % blockSizeElems;  // number of elements in last incomplete block
   int blockSize = blockSizeElems * elementSize;
+
+  myfile.write((char*) &annotationLength, 4);
+
+  if (annotationLength > 0)
+  {
+    myfile.write(annotation.c_str(), annotationLength);
+  }
 
   unsigned long long curPos = myfile.tellp();
 
   // Blocks meta information
   // Allocate a 8 bytes alligned buffer
-
   char* blockIndex = new char[(2 + nrOfBlocks) * 8];  // 1 long file pointer with 2 highest bytes indicating algorithmID
 
   unsigned int* maxCompSize = reinterpret_cast<unsigned int*>(&blockIndex[0]);  // maximum uncompressed block length
@@ -330,7 +325,7 @@ inline void fdsReadFixedCompStream_v2(istream &myfile, char* outVec, unsigned lo
   unsigned int compAlgo = meta[1];  // identifier of the fixed ratio compressor
   unsigned int repSize = fixedRatioSourceRepSize[static_cast<int>(compAlgo)];  // in bytes
   unsigned int targetRepSize = fixedRatioTargetRepSize[static_cast<int>(compAlgo)];  // in bytes
-
+ 
   // robustness: test for correct algo here
   if (repSize < 1)
   {
@@ -476,11 +471,29 @@ inline void ProcessBatch(char* outVec, char* blockIndex, int blockSize, Decompre
 	}
 }
 
-void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size, int elementSize)
+void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size,
+  int elementSize, std::string &annotation)
 {
+  myfile.seekg(blockPos);
+
+  unsigned int annotationLength;
+  myfile.read((char*) &annotationLength, 4);
+
+  if (annotationLength > 0)
+  {
+    char* annotationBuf = new char[annotationLength];
+    myfile.read(annotationBuf, annotationLength);
+
+    annotation += std::string(annotationBuf, annotationLength);
+
+    delete[] annotationBuf;
+  }
+
+
+  blockPos += 4 + annotationLength;
+
 	// Read header
 	unsigned int compress[2];
-	myfile.seekg(blockPos);
 	myfile.read(reinterpret_cast<char*>(compress), COL_META_SIZE);
 
 	// Data is uncompressed or uses a fixed-ratio compressor (logical)

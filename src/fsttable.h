@@ -78,13 +78,13 @@ class FstTable : public IFstTable
 
     void SetLogicalColumn(ILogicalColumn* logicalColumn, int colNr);
 
-    void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr);
+    void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr, std::string &annotation);
 
     void SetByteColumn(IByteColumn* byteColumn, int colNr);
 
     void SetInt64Column(IInt64Column* int64Column, int colNr);
 
-    void SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr);
+  	void SetDoubleColumn(IDoubleColumn * doubleColumn, int colNr, std::string &annotation);
 
     void SetFactorColumn(IFactorColumn* factorColumn, int colNr);
 

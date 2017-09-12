@@ -50,7 +50,8 @@ void fdsStreamcompressed_v2(std::ofstream &myfile, char* colVec, unsigned int nr
   StreamCompressor* streamCompressor, int blockSizeElems, std::string annotation);
 
 
-void fdsReadColumn_v2(std::istream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size, int elementSize);
+void fdsReadColumn_v2(std::istream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size,
+  int elementSize, std::string &annotation);
 
 
 #endif // BLOCKSTORE_H

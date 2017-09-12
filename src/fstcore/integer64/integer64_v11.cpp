@@ -80,5 +80,7 @@ void fdsWriteInt64Vec_v11(ofstream &myfile, long long* int64Vector, unsigned int
 
 void fdsReadInt64Vec_v11(istream &myfile, long long* int64Vector, unsigned long long blockPos, unsigned int startRow, unsigned int length, unsigned int size)
 {
-  return fdsReadColumn_v2(myfile, reinterpret_cast<char*>(int64Vector), blockPos, startRow, length, size, 8);
+  std::string annotation;
+
+  return fdsReadColumn_v2(myfile, reinterpret_cast<char*>(int64Vector), blockPos, startRow, length, size, 8, annotation);
 }
