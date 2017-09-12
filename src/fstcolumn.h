@@ -90,11 +90,14 @@ class FactorColumn : public IFactorColumn
 public:
   SEXP intVec;
   BlockReaderChar* blockReaderStrVec;
+  FstColumnAttribute columnAttribute;
 
-  FactorColumn(int nrOfRows)
+  FactorColumn(int nrOfRows, FstColumnAttribute columnAttribute)
   {
     intVec = Rf_allocVector(INTSXP, nrOfRows);
     PROTECT(intVec);
+
+    this->columnAttribute = columnAttribute;  // e.g. for 'FACTOR_ORDERED' specification
     blockReaderStrVec = new BlockReaderChar();
   }
 
@@ -112,6 +115,11 @@ public:
   IStringColumn* Levels()
   {
     return blockReaderStrVec;
+  }
+
+  FstColumnAttribute Attribute()
+  {
+    return columnAttribute;
   }
 };
 

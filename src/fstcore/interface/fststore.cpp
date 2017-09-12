@@ -116,11 +116,11 @@ inline unsigned int ReadHeader(ifstream &myfile, unsigned int &tableClassType, i
   }
 
 
-  unsigned long long* p_fstFileID = (unsigned long long*) tableMeta;
-  unsigned int* p_table_version   = (unsigned int*) &tableMeta[8];
+  unsigned long long* p_fstFileID = reinterpret_cast<unsigned long long*>(tableMeta);
+  unsigned int* p_table_version   = reinterpret_cast<unsigned int*>(&tableMeta[8]);
   // unsigned int* p_tableClassType  = (unsigned int*) &tableMeta[12];
-  int* p_keyLength                = (int*) &tableMeta[16];
-  int* p_nrOfColsFirstChunk       = (int*) &tableMeta[20];
+  int* p_keyLength                = reinterpret_cast<int*>(&tableMeta[16]);
+  int* p_nrOfColsFirstChunk       = reinterpret_cast<int*>(&tableMeta[20]);
 
   keyLength          = *p_keyLength;
   nrOfColsFirstChunk = *p_nrOfColsFirstChunk;
@@ -464,7 +464,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
   myfile.read(metaDataBlock, metaSize);
 
 
-  int* keyColPos = (int*) metaDataBlock;
+  int* keyColPos = reinterpret_cast<int*>(metaDataBlock);
 
   unsigned int tmpOffset = 4 * keyLength;
 
@@ -472,9 +472,9 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
   // unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[tmpOffset + 8];
   // unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[tmpOffset + 16];
   // unsigned int* p_version                = (unsigned int*) &metaDataBlock[tmpOffset + 24];
-  int* p_nrOfCols                        = (int*) &metaDataBlock[tmpOffset + 28];
-  unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[tmpOffset + 32];
-  unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 2 * nrOfColsFirstChunk];
+  int* p_nrOfCols                        = reinterpret_cast<int*>(&metaDataBlock[tmpOffset + 28]);
+  unsigned short int* colAttributeTypes  = reinterpret_cast<unsigned short int*>(&metaDataBlock[tmpOffset + 32]);
+  unsigned short int* colTypes           = reinterpret_cast<unsigned short int*>(&metaDataBlock[tmpOffset + 32 + 2 * nrOfColsFirstChunk]);
   // unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 4 * nrOfColsFirstChunk];
 
   int nrOfCols = *p_nrOfCols;
@@ -488,8 +488,6 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
   // Use a pure C++ charVector implementation here for performance
   IStringColumn* blockReader = columnFactory->CreateStringColumn(nrOfCols, FstColumnAttribute::NONE);
   fdsReadCharVec_v6(myfile, blockReader, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
-
-  // TODO: read column attributes here
 
 
   // Vertical chunkset index or index of index
@@ -516,12 +514,12 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
 
   // Read block positions
   unsigned long long* blockPos = new unsigned long long[nrOfCols];
-  myfile.read((char*) blockPos, nrOfCols * 8);  // nrOfCols file positions
+  myfile.read(reinterpret_cast<char*>(blockPos), nrOfCols * 8);  // nrOfCols file positions
 
 
   // Determine column selection
   int *colIndex;
-  int nrOfSelect = 0;
+  int nrOfSelect;
 
   if (columnSelection == nullptr)
   {
@@ -683,7 +681,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
 	  case 11:
 	  {
 	    IInt64Column* int64Column = columnFactory->CreateInt64Column(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]));
-		fdsReadInt64Vec_v11(myfile, int64Column->Data(), pos, firstRow, length, nrOfRows);
+      fdsReadInt64Vec_v11(myfile, int64Column->Data(), pos, firstRow, length, nrOfRows);
 	    tableReader.SetInt64Column(int64Column, colSel);
 	    delete int64Column;
 	    break;

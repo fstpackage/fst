@@ -99,8 +99,8 @@ print.fstmetadata <- function(x, ...) {
   cat(x$nrOfRows, " rows, ", length(x$columnNames), " columns (", x$path,
     ")\n\n", sep = "")
 
-  types <- c("unknown", "character", "factor", "integer", "POSIXct", "IDate", "double", "Date", "POSIXct", "logical",
-    "integer64", "nanotime", "POSIXct", "raw")
+  types <- c("unknown", "character", "factor", "ordered factor", "integer", "POSIXct", "IDate", "double",
+    "Date", "POSIXct", "logical", "integer64", "nanotime", "POSIXct", "raw")
 
   colNames <- format(encodeString(x$columnNames, quote = "'"))
 

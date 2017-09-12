@@ -94,6 +94,12 @@ FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &colum
     case INTSXP:
       if (Rf_isFactor(colVec))  // factor
       {
+        if (Rf_inherits(colVec, "ordered"))
+        {
+          columnAttribute = FstColumnAttribute::FACTOR_ORDERED;
+          return FstColumnType::FACTOR;
+        }
+
         columnAttribute = FstColumnAttribute::FACTOR_BASE;
         return FstColumnType::FACTOR;
       }
@@ -334,10 +340,24 @@ void FstTable::SetByteColumn(IByteColumn* byteColumn, int colNr)
 
 void FstTable::SetFactorColumn(IFactorColumn* factorColumn, int colNr)
 {
-  Rf_setAttrib(((FactorColumn*) factorColumn)->intVec, Rf_mkString("levels"), ((FactorColumn*) factorColumn)->blockReaderStrVec->StrVector());
-  Rf_setAttrib(((FactorColumn*) factorColumn)->intVec, Rf_mkString("class"), Rf_mkString("factor"));
+  FactorColumn* factColumn = (FactorColumn*) factorColumn;
+  Rf_setAttrib(factColumn->intVec, Rf_mkString("levels"), factColumn->blockReaderStrVec->StrVector());
 
-  SET_VECTOR_ELT(resTable, colNr, ((FactorColumn*) factorColumn)->intVec);
+  if (factColumn->Attribute() == FstColumnAttribute::FACTOR_ORDERED)  // ordered factor
+  {
+    SEXP classes;
+    PROTECT(classes = Rf_allocVector(STRSXP, 2));
+    SET_STRING_ELT(classes, 0, Rf_mkChar("ordered"));
+    SET_STRING_ELT(classes, 1, Rf_mkChar("factor"));
+    UNPROTECT(1);
+    Rf_setAttrib(factColumn->intVec, Rf_mkString("class"), classes);
+  }
+  else  // unordered factor
+  {
+    Rf_setAttrib(factColumn->intVec, Rf_mkString("class"), Rf_mkString("factor"));
+  }
+
+  SET_VECTOR_ELT(resTable, colNr, factColumn->intVec);
 }
 
 

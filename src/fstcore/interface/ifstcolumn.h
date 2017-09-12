@@ -60,20 +60,21 @@ enum FstColumnType
 // Only add to the end to support previous format versions
 enum FstColumnAttribute
 {
-	NONE = 1,                // unknown type
-	CHARACTER_BASE,          // default character type
-	FACTOR_BASE,             // default factor type (character vector levels with integer vector)
-	INT_32_BASE,             // default integer type
-	INT_32_TIME_SECONDS,     // number of seconds since epoch. Annotation holds the timezone.
-	INT_32_DATE_DAYS,        // number of days since epoch
-	DOUBLE_64_BASE,          // default double type
-	DOUBLE_64_DATE_DAYS,     // number of days since epoch
-	DOUBLE_64_TIME_SECONDS,  // number of fractional seconds since epoch. Annotation holds the timezone.
-	BOOL_32_BASE,            // 3 value boolean: 0 (false), 1 (true) and INT_MIN (NA)
-	INT_64_BASE,             // default int64 type
-	INT_64_TIME_NANO,        // number of nanoseconds since epoch
-	INT_64_TIME_MICRO,       // number of microseconds since epoch
-	BYTE_BASE                // default byte type
+  NONE = 1,                // unknown type
+  CHARACTER_BASE,          // default character type
+  FACTOR_BASE,             // default factor type (character vector levels with integer vector)
+  FACTOR_ORDERED,          // factor with ordered levels
+  INT_32_BASE,             // default integer type
+  INT_32_TIME_SECONDS,     // number of seconds since epoch. Annotation holds the timezone.
+  INT_32_DATE_DAYS,        // number of days since epoch
+  DOUBLE_64_BASE,          // default double type
+  DOUBLE_64_DATE_DAYS,     // number of days since epoch
+  DOUBLE_64_TIME_SECONDS,  // number of fractional seconds since epoch. Annotation holds the timezone.
+  BOOL_32_BASE,            // 3 value boolean: 0 (false), 1 (true) and INT_MIN (NA)
+  INT_64_BASE,             // default int64 type
+  INT_64_TIME_NANO,        // number of nanoseconds since epoch
+  INT_64_TIME_MICRO,       // number of microseconds since epoch
+  BYTE_BASE                // default byte type
 };
 
 

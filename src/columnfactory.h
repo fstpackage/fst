@@ -56,7 +56,7 @@ public:
 
   IFactorColumn* CreateFactorColumn(int nrOfRows, FstColumnAttribute columnAttribute)
   {
-    return new FactorColumn(nrOfRows);
+    return new FactorColumn(nrOfRows, columnAttribute);
   }
 
   ILogicalColumn* CreateLogicalColumn(int nrOfRows, FstColumnAttribute columnAttribute)
@@ -89,7 +89,7 @@ public:
     return new BlockReaderChar();
   }
 
-    IStringArray* CreateStringArray()
+  IStringArray* CreateStringArray()
   {
     return new StringArray();
   }
