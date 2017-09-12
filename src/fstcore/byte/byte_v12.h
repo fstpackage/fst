@@ -39,7 +39,7 @@
 
 #include <fstream>
 
-void fdsWriteByteVec_v12(std::ofstream &myfile, char* byteVector, unsigned int nrOfRows, unsigned int compression);
+void fdsWriteByteVec_v12(std::ofstream &myfile, char* byteVector, unsigned int nrOfRows, unsigned int compression, std::string annotation);
 
 void fdsReadByteVec_v12(std::istream &myfile, char* byteVector, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
 

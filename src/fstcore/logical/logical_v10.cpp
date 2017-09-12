@@ -44,12 +44,12 @@ using namespace std;
 
 // Logical vectors are always compressed to fill all available bits (factor 16 compression).
 // On top of that, we can compress the resulting bytes with a custom compressor.
-void fdsWriteLogicalVec_v10(ofstream &myfile, int* boolVector, unsigned nrOfLogicals, int compression)
+void fdsWriteLogicalVec_v10(ofstream &myfile, int* boolVector, unsigned nrOfLogicals, int compression, std::string annotation)
 {
   if (compression == 0)
   {
     FixedRatioCompressor* compressor = new FixedRatioCompressor(CompAlgo::LOGIC64);  // compression level not relevant here
-    fdsStreamUncompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, BLOCKSIZE_LOGICAL, compressor);
+    fdsStreamUncompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, BLOCKSIZE_LOGICAL, compressor, annotation);
 
     delete compressor;
 
@@ -65,7 +65,7 @@ void fdsWriteLogicalVec_v10(ofstream &myfile, int* boolVector, unsigned nrOfLogi
     StreamCompressor* streamCompressor = new StreamCompositeCompressor(defaultCompress, compress2, 2 * compression);
     streamCompressor->CompressBufferSize(blockSize);
 
-    fdsStreamcompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, streamCompressor, BLOCKSIZE_LOGICAL);
+    fdsStreamcompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, streamCompressor, BLOCKSIZE_LOGICAL, annotation);
 
     delete defaultCompress;
     delete compress2;
@@ -79,7 +79,7 @@ void fdsWriteLogicalVec_v10(ofstream &myfile, int* boolVector, unsigned nrOfLogi
     Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD_LOGIC64, 30 + 7 * (compression - 50) / 5);
     StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
     streamCompressor->CompressBufferSize(blockSize);
-    fdsStreamcompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, streamCompressor, BLOCKSIZE_LOGICAL);
+    fdsStreamcompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, streamCompressor, BLOCKSIZE_LOGICAL, annotation);
 
     delete compress1;
     delete compress2;

@@ -44,7 +44,8 @@
 #include <interface/ifstcolumn.h>
 
 
-void fdsWriteFactorVec_v7(std::ofstream &myfile, int* intP, IStringWriter* blockRunner, unsigned int size, unsigned int compression, StringEncoding stringEncoding);
+void fdsWriteFactorVec_v7(std::ofstream &myfile, int* intP, IStringWriter* blockRunner, unsigned int size, unsigned int compression,
+	StringEncoding stringEncoding, std::string annotation);
 
 
 // Parameter 'startRow' is zero based.

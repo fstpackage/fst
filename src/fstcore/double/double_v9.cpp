@@ -40,16 +40,13 @@
 
 using namespace std;
 
-void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned int nrOfRows, unsigned int compression)
+void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned int nrOfRows, unsigned int compression, std::string annotation)
 {
-  // double* realP = REAL(realVec);
-  // unsigned int nrOfRows = LENGTH(realVec);  // vector length
-
   int blockSize = 8 * BLOCKSIZE_REAL;  // block size in bytes
 
   if (compression == 0)
   {
-    return fdsStreamUncompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, BLOCKSIZE_REAL, nullptr);
+    return fdsStreamUncompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, BLOCKSIZE_REAL, nullptr, annotation);
   }
 
   if (compression <= 50)  // low compression: linear mix of uncompressed and the best of LZ4_SHUF8 / LZ4
@@ -57,7 +54,7 @@ void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned int nrO
     Compressor* compress1 = new DualCompressor(CompAlgo::LZ4_SHUF8, CompAlgo::LZ4, 0, 2 * compression);
     StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, 2 * compression);
     streamCompressor->CompressBufferSize(blockSize);
-    fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, streamCompressor, BLOCKSIZE_REAL);
+    fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, streamCompressor, BLOCKSIZE_REAL, annotation);
 
     delete compress1;
     delete streamCompressor;
@@ -68,7 +65,7 @@ void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned int nrO
   Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD, 20);
   StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
   streamCompressor->CompressBufferSize(blockSize);
-  fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, streamCompressor, BLOCKSIZE_REAL);
+  fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, streamCompressor, BLOCKSIZE_REAL, annotation);
 
   delete compress1;
   delete compress2;

@@ -42,12 +42,12 @@
 
 // Method for writing column data of any type to a ofstream.
 void fdsStreamUncompressed_v2(std::ofstream &myfile, char* vec, unsigned int vecLength, int elementSize, int blockSizeElems,
-  FixedRatioCompressor* fixedRatioCompressor);
+  FixedRatioCompressor* fixedRatioCompressor, std::string annotation);
 
 
 // Method for writing column data of any type to a stream.
 void fdsStreamcompressed_v2(std::ofstream &myfile, char* colVec, unsigned int nrOfRows, int elementSize,
-  StreamCompressor* streamCompressor, int blockSizeElems);
+  StreamCompressor* streamCompressor, int blockSizeElems, std::string annotation);
 
 
 void fdsReadColumn_v2(std::istream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size, int elementSize);

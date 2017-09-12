@@ -40,7 +40,7 @@
 #include <ostream>
 
 
-void fdsWriteInt64Vec_v11(std::ofstream &myfile, long long* int64Vector, unsigned int nrOfRows, unsigned int compression);
+void fdsWriteInt64Vec_v11(std::ofstream &myfile, long long* int64Vector, unsigned int nrOfRows, unsigned int compression, std::string annotation);
 
 void fdsReadInt64Vec_v11(std::istream &myfile, long long* int64Vector, unsigned long long blockPos, unsigned int startRow, unsigned int length, unsigned int size);
 

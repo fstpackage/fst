@@ -43,7 +43,7 @@
 #include <interface/fstdefines.h>
 
 
-void fdsWriteIntVec_v8(std::ofstream &myfile, int* integerVector, unsigned int nrOfRows, unsigned int compression);
+void fdsWriteIntVec_v8(std::ofstream &myfile, int* integerVector, unsigned int nrOfRows, unsigned int compression, std::string annotation);
 
 void fdsReadIntVec_v8(std::istream &myfile, int* integerVector, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size);
 

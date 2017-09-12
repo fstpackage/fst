@@ -85,7 +85,7 @@ using namespace std;
 
 // Method for writing column data of any type to a ofstream.
 void fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLength, int elementSize, int blockSizeElems,
-  FixedRatioCompressor* fixedRatioCompressor)
+  FixedRatioCompressor* fixedRatioCompressor, std::string annotation)
 {
   int nrOfBlocks = 1 + (vecLength - 1) / blockSizeElems;  // number of compressed / uncompressed blocks
   int remain = 1 + (vecLength + blockSizeElems - 1) % blockSizeElems;  // number of elements in last incomplete block
@@ -176,7 +176,7 @@ void fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLengt
 
 // Method for writing column data of any type to a stream.
 void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRows, int elementSize,
-  StreamCompressor* streamCompressor, int blockSizeElems)
+  StreamCompressor* streamCompressor, int blockSizeElems, std::string annotation)
 {
   int nrOfBlocks = 1 + (nrOfRows - 1) / blockSizeElems;  // number of compressed / uncompressed blocks
   int remain = 1 + (nrOfRows + blockSizeElems - 1) % blockSizeElems;  // number of elements in last incomplete block

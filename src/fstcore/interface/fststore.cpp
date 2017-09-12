@@ -273,6 +273,8 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
     positionData[colNr] = myfile.tellp();  // current location
 	FstColumnAttribute colAttribute;
 	std::string annotation = "";
+
+	// get type and add annotation
     FstColumnType colType = fstTable.ColumnType(colNr, colAttribute, annotation);
 
     colBaseTypes[colNr] = static_cast<unsigned short int>(colType);
@@ -297,7 +299,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
         colTypes[colNr] = 7;
         int* intP = fstTable.GetIntWriter(colNr);  // level values pointer
      		IStringWriter* stringWriter = fstTable.GetLevelWriter(colNr);
-        fdsWriteFactorVec_v7(myfile, intP, stringWriter, nrOfRows, compress, stringWriter->Encoding());
+        fdsWriteFactorVec_v7(myfile, intP, stringWriter, nrOfRows, compress, stringWriter->Encoding(), annotation);
 	      delete stringWriter;
         break;
       }
@@ -306,7 +308,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
       {
         colTypes[colNr] = 8;
         int* intP = fstTable.GetIntWriter(colNr);
-        fdsWriteIntVec_v8(myfile, intP, nrOfRows, compress);
+        fdsWriteIntVec_v8(myfile, intP, nrOfRows, compress, annotation);
         break;
       }
 
@@ -314,7 +316,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
       {
         colTypes[colNr] = 9;
         double* doubleP = fstTable.GetDoubleWriter(colNr);
-        fdsWriteRealVec_v9(myfile, doubleP, nrOfRows, compress);
+        fdsWriteRealVec_v9(myfile, doubleP, nrOfRows, compress, annotation);
         break;
       }
 
@@ -322,7 +324,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
       {
         colTypes[colNr] = 10;
         int* intP = fstTable.GetLogicalWriter(colNr);
-        fdsWriteLogicalVec_v10(myfile, intP, nrOfRows, compress);
+        fdsWriteLogicalVec_v10(myfile, intP, nrOfRows, compress, annotation);
         break;
       }
 
@@ -330,7 +332,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
       {
         colTypes[colNr] = 11;
         long long* intP = fstTable.GetInt64Writer(colNr);
-		fdsWriteInt64Vec_v11(myfile, (long long*) intP, nrOfRows, compress);
+		fdsWriteInt64Vec_v11(myfile, (long long*) intP, nrOfRows, compress, annotation);
         break;
       }
 
@@ -338,7 +340,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
 	  {
 		  colTypes[colNr] = 12;
 		  char* byteP = fstTable.GetByteWriter(colNr);
-		  fdsWriteByteVec_v12(myfile, byteP, nrOfRows, compress);
+		  fdsWriteByteVec_v12(myfile, byteP, nrOfRows, compress, annotation);
 		  break;
 	  }
 

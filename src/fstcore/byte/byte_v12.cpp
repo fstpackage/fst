@@ -41,13 +41,13 @@
 using namespace std;
 
 
-void fdsWriteByteVec_v12(ofstream &myfile, char* byteVector, unsigned int nrOfRows, unsigned int compression)
+void fdsWriteByteVec_v12(ofstream &myfile, char* byteVector, unsigned int nrOfRows, unsigned int compression, std::string annotation)
 {
   int blockSize = BLOCKSIZE_BYTE;  // block size in bytes
 
   if (compression == 0)
   {
-    return fdsStreamUncompressed_v2(myfile, byteVector, nrOfRows, 1, BLOCKSIZE_BYTE, nullptr);
+    return fdsStreamUncompressed_v2(myfile, byteVector, nrOfRows, 1, BLOCKSIZE_BYTE, nullptr, annotation);
   }
 
   if (compression <= 50)  // low compression: linear mix of uncompressed and LZ4_SHUF
@@ -57,7 +57,7 @@ void fdsWriteByteVec_v12(ofstream &myfile, char* byteVector, unsigned int nrOfRo
     StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, 2 * compression);
 
     streamCompressor->CompressBufferSize(blockSize);
-    fdsStreamcompressed_v2(myfile, byteVector, nrOfRows, 1, streamCompressor, BLOCKSIZE_BYTE);
+    fdsStreamcompressed_v2(myfile, byteVector, nrOfRows, 1, streamCompressor, BLOCKSIZE_BYTE, annotation);
 
     delete compress1;
     delete streamCompressor;
@@ -68,7 +68,7 @@ void fdsWriteByteVec_v12(ofstream &myfile, char* byteVector, unsigned int nrOfRo
   Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD, 0);
   StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
   streamCompressor->CompressBufferSize(blockSize);
-  fdsStreamcompressed_v2(myfile, byteVector, nrOfRows, 1, streamCompressor, BLOCKSIZE_BYTE);
+  fdsStreamcompressed_v2(myfile, byteVector, nrOfRows, 1, streamCompressor, BLOCKSIZE_BYTE, annotation);
 
   delete compress1;
   delete compress2;

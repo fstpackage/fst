@@ -43,7 +43,7 @@
 
 // Logical vectors are always compressed to fill all available bits (factor 16 compression).
 // On top of that, we can compress the resulting bytes with a custom compressor.
-void fdsWriteLogicalVec_v10(std::ofstream &myfile, int* boolVector, unsigned nrOfLogicals, int compression);
+void fdsWriteLogicalVec_v10(std::ofstream &myfile, int* boolVector, unsigned nrOfLogicals, int compression, std::string annotation);
 
 
 void fdsReadLogicalVec_v10(std::istream &myfile, int* boolVector, unsigned long long blockPos, unsigned int startRow,

@@ -41,13 +41,13 @@
 using namespace std;
 
 
-void fdsWriteIntVec_v8(ofstream &myfile, int* integerVector, unsigned int nrOfRows, unsigned int compression)
+void fdsWriteIntVec_v8(ofstream &myfile, int* integerVector, unsigned int nrOfRows, unsigned int compression, std::string annotation)
 {
   int blockSize = 4 * BLOCKSIZE_INT;  // block size in bytes
 
   if (compression == 0)
   {
-    return fdsStreamUncompressed_v2(myfile, reinterpret_cast<char*>(integerVector), nrOfRows, 4, BLOCKSIZE_INT, nullptr);
+    return fdsStreamUncompressed_v2(myfile, reinterpret_cast<char*>(integerVector), nrOfRows, 4, BLOCKSIZE_INT, nullptr, annotation);
   }
 
   if (compression <= 50)  // low compression: linear mix of uncompressed and LZ4_SHUF
@@ -57,7 +57,7 @@ void fdsWriteIntVec_v8(ofstream &myfile, int* integerVector, unsigned int nrOfRo
     StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, 2 * compression);
 
     streamCompressor->CompressBufferSize(blockSize);
-    fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(integerVector), nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
+    fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(integerVector), nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation);
 
     delete compress1;
     delete streamCompressor;
@@ -68,7 +68,7 @@ void fdsWriteIntVec_v8(ofstream &myfile, int* integerVector, unsigned int nrOfRo
   Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD_SHUF4, 0);
   StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
   streamCompressor->CompressBufferSize(blockSize);
-  fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(integerVector), nrOfRows, 4, streamCompressor, BLOCKSIZE_INT);
+  fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(integerVector), nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation);
 
   delete compress1;
   delete compress2;
