@@ -219,7 +219,13 @@ class DoubleColumn : public IDoubleColumn
       // POSIXct type
       if (columnAttribute == FstColumnAttribute::DOUBLE_64_TIME_SECONDS)
       {
-        Rf_classgets(colVec, Rf_mkString("POSIXct"));
+        SEXP classes;
+        PROTECT(classes = Rf_allocVector(STRSXP, 2));
+        SET_STRING_ELT(classes, 0, Rf_mkChar("POSIXct"));
+        SET_STRING_ELT(classes, 1, Rf_mkChar("POSIXt"));
+        UNPROTECT(1);
+
+        Rf_classgets(colVec, classes);
         return;
       }
     }
