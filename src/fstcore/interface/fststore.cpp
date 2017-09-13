@@ -64,19 +64,19 @@ using namespace std;
 //
 //  8                      | unsigned long long | FST_FILE_ID
 //  4                      | unsigned int       | FST_VERSION
-//  4                      | int                | tableClassType
+//  4                      | int                | header hash
 //  4                      | int                | keyLength
 //  4                      | int                | nrOfCols  (duplicate for fast access)
-//  4 * keyLength          | int                | keyColPos
 //
 // Column chunkset info
 //
 //  8                      | unsigned long long | nextHorzChunkSet
 //  8                      | unsigned long long | nextVertChunkSet
 //  8                      | unsigned long long | nrOfRows
+//  4 * keyLength          | int                | keyColPos
 //  4                      | unsigned int       | FST_VERSION
 //  4                      | int                | nrOfCols
-//  2 * nrOfCols           | unsigned short int | colAttributesType (not implemented yet)
+//  2 * nrOfCols           | unsigned short int | colAttributesType
 //  2 * nrOfCols           | unsigned short int | colTypes
 //  2 * nrOfCols           | unsigned short int | colBaseTypes
 //  ?                      | char               | colNames
@@ -103,7 +103,7 @@ FstStore::FstStore(std::string fstFile)
 
 
 // Read header information
-inline unsigned int ReadHeader(ifstream &myfile, unsigned int &tableClassType, int &keyLength, int &nrOfColsFirstChunk)
+inline unsigned int ReadHeader(ifstream &myfile, unsigned int &metaHash, int &keyLength, int &nrOfColsFirstChunk)
 {
   // Get meta-information for table
   char tableMeta[TABLE_META_SIZE];
@@ -118,10 +118,12 @@ inline unsigned int ReadHeader(ifstream &myfile, unsigned int &tableClassType, i
 
   unsigned long long* p_fstFileID = reinterpret_cast<unsigned long long*>(tableMeta);
   unsigned int* p_table_version   = reinterpret_cast<unsigned int*>(&tableMeta[8]);
-  // unsigned int* p_tableClassType  = (unsigned int*) &tableMeta[12];
+
+  unsigned int* p_metaHash        = reinterpret_cast<unsigned int*>(&tableMeta[12]);
   int* p_keyLength                = reinterpret_cast<int*>(&tableMeta[16]);
   int* p_nrOfColsFirstChunk       = reinterpret_cast<int*>(&tableMeta[20]);
 
+  metaHash           = *p_metaHash;
   keyLength          = *p_keyLength;
   nrOfColsFirstChunk = *p_nrOfColsFirstChunk;
 
@@ -165,8 +167,6 @@ inline void SetKeyIndex(vector<int> &keyIndex, int keyLength, int nrOfSelect, in
 
 void FstStore::fstWrite(IFstTable &fstTable, int compress) const
 {
-  // SEXP keyNames = Rf_getAttrib(table, Rf_mkString("sorted"));
-
   // Meta on dataset
   int nrOfCols =  fstTable.NrOfColumns();
   int keyLength = fstTable.NrOfKeys();
@@ -186,18 +186,20 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
   unsigned int* p_tableClassType         = (unsigned int*) &metaDataBlock[12];
   int* p_keyLength                       = (int*) &metaDataBlock[16];
   int* p_nrOfColsFirstChunk              = (int*) &metaDataBlock[20];
-  int* keyColPos                         = (int*) &metaDataBlock[24];
 
-  unsigned int offset = 24 + 4 * keyLength;
+  unsigned long long* p_nextHorzChunkSet = (unsigned long long*) &metaDataBlock[24];
+  unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[32];
+  unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[40];
 
-  unsigned long long* p_nextHorzChunkSet = (unsigned long long*) &metaDataBlock[offset];
-  unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[offset + 8];
-  unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[offset + 16];
-  unsigned int* p_version                = (unsigned int*) &metaDataBlock[offset + 24];
-  int* p_nrOfCols                        = (int*) &metaDataBlock[offset + 28];
-  unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[offset + 32];
-  unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[offset + 32 + 2 * nrOfCols];
-  unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[offset + 32 + 4 * nrOfCols];
+  int* keyColPos                         = (int*) &metaDataBlock[48];
+
+  unsigned int offset = 48 + 4 * keyLength;
+
+  unsigned int* p_version                = (unsigned int*) &metaDataBlock[offset];
+  int* p_nrOfCols                        = (int*) &metaDataBlock[offset + 4];
+  unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[offset + 8];
+  unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[offset + 8 + 2 * nrOfCols];
+  unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[offset + 8 + 4 * nrOfCols];
 
   // Get key column positions
   fstTable.GetKeyColumns(keyColPos);
@@ -271,17 +273,14 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
   for (int colNr = 0; colNr < nrOfCols; ++colNr)
   {
     positionData[colNr] = myfile.tellp();  // current location
-	FstColumnAttribute colAttribute;
-	std::string annotation = "";
+  	FstColumnAttribute colAttribute;
+  	std::string annotation = "";
 
-	// get type and add annotation
-  FstColumnType colType = fstTable.ColumnType(colNr, colAttribute, annotation);
+  	// get type and add annotation
+    FstColumnType colType = fstTable.ColumnType(colNr, colAttribute, annotation);
 
-  colBaseTypes[colNr] = static_cast<unsigned short int>(colType);
-	colAttributeTypes[colNr] = static_cast<unsigned short int>(colAttribute);
-
-    // Store attributes here if any
-    // unsigned int attrBlockSize = SerializeObjectAttributes(ofstream &myfile, RObject rObject, serializer);
+    colBaseTypes[colNr] = static_cast<unsigned short int>(colType);
+  	colAttributeTypes[colNr] = static_cast<unsigned short int>(colAttribute);
 
     switch (colType)
     {
@@ -361,17 +360,20 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
   myfile.seekp(*chunkPos - CHUNK_INDEX_SIZE);
   myfile.write((char*)(chunkIndex), CHUNK_INDEX_SIZE + 8 * nrOfCols);  // vertical chunkset index and positiondata
 
+  // cleanup
+  delete[] metaDataBlock;
+  delete[] chunkIndex;
+
+  // Check file status only here for performance.
+  // Any error that was generated earlier will result in a fail here.
   if (myfile.fail())
   {
 	  myfile.close();
+
 	  throw(runtime_error("There was an error during the write operation, fst file might be corrupted. Please check available disk space and access rights."));
   }
 
   myfile.close();
-
-  // cleanup
-  delete[] metaDataBlock;
-  delete[] chunkIndex;
 }
 
 
@@ -390,7 +392,7 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
   }
 
   // Read variables from fst file header
-  version = ReadHeader(myfile, tableClassType, keyLength, nrOfColsFirstChunk);
+  version = ReadHeader(myfile, metaHash, keyLength, nrOfColsFirstChunk);
 
   // We may be looking at a fst v0.7.2 file format
   if (version == 0)
@@ -407,10 +409,12 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
 
   unsigned int tmpOffset = 4 * keyLength;
 
-  keyColPos                                 = (int*) metaDataBlock;
-  // unsigned long long* p_nextHorzChunkSet = (unsigned long long*) &metaDataBlock[tmpOffset];
-  // unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[tmpOffset + 8];
-  p_nrOfRows                                = (unsigned long long*) &metaDataBlock[tmpOffset + 16];
+  // unsigned long long* p_nextHorzChunkSet = (unsigned long long*) metaDataBlock;
+  // unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[8];
+  p_nrOfRows                                = (unsigned long long*) &metaDataBlock[16];
+
+  keyColPos                                 = (int*) &metaDataBlock[24];
+
   // unsigned int* p_version                = (unsigned int*) &metaDataBlock[tmpOffset + 24];
   int* p_nrOfCols                           = (int*) &metaDataBlock[tmpOffset + 28];
   colAttributeTypes                         = (unsigned short int*) &metaDataBlock[tmpOffset + 32];
@@ -445,9 +449,9 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
     throw(runtime_error("There was an error opening the fst file, please check for a correct path."));
   }
 
-  unsigned int tableClassType;
+  unsigned int metaHash;
   int keyLength, nrOfColsFirstChunk;
-  version = ReadHeader(myfile, tableClassType, keyLength, nrOfColsFirstChunk);
+  version = ReadHeader(myfile, metaHash, keyLength, nrOfColsFirstChunk);
 
   // No magic marker for fst format found (v0.7.2 file format?)
   if (version == 0)
@@ -463,14 +467,14 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
   char* metaDataBlock = new char[metaSize];
   myfile.read(metaDataBlock, metaSize);
 
-
-  int* keyColPos = reinterpret_cast<int*>(metaDataBlock);
-
   unsigned int tmpOffset = 4 * keyLength;
 
-  // unsigned long long* p_nextHorzChunkSet = (unsigned long long*) &metaDataBlock[tmpOffset];
-  // unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[tmpOffset + 8];
-  // unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[tmpOffset + 16];
+  // unsigned long long* p_nextHorzChunkSet = (unsigned long long*) metaDataBlock;
+  // unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[8];
+  // unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[16];
+
+  int* keyColPos = reinterpret_cast<int*>(&metaDataBlock[24]);
+
   // unsigned int* p_version                = (unsigned int*) &metaDataBlock[tmpOffset + 24];
   int* p_nrOfCols                        = reinterpret_cast<int*>(&metaDataBlock[tmpOffset + 28]);
   unsigned short int* colAttributeTypes  = reinterpret_cast<unsigned short int*>(&metaDataBlock[tmpOffset + 32]);
@@ -727,66 +731,3 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
   delete[] colIndex;
   delete blockReader;
 }
-
-//
-// void FstStore::ColBind(FstTable table)
-// {
-//   // fst file stream using a stack buffer
-//   ifstream myfile;
-//   char ioBuf[4096];
-//   myfile.rdbuf()->pubsetbuf(ioBuf, 4096);
-//   myfile.open(fstFile.c_str(), ios::binary);
-//
-//   const std::vector<FstColumn*> columns = table.Columns();
-//
-//   if (myfile.fail())
-//   {
-//     myfile.close();
-//     throw std::runtime_error(FSTERROR_ERROR_OPENING_FILE);
-//   }
-//
-//   // Read fst file header
-//   FstMetaData metaData;
-//
-//   unsigned int tableClassType;
-//   int keyLength, nrOfColsFirstChunk;
-//   unsigned int version = metaData.ReadHeader(myfile, tableClassType, keyLength, nrOfColsFirstChunk);
-//
-//   // We can't append to a fst file with version lower than 1
-//   if (version == 0)
-//   {
-//     myfile.close();
-//     throw std::runtime_error(FSTERROR_NO_APPEND);
-//   }
-//
-//
-//   // Collect meta data from horizontal chunk headers and last vertical chunk set
-//   uint64_t firstHorzChunkPos = 24 + 4 * keyLength;  // hard-coded offset: beware of format changes
-//   istream* fstfile  = static_cast<istream*>(&myfile);
-//   metaData.Collect(*fstfile, firstHorzChunkPos);
-//
-//   vector<uint16_t> colTypeVec = metaData.colTypeVec;
-//   uint64_t nrOfRowsPrev = metaData.nrOfRows;
-//
-//   // We can only append an equal amount of columns
-//   if (colTypeVec.size() != columns.size())
-//   {
-//     myfile.close();
-//     throw std::runtime_error(FSTERROR_INCORRECT_COL_COUNT);
-//   }
-//
-//    // check for equal column types
-//
-//   // set compression or copy from existing meta data
-//
-//   // Seek to last horizontal chunk index
-//
-//   // Seek to last vertical chunk
-//
-//   // Add chunk
-//
-//   // Update vertical chunk index of lat horizontal chunk
-//
-// }
-//
-

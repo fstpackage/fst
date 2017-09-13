@@ -11,11 +11,17 @@ os:
   - linux
   - osx
 
+matrix:
+  exclude:
+  - r: release
+    os: osx
+
 r_packages:
   - covr
   - lintr
   - bit64
   - nanotime
+  - data.table
 
 after_success:
   - Rscript -e 'library(covr); codecov()'

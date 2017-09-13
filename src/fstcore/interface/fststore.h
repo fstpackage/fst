@@ -45,7 +45,7 @@
 
 class FstStore
 {
-  unsigned int tableClassType;
+  unsigned int metaHash;
   int nrOfColsFirstChunk;
 
   std::string fstFile;
