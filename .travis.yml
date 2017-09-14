@@ -5,16 +5,16 @@ sudo: false
 r:
 - oldrel
 - release
-# - devel
+- devel
 
 os:
   - linux
   - osx
 
-matrix:
-  exclude:
-  - r: release
-    os: osx
+# matrix:
+#   exclude:
+#   - r: release
+#     os: osx
 
 r_packages:
   - covr

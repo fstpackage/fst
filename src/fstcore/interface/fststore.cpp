@@ -53,6 +53,8 @@
 #include <integer64/integer64_v11.h>
 #include <byte/byte_v12.h>
 
+#include <ZSTD/common/xxhash.h>
+
 
 using namespace std;
 
@@ -68,7 +70,7 @@ using namespace std;
 //  4                      | int                | keyLength
 //  4                      | int                | nrOfCols  (duplicate for fast access)
 //
-// Column chunkset info
+// First chunk and column metadata
 //
 //  8                      | unsigned long long | nextHorzChunkSet
 //  8                      | unsigned long long | nextVertChunkSet
@@ -79,7 +81,10 @@ using namespace std;
 //  2 * nrOfCols           | unsigned short int | colAttributesType
 //  2 * nrOfCols           | unsigned short int | colTypes
 //  2 * nrOfCols           | unsigned short int | colBaseTypes
-//  ?                      | char               | colNames
+//
+// Column names
+//
+//  x                      | char               | colNames
 //
 // Data chunkset index
 //
@@ -183,7 +188,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
 
   unsigned long long* fstFileID          = (unsigned long long*) metaDataBlock;
   unsigned int* p_table_version          = (unsigned int*) &metaDataBlock[8];
-  unsigned int* p_tableClassType         = (unsigned int*) &metaDataBlock[12];
+  unsigned int* headerHash               = (unsigned int*) &metaDataBlock[12];
   int* p_keyLength                       = (int*) &metaDataBlock[16];
   int* p_nrOfColsFirstChunk              = (int*) &metaDataBlock[20];
 
@@ -206,7 +211,6 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
 
   *fstFileID            = FST_FILE_ID;
   *p_table_version      = FST_VERSION;
-  *p_tableClassType     = 1;  // default table
   *p_keyLength          = keyLength;
   *p_nrOfColsFirstChunk = nrOfCols;
 
@@ -354,6 +358,10 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
   // update chunk position data
   *chunkPos = positionData[0] - 8 * nrOfCols;
 
+  // Calculate header hash
+  unsigned long long hHash = XXH64(&metaDataBlock[24], metaDataSize - 24, FST_HASH_SEED);
+  *headerHash = static_cast<unsigned long long>((hHash >> 32) | 0xffffffff);
+
   myfile.seekp(0);
   myfile.write((char*)(metaDataBlock), metaDataSize);  // table header
 
@@ -466,6 +474,17 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
   int metaSize = 32 + 4 * keyLength + 6 * nrOfColsFirstChunk;
   char* metaDataBlock = new char[metaSize];
   myfile.read(metaDataBlock, metaSize);
+
+  // Verify header hash
+  unsigned long long hHash = XXH64(metaDataBlock, metaSize, FST_HASH_SEED);
+  unsigned int headerHash = (hHash >> 32) | 0xffffffff;
+
+  if (headerHash != metaHash)
+  {
+    delete[] metaDataBlock;
+    myfile.close();
+    throw(runtime_error(FSTERROR_DAMAGED_HEADER));
+  }
 
   unsigned int tmpOffset = 4 * keyLength;
 
