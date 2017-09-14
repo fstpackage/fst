@@ -360,7 +360,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
 
   // Calculate header hash
   unsigned long long hHash = XXH64(&metaDataBlock[24], metaDataSize - 24, FST_HASH_SEED);
-  *headerHash = static_cast<unsigned long long>((hHash >> 32) | 0xffffffff);
+  *headerHash = static_cast<unsigned long long>((hHash >> 32) & 0xffffffff);
 
   myfile.seekp(0);
   myfile.write((char*)(metaDataBlock), metaDataSize);  // table header
@@ -477,7 +477,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
 
   // Verify header hash
   unsigned long long hHash = XXH64(metaDataBlock, metaSize, FST_HASH_SEED);
-  unsigned int headerHash = (hHash >> 32) | 0xffffffff;
+  unsigned int headerHash = (hHash >> 32) & 0xffffffff;
 
   if (headerHash != metaHash)
   {

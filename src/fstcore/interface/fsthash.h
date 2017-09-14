@@ -91,7 +91,7 @@ public:
 		unsigned int lastBlockSize = 1 + (blobLength - 1) % blockSize;
 		float blocksPerThread = static_cast<float>(nrOfBlocks) / nrOfThreads;
 
-		unsigned int* blockHashes = new unsigned int[nrOfBlocks];
+		unsigned long long* blockHashes = new unsigned long long[nrOfBlocks];
 
 #pragma omp parallel num_threads(nrOfThreads)
 		{
@@ -106,7 +106,7 @@ public:
 				for (int block = blockNr; block < nextblockNr; block++)
 				{
 					// Block hash
-					blockHashes[block] = XXH32(&blobSource[block * blockSize], blockSize, seed);
+					blockHashes[block] = XXH64(&blobSource[block * blockSize], blockSize, seed);
 				}
 			}
 
@@ -119,20 +119,20 @@ public:
 				for (int block = blockNr; block < nextblockNr; block++)
 				{
 					// Block hash
-					blockHashes[block] = XXH32(&blobSource[block * blockSize], blockSize, seed);
+					blockHashes[block] = XXH64(&blobSource[block * blockSize], blockSize, seed);
 				}
 
 				// Last block hash
-				blockHashes[nextblockNr] = XXH32(&blobSource[nextblockNr * blockSize], lastBlockSize, seed);
+				blockHashes[nextblockNr] = XXH64(&blobSource[nextblockNr * blockSize], lastBlockSize, seed);
 			}
 
 		}  // end parallel region and join all threads
 
 
-		unsigned allBlockHash = XXH32(blockHashes, nrOfBlocks * 4, seed);
+		unsigned long long allBlockHash = XXH64(blockHashes, nrOfBlocks * 8, seed);
 		delete[] blockHashes;
 
-		return allBlockHash;
+		return static_cast<unsigned int>((allBlockHash >> 32) & 0xffffffff);
 	}
 };
 
