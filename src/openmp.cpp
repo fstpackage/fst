@@ -3,13 +3,6 @@
 
 #include <interface/openmphelper.h>
 
-// #ifdef _OPENMP
-//   #include <omp.h>
-// #else // so it still compiles on machines with compilers void of openmp support
-//   #define omp_get_num_threads() 1
-//   #define omp_get_thread_num() 0
-// #endif
-
 #ifdef _OPENMP
 #include <pthread.h>
 #endif
@@ -26,7 +19,6 @@
 * 5) Automatically drop down to 1 thread when called from parallel package (e.g. mclapply) to
 *    avoid the deadlock/hang (#1745 and #1727) and return to prior state afterwards.
 */
-
 
 
 SEXP getnrofthreads()
@@ -65,7 +57,7 @@ void when_fork_end()
 }
 
 
-int avoid_openmp_hang_within_fork()
+extern "C" int avoid_openmp_hang_within_fork()
 {
     // Called once on loading fst from init.c
 #ifdef _OPENMP

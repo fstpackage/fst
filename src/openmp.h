@@ -52,7 +52,7 @@ int setnrofthreads(SEXP nrOfThreads);
 SEXP hasopenmp();
 
 
-int avoid_openmp_hang_within_fork();
+extern "C" int avoid_openmp_hang_within_fork();
 
 
 #endif  // OPEN_MP_H

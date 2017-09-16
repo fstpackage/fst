@@ -43,9 +43,6 @@
 
 
 // [[Rcpp::export]]
-SEXP DoubleToNano(SEXP realVec);
-
-// [[Rcpp::export]]
 SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression, SEXP uniformEncoding);
 
 // [[Rcpp::export]]

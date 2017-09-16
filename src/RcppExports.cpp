@@ -5,17 +5,6 @@
 
 using namespace Rcpp;
 
-// DoubleToNano
-SEXP DoubleToNano(SEXP realVec);
-RcppExport SEXP _fst_DoubleToNano(SEXP realVecSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type realVec(realVecSEXP);
-    rcpp_result_gen = Rcpp::wrap(DoubleToNano(realVec));
-    return rcpp_result_gen;
-END_RCPP
-}
 // fststore
 SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression, SEXP uniformEncoding);
 RcppExport SEXP _fst_fststore(SEXP fileNameSEXP, SEXP tableSEXP, SEXP compressionSEXP, SEXP uniformEncodingSEXP) {

@@ -58,19 +58,6 @@ using namespace std;
 using namespace Rcpp;
 
 
-SEXP DoubleToNano(SEXP realVec)
-{
-  SEXP classAttr = Rf_mkString("nanotime");
-  Rf_setAttrib(classAttr, Rf_mkString("package"), Rf_mkString("nanotime"));
-  Rf_classgets(realVec, classAttr);
-
-  Rf_setAttrib(realVec, Rf_mkString(".S3Class"), Rf_mkString("integer64"));
-  SET_S4_OBJECT(realVec);
-
-  return realVec;
-}
-
-
 inline int FindKey(StringVector colNameList, String item)
 {
   int index = -1;
