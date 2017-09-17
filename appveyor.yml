@@ -24,8 +24,9 @@ environment:
   - R_VERSION: release
     R_ARCH: x64
 
-  - R_VERSION: devel
-    R_ARCH: x64
+# test_that seems broken for R dev version (same on Travis)
+#  - R_VERSION: devel
+#    R_ARCH: x64
 
 
 build_script:
