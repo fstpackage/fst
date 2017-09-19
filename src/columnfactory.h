@@ -66,12 +66,12 @@ public:
 
   IDoubleColumn* CreateDoubleColumn(int nrOfRows, FstColumnAttribute columnAttribute, short int scale)
   {
-    return new DoubleColumn(nrOfRows, columnAttribute);
+    return new DoubleColumn(nrOfRows, columnAttribute, scale);
   }
 
   IIntegerColumn* CreateIntegerColumn(int nrOfRows, FstColumnAttribute columnAttribute, short int scale)
   {
-    return new IntegerColumn(nrOfRows, columnAttribute);
+    return new IntegerColumn(nrOfRows, columnAttribute, scale);
   }
 
   IByteColumn* CreateByteColumn(int nrOfRows, FstColumnAttribute columnAttribute)
@@ -81,7 +81,7 @@ public:
 
   IInt64Column* CreateInt64Column(int nrOfRows, FstColumnAttribute columnAttribute, short int scale)
   {
-    return new Int64Column(nrOfRows, columnAttribute);
+    return new Int64Column(nrOfRows, columnAttribute, scale);
   }
 
   IStringColumn* CreateStringColumn(int nrOfRows, FstColumnAttribute columnAttribute)

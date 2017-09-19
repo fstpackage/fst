@@ -92,6 +92,39 @@ FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &colum
       return FstColumnType::CHARACTER;
 
     case INTSXP:
+      if (Rf_inherits(colVec, "difftime"))
+      {
+        columnAttribute = FstColumnAttribute::INT_32_TIMEINTERVAL_SECONDS;
+
+        // Convert units
+        SEXP units = Rf_getAttrib(colVec, Rf_install("units"));
+        std::string unit = std::string(CHAR(STRING_ELT(units, 0)));
+
+        if (unit == "secs")
+        {
+          scale = FstTimeScale::SECONDS;
+        }
+        else if (unit == "mins")
+        {
+          scale = FstTimeScale::MINUTES;
+        }
+        else if (unit == "hours")
+        {
+          scale = FstTimeScale::HOURS;
+        }
+        else if (unit == "days")
+        {
+          scale = FstTimeScale::DAYS;
+        }
+        else
+        {
+          Rf_warning("Unknown time unit, defaulting to seconds");
+          scale = FstTimeScale::SECONDS;
+        }
+
+        return FstColumnType::INT_32;
+      }
+
       if (Rf_isFactor(colVec))  // factor
       {
         if (Rf_inherits(colVec, "ordered"))
@@ -112,7 +145,7 @@ FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &colum
 
       if (Rf_inherits(colVec, "POSIXct"))
       {
-        columnAttribute = FstColumnAttribute::INT_32_TIME_SECONDS;
+        columnAttribute = FstColumnAttribute::INT_32_TIMESTAMP_SECONDS;
 
         SEXP tzoneR = Rf_getAttrib(colVec, Rf_install("tzone"));
         annotation += Rf_isNull(tzoneR) ? "UTC" : Rf_translateCharUTF8(STRING_ELT(tzoneR, 0));
@@ -124,6 +157,39 @@ FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &colum
       return FstColumnType::INT_32;
 
     case REALSXP:
+      if (Rf_inherits(colVec, "difftime"))
+      {
+        columnAttribute = FstColumnAttribute::DOUBLE_64_TIMEINTERVAL_SECONDS;
+
+        // Convert units
+        SEXP units = Rf_getAttrib(colVec, Rf_install("units"));
+        std::string unit = std::string(CHAR(STRING_ELT(units, 0)));
+
+        if (unit == "secs")
+        {
+          scale = FstTimeScale::SECONDS;
+        }
+        else if (unit == "mins")
+        {
+          scale = FstTimeScale::MINUTES;
+        }
+        else if (unit == "hours")
+        {
+          scale = FstTimeScale::HOURS;
+        }
+        else if (unit == "days")
+        {
+          scale = FstTimeScale::DAYS;
+        }
+        else
+        {
+          Rf_warning("Unknown time unit, defaulting to seconds");
+          scale = FstTimeScale::SECONDS;
+        }
+
+        return FstColumnType::DOUBLE_64;
+      }
+
       if (Rf_inherits(colVec, "Date"))
       {
         columnAttribute = FstColumnAttribute::DOUBLE_64_DATE_DAYS;
@@ -132,7 +198,7 @@ FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &colum
 
       if (Rf_inherits(colVec, "POSIXct"))
       {
-        columnAttribute = FstColumnAttribute::DOUBLE_64_TIME_SECONDS;
+        columnAttribute = FstColumnAttribute::DOUBLE_64_TIMESTAMP_SECONDS;
 
         SEXP tzoneR = Rf_getAttrib(colVec, Rf_install("tzone"));
         annotation += Rf_isNull(tzoneR) ? "UTC" : Rf_translateCharUTF8(STRING_ELT(tzoneR, 0));
@@ -142,7 +208,10 @@ FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &colum
 
       if (Rf_inherits(colVec, "nanotime"))
       {
-        columnAttribute = FstColumnAttribute::INT_64_TIME_NANO;
+        columnAttribute = FstColumnAttribute::INT_64_TIME_SECONDS;
+
+        scale = FstTimeScale::NANOSECONDS;  // set scale to nanoseconds
+
         return FstColumnType::INT_64;
       }
 

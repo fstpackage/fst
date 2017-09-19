@@ -70,14 +70,10 @@ using namespace std;
 //  4                      | int                | keyLength
 //  4                      | int                | nrOfCols  (duplicate for fast access)
 //
-// Column chunk indirections (for adding columns to fst files)
+// Chunk indirections (for multi-chunk fst files)
 //
 //  8                      | unsigned long long | nextHorzChunkSet  (reference to chunk with column metadata)
-//
-// Row chunk indirections (for adding rows to fst files)
-// The highest bit indicates if this is a direct reference or a reference to another index
-//
-//  4 * 8                  | unsigned long long | nextVertChunkSet  (reference to chunk with row data, zero == empty slot)
+//  8                      | unsigned long long | empty, for future expansions (key table?)
 //
 // Vertical chunk metadata
 //  8                      | unsigned long long | nrOfRows
@@ -87,6 +83,7 @@ using namespace std;
 //  2 * nrOfCols           | unsigned short int | colAttributesType
 //  2 * nrOfCols           | unsigned short int | colTypes
 //  2 * nrOfCols           | unsigned short int | colBaseTypes
+//  2 * nrOfCols           | unsigned short int | colScales          // use for pico, nano, micro, milli, kilo, mega, giga, tera etc.
 //
 // Column names
 //
@@ -189,7 +186,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
 
 
   // Table meta information
-  unsigned long long metaDataSize        = 80 + 4 * keyLength + 6 * nrOfCols;  // see index above
+  unsigned long long metaDataSize        = 56 + 4 * keyLength + 8 * nrOfCols;  // see index above
   char* metaDataBlock                    = new char[metaDataSize];
 
   unsigned long long* fstFileID          = (unsigned long long*) metaDataBlock;
@@ -199,18 +196,19 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
   int* p_nrOfColsFirstChunk              = (int*) &metaDataBlock[20];
 
   unsigned long long* p_nextHorzChunkSet = (unsigned long long*) &metaDataBlock[24];
-  unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[32];
-  unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[64];
+  unsigned long long* p_emptySlot        = (unsigned long long*) &metaDataBlock[32];
+  unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[40];
 
-  int* keyColPos                         = (int*) &metaDataBlock[72];
+  int* keyColPos                         = (int*) &metaDataBlock[48];
 
-  unsigned int offset = 72 + 4 * keyLength;
+  unsigned int offset = 48 + 4 * keyLength;
 
   unsigned int* p_version                = (unsigned int*) &metaDataBlock[offset];
   int* p_nrOfCols                        = (int*) &metaDataBlock[offset + 4];
   unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[offset + 8];
   unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[offset + 8 + 2 * nrOfCols];
   unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[offset + 8 + 4 * nrOfCols];
+  short int* colScales                   = (short int*) &metaDataBlock[offset + 8 + 6 * nrOfCols];          // column's order of magnitude
 
   // Get key column positions
   fstTable.GetKeyColumns(keyColPos);
@@ -221,7 +219,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
   *p_nrOfColsFirstChunk = nrOfCols;
 
   *p_nextHorzChunkSet   = 0;
-  *p_nextVertChunkSet   = 0;
+  *p_emptySlot          = 0;            // reserved for future use
   *p_version            = FST_VERSION;
   *p_nrOfCols           = nrOfCols;
 
@@ -285,13 +283,14 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
     positionData[colNr] = myfile.tellp();  // current location
   	FstColumnAttribute colAttribute;
   	std::string annotation = "";
-    short int scale;
+    short int scale = 0;
 
   	// get type and add annotation
     FstColumnType colType = fstTable.ColumnType(colNr, colAttribute, scale, annotation);
 
     colBaseTypes[colNr] = static_cast<unsigned short int>(colType);
   	colAttributeTypes[colNr] = static_cast<unsigned short int>(colAttribute);
+    colScales[colNr] = scale;
 
     switch (colType)
     {
@@ -418,7 +417,7 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
   }
 
   // Continue reading table metadata
-  int metaSize = 56 + 4 * keyLength + 6 * nrOfColsFirstChunk;
+  int metaSize = 32 + 4 * keyLength + 8 * nrOfColsFirstChunk;
   metaDataBlock = new char[metaSize];
   myfile.read(metaDataBlock, metaSize);
 
@@ -426,15 +425,16 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
 
   // unsigned long long* p_nextHorzChunkSet = (unsigned long long*) metaDataBlock;
   // unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[8];
-  p_nrOfRows                                = (unsigned long long*) &metaDataBlock[40];
+  p_nrOfRows                                = (unsigned long long*) &metaDataBlock[16];
 
-  keyColPos                                 = (int*) &metaDataBlock[48];
+  keyColPos                                 = (int*) &metaDataBlock[24];
 
-  // unsigned int* p_version                = (unsigned int*) &metaDataBlock[tmpOffset + 48];
-  int* p_nrOfCols                           = (int*) &metaDataBlock[tmpOffset + 52];
-  colAttributeTypes                         = (unsigned short int*) &metaDataBlock[tmpOffset + 56];
-  colTypes                                  = (unsigned short int*) &metaDataBlock[tmpOffset + 56 + 2 * nrOfColsFirstChunk];
-  colBaseTypes                              = (unsigned short int*) &metaDataBlock[tmpOffset + 56 + 4 * nrOfColsFirstChunk];
+  // unsigned int* p_version                = (unsigned int*) &metaDataBlock[tmpOffset + 24];
+  int* p_nrOfCols                           = (int*) &metaDataBlock[tmpOffset + 28];
+  colAttributeTypes                         = (unsigned short int*) &metaDataBlock[tmpOffset + 32];
+  colTypes                                  = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 2 * nrOfColsFirstChunk];
+  colBaseTypes                              = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 4 * nrOfColsFirstChunk];
+  colScales                                 = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 6 * nrOfColsFirstChunk];
 
 
   nrOfCols = *p_nrOfCols;
@@ -478,7 +478,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
 
 
   // Continue reading table metadata
-  int metaSize = 56 + 4 * keyLength + 6 * nrOfColsFirstChunk;
+  int metaSize = 32 + 4 * keyLength + 8 * nrOfColsFirstChunk;
   char* metaDataBlock = new char[metaSize];
   myfile.read(metaDataBlock, metaSize);
 
@@ -493,21 +493,20 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
     throw(runtime_error(FSTERROR_DAMAGED_HEADER));
   }
 
-  // Start of horizontal chunkset
-
   unsigned int tmpOffset = 4 * keyLength;
 
   // unsigned long long* p_nextHorzChunkSet = (unsigned long long*) metaDataBlock;
   // unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[8];
-  // unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[40];
+  // unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[16];
 
-  int* keyColPos = reinterpret_cast<int*>(&metaDataBlock[48]);
+  int* keyColPos = reinterpret_cast<int*>(&metaDataBlock[24]);
 
-  // unsigned int* p_version                = (unsigned int*) &metaDataBlock[tmpOffset + 48];
-  int* p_nrOfCols                        = reinterpret_cast<int*>(&metaDataBlock[tmpOffset + 52]);
-  unsigned short int* colAttributeTypes  = reinterpret_cast<unsigned short int*>(&metaDataBlock[tmpOffset + 56]);
-  unsigned short int* colTypes           = reinterpret_cast<unsigned short int*>(&metaDataBlock[tmpOffset + 56 + 2 * nrOfColsFirstChunk]);
-  // unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[tmpOffset + 56 + 4 * nrOfColsFirstChunk];
+  // unsigned int* p_version                = (unsigned int*) &metaDataBlock[tmpOffset + 24];
+  int* p_nrOfCols                        = reinterpret_cast<int*>(&metaDataBlock[tmpOffset + 28]);
+  unsigned short int* colAttributeTypes  = reinterpret_cast<unsigned short int*>(&metaDataBlock[tmpOffset + 32]);
+  unsigned short int* colTypes           = reinterpret_cast<unsigned short int*>(&metaDataBlock[tmpOffset + 32 + 2 * nrOfColsFirstChunk]);
+  // unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 4 * nrOfColsFirstChunk];
+  short int* colScales                   = (short int*) &metaDataBlock[tmpOffset + 32 + 6 * nrOfColsFirstChunk];
 
   int nrOfCols = *p_nrOfCols;
 
@@ -654,7 +653,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
     }
 
     unsigned long long pos = blockPos[colNr];
-    short int scale = 0;
+    short int scale = colScales[colNr];
 
     switch (colTypes[colNr])
     {

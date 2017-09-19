@@ -93,14 +93,31 @@ fst.metadata <- function(path) {
 }
 
 
+# NONE = 1,                       // unknown type
+# CHARACTER_BASE,                 // default character type
+# FACTOR_BASE,                    // default factor type (character vector levels with integer vector)
+# FACTOR_ORDERED,                 // factor with ordered levels
+# INT_32_BASE,                    // default integer type
+# INT_32_TIMESTAMP_SECONDS,       // number of seconds since epoch. Annotation holds the timezone.
+# INT_32_TIMEINTERVAL_SECONDS,    // number of fractional seconds between two moments in time.
+# INT_32_DATE_DAYS,               // number of days since epoch
+# DOUBLE_64_BASE,                 // default double type
+# DOUBLE_64_DATE_DAYS,            // number of days since epoch
+# DOUBLE_64_TIMESTAMP_SECONDS,    // number of fractional seconds since epoch. Annotation holds the timezone.
+# DOUBLE_64_TIMEINTERVAL_SECONDS, // number of fractional seconds between two moments in time [scale is FstTimeScale enum]
+# BOOL_2_BASE,                    // 3 value boolean: 0 (false), 1 (true) and INT_MIN (NA)
+# INT_64_BASE,                    // default int64 type
+# INT_64_TIME_SECONDS,            // number of seconds since epoch [scale is FstTimeScale enum]
+# BYTE_BASE                       // default byte type
+
 #' @export
 print.fstmetadata <- function(x, ...) {
   cat("<fst file>\n")
   cat(x$nrOfRows, " rows, ", length(x$columnNames), " columns (", x$path,
     ")\n\n", sep = "")
 
-  types <- c("unknown", "character", "factor", "ordered factor", "integer", "POSIXct", "IDate", "double",
-    "Date", "POSIXct", "logical", "integer64", "nanotime", "POSIXct", "raw")
+  types <- c("unknown", "character", "factor", "ordered factor", "integer", "POSIXct", "difftime", "IDate", "double",
+    "Date", "POSIXct", "difftime", "logical", "integer64", "nanotime", "raw")
 
   colNames <- format(encodeString(x$columnNames, quote = "'"))
 

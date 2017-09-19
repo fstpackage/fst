@@ -34,6 +34,12 @@ date_vec <- function(nrofrows) {
   date_vec
 }
 
+difftime_vec <- function(nrOfrows, mode = "double") {
+  vec <- (Sys.time() + 1:nrofrows) - Sys.time()
+  mode(vec) <- mode
+  vec
+}
+
 # Sample data
 nrofrows <- 10000L
 char_na <- char_vec(nrofrows)
@@ -52,9 +58,11 @@ datatable <- data.frame(
   Integer64 = as.integer64(sample(c(2345612345679, 10, 8714567890), nrofrows, replace = TRUE)),
   Nanotime = nanotime(sample(1000000:2000000, nrofrows, replace = TRUE)),
   Raw = as.raw(sample(0:255, nrofrows, replace = TRUE)),
+  Difftime = difftime_vec(nrOfrows),
+  DiffTime_int = difftime_vec(nrOfrows, "integer"),
   stringsAsFactors = FALSE)
 
-
+# A write / read cylce for a range of columns and rows
 test_write_read <- function(col, from = 1L, to = nrofrows, sel_columns = NULL, compress = 0L, tot_length = nrofrows) {
   dt <- datatable[1:tot_length, col, drop = FALSE]
 

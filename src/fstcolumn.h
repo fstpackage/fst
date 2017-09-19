@@ -152,15 +152,20 @@ class Int64Column : public IInt64Column
 public:
   SEXP int64Vec;
 
-  Int64Column(int nrOfRows, FstColumnAttribute columnAttribute)
+  Int64Column(int nrOfRows, FstColumnAttribute columnAttribute, short int scale)
   {
     int64Vec = Rf_allocVector(REALSXP, nrOfRows);
     PROTECT(int64Vec);
 
     // test for nanotime type
-    if (columnAttribute == FstColumnAttribute::INT_64_TIME_NANO)
+    if (columnAttribute == FstColumnAttribute::INT_64_TIME_SECONDS)
     {
       SEXP classAttr;
+
+      if (scale != FstTimeScale::NANOSECONDS)
+      {
+        Rf_error("Timestamp column with unknown scale detected");
+      }
 
       PROTECT(classAttr = Rf_mkString("nanotime"));
       Rf_setAttrib(classAttr, Rf_mkString("package"), Rf_mkString("nanotime"));
@@ -202,12 +207,42 @@ class DoubleColumn : public IDoubleColumn
   public:
     SEXP colVec;
 
-    DoubleColumn(int nrOfRows, FstColumnAttribute columnAttribute)
+    DoubleColumn(int nrOfRows, FstColumnAttribute columnAttribute, short int scale)
     {
       PROTECT(colVec = Rf_allocVector(REALSXP, nrOfRows));
 
       // store for later reference
       this->columnAttribute = columnAttribute;
+
+      // difftime type
+      if (columnAttribute == FstColumnAttribute::DOUBLE_64_TIMEINTERVAL_SECONDS)
+      {
+        Rf_classgets(colVec, Rf_mkString("difftime"));
+
+        if (scale == (short int) FstTimeScale::SECONDS)
+        {
+          Rf_setAttrib(colVec, Rf_mkString("units"), Rf_mkString("secs"));
+        }
+        else if (scale == FstTimeScale::MINUTES)
+        {
+          Rf_setAttrib(colVec, Rf_mkString("units"), Rf_mkString("mins"));
+        }
+        else if (scale == FstTimeScale::HOURS)
+        {
+          Rf_setAttrib(colVec, Rf_mkString("units"), Rf_mkString("hours"));
+        }
+        else if (scale == FstTimeScale::DAYS)
+        {
+          Rf_setAttrib(colVec, Rf_mkString("units"), Rf_mkString("days"));
+        }
+        else
+        {
+          Rf_warning("Unknown time unit, defaulting to seconds");
+          Rf_setAttrib(colVec, Rf_mkString("units"), Rf_mkString("secs"));
+        }
+
+        return;
+      }
 
       // Date type
       if (columnAttribute == FstColumnAttribute::DOUBLE_64_DATE_DAYS)
@@ -217,7 +252,7 @@ class DoubleColumn : public IDoubleColumn
       }
 
       // POSIXct type
-      if (columnAttribute == FstColumnAttribute::DOUBLE_64_TIME_SECONDS)
+      if (columnAttribute == FstColumnAttribute::DOUBLE_64_TIMESTAMP_SECONDS)
       {
         SEXP classes;
         PROTECT(classes = Rf_allocVector(STRSXP, 2));
@@ -243,7 +278,7 @@ class DoubleColumn : public IDoubleColumn
     void Annotate(std::string annotation)
     {
       // annotation is used to set timezone
-      if (this->columnAttribute == FstColumnAttribute::DOUBLE_64_TIME_SECONDS)
+      if (this->columnAttribute == FstColumnAttribute::DOUBLE_64_TIMESTAMP_SECONDS)
       {
         if (annotation.length() > 0)
         {
@@ -263,13 +298,42 @@ class IntegerColumn : public IIntegerColumn
 public:
   SEXP colVec;
 
-  IntegerColumn(int nrOfRows, FstColumnAttribute columnAttribute)
+  IntegerColumn(int nrOfRows, FstColumnAttribute columnAttribute, short int scale)
   {
     colVec = Rf_allocVector(INTSXP, nrOfRows);
     PROTECT(colVec);
 
     // store for later reference
     this->columnAttribute = columnAttribute;
+
+    if (columnAttribute == FstColumnAttribute::INT_32_TIMEINTERVAL_SECONDS)
+    {
+      Rf_classgets(colVec, Rf_mkString("difftime"));
+
+      if (scale == FstTimeScale::SECONDS)
+      {
+        Rf_setAttrib(colVec, Rf_mkString("units"), Rf_mkString("secs"));
+      }
+      else if (scale == FstTimeScale::MINUTES)
+      {
+        Rf_setAttrib(colVec, Rf_mkString("units"), Rf_mkString("mins"));
+      }
+      else if (scale == FstTimeScale::HOURS)
+      {
+        Rf_setAttrib(colVec, Rf_mkString("units"), Rf_mkString("hours"));
+      }
+      else if (scale == FstTimeScale::DAYS)
+      {
+        Rf_setAttrib(colVec, Rf_mkString("units"), Rf_mkString("days"));
+      }
+      else
+      {
+        Rf_warning("Unknown time unit, defaulting to seconds");
+        Rf_setAttrib(colVec, Rf_mkString("units"), Rf_mkString("secs"));
+      }
+
+      return;
+    }
 
     if (columnAttribute == FstColumnAttribute::INT_32_DATE_DAYS)
     {
@@ -285,7 +349,7 @@ public:
       return;
     }
 
-    if (columnAttribute == FstColumnAttribute::INT_32_TIME_SECONDS)
+    if (columnAttribute == FstColumnAttribute::INT_32_TIMESTAMP_SECONDS)
     {
       Rf_classgets(colVec, Rf_mkString("POSIXct"));
       return;
@@ -305,7 +369,7 @@ public:
   void Annotate(std::string annotation)
   {
     // annotation is used to set timezone
-    if (this->columnAttribute == FstColumnAttribute::INT_32_TIME_SECONDS)
+    if (this->columnAttribute == FstColumnAttribute::INT_32_TIMESTAMP_SECONDS)
     {
       if (annotation.length() > 0)
       {

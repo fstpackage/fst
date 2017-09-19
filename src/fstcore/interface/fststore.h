@@ -60,6 +60,7 @@ class FstStore
     unsigned short int* colTypes;
     unsigned short int* colBaseTypes;
     unsigned short int* colAttributeTypes;
+    unsigned short int* colScales;
 
     unsigned int version;
     int nrOfCols, keyLength;
