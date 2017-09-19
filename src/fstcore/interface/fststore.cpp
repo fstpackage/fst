@@ -70,10 +70,12 @@ using namespace std;
 //  4                      | int                | keyLength
 //  4                      | int                | nrOfCols  (duplicate for fast access)
 //
-// First chunk and column metadata
+// Chunk indirections (for multi-chunk fst files)
 //
-//  8                      | unsigned long long | nextHorzChunkSet
-//  8                      | unsigned long long | nextVertChunkSet
+//  8                      | unsigned long long | nextHorzChunkSet  (reference to chunk with column metadata)
+//  8                      | unsigned long long | nextVertChunkSet  (reference to chunk with row data, zero == single chunk)
+//
+// Vertical chunk metadata
 //  8                      | unsigned long long | nrOfRows
 //  4 * keyLength          | int                | keyColPos
 //  4                      | unsigned int       | FST_VERSION
@@ -279,9 +281,10 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
     positionData[colNr] = myfile.tellp();  // current location
   	FstColumnAttribute colAttribute;
   	std::string annotation = "";
+    short int scale;
 
   	// get type and add annotation
-    FstColumnType colType = fstTable.ColumnType(colNr, colAttribute, annotation);
+    FstColumnType colType = fstTable.ColumnType(colNr, colAttribute, scale, annotation);
 
     colBaseTypes[colNr] = static_cast<unsigned short int>(colType);
   	colAttributeTypes[colNr] = static_cast<unsigned short int>(colAttribute);
@@ -645,6 +648,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
     }
 
     unsigned long long pos = blockPos[colNr];
+    short int scale = 0;
 
     switch (colTypes[colNr])
     {
@@ -661,7 +665,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
       // Integer vector
       case 8:
       {
-        IIntegerColumn* integerColumn = columnFactory->CreateIntegerColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]));
+        IIntegerColumn* integerColumn = columnFactory->CreateIntegerColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]), scale);
         std::string annotation = "";
         fdsReadIntVec_v8(myfile, integerColumn->Data(), pos, firstRow, length, nrOfRows, annotation);
         tableReader.SetIntegerColumn(integerColumn, colSel, annotation);
@@ -672,7 +676,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
       // Double vector
       case 9:
       {
-        IDoubleColumn* doubleColumn = columnFactory->CreateDoubleColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]));
+        IDoubleColumn* doubleColumn = columnFactory->CreateDoubleColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]), scale);
         std::string annotation = "";
         fdsReadRealVec_v9(myfile, doubleColumn->Data(), pos, firstRow, length, nrOfRows, annotation);
         tableReader.SetDoubleColumn(doubleColumn, colSel, annotation);
@@ -703,7 +707,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
 	  // integer64 vector
 	  case 11:
 	  {
-	    IInt64Column* int64Column = columnFactory->CreateInt64Column(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]));
+	    IInt64Column* int64Column = columnFactory->CreateInt64Column(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]), scale);
       fdsReadInt64Vec_v11(myfile, int64Column->Data(), pos, firstRow, length, nrOfRows);
 	    tableReader.SetInt64Column(int64Column, colSel);
 	    delete int64Column;

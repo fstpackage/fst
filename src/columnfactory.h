@@ -64,12 +64,12 @@ public:
     return new LogicalColumn(nrOfRows);
   }
 
-  IDoubleColumn* CreateDoubleColumn(int nrOfRows, FstColumnAttribute columnAttribute)
+  IDoubleColumn* CreateDoubleColumn(int nrOfRows, FstColumnAttribute columnAttribute, short int scale)
   {
     return new DoubleColumn(nrOfRows, columnAttribute);
   }
 
-  IIntegerColumn* CreateIntegerColumn(int nrOfRows, FstColumnAttribute columnAttribute)
+  IIntegerColumn* CreateIntegerColumn(int nrOfRows, FstColumnAttribute columnAttribute, short int scale)
   {
     return new IntegerColumn(nrOfRows, columnAttribute);
   }
@@ -79,7 +79,7 @@ public:
     return new ByteColumn(nrOfRows);
   }
 
-  IInt64Column* CreateInt64Column(int nrOfRows, FstColumnAttribute columnAttribute)
+  IInt64Column* CreateInt64Column(int nrOfRows, FstColumnAttribute columnAttribute, short int scale)
   {
     return new Int64Column(nrOfRows, columnAttribute);
   }

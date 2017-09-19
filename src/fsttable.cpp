@@ -81,7 +81,7 @@ unsigned int FstTable::NrOfRows()
 }
 
 
-FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &columnAttribute, std::string &annotation)
+FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &columnAttribute, short int &scale, std::string &annotation)
 {
   SEXP colVec = VECTOR_ELT(*rTable, colNr);  // retrieve column vector
 

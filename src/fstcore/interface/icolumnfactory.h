@@ -45,10 +45,10 @@ public:
   virtual ~IColumnFactory() {};
   virtual IFactorColumn*  CreateFactorColumn(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
   virtual ILogicalColumn* CreateLogicalColumn(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
-  virtual IDoubleColumn* CreateDoubleColumn(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
-  virtual IIntegerColumn* CreateIntegerColumn(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
+  virtual IDoubleColumn* CreateDoubleColumn(int nrOfRows, FstColumnAttribute columnAttribute, short int scale) = 0;
+  virtual IIntegerColumn* CreateIntegerColumn(int nrOfRows, FstColumnAttribute columnAttribute, short int scale) = 0;
   virtual IByteColumn* CreateByteColumn(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
-  virtual IInt64Column* CreateInt64Column(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
+  virtual IInt64Column* CreateInt64Column(int nrOfRows, FstColumnAttribute columnAttribute, short int scale) = 0;
   virtual IStringColumn* CreateStringColumn(int nrOfRows, FstColumnAttribute columnAttribute) = 0;
   virtual IStringArray* CreateStringArray() = 0;
 };
