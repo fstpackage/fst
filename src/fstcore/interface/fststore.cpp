@@ -323,7 +323,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
         break;
       }
 
-      case FstColumnType::BOOL_32:
+      case FstColumnType::BOOL_2:
       {
         colTypes[colNr] = 10;
         int* intP = fstTable.GetLogicalWriter(colNr);

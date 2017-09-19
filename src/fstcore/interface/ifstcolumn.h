@@ -41,18 +41,32 @@
 #include <interface/istringwriter.h>
 
 
+// Column scaling in power of 10
+// Applicable to INT_32, DOUBLE_64 and INT_64 type.
+// Only add to the end to support previous format versions
+#define SCALE_PICO    -12
+#define SCALE_NANO     -9
+#define SCALE_MICRO    -6
+#define SCALE_MILLI    -3
+#define SCALE_UNITY     0
+#define SCALE_KILO      3
+#define SCALE_MEGA      6
+#define SCALE_GIGA      9
+#define SCALE_TERA     12
+
+
 // Column types available in fst
 // Only add to the end to support previous format versions
 enum FstColumnType
 {
 	UNKNOWN = 1,
-	CHARACTER,
-	FACTOR,
-	INT_32,
-	DOUBLE_64,
-	BOOL_32,
-	INT_64,
-	BYTE
+	CHARACTER,    // character vector
+	FACTOR,       // factor with character vector levels (0 = NA)
+	INT_32,       // 32-bit signed integer vector
+	DOUBLE_64,    // 64-bit double vector
+	BOOL_2,       // 2-bit boolean value (00 = false, 01 = true and 10 = NA)
+	INT_64,       // 64-bit signed integer vector
+	BYTE          // byte vector
 };
 
 
@@ -70,7 +84,7 @@ enum FstColumnAttribute
   DOUBLE_64_BASE,          // default double type
   DOUBLE_64_DATE_DAYS,     // number of days since epoch
   DOUBLE_64_TIME_SECONDS,  // number of fractional seconds since epoch. Annotation holds the timezone.
-  BOOL_32_BASE,            // 3 value boolean: 0 (false), 1 (true) and INT_MIN (NA)
+  BOOL_2_BASE,            // 3 value boolean: 0 (false), 1 (true) and INT_MIN (NA)
   INT_64_BASE,             // default int64 type
   INT_64_TIME_NANO,        // number of nanoseconds since epoch
   INT_64_TIME_MICRO,       // number of microseconds since epoch

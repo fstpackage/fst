@@ -25,6 +25,7 @@ r_packages:
   - lintr
   - bit64
   - nanotime
+  - testthat
   - data.table
 
 after_success:

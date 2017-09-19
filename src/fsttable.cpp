@@ -156,8 +156,8 @@ FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &colum
       return FstColumnType::DOUBLE_64;
 
     case LGLSXP:
-      columnAttribute = FstColumnAttribute::BOOL_32_BASE;
-      return FstColumnType::BOOL_32;
+      columnAttribute = FstColumnAttribute::BOOL_2_BASE;
+      return FstColumnType::BOOL_2;
 
     case RAWSXP:
       columnAttribute = FstColumnAttribute::BYTE_BASE;
