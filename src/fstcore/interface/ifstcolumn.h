@@ -82,10 +82,12 @@ enum FstColumnAttribute
   INT_32_TIMESTAMP_SECONDS,       // number of seconds since epoch. Annotation holds the timezone.
   INT_32_TIMEINTERVAL_SECONDS,    // number of fractional seconds between two moments in time.
   INT_32_DATE_DAYS,               // number of days since epoch
+  INT_32_TIME_OF_DAY_SECONDS,     // number of seconds since the start of day [scale is FstTimeScale enum]
   DOUBLE_64_BASE,                 // default double type
   DOUBLE_64_DATE_DAYS,            // number of days since epoch
   DOUBLE_64_TIMESTAMP_SECONDS,    // number of fractional seconds since epoch. Annotation holds the timezone.
   DOUBLE_64_TIMEINTERVAL_SECONDS, // number of fractional seconds between two moments in time [scale is FstTimeScale enum]
+  DOUBLE_64_TIME_OF_DAY_SECONDS,  // number of seconds since the start of day [scale is FstTimeScale enum]
   BOOL_2_BASE,                    // 3 value boolean: 0 (false), 1 (true) and INT_MIN (NA)
   INT_64_BASE,                    // default int64 type
   INT_64_TIME_SECONDS,            // number of seconds since epoch [scale is FstTimeScale enum]

@@ -143,6 +143,13 @@ FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &colum
         return FstColumnType::INT_32;
       }
 
+      if (Rf_inherits(colVec, "ITime"))
+      {
+        columnAttribute = FstColumnAttribute::INT_32_TIME_OF_DAY_SECONDS;
+        scale = FstTimeScale::SECONDS;
+        return FstColumnType::INT_32;
+      }
+
       if (Rf_inherits(colVec, "POSIXct"))
       {
         columnAttribute = FstColumnAttribute::INT_32_TIMESTAMP_SECONDS;
@@ -157,6 +164,13 @@ FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &colum
       return FstColumnType::INT_32;
 
     case REALSXP:
+      if (Rf_inherits(colVec, "ITime"))
+      {
+        columnAttribute = FstColumnAttribute::DOUBLE_64_TIME_OF_DAY_SECONDS;
+        scale = FstTimeScale::SECONDS;
+        return FstColumnType::DOUBLE_64;
+      }
+
       if (Rf_inherits(colVec, "difftime"))
       {
         columnAttribute = FstColumnAttribute::DOUBLE_64_TIMEINTERVAL_SECONDS;
