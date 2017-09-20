@@ -44,12 +44,6 @@ x <- data.table(
   P = as.ITime(Sys.time() + 1:10))
 
 
-test_that("v0.7.2 interface still works", {
-  fstwriteproxy(x, "testdata/meta.fst")
-  fst.metadata("testdata/meta.fst")
-})
-
-
 test_that("Read meta of uncompressed file", {
   fstwriteproxy(x, "testdata/meta.fst")
   y <- fstmetaproxy("testdata/meta.fst")
@@ -91,7 +85,7 @@ test_that("Read meta of sorted file", {
 })
 
 
-test_that("Print meta data without keys", {
+test_that("Print meta data", {
   fstwriteproxy(x, "testdata/meta.fst", compress = 100)
   y <- fstmetaproxy("testdata/meta.fst")
   res <- capture_output(print(fstmetaproxy("testdata/meta.fst")))
@@ -111,34 +105,6 @@ test_that("Print meta data without keys", {
     "* 'K': IDate",
     "* 'L': raw",
     "* 'M': ordered factor",
-    "* 'N': difftime",
-    "* 'O': difftime",
-    "* 'P': ITime",
-    sep = "\n"))
-})
-
-
-test_that("Print meta data without keys", {
-  x$L <- NULL  # remove raw column (can't be sorted)
-  setkey(x, D, M, B)
-  fstwriteproxy(x, "testdata/meta.fst", compress = 100)
-  y <- fstmetaproxy("testdata/meta.fst")
-  res <- capture_output(print(fstmetaproxy("testdata/meta.fst")))
-
-  expect_equal(res, paste(
-    "<fst file>\n10 rows, 15 columns (testdata/meta.fst)\n",
-    "* 'A': integer",
-    "* 'B': logical (key 3)",
-    "* 'C': double",
-    "* 'D': Date (key 1)",
-    "* 'E': character",
-    "* 'F': factor",
-    "* 'G': integer64",
-    "* 'H': nanotime",
-    "* 'I': POSIXct",
-    "* 'J': POSIXct",
-    "* 'K': IDate",
-    "* 'M': ordered factor (key 2)",
     "* 'N': difftime",
     "* 'O': difftime",
     "* 'P': ITime",
