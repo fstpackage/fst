@@ -69,9 +69,9 @@
 
 // fst specific errors
 #define FSTERROR_NOT_IMPLEMENTED     "Feature not implemented yet"
-#define FSTERROR_ERROR_OPENING_FILE  "Error opening fst stream"
+#define FSTERROR_ERROR_OPENING_FILE  "Error opening fst file for reading, please check access rights and file availability"
 #define FSTERROR_NO_APPEND           "This version of the fst file format does not allow appending data"
-#define FSTERROR_DAMAGED_HEADER      "Error reading file header, your fst file is incomplete or damaged"
+#define FSTERROR_DAMAGED_HEADER      "It seems the file header was damaged or incomplete"
 #define FSTERROR_INCORRECT_COL_COUNT "Data frame has an incorrect amount of columns"
 #define FSTERROR_NON_FST_FILE        "File format was not recognised as a fst file"
 

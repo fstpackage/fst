@@ -456,12 +456,12 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
   ifstream myfile;
   char ioBuf[4096];
   myfile.rdbuf()->pubsetbuf(ioBuf, 4096);
-  myfile.open(fstFile.c_str(), ios::binary);
+  myfile.open(fstFile.c_str(), ios::in | ios::binary);  // only nead an input stream reader
 
   if (myfile.fail())
   {
     myfile.close();
-    throw(runtime_error("There was an error opening the fst file, please check for a correct path."));
+    throw(runtime_error(FSTERROR_ERROR_OPENING_FILE));
   }
 
   unsigned int metaHash;
