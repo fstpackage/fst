@@ -191,3 +191,14 @@ test_that("erroneous compressed data", {
   expect_true(hash1 != hash2)
   expect_true(hash1 != hash3)
 })
+
+
+
+test_that("argument error", {
+  expect_error(fstcompress(1), "Parameter x is not set to a raw vector")
+
+  expect_error(fsthash(as.raw(1), "no integer"), "Please specify an integer value for the hash seed")
+
+  expect_error(fsthash(1), "Please specify a raw vector as input parameter x")
+
+})
