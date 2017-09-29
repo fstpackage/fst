@@ -82,5 +82,5 @@ void fdsReadByteVec_v12(istream &myfile, char* byteVec, unsigned long long block
 {
   std::string annotation;
 
-  return fdsReadColumn_v2(myfile, byteVec, blockPos, startRow, length, size, 1, annotation);
+  return fdsReadColumn_v2(myfile, byteVec, blockPos, startRow, length, size, 1, annotation, BATCH_SIZE_READ_BYTE);
 }

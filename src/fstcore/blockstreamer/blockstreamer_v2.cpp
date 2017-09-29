@@ -160,7 +160,7 @@ void fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLengt
 }
 
 
-#define BATCH_SIZE 50
+#define BATCH_SIZE_WRITE 25
 
 // Method for writing column data of any type to a stream.
 void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRows, int elementSize,
@@ -209,7 +209,7 @@ void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRow
   // last block might be smaller than blockSize
 
   int nrOfThreads = max(1, min(GetFstThreads(), nrOfBlocks));
-  int batchSize = min(BATCH_SIZE, nrOfBlocks / nrOfThreads);  // keep thread buffer small
+  int batchSize = min(BATCH_SIZE_WRITE, nrOfBlocks / nrOfThreads);  // keep thread buffer small
   batchSize = max(1, batchSize);
   char* threadBuffer = new char[nrOfThreads * MAX_COMPRESSBOUND * batchSize];
   int nrOfBatches = nrOfBlocks / batchSize;  // number of complete batches with complete blocks
@@ -223,8 +223,8 @@ void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRow
 #pragma omp for ordered schedule(static, 1)
 		  for (int batch = 0; batch < nrOfBatches; batch++)
 		  {
-			  unsigned int compSize[BATCH_SIZE];
-			  unsigned int blockAlgorithm[BATCH_SIZE];
+			  unsigned int compSize[BATCH_SIZE_WRITE];
+			  unsigned int blockAlgorithm[BATCH_SIZE_WRITE];
 
 			  int threadNr = OMP_GET_THREAD_NUM;  // use memory buffer specific for this thread
 
@@ -439,9 +439,9 @@ inline void fdsReadFixedCompStream_v2(istream &myfile, char* outVec, unsigned lo
   memcpy(&outP[activeBlockPos + lastBlockSize - repSize], buf, elementSize * nrOfElemsLastRep);  // skip last elements if required
 }
 
-#define UNCOMPRESSED_BLOCKSIZE 1073741824  // 1 GB default block
+#define UNCOMPRESSED_BLOCKSIZE 262144  // reading in small block is more efficient (probably more efficient L3 caching)
 
-inline void ProcessBatch(char* outVec, char* blockIndex, int blockSize, Decompressor decompressor, uint64_t outOffset, bool isAlligned, int blockStart, int blockEnd, unsigned long long*& bStart, unsigned long long*& bEnd, char* threadBuf)
+void ProcessBatch(char* outVec, char* blockIndex, int blockSize, Decompressor decompressor, uint64_t outOffset, bool isAlligned, int blockStart, int blockEnd, unsigned long long*& bStart, unsigned long long*& bEnd, char* threadBuf)
 {
 	unsigned long long totSize = 0;
 	for (int blockCount = blockStart; blockCount < blockEnd; blockCount++)
@@ -472,7 +472,7 @@ inline void ProcessBatch(char* outVec, char* blockIndex, int blockSize, Decompre
 }
 
 void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size,
-  int elementSize, std::string &annotation)
+  int elementSize, std::string &annotation, int maxbatchSize)
 {
   myfile.seekg(blockPos);
 
@@ -505,6 +505,10 @@ void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
 			if (startRow > 0) myfile.seekg(blockPos + elementSize * startRow + COL_META_SIZE);
 
 			uint64_t totBytes = static_cast<uint64_t>(length) * elementSize;
+
+      // just read in one single block
+      //myfile.read(outVec, totBytes);
+
 			uint64_t nrOfBlocks = (totBytes - 1) / UNCOMPRESSED_BLOCKSIZE;  // all but last block
 			uint64_t remainingBytes = totBytes - nrOfBlocks * UNCOMPRESSED_BLOCKSIZE;  // last block
 			uint64_t curBlockPos = 0;
@@ -646,64 +650,66 @@ void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
 	maxBlock--;  // decrement to get number of full blocks
 
 	int nrOfThreads = max(1, min(GetFstThreads(), maxBlock));
-	int batchSize = min(BATCH_SIZE, maxBlock / nrOfThreads);  // keep thread buffer small
+	int batchSize = min(maxbatchSize, maxBlock / nrOfThreads);  // keep thread buffer small
 	batchSize = max(1, batchSize);
 	char* threadBuffer = new char[nrOfThreads * MAX_COMPRESSBOUND * batchSize];
 	int nrOfBatches = (maxBlock + batchSize - 1) / batchSize;  // number of batches (last one may be smaller)
-	int blockBatch = 0;  // counter of batch job
+  int blockCount = 0;
 
 	//if (nrOfBatches > 0)
 	//{
 
-	//////////////////////////////////////////////////////////
-	// Parallel logic starts here
-	//////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  // Parallel logic starts here
+  //////////////////////////////////////////////////////////
 
-#pragma omp parallel num_threads(nrOfThreads) shared(isAlligned,nrOfBatches,blockBatch,batchSize)
-	{
+#pragma omp parallel num_threads(nrOfThreads) shared(isAlligned,nrOfBatches,batchSize,blockCount)
+  {
 #pragma omp for schedule(static, 1) nowait
-		for (int blockJob = 0; blockJob < nrOfBatches; blockJob++)  // a blockJob is a single unit of work
-		{
-			int threadNr = OMP_GET_THREAD_NUM;  // use memory buffer specific for this thread
+    for (int blockJob = 0; blockJob < nrOfBatches; blockJob++)  // a blockJob is a single unit of work
+    {
+      int threadNr = OMP_GET_THREAD_NUM;  // use memory buffer specific for this thread
 
-			int blockStart, blockEnd;
-			unsigned long long  *bStart, *bEnd;
-			unsigned long long curCompSize;
-			char* threadBuf;
-			int curBatchSize = batchSize;
+      int blockEnd;
+      unsigned long long  *bStart, *bEnd;
+      char* threadBuf;
+      int curBatchSize = batchSize;
+      int blockStart;
 
 #pragma omp critical
-			{
-				// last batch might have a smaller size
-				if (blockBatch == (nrOfBatches - 1))
-				{
-					curBatchSize = batchSize - (nrOfBatches * batchSize % maxBlock);
-				}
+      {
+        blockStart = 1 + blockCount * batchSize;
+        bStart = reinterpret_cast<unsigned long long*>(&blockIndex[8 * blockStart]);
 
-				blockStart = 1 + blockBatch * batchSize;
-				blockEnd = blockStart + curBatchSize;
+        // last batch might have a smaller size
+        if (blockCount == (nrOfBatches - 1))
+        {
+          curBatchSize = batchSize - (nrOfBatches * batchSize % maxBlock);
+        }
 
-				// determine total length of compressed blocks in batch
-				bStart = reinterpret_cast<unsigned long long*>(&blockIndex[8 * blockStart]);
-				bEnd = reinterpret_cast<unsigned long long*>(&blockIndex[8 * blockEnd]);
-				curCompSize = (*bEnd & BLOCK_POS_MASK) - (*bStart & BLOCK_POS_MASK);
+        blockEnd = blockStart + curBatchSize;
 
-				threadBuf = &threadBuffer[threadNr * MAX_COMPRESSBOUND * batchSize];
-				myfile.read(threadBuf, curCompSize);  // always cache in  threadBuf first (non zero copy for uncompressed blocks)
-				blockBatch++;
-			}
+        // determine total length of compressed blocks in batch
+        blockCount++;
+        bEnd = reinterpret_cast<unsigned long long*>(&blockIndex[8 * blockEnd]);
+        unsigned long long curCompSize = (*bEnd & BLOCK_POS_MASK) - (*bStart & BLOCK_POS_MASK);
 
-			// Decompress all blocks into output vector
+        threadBuf = &threadBuffer[threadNr * MAX_COMPRESSBOUND * batchSize];  // MAX_COMPRESSBOUND is adjusted to 16-byte allignment
 
-			ProcessBatch(outVec, blockIndex, blockSize, decompressor, outOffset, isAlligned, blockStart, blockEnd, bStart, bEnd, threadBuf);
-		}
-	}
+        myfile.read(threadBuf, curCompSize);  // always cache in threadBuf first (non zero copy for uncompressed blocks)
+      }
 
-	delete[] threadBuffer;
+      // Decompress all blocks into output vector
 
-	//////////////////////////////////////////////////////////
-	// Parallel logic ends here
-	//////////////////////////////////////////////////////////
+      ProcessBatch(outVec, blockIndex, blockSize, decompressor, outOffset, isAlligned, blockStart, blockEnd, bStart, bEnd, threadBuf);
+    }
+  }
+
+  delete[] threadBuffer;
+
+  //////////////////////////////////////////////////////////
+  // Parallel logic ends here
+  //////////////////////////////////////////////////////////
 
 	outOffset += maxBlock * blockSize;
 	maxBlock++;

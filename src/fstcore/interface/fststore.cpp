@@ -239,9 +239,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
 
   // Create file, set fast local buffer and open
   ofstream myfile;
-  char ioBuf[4096];
-  myfile.rdbuf()->pubsetbuf(ioBuf, 4096);  // workaround for memory leak in ofstream
-  myfile.open(fstFile.c_str(), ios::binary);
+  myfile.open(fstFile.c_str(), ios::out | ios::binary);
 
   if (myfile.fail())
   {
@@ -395,9 +393,7 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
 {
   // fst file stream using a stack buffer
   ifstream myfile;
-  char ioBuf[4096];
-  myfile.rdbuf()->pubsetbuf(ioBuf, 4096);
-  myfile.open(fstFile.c_str(), ios::binary);
+  myfile.open(fstFile.c_str(), ios::in | ios::binary);
 
   if (myfile.fail())
   {
@@ -454,8 +450,6 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
 {
   // fst file stream using a stack buffer
   ifstream myfile;
-  char ioBuf[4096];
-  myfile.rdbuf()->pubsetbuf(ioBuf, 4096);
   myfile.open(fstFile.c_str(), ios::in | ios::binary);  // only nead an input stream reader
 
   if (myfile.fail())

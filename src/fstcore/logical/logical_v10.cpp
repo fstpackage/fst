@@ -94,5 +94,5 @@ void fdsReadLogicalVec_v10(istream &myfile, int* boolVector, unsigned long long 
   unsigned int length, unsigned int size)
 {
   std::string annotation;
-  return fdsReadColumn_v2(myfile, (char*) boolVector, blockPos, startRow, length, size, 4, annotation);
+  return fdsReadColumn_v2(myfile, (char*) boolVector, blockPos, startRow, length, size, 4, annotation, BATCH_SIZE_READ_LOGICAL);
 }

@@ -51,7 +51,7 @@ void fdsStreamcompressed_v2(std::ofstream &myfile, char* colVec, unsigned int nr
 
 
 void fdsReadColumn_v2(std::istream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size,
-  int elementSize, std::string &annotation);
+  int elementSize, std::string &annotation, int maxbatchSize);
 
 
 #endif // BLOCKSTORE_H

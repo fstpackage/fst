@@ -228,7 +228,7 @@ void fdsReadFactorVec_v7(istream &myfile, IStringColumn* blockReader, int* intP,
   // Read level values
   std::string annotation;
 
-  fdsReadColumn_v2(myfile, (char*) intP, *levelVecPos, startRow, length, size, 4, annotation);
+  fdsReadColumn_v2(myfile, (char*) intP, *levelVecPos, startRow, length, size, 4, annotation, BATCH_SIZE_READ_FACTOR);
 
   return;
 }

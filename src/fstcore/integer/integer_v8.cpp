@@ -81,5 +81,5 @@ void fdsWriteIntVec_v8(ofstream &myfile, int* integerVector, unsigned int nrOfRo
 void fdsReadIntVec_v8(istream &myfile, int* integerVec, unsigned long long blockPos, unsigned int startRow, unsigned int length,
   unsigned int size, std::string &annotation)
 {
-  return fdsReadColumn_v2(myfile, reinterpret_cast<char*>(integerVec), blockPos, startRow, length, size, 4, annotation);
+  return fdsReadColumn_v2(myfile, reinterpret_cast<char*>(integerVec), blockPos, startRow, length, size, 4, annotation, BATCH_SIZE_READ_INT);
 }

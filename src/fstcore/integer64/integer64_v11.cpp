@@ -82,5 +82,5 @@ void fdsReadInt64Vec_v11(istream &myfile, long long* int64Vector, unsigned long 
 {
   std::string annotation;
 
-  return fdsReadColumn_v2(myfile, reinterpret_cast<char*>(int64Vector), blockPos, startRow, length, size, 8, annotation);
+  return fdsReadColumn_v2(myfile, reinterpret_cast<char*>(int64Vector), blockPos, startRow, length, size, 8, annotation, BATCH_SIZE_READ_INT64);
 }

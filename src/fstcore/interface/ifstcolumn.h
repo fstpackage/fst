@@ -95,10 +95,18 @@ enum FstColumnAttribute
 };
 
 
-// Column types available in fst
+// Default scale
+// Only add to the end to support previous format versions
+enum FstScale
+{
+  UNIT = 0
+};
+
+
+// Available time scales
 // Only add to the end to support previous format versions
 enum FstTimeScale
-{
+  {
   NANOSECONDS = 1,
   MICROSECONDS,
   MILLISECONDS,
