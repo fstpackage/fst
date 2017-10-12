@@ -2,7 +2,7 @@ Package: fst
 Type: Package
 Title: Lightning Fast Serialization of Data Frames for R
 Version: 0.7.3
-Date: 2017-09-29
+Date: 2017-01-11
 Author: Mark Klik
 Maintainer: Mark Klik <markklik@gmail.com>
 Description: Read and write data frames at high speed. Compress your data with fast and efficient type-optimized algorithms that allow for random access of stored data frames (columns and rows).

@@ -127,7 +127,7 @@ void fdsWriteCharVec_v6(ofstream &myfile, IStringWriter* stringWriter, int compr
     unsigned int* isCompressed  = reinterpret_cast<unsigned int*>(meta);
     unsigned int* blockSizeChar = reinterpret_cast<unsigned int*>(&meta[4]);
     *blockSizeChar = BLOCKSIZE_CHAR;  // check why 2047 and not 2048
-	*isCompressed = stringEncoding << 1;
+  	*isCompressed = stringEncoding << 1;
 
     myfile.write(meta, metaSize);  // write block offset index
 

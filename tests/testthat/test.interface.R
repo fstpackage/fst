@@ -11,7 +11,6 @@ if (!file.exists("testdata")) {
 
 
 x <- data.table(A = 1:10, B = sample(c(TRUE, FALSE, NA), 10, replace = TRUE))
-xkey <- readRDS("keyedTable.rds")  # import keyed table to avoid memory leaks in data.table (LeakSanitizer)
 
 test_that("From unkeyed data.table to data.table", {
   fstwriteproxy(x, "testdata/nokey.fst")
@@ -26,6 +25,8 @@ test_that("From unkeyed data.table to data.table", {
   z <- fstmetaproxy("testdata/nokey.fst")  # expect no error
 })
 
+
+xkey <- readRDS("keyedTable.rds")  # import keyed table to avoid memory leaks in data.table (LeakSanitizer)
 
 test_that("From keyed data.table to data.table", {
   fstwriteproxy(xkey, "testdata/key.fst")

@@ -55,63 +55,90 @@
 
 #include <ZSTD/common/xxhash.h>
 
-
 using namespace std;
 
 
+// Table header [node A] [size: 44]
+//
+//  8                      | unsigned long long | hash value         // hash of table header
+//  4                      | unsigned int       | FST_VERSION        // table header fstcore version
+//  4                      | int                | table flags        // binary table flags
+//  8                      |                    | free bytes         // possible future use
+//  4                      | unsigned int       | FST_VERSION_MAX    // minimum fstcore version required
+//  4                      | int                | nrOfCols           // total number of columns in primary chunkset
+//  8                      | unsigned long long | primaryChunkSetLoc // reference to the table's primary chunkset
+//  4                      | int                | keyLength          // number of keys in table
 
-// Table metadata
+// Key index vector (only needed when keyLength > 0) [attached leaf of A] [size: 8 + 4 * keyLength]
 //
-//  NR OF BYTES            | TYPE               | VARIABLE NAME
+//  8                      | unsigned long long | hash value         // hash of key index vector (if present)
+//  4 * keyLength          | int                | keyColPos          // key column indexes in the first horizontal chunk
+
+// Chunkset header [node C, free leaf of A or other chunkset header] [size: 76 + 8 * nrOfCols]
 //
-//  8                      | unsigned long long | FST_FILE_ID
+//  8                      | unsigned long long | hash value         // hash of chunkset header
 //  4                      | unsigned int       | FST_VERSION
-//  4                      | int                | header hash
-//  4                      | int                | keyLength
-//  4                      | int                | nrOfCols  (duplicate for fast access)
+//  4                      | int                | chunkset flags     // binary horizontal chunk flags
+//  8                      |                    | free bytes         // possible future use
+//  8                      |                    | free bytes         // possible future use
+//  8                      | unsigned long long | colNamesPos        // reference to column names vector
+//  8                      | unsigned long long | nextHorzChunkSet   // reference to next chunkset header (additional columns)
+//  8                      | unsigned long long | primChunksetIndex  // reference to primary chunkset data (nrOfCols columns)
+//  8                      | unsigned long long | secChunksetIndex   // reference to primary chunkset data (nrOfCols columns)
+//  8                      | unsigned long long | nrOfRows           // total number of rows in chunkset
+//  4                      | int                | p_nrOfChunksetCols // number of columns in primary chunkset
+//  2 * nrOfCols           | unsigned short int | colAttributesType  // column attributes
+//  2 * nrOfCols           | unsigned short int | colTypes           // column types
+//  2 * nrOfCols           | unsigned short int | colBaseTypes       // column base types
+//  2 * nrOfCols           | unsigned short int | colScales          // column scales (pico, nano, micro, milli, kilo, mega, giga, tera etc.)
+
+// Column names [leaf to C]  [size: 24 + x]
 //
-// Chunk indirections (for multi-chunk fst files)
-//
-//  8                      | unsigned long long | nextHorzChunkSet  (reference to chunk with column metadata)
-//  8                      | unsigned long long | empty, for future expansions (key table?)
-//
-// Vertical chunk metadata
-//  8                      | unsigned long long | nrOfRows
-//  4 * keyLength          | int                | keyColPos
+//  8                      | unsigned long long | hash value         // hash of column names header
 //  4                      | unsigned int       | FST_VERSION
-//  4                      | int                | nrOfCols
-//  2 * nrOfCols           | unsigned short int | colAttributesType
-//  2 * nrOfCols           | unsigned short int | colTypes
-//  2 * nrOfCols           | unsigned short int | colBaseTypes
-//  2 * nrOfCols           | unsigned short int | colScales          // use for pico, nano, micro, milli, kilo, mega, giga, tera etc.
+//  4                      | int                | colNames flags     // binary horizontal chunk flags
+//  8                      |                    | free bytes         // possible future use
+//  x                      | char               | colNames           // column names (internally hashed)
+
+// Chunk index [node D, leaf of C] [size: 96]
 //
-// Column names
+//  8                      | unsigned long long | hash value         // hash of chunkset data header
+//  4                      | unsigned int       | FST_VERSION
+//  4                      | int                | index flags        // binary horizontal chunk flags
+//  8                      |                    | free bytes         // possible future use
+//  2                      | unsigned int       | nrOfChunkSlots     // number of chunk slots
+//  6                      |                    | free bytes         // possible future use
+//  8 * 4                  | unsigned long long | chunkPos           // data chunk addresses
+//  8 * 4                  | unsigned long long | chunkRows          // data chunk number of rows
+
+// Data chunk header [node E, leaf of D] [size: 24 + 8 * nrOfCols]
 //
-//  x                      | char               | colNames
+//  8                      | unsigned long long | hash value         // hash of chunkset data header
+//  4                      | unsigned int       | FST_VERSION
+//  4                      | int                | data chunk flags
+//  8                      |                    | free bytes         // possible future use
+//  8 * nrOfCols           | unsigned long long | positionData       // columnar position data
 //
-// Data chunkset index
-//
-//  8 * 8 (index rows)     | unsigned long long | chunkPos
-//  8 * 8 (index rows)     | unsigned long long | chunkRows
-//  8                      | unsigned long long | nrOfChunksPerIndexRow
-//  8                      | unsigned long long | nrOfChunks
-//
-// Data chunk columnar position data
-//
-//  8 * nrOfCols           | unsigned long long | positionData
-//
-//
+
+// Column data blocks [leaf of E]
+//  y                      |                    | column data        // data blocks with column element values
+
 
 FstStore::FstStore(std::string fstFile)
 {
   this->fstFile = fstFile;
-  metaDataBlock = nullptr;
-  blockReader = nullptr;
+  this->blockReader = nullptr;
 }
 
 
-// Read header information
-inline unsigned int ReadHeader(ifstream &myfile, unsigned int &metaHash, int &keyLength, int &nrOfColsFirstChunk)
+/**
+ * \brief Read header information from a fst file
+ * \param myfile a stream to a fst file
+ * \param keyLength the number of key columns (output)
+ * \param nrOfColsFirstChunk the number of columns in the first chunkset (output)
+ * \return 
+ */
+inline unsigned int ReadHeader(ifstream &myfile, int &keyLength, int &nrOfColsFirstChunk)
 {
   // Get meta-information for table
   char tableMeta[TABLE_META_SIZE];
@@ -123,32 +150,35 @@ inline unsigned int ReadHeader(ifstream &myfile, unsigned int &metaHash, int &ke
     throw(runtime_error("Error reading file header, your fst file is incomplete or damaged."));
   }
 
+  unsigned long long* p_headerHash = reinterpret_cast<unsigned long long*>(tableMeta);
+  //unsigned int* p_tableVersion = reinterpret_cast<unsigned int*>(&tableMeta[8]);
+  //int* p_tableFlags = reinterpret_cast<int*>(&tableMeta[12]);
+  //unsigned long long* p_freeBytes1 = reinterpret_cast<unsigned long long*>(&tableMeta[16]);
+  unsigned int* p_tableVersionMax = reinterpret_cast<unsigned int*>(&tableMeta[24]);
+  int* p_nrOfCols = reinterpret_cast<int*>(&tableMeta[28]);
+  //unsigned long long* primaryChunkSetLoc = reinterpret_cast<unsigned long long*>(&tableMeta[32]);
+  int* p_keyLength = reinterpret_cast<int*>(&tableMeta[40]);
+ 
+  // check header hash
+  unsigned long long hHash = XXH64(&tableMeta[8], TABLE_META_SIZE - 8, FST_HASH_SEED);  // skip first 8 bytes (hash value itself)
 
-  unsigned long long* p_fstFileID = reinterpret_cast<unsigned long long*>(tableMeta);
-  unsigned int* p_table_version   = reinterpret_cast<unsigned int*>(&tableMeta[8]);
-
-  unsigned int* p_metaHash        = reinterpret_cast<unsigned int*>(&tableMeta[12]);
-  int* p_keyLength                = reinterpret_cast<int*>(&tableMeta[16]);
-  int* p_nrOfColsFirstChunk       = reinterpret_cast<int*>(&tableMeta[20]);
-
-  metaHash           = *p_metaHash;
-  keyLength          = *p_keyLength;
-  nrOfColsFirstChunk = *p_nrOfColsFirstChunk;
-
-  // Without a proper file ID, we may be looking at a fst v0.7.2 file format
-  if (*p_fstFileID != FST_FILE_ID)
+  if (hHash != *p_headerHash)
   {
-    return 0;
+    myfile.close();
+    throw(runtime_error(FSTERROR_DAMAGED_HEADER));
   }
 
   // Compare file version with current
-  if (*p_table_version > FST_VERSION)
+  if (*p_tableVersionMax > FST_VERSION)
   {
     myfile.close();
-    throw(runtime_error("Incompatible fst file: file was created by a newer version of the fst package."));
+    throw(runtime_error(FSTERROR_UPDATE_FST));
   }
 
-  return *p_table_version;
+  keyLength          = *p_keyLength;
+  nrOfColsFirstChunk = *p_nrOfCols;
+
+  return *p_tableVersionMax;
 }
 
 
@@ -173,11 +203,16 @@ inline void SetKeyIndex(vector<int> &keyIndex, int keyLength, int nrOfSelect, in
 }
 
 
+/**
+ * \brief Write a dataset to a fst file
+ * \param fstTable interface to a dataset
+ * \param compress compression factor in the range 0 - 100 
+ */
 void FstStore::fstWrite(IFstTable &fstTable, int compress) const
 {
   // Meta on dataset
-  int nrOfCols =  fstTable.NrOfColumns();
-  int keyLength = fstTable.NrOfKeys();
+  int nrOfCols =  fstTable.NrOfColumns();  // number of columns in table
+  int keyLength = fstTable.NrOfKeys();  // number of key columns in table
 
   if (nrOfCols == 0)
   {
@@ -185,95 +220,180 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
   }
 
 
-  // Table meta information
-  unsigned long long metaDataSize        = 56 + 4 * keyLength + 8 * nrOfCols;  // see index above
-  char* metaDataBlock                    = new char[metaDataSize];
+  unsigned long long tableHeaderSize    = 44;
+  unsigned long long keyIndexHeaderSize = 0;
 
-  unsigned long long* fstFileID          = (unsigned long long*) metaDataBlock;
-  unsigned int* p_table_version          = (unsigned int*) &metaDataBlock[8];
-  unsigned int* headerHash               = (unsigned int*) &metaDataBlock[12];
-  int* p_keyLength                       = (int*) &metaDataBlock[16];
-  int* p_nrOfColsFirstChunk              = (int*) &metaDataBlock[20];
+  if (keyLength != 0)
+  {
+    keyIndexHeaderSize = 4 * (keyLength + 2);  // size of key index vector and hash
+  }
 
-  unsigned long long* p_nextHorzChunkSet = (unsigned long long*) &metaDataBlock[24];
-  unsigned long long* p_emptySlot        = (unsigned long long*) &metaDataBlock[32];
-  unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[40];
+  unsigned long long chunksetHeaderSize = CHUNKSET_HEADER_SIZE + 8 * nrOfCols;
+  unsigned long long colNamesHeaderSize = 24;
 
-  int* keyColPos                         = (int*) &metaDataBlock[48];
-
-  unsigned int offset = 48 + 4 * keyLength;
-
-  unsigned int* p_version                = (unsigned int*) &metaDataBlock[offset];
-  int* p_nrOfCols                        = (int*) &metaDataBlock[offset + 4];
-  unsigned short int* colAttributeTypes  = (unsigned short int*) &metaDataBlock[offset + 8];
-  unsigned short int* colTypes           = (unsigned short int*) &metaDataBlock[offset + 8 + 2 * nrOfCols];
-  unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[offset + 8 + 4 * nrOfCols];
-  short int* colScales                   = (short int*) &metaDataBlock[offset + 8 + 6 * nrOfCols];          // column's order of magnitude
-
-  // Get key column positions
-  fstTable.GetKeyColumns(keyColPos);
-
-  *fstFileID            = FST_FILE_ID;
-  *p_table_version      = FST_VERSION;
-  *p_keyLength          = keyLength;
-  *p_nrOfColsFirstChunk = nrOfCols;
-
-  *p_nextHorzChunkSet   = 0;
-  *p_emptySlot          = 0;            // reserved for future use
-  *p_version            = FST_VERSION;
-  *p_nrOfCols           = nrOfCols;
+  // size of fst file header
+  unsigned long long metaDataSize = tableHeaderSize + keyIndexHeaderSize + chunksetHeaderSize + colNamesHeaderSize;
+  char* metaDataBlock             = new char[metaDataSize];  // fst metadata
 
 
-  // data.frame code here for stability!
+  // Table header [node A] [size: 44]
 
-  int nrOfRows = fstTable.NrOfRows();
-  *p_nrOfRows = nrOfRows;
+  unsigned long long* p_headerHash        = reinterpret_cast<unsigned long long*>(metaDataBlock);
+  unsigned int* p_tableVersion            = reinterpret_cast<unsigned int*>(&metaDataBlock[8]);
+  int* p_tableFlags                       = reinterpret_cast<int*>(&metaDataBlock[12]);
+  unsigned long long* p_freeBytes1        = reinterpret_cast<unsigned long long*>(&metaDataBlock[16]);
+  unsigned int* p_tableVersionMax         = reinterpret_cast<unsigned int*>(&metaDataBlock[24]);
+  int* p_nrOfCols                         = reinterpret_cast<int*>(&metaDataBlock[28]);
+  unsigned long long* primaryChunkSetLoc  = reinterpret_cast<unsigned long long*>(&metaDataBlock[32]);
+  int* p_keyLength                        = reinterpret_cast<int*>(&metaDataBlock[40]);
 
+  // Key index vector (only needed when keyLength > 0) [attached leaf of A] [size: 8 + 4 * keyLength]
+
+  unsigned long long* p_keyIndexHash      = reinterpret_cast<unsigned long long*>(&metaDataBlock[44]);
+  int* keyColPos                          = reinterpret_cast<int*>(&metaDataBlock[52]);
+
+  // Chunkset header [node C, free leaf of A or other chunkset header] [size: 76 + 8 * nrOfCols]
+
+  unsigned int offset = tableHeaderSize + keyIndexHeaderSize;
+  unsigned long long* p_chunksetHash      = reinterpret_cast<unsigned long long*>(&metaDataBlock[offset]);
+  unsigned int* p_chunksetHeaderVersion   = reinterpret_cast<unsigned int*>(&metaDataBlock[offset + 8]);
+  int* p_chunksetFlags                    = reinterpret_cast<int*>(&metaDataBlock[offset + 12]);
+  unsigned long long* p_freeBytes2        = reinterpret_cast<unsigned long long*>(&metaDataBlock[offset + 16]);
+  unsigned long long* p_freeBytes3        = reinterpret_cast<unsigned long long*>(&metaDataBlock[offset + 24]);
+  unsigned long long* p_colNamesPos       = reinterpret_cast<unsigned long long*>(&metaDataBlock[offset + 32]);
+
+  unsigned long long* p_nextHorzChunkSet  = reinterpret_cast<unsigned long long*>(&metaDataBlock[offset + 40]);
+  unsigned long long* p_primChunksetIndex = reinterpret_cast<unsigned long long*>(&metaDataBlock[offset + 48]);
+  unsigned long long* p_secChunksetIndex  = reinterpret_cast<unsigned long long*>(&metaDataBlock[offset + 56]);
+  unsigned long long* p_nrOfRows          = reinterpret_cast<unsigned long long*>(&metaDataBlock[offset + 64]);
+  int* p_nrOfChunksetCols                 = reinterpret_cast<int*>(&metaDataBlock[offset + 72]);
+
+  unsigned short int* colAttributeTypes   = reinterpret_cast<unsigned short int*>(&metaDataBlock[offset + 76]);
+  unsigned short int* colTypes            = reinterpret_cast<unsigned short int*>(&metaDataBlock[offset + 76 + 2 * nrOfCols]);
+  unsigned short int* colBaseTypes        = reinterpret_cast<unsigned short int*>(&metaDataBlock[offset + 76 + 4 * nrOfCols]);
+  unsigned short int* colScales           = reinterpret_cast<unsigned short int*>(&metaDataBlock[offset + 76 + 6 * nrOfCols]);
+
+  // Column names [leaf to C]  [size: 24 + x]
+
+  offset = offset + chunksetHeaderSize;
+  unsigned long long* p_colNamesHash      = reinterpret_cast<unsigned long long*>(&metaDataBlock[offset]);
+  unsigned int* p_colNamesVersion         = reinterpret_cast<unsigned int*>(&metaDataBlock[offset + 8]);
+  int* p_colNamesFlags                    = reinterpret_cast<int*>(&metaDataBlock[offset + 12]);
+  unsigned long long* p_freeBytes4        = reinterpret_cast<unsigned long long*>(&metaDataBlock[offset + 16]);
+
+
+  // Set table header parameters
+  
+  *p_tableVersion          = FST_VERSION;
+  *p_tableFlags            = 0;
+  *p_freeBytes1            = 0;
+  *p_tableVersionMax       = FST_VERSION;
+
+  *p_nrOfCols              = nrOfCols;
+  *primaryChunkSetLoc      = 52 + 4 * keyLength;
+  *p_keyLength             = keyLength;
+
+  *p_headerHash = XXH64(&metaDataBlock[8], tableHeaderSize - 8, FST_HASH_SEED);
+
+  // Set key index if present
+
+  if (keyLength != 0)
+  {
+    fstTable.GetKeyColumns(keyColPos);
+    *p_keyIndexHash = XXH64(&metaDataBlock[tableHeaderSize + 8], keyIndexHeaderSize - 8, FST_HASH_SEED);
+  }
+
+  *p_chunksetHeaderVersion = FST_VERSION;
+  *p_chunksetFlags         = 0;
+  *p_freeBytes2            = 0;
+  *p_freeBytes3            = 0;
+  *p_colNamesPos           = 0;
+  *p_nextHorzChunkSet      = 0;
+  *p_primChunksetIndex     = 0;
+  *p_secChunksetIndex      = 0;
+
+  int nrOfRows             = fstTable.NrOfRows();
+  *p_nrOfRows              = nrOfRows;
+  *p_nrOfChunksetCols      = nrOfCols;
+
+  // Set column names header
+
+  *p_colNamesVersion       = FST_VERSION;
+  *p_colNamesFlags         = 0;
+  *p_freeBytes4            = 0;
 
   if (nrOfRows == 0)
   {
     delete[] metaDataBlock;
-    throw(runtime_error("The dataset contains no data."));
+    throw(runtime_error(FSTERROR_NO_DATA));
   }
 
+  *p_colNamesHash = XXH64(p_colNamesVersion, colNamesHeaderSize - 8, FST_HASH_SEED);
 
-  // Create file, set fast local buffer and open
+
+  // Open file with default buffer
   ofstream myfile;
-  myfile.open(fstFile.c_str(), ios::out | ios::binary);
+  myfile.open(fstFile.c_str(), ios::out | ios::binary);  // write stream only
 
   if (myfile.fail())
   {
     delete[] metaDataBlock;
     myfile.close();
-    throw(runtime_error("There was an error creating the file. Please check for a correct filename."));
+    throw(runtime_error(FSTERROR_ERROR_OPEN_WRITE));
   }
 
-
   // Write table meta information
-  myfile.write((char*)(metaDataBlock), metaDataSize);  // table meta data
+  myfile.write(metaDataBlock, metaDataSize);  // table meta data
 
   // Serialize column names
   IStringWriter* blockRunner = fstTable.GetColNameWriter();
   fdsWriteCharVec_v6(myfile, blockRunner, 0, StringEncoding::NATIVE);   // column names
   delete blockRunner;
 
-  // Vertical chunkset index or index of index
-  char* chunkIndex = new char[CHUNK_INDEX_SIZE + 8 * nrOfCols];
 
-  unsigned long long* chunkPos                = (unsigned long long*) chunkIndex;
-  unsigned long long* chunkRows               = (unsigned long long*) &chunkIndex[64];
-  unsigned long long* p_nrOfChunksPerIndexRow = (unsigned long long*) &chunkIndex[128];
-  unsigned long long* p_nrOfChunks            = (unsigned long long*) &chunkIndex[136];
-  unsigned long long *positionData            = (unsigned long long*) &chunkIndex[144];  // column position index
+  // Size of chunkset index header plus data chunk header
+  unsigned long long chunkIndexSize = CHUNK_INDEX_SIZE + DATA_INDEX_SIZE + 8 * nrOfCols;
+  char* chunkIndex = new char[chunkIndexSize];
+
+  // Chunkset data index [node D, leaf of C] [size: 96]
+
+  unsigned long long* p_chunkIndexHash = reinterpret_cast<unsigned long long*>(chunkIndex);
+  unsigned int* p_chunkIndexVersion    = reinterpret_cast<unsigned int*>(&chunkIndex[8]);
+  int* p_chunkIndexFlags               = reinterpret_cast<int*>(&chunkIndex[12]);
+  unsigned long long* p_freeBytes5     = reinterpret_cast<unsigned long long*>(&chunkIndex[16]);
+  unsigned short int* p_nrOfChunkSlots = reinterpret_cast<unsigned short int*>(&chunkIndex[24]);
+  unsigned short int* p_freeBytes6     = reinterpret_cast<unsigned short int*>(&chunkIndex[26]);
+  unsigned long long* p_chunkPos       = reinterpret_cast<unsigned long long*>(&chunkIndex[32]);
+  unsigned long long* p_chunkRows      = reinterpret_cast<unsigned long long*>(&chunkIndex[64]);
+
+  // Chunk data header [node E, leaf of D] [size: 24 + 8 * nrOfCols]
+
+  unsigned long long* p_chunkDataHash  = reinterpret_cast<unsigned long long*>(&chunkIndex[96]);
+  unsigned int* p_chunkDataVersion     = reinterpret_cast<unsigned int*>(&chunkIndex[104]);
+  int* p_chunkDataFlags                = reinterpret_cast<int*>(&chunkIndex[108]);
+  unsigned long long* p_freeBytes7     = reinterpret_cast<unsigned long long*>(&chunkIndex[112]);
+  unsigned long long* positionData     = reinterpret_cast<unsigned long long*>(&chunkIndex[120]);  // column position index
 
 
-  *p_nrOfChunksPerIndexRow = 1;
-  *p_nrOfChunks            = 1;  // set to 0 if all reserved slots are used
-  *chunkRows               = (unsigned long long) nrOfRows;
+  // Set chunkset data index header parameters
+
+  *p_chunkIndexVersion = FST_VERSION;
+  *p_chunkIndexFlags   = 0;
+  *p_freeBytes5       = 0;
+  *p_nrOfChunkSlots   = 4;
+   p_freeBytes6[0]    = p_freeBytes6[1] = p_freeBytes6[2] = 0;
+  *p_chunkRows        = nrOfRows;
+
+  // Set data chunk header parameters
+
+  *p_chunkDataVersion = FST_VERSION;
+  *p_chunkDataFlags   = 0;
+  *p_freeBytes7       = 0;
 
 
   // Row and column meta data
-  myfile.write((char*)(chunkIndex), CHUNK_INDEX_SIZE + 8 * nrOfCols);   // file positions of column data
+  myfile.write(chunkIndex, chunkIndexSize);   // file positions of column data
+
 
   // column data
   for (int colNr = 0; colNr < nrOfCols; ++colNr)
@@ -339,7 +459,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
       {
         colTypes[colNr] = 11;
         long long* intP = fstTable.GetInt64Writer(colNr);
-        fdsWriteInt64Vec_v11(myfile, (long long*) intP, nrOfRows, compress, annotation);
+        fdsWriteInt64Vec_v11(myfile, intP, nrOfRows, compress, annotation);
         break;
       }
 
@@ -360,17 +480,19 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
   }
 
   // update chunk position data
-  *chunkPos = positionData[0] - 8 * nrOfCols;
+  *p_chunkPos = positionData[0] - 8 * nrOfCols - DATA_INDEX_SIZE;
 
-  // Calculate header hash
-  unsigned long long hHash = XXH64(&metaDataBlock[24], metaDataSize - 24, FST_HASH_SEED);
-  *headerHash = static_cast<unsigned long long>((hHash >> 32) & 0xffffffff);
+  // Calculate header hashes
+  *p_chunksetHash = XXH64(&metaDataBlock[tableHeaderSize + keyIndexHeaderSize + 8], chunksetHeaderSize - 8, FST_HASH_SEED);
+  *p_chunkIndexHash = XXH64(&chunkIndex[8], CHUNK_INDEX_SIZE - 8, FST_HASH_SEED);
 
   myfile.seekp(0);
-  myfile.write((char*)(metaDataBlock), metaDataSize);  // table header
+  myfile.write(metaDataBlock, metaDataSize);  // table header
 
-  myfile.seekp(*chunkPos - CHUNK_INDEX_SIZE);
-  myfile.write((char*)(chunkIndex), CHUNK_INDEX_SIZE + 8 * nrOfCols);  // vertical chunkset index and positiondata
+  *p_chunkDataHash = XXH64(&chunkIndex[CHUNK_INDEX_SIZE + 8], chunkIndexSize - (CHUNK_INDEX_SIZE + 8), FST_HASH_SEED);
+
+  myfile.seekp(*p_chunkPos - CHUNK_INDEX_SIZE);
+  myfile.write(chunkIndex, chunkIndexSize);  // vertical chunkset index and positiondata
 
   // cleanup
   delete[] metaDataBlock;
@@ -398,55 +520,101 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
   if (myfile.fail())
   {
     myfile.close();
-    throw(runtime_error("There was an error opening the fst file, please check for a correct path."));
+    throw(runtime_error(FSTERROR_ERROR_OPENING_FILE));
   }
 
-  // Read variables from fst file header
-  version = ReadHeader(myfile, metaHash, keyLength, nrOfColsFirstChunk);
+  // Read variables from fst file header and check header hash
+  version = ReadHeader(myfile, keyLength, nrOfCols);
 
-  // We may be looking at a fst v0.7.2 file format
-  if (version == 0)
+
+  unsigned long long keyIndexHeaderSize = 0;
+
+  if (keyLength != 0)
   {
-    // Close and reopen (slow: fst file should be resaved to avoid)
-    myfile.close();
-	throw(runtime_error(FSTERROR_NON_FST_FILE));
+    keyIndexHeaderSize = 4 * (keyLength + 2);  // size of key index vector and hash
   }
 
-  // Continue reading table metadata
-  int metaSize = 32 + 4 * keyLength + 8 * nrOfColsFirstChunk;
-  metaDataBlock = new char[metaSize];
+  unsigned long long chunksetHeaderSize = CHUNKSET_HEADER_SIZE + 8 * nrOfCols;
+  unsigned long long colNamesHeaderSize = 24;
+  unsigned long long metaSize = keyIndexHeaderSize + chunksetHeaderSize + colNamesHeaderSize;
+
+  // Read format headers
+  char* metaDataBlock = new char[metaSize];
   myfile.read(metaDataBlock, metaSize);
 
-  unsigned int tmpOffset = 4 * keyLength;
+  keyColPos = reinterpret_cast<int*>(&metaDataBlock[8]);  // TODO: why not unsigned ?
 
-  // unsigned long long* p_nextHorzChunkSet = (unsigned long long*) metaDataBlock;
-  // unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[8];
-  p_nrOfRows                                = (unsigned long long*) &metaDataBlock[16];
+  if (keyLength != 0)
+  {
+    unsigned long long* p_keyIndexHash = reinterpret_cast<unsigned long long*>(metaDataBlock);
+    unsigned long long hHash = XXH64(&metaDataBlock[8], keyIndexHeaderSize - 8, FST_HASH_SEED);
 
-  keyColPos                                 = (int*) &metaDataBlock[24];
+    if (*p_keyIndexHash != hHash)
+    {
+      delete[] metaDataBlock;
+      myfile.close();
+      throw(runtime_error(FSTERROR_DAMAGED_HEADER));
+    }
+  }
 
-  // unsigned int* p_version                = (unsigned int*) &metaDataBlock[tmpOffset + 24];
-  int* p_nrOfCols                           = (int*) &metaDataBlock[tmpOffset + 28];
-  colAttributeTypes                         = (unsigned short int*) &metaDataBlock[tmpOffset + 32];
-  colTypes                                  = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 2 * nrOfColsFirstChunk];
-  colBaseTypes                              = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 4 * nrOfColsFirstChunk];
-  colScales                                 = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 6 * nrOfColsFirstChunk];
+  // Chunkset header [node C, free leaf of A or other chunkset header] [size: 76 + 8 * nrOfCols]
 
+  unsigned long long* p_chunksetHash = reinterpret_cast<unsigned long long*>(&metaDataBlock[keyIndexHeaderSize]);
+  //unsigned int* p_chunksetHeaderVersion = reinterpret_cast<unsigned int*>(&metaDataBlock[keyIndexHeaderSize + 8]);
+  //int* p_chunksetFlags = reinterpret_cast<int*>(&metaDataBlock[keyIndexHeaderSize + 12]);
+  //unsigned long long* p_freeBytes2 = reinterpret_cast<unsigned long long*>(&metaDataBlock[keyIndexHeaderSize + 16]);
+  //unsigned long long* p_freeBytes3 = reinterpret_cast<unsigned long long*>(&metaDataBlock[keyIndexHeaderSize + 24]);
+  //unsigned long long* p_colNamesPos = reinterpret_cast<unsigned long long*>(&metaDataBlock[keyIndexHeaderSize + 32]);
 
-  nrOfCols = *p_nrOfCols;
+  //unsigned long long* p_nextHorzChunkSet = reinterpret_cast<unsigned long long*>(&metaDataBlock[keyIndexHeaderSize + 40]);
+  //unsigned long long* p_primChunksetIndex = reinterpret_cast<unsigned long long*>(&metaDataBlock[keyIndexHeaderSize + 48]);
+  //unsigned long long* p_secChunksetIndex = reinterpret_cast<unsigned long long*>(&metaDataBlock[keyIndexHeaderSize + 56]);
+  p_nrOfRows = reinterpret_cast<unsigned long long*>(&metaDataBlock[keyIndexHeaderSize + 64]);
+  //int* p_nrOfChunksetCols = reinterpret_cast<int*>(&metaDataBlock[keyIndexHeaderSize + 72]);
+
+  colAttributeTypes = reinterpret_cast<unsigned short int*>(&metaDataBlock[keyIndexHeaderSize + 76]);
+  colTypes = reinterpret_cast<unsigned short int*>(&metaDataBlock[keyIndexHeaderSize + 76 + 2 * nrOfCols]);
+  colBaseTypes = reinterpret_cast<unsigned short int*>(&metaDataBlock[keyIndexHeaderSize + 76 + 4 * nrOfCols]);
+  colScales = reinterpret_cast<unsigned short int*>(&metaDataBlock[keyIndexHeaderSize + 76 + 6 * nrOfCols]);
+
+  unsigned long long chunksetHash = XXH64(&metaDataBlock[keyIndexHeaderSize + 8], chunksetHeaderSize - 8, FST_HASH_SEED);
+  if (*p_chunksetHash != chunksetHash)
+  {
+    delete[] metaDataBlock;
+    myfile.close();
+    throw(runtime_error(FSTERROR_DAMAGED_HEADER));
+  }
+
+  // Column names header
+
+  unsigned long long offset = keyIndexHeaderSize + chunksetHeaderSize;
+  unsigned long long* p_colNamesHash = reinterpret_cast<unsigned long long*>(&metaDataBlock[offset]);
+  //unsigned int* p_colNamesVersion = reinterpret_cast<unsigned int*>(&metaDataBlock[offset + 8]);
+  //int* p_colNamesFlags = reinterpret_cast<int*>(&metaDataBlock[offset + 12]);
+  //unsigned long long* p_freeBytes4 = reinterpret_cast<unsigned long long*>(&metaDataBlock[16]);
+
+  unsigned long long colNamesHash = XXH64(&metaDataBlock[offset + 8], colNamesHeaderSize - 8, FST_HASH_SEED);
+  if (*p_colNamesHash != colNamesHash)
+  {
+    delete[] metaDataBlock;
+    myfile.close();
+    throw(runtime_error(FSTERROR_DAMAGED_HEADER));
+  }
 
   // Read column names
-  unsigned long long offset = metaSize + TABLE_META_SIZE;
+  unsigned long long colNamesOffset = metaSize + TABLE_META_SIZE;
 
   blockReader = columnFactory->CreateStringColumn(nrOfCols, FstColumnAttribute::NONE);
-  fdsReadCharVec_v6(myfile, blockReader, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
+  fdsReadCharVec_v6(myfile, blockReader, colNamesOffset, 0, static_cast<unsigned int>(nrOfCols), static_cast<unsigned int>(nrOfCols));
 
   // cleanup
+  delete[] metaDataBlock;
   myfile.close();
 }
 
 
-void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, int startRow, int endRow, IColumnFactory* columnFactory, vector<int> &keyIndex, IStringArray* selectedCols)
+void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, long long startRow, long long endRow,
+  IColumnFactory* columnFactory, vector<int> &keyIndex, IStringArray* selectedCols)
 {
   // fst file stream using a stack buffer
   ifstream myfile;
@@ -458,88 +626,144 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
     throw(runtime_error(FSTERROR_ERROR_OPENING_FILE));
   }
 
-  unsigned int metaHash;
-  int keyLength, nrOfColsFirstChunk;
-  version = ReadHeader(myfile, metaHash, keyLength, nrOfColsFirstChunk);
+  int keyLength;
+  version = ReadHeader(myfile, keyLength, nrOfCols);
 
-  // No magic marker for fst format found (v0.7.2 file format?)
-  if (version == 0)
+  unsigned long long keyIndexHeaderSize = 0;
+
+  if (keyLength != 0)
   {
-    // Close and reopen (slow: fst file should be resaved to avoid this overhead)
-	  myfile.close();
-	  throw(runtime_error(FSTERROR_NON_FST_FILE));
+    keyIndexHeaderSize = 4 * (keyLength + 2);  // size of key index vector and hash
   }
 
+  unsigned long long chunksetHeaderSize = CHUNKSET_HEADER_SIZE + 8 * nrOfCols;
+  unsigned long long colNamesHeaderSize = 24;
+  unsigned long long metaSize = keyIndexHeaderSize + chunksetHeaderSize + colNamesHeaderSize;
 
-  // Continue reading table metadata
-  int metaSize = 32 + 4 * keyLength + 8 * nrOfColsFirstChunk;
+  // Read format headers
   char* metaDataBlock = new char[metaSize];
   myfile.read(metaDataBlock, metaSize);
 
-  // Verify header hash
-  unsigned long long hHash = XXH64(metaDataBlock, metaSize, FST_HASH_SEED);
-  unsigned int headerHash = (hHash >> 32) & 0xffffffff;
+  int* keyColPos = reinterpret_cast<int*>(&metaDataBlock[8]);  // TODO: why not unsigned ?
 
-  if (headerHash != metaHash)
+  if (keyLength != 0)
+  {
+    unsigned long long* p_keyIndexHash = reinterpret_cast<unsigned long long*>(metaDataBlock);
+    unsigned long long hHash = XXH64(&metaDataBlock[8], keyIndexHeaderSize - 8, FST_HASH_SEED);
+
+    if (*p_keyIndexHash != hHash)
+    {
+      delete[] metaDataBlock;
+      myfile.close();
+      throw(runtime_error(FSTERROR_DAMAGED_HEADER));
+    }
+  }
+
+  // Chunkset header [node C, free leaf of A or other chunkset header] [size: 76 + 8 * nrOfCols]
+  
+  unsigned long long* p_chunksetHash      = reinterpret_cast<unsigned long long*>(&metaDataBlock[keyIndexHeaderSize]);
+  //unsigned int* p_chunksetHeaderVersion   = reinterpret_cast<unsigned int*>(&metaDataBlock[keyIndexHeaderSize + 8]);
+  //int* p_chunksetFlags                    = reinterpret_cast<int*>(&metaDataBlock[keyIndexHeaderSize + 12]);
+  //unsigned long long* p_freeBytes2        = reinterpret_cast<unsigned long long*>(&metaDataBlock[keyIndexHeaderSize + 16]);
+  //unsigned long long* p_freeBytes3        = reinterpret_cast<unsigned long long*>(&metaDataBlock[keyIndexHeaderSize + 24]);
+  //unsigned long long* p_colNamesPos       = reinterpret_cast<unsigned long long*>(&metaDataBlock[keyIndexHeaderSize + 32]);
+
+  //unsigned long long* p_nextHorzChunkSet  = reinterpret_cast<unsigned long long*>(&metaDataBlock[keyIndexHeaderSize + 40]);
+  //unsigned long long* p_primChunksetIndex = reinterpret_cast<unsigned long long*>(&metaDataBlock[keyIndexHeaderSize + 48]);
+  //unsigned long long* p_secChunksetIndex  = reinterpret_cast<unsigned long long*>(&metaDataBlock[keyIndexHeaderSize + 56]);
+  //unsigned long long* p_nrOfRows          = reinterpret_cast<unsigned long long*>(&metaDataBlock[keyIndexHeaderSize + 64]);
+  //int* p_nrOfChunksetCols                 = reinterpret_cast<int*>(&metaDataBlock[keyIndexHeaderSize + 72]);
+
+  unsigned short int* colAttributeTypes   = reinterpret_cast<unsigned short int*>(&metaDataBlock[keyIndexHeaderSize + 76]);
+  unsigned short int* colTypes            = reinterpret_cast<unsigned short int*>(&metaDataBlock[keyIndexHeaderSize + 76 + 2 * nrOfCols]);
+  //unsigned short int* colBaseTypes        = reinterpret_cast<unsigned short int*>(&metaDataBlock[keyIndexHeaderSize + 76 + 4 * nrOfCols]);
+  unsigned short int* colScales           = reinterpret_cast<unsigned short int*>(&metaDataBlock[keyIndexHeaderSize + 76 + 6 * nrOfCols]);
+
+  unsigned long long chunksetHash = XXH64(&metaDataBlock[keyIndexHeaderSize + 8], chunksetHeaderSize - 8, FST_HASH_SEED);
+  if (*p_chunksetHash != chunksetHash)
   {
     delete[] metaDataBlock;
     myfile.close();
     throw(runtime_error(FSTERROR_DAMAGED_HEADER));
   }
 
-  unsigned int tmpOffset = 4 * keyLength;
+  // Column names header
 
-  // unsigned long long* p_nextHorzChunkSet = (unsigned long long*) metaDataBlock;
-  // unsigned long long* p_nextVertChunkSet = (unsigned long long*) &metaDataBlock[8];
-  // unsigned long long* p_nrOfRows         = (unsigned long long*) &metaDataBlock[16];
+  unsigned long long offset          = keyIndexHeaderSize + chunksetHeaderSize;
+  unsigned long long* p_colNamesHash = reinterpret_cast<unsigned long long*>(&metaDataBlock[offset]);
+  //unsigned int* p_colNamesVersion    = reinterpret_cast<unsigned int*>(&metaDataBlock[offset + 8]);
+  //int* p_colNamesFlags               = reinterpret_cast<int*>(&metaDataBlock[offset + 12]);
+  //unsigned long long* p_freeBytes4   = reinterpret_cast<unsigned long long*>(&metaDataBlock[offset + 16]);
 
-  int* keyColPos = reinterpret_cast<int*>(&metaDataBlock[24]);
-
-  // unsigned int* p_version                = (unsigned int*) &metaDataBlock[tmpOffset + 24];
-  int* p_nrOfCols                        = reinterpret_cast<int*>(&metaDataBlock[tmpOffset + 28]);
-  unsigned short int* colAttributeTypes  = reinterpret_cast<unsigned short int*>(&metaDataBlock[tmpOffset + 32]);
-  unsigned short int* colTypes           = reinterpret_cast<unsigned short int*>(&metaDataBlock[tmpOffset + 32 + 2 * nrOfColsFirstChunk]);
-  // unsigned short int* colBaseTypes       = (unsigned short int*) &metaDataBlock[tmpOffset + 32 + 4 * nrOfColsFirstChunk];
-  short int* colScales                   = (short int*) &metaDataBlock[tmpOffset + 32 + 6 * nrOfColsFirstChunk];
-
-  int nrOfCols = *p_nrOfCols;
-
-
-  // TODO: read table attributes here
-
-  // Read column names
-  unsigned long long offset = metaSize + TABLE_META_SIZE;
-
-  // Use a pure C++ charVector implementation here for performance
-  IStringColumn* blockReader = columnFactory->CreateStringColumn(nrOfCols, FstColumnAttribute::NONE);
-  fdsReadCharVec_v6(myfile, blockReader, offset, 0, (unsigned int) nrOfCols, (unsigned int) nrOfCols);
-
-
-  // Vertical chunkset index or index of index
-  char chunkIndex[CHUNK_INDEX_SIZE];
-  myfile.read(chunkIndex, CHUNK_INDEX_SIZE);
-
-  // unsigned long long* chunkPos                = (unsigned long long*) chunkIndex;
-  unsigned long long* chunkRows               = (unsigned long long*) &chunkIndex[64];
-  // unsigned long long* p_nrOfChunksPerIndexRow = (unsigned long long*) &chunkIndex[128];
-  unsigned long long* p_nrOfChunks            = (unsigned long long*) &chunkIndex[136];
-
-  // Check nrOfChunks
-  if (*p_nrOfChunks > 1)
+  unsigned long long colNamesHash = XXH64(&metaDataBlock[offset + 8], colNamesHeaderSize - 8, FST_HASH_SEED);
+  if (*p_colNamesHash != colNamesHash)
   {
-    myfile.close();
     delete[] metaDataBlock;
+    myfile.close();
+    throw(runtime_error(FSTERROR_DAMAGED_HEADER));
+  }
+
+  // Column names
+
+  unsigned long long colNamesOffset = metaSize + TABLE_META_SIZE;
+  blockReader = columnFactory->CreateStringColumn(nrOfCols, FstColumnAttribute::NONE);
+  fdsReadCharVec_v6(myfile, blockReader, colNamesOffset, 0, static_cast<unsigned int>(nrOfCols), static_cast<unsigned int>(nrOfCols));
+
+  // Size of chunkset index header plus data chunk header
+  unsigned long long chunkIndexSize    = CHUNK_INDEX_SIZE + DATA_INDEX_SIZE + 8 * nrOfCols;
+  char* chunkIndex                     = new char[chunkIndexSize];
+
+  myfile.read(chunkIndex, chunkIndexSize);
+
+  // Chunk index [node D, leaf of C] [size: 96]
+
+  unsigned long long* p_chunkIndexHash = reinterpret_cast<unsigned long long*>(chunkIndex);
+  //unsigned int* p_chunkIndexVersion    = reinterpret_cast<unsigned int*>(&chunkIndex[8]);
+  //int* p_chunkIndexFlags               = reinterpret_cast<int*>(&chunkIndex[12]);
+  //unsigned long long* p_freeBytes5     = reinterpret_cast<unsigned long long*>(&chunkIndex[16]);
+  //unsigned short int* p_nrOfChunkSlots = reinterpret_cast<unsigned short int*>(&chunkIndex[24]);
+  //unsigned short int* p_freeBytes6     = reinterpret_cast<unsigned short int*>(&chunkIndex[26]);
+  //unsigned long long* p_chunkPos       = reinterpret_cast<unsigned long long*>(&chunkIndex[32]);
+  unsigned long long* p_chunkRows      = reinterpret_cast<unsigned long long*>(&chunkIndex[64]);
+
+  // Chunk data header [node E, leaf of D] [size: 24 + 8 * nrOfCols]
+
+  unsigned long long* p_chunkDataHash  = reinterpret_cast<unsigned long long*>(&chunkIndex[96]);
+  //unsigned int* p_chunkDataVersion     = reinterpret_cast<unsigned int*>(&chunkIndex[104]);
+  //int* p_chunkDataFlags                = reinterpret_cast<int*>(&chunkIndex[108]);
+  //unsigned long long* p_freeBytes7     = reinterpret_cast<unsigned long long*>(&chunkIndex[112]);
+  unsigned long long* positionData     = reinterpret_cast<unsigned long long*>(&chunkIndex[120]);  // column position index
+
+
+  // Check chunk hashes
+
+  unsigned long long chunkIndexHash = XXH64(&chunkIndex[8], CHUNK_INDEX_SIZE - 8, FST_HASH_SEED);
+
+  if (*p_chunkIndexHash != chunkIndexHash)
+  {
+    delete[] metaDataBlock;
+    delete[] chunkIndex;
     delete blockReader;
-    throw(runtime_error("Multiple chunk read not implemented yet."));
+    blockReader = nullptr;
+    myfile.close();
+    throw(runtime_error(FSTERROR_DAMAGED_CHUNKINDEX));
+  }
+
+  unsigned long long chunkDataHash = XXH64(&chunkIndex[CHUNK_INDEX_SIZE + 8], chunkIndexSize - (CHUNK_INDEX_SIZE + 8), FST_HASH_SEED);
+
+  if (*p_chunkDataHash != chunkDataHash)
+  {
+    delete[] metaDataBlock;
+    delete[] chunkIndex;
+    delete blockReader;
+    blockReader = nullptr;
+    myfile.close();
+    throw(runtime_error(FSTERROR_DAMAGED_CHUNKINDEX));
   }
 
 
-  // Start reading chunk here. TODO: loop over chunks
-
-
   // Read block positions
-  unsigned long long* blockPos = new unsigned long long[nrOfCols];
-  myfile.read(reinterpret_cast<char*>(blockPos), nrOfCols * 8);  // nrOfCols file positions
+  unsigned long long* blockPos = positionData;
 
 
   // Determine column selection
@@ -579,9 +803,10 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
       if (equal == -1)
       {
         delete[] metaDataBlock;
-        delete[] blockPos;
         delete[] colIndex;
+        delete[] chunkIndex;
         delete blockReader;
+        blockReader = nullptr;
         myfile.close();
         throw(runtime_error("Selected column not found."));
       }
@@ -592,15 +817,16 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
 
 
   // Check range of selected rows
-  int firstRow = startRow - 1;
-  int nrOfRows = *chunkRows;  // TODO: check for row numbers > INT_MAX !!!
+  unsigned long long firstRow = startRow - 1;
+  unsigned long long nrOfRows = *p_chunkRows;  // TODO: check for row numbers > INT_MAX !!!
 
   if (firstRow >= nrOfRows || firstRow < 0)
   {
     delete[] metaDataBlock;
-    delete[] blockPos;
     delete[] colIndex;
+    delete[] chunkIndex;
     delete blockReader;
+    blockReader = nullptr;
     myfile.close();
 
     if (firstRow < 0)
@@ -617,12 +843,13 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
   // Determine vector length
   if (endRow != -1)
   {
-    if (endRow <= firstRow)
+    if ((unsigned long long) endRow <= firstRow)
     {
       delete[] metaDataBlock;
-      delete[] blockPos;
       delete[] colIndex;
+      delete[] chunkIndex;
       delete blockReader;
+      blockReader = nullptr;
       myfile.close();
       throw(runtime_error("Incorrect row range specified."));
     }
@@ -639,9 +866,10 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
     if (colNr < 0 || colNr >= nrOfCols)
     {
       delete[] metaDataBlock;
-      delete[] blockPos;
       delete[] colIndex;
+      delete[] chunkIndex;
       delete blockReader;
+      blockReader = nullptr;
       myfile.close();
       throw(runtime_error("Column selection is out of range."));
     }
@@ -725,9 +953,10 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
 
     default:
       delete[] metaDataBlock;
-      delete[] blockPos;
       delete[] colIndex;
+      delete[] chunkIndex;
       delete blockReader;
+      blockReader = nullptr;
       myfile.close();
       throw(runtime_error("Unknown type found in column."));
     }
@@ -749,7 +978,6 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, in
   }
 
   delete[] metaDataBlock;
-  delete[] blockPos;
   delete[] colIndex;
-  delete blockReader;
+  delete[] chunkIndex;
 }

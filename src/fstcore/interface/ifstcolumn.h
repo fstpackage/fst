@@ -106,7 +106,7 @@ enum FstScale
 // Available time scales
 // Only add to the end to support previous format versions
 enum FstTimeScale
-  {
+{
   NANOSECONDS = 1,
   MICROSECONDS,
   MILLISECONDS,

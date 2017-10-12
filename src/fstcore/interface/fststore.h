@@ -46,13 +46,11 @@
 class FstStore
 {
   unsigned int metaHash;
-  int nrOfColsFirstChunk;
 
   std::string fstFile;
 
-  char* metaDataBlock;
-
   public:
+    IStringColumn* blockReader;
     unsigned long long* p_nrOfRows;
     int* keyColPos;
 
@@ -64,11 +62,10 @@ class FstStore
 
     unsigned int version;
     int nrOfCols, keyLength;
-    IStringColumn* blockReader;
 
     FstStore(std::string fstFile);
 
-    ~FstStore() { delete[] metaDataBlock; delete blockReader; }
+    ~FstStore() { delete blockReader;  }
 
 	/**
      * \brief Stream a data table
@@ -79,7 +76,8 @@ class FstStore
 
     void fstMeta(IColumnFactory* columnFactory);
 
-    void fstRead(IFstTable &tableReader, IStringArray* columnSelection, int startRow, int endRow, IColumnFactory* columnFactory, std::vector<int> &keyIndex, IStringArray* selectedCols);
+    void fstRead(IFstTable &tableReader, IStringArray* columnSelection, long long startRow, long long endRow,
+      IColumnFactory* columnFactory, std::vector<int> &keyIndex, IStringArray* selectedCols);
 };
 
 
