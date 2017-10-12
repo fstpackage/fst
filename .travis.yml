@@ -1,24 +1,17 @@
 language: R
 cache: packages
 sudo: false
+warnings_are_errors: true
 
-r:
-- oldrel
-- release
-- devel
-
-os:
-  - linux
-  - osx
-
-# matrix:
-#  exclude:
-#  - r: release
-#    os: osx
-#  - r: devel
-#    os: osx
-#  - r: devel
-#    os: linux
+matrix:
+  include:
+  - r: release
+  - r: oldrel
+  - r: devel
+  - os: osx
+  - os: linux
+  allow_failures:
+  - os: osx
 
 r_packages:
   - covr
@@ -30,3 +23,7 @@ r_packages:
 
 after_success:
   - Rscript -e 'library(covr); codecov()'
+
+env:
+  global:
+    - PKG_CFLAGS="-O3 -Wall -pedantic"
