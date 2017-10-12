@@ -128,6 +128,8 @@ FstStore::FstStore(std::string fstFile)
 {
   this->fstFile = fstFile;
   this->blockReader = nullptr;
+  this->keyColPos = nullptr;
+  this->p_nrOfRows = nullptr;
 }
 
 
@@ -542,10 +544,10 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
   char* metaDataBlock = new char[metaSize];
   myfile.read(metaDataBlock, metaSize);
 
-  keyColPos = reinterpret_cast<int*>(&metaDataBlock[8]);  // TODO: why not unsigned ?
-
   if (keyLength != 0)
   {
+    keyColPos = reinterpret_cast<int*>(&metaDataBlock[8]);  // equals nullptr if there are no keys
+
     unsigned long long* p_keyIndexHash = reinterpret_cast<unsigned long long*>(metaDataBlock);
     unsigned long long hHash = XXH64(&metaDataBlock[8], keyIndexHeaderSize - 8, FST_HASH_SEED);
 
