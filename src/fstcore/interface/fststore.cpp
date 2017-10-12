@@ -126,10 +126,11 @@ using namespace std;
 
 FstStore::FstStore(std::string fstFile)
 {
-  this->fstFile = fstFile;
-  this->blockReader = nullptr;
-  this->keyColPos = nullptr;
-  this->p_nrOfRows = nullptr;
+  this->fstFile       = fstFile;
+  this->blockReader   = nullptr;
+  this->keyColPos     = nullptr;
+  this->p_nrOfRows    = nullptr;
+  this->metaDataBlock = nullptr;
 }
 
 
@@ -235,7 +236,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
 
   // size of fst file header
   unsigned long long metaDataSize = tableHeaderSize + keyIndexHeaderSize + chunksetHeaderSize + colNamesHeaderSize;
-  char* metaDataBlock             = new char[metaDataSize];  // fst metadata
+  char * metaDataBlock             = new char[metaDataSize];  // fst metadata
 
 
   // Table header [node A] [size: 44]
@@ -541,7 +542,7 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
   unsigned long long metaSize = keyIndexHeaderSize + chunksetHeaderSize + colNamesHeaderSize;
 
   // Read format headers
-  char* metaDataBlock = new char[metaSize];
+  metaDataBlock = new char[metaSize];
   myfile.read(metaDataBlock, metaSize);
 
   if (keyLength != 0)
@@ -554,6 +555,7 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
     if (*p_keyIndexHash != hHash)
     {
       delete[] metaDataBlock;
+      metaDataBlock = nullptr;
       myfile.close();
       throw(runtime_error(FSTERROR_DAMAGED_HEADER));
     }
@@ -583,6 +585,7 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
   if (*p_chunksetHash != chunksetHash)
   {
     delete[] metaDataBlock;
+    metaDataBlock = nullptr;
     myfile.close();
     throw(runtime_error(FSTERROR_DAMAGED_HEADER));
   }
@@ -599,6 +602,7 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
   if (*p_colNamesHash != colNamesHash)
   {
     delete[] metaDataBlock;
+    metaDataBlock = nullptr;
     myfile.close();
     throw(runtime_error(FSTERROR_DAMAGED_HEADER));
   }
@@ -610,7 +614,7 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
   fdsReadCharVec_v6(myfile, blockReader, colNamesOffset, 0, static_cast<unsigned int>(nrOfCols), static_cast<unsigned int>(nrOfCols));
 
   // cleanup
-  delete[] metaDataBlock;
+  metaDataBlock = nullptr;
   myfile.close();
 }
 
@@ -656,6 +660,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
     if (*p_keyIndexHash != hHash)
     {
       delete[] metaDataBlock;
+      metaDataBlock = nullptr;
       myfile.close();
       throw(runtime_error(FSTERROR_DAMAGED_HEADER));
     }
@@ -685,6 +690,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
   if (*p_chunksetHash != chunksetHash)
   {
     delete[] metaDataBlock;
+    metaDataBlock = nullptr;
     myfile.close();
     throw(runtime_error(FSTERROR_DAMAGED_HEADER));
   }
@@ -701,6 +707,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
   if (*p_colNamesHash != colNamesHash)
   {
     delete[] metaDataBlock;
+    metaDataBlock = nullptr;
     myfile.close();
     throw(runtime_error(FSTERROR_DAMAGED_HEADER));
   }
@@ -744,6 +751,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
   if (*p_chunkIndexHash != chunkIndexHash)
   {
     delete[] metaDataBlock;
+    metaDataBlock = nullptr;
     delete[] chunkIndex;
     delete blockReader;
     blockReader = nullptr;
@@ -756,6 +764,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
   if (*p_chunkDataHash != chunkDataHash)
   {
     delete[] metaDataBlock;
+    metaDataBlock = nullptr;
     delete[] chunkIndex;
     delete blockReader;
     blockReader = nullptr;
@@ -805,6 +814,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
       if (equal == -1)
       {
         delete[] metaDataBlock;
+        metaDataBlock = nullptr;
         delete[] colIndex;
         delete[] chunkIndex;
         delete blockReader;
@@ -825,6 +835,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
   if (firstRow >= nrOfRows || firstRow < 0)
   {
     delete[] metaDataBlock;
+    metaDataBlock = nullptr;
     delete[] colIndex;
     delete[] chunkIndex;
     delete blockReader;
@@ -848,6 +859,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
     if ((unsigned long long) endRow <= firstRow)
     {
       delete[] metaDataBlock;
+      metaDataBlock = nullptr;
       delete[] colIndex;
       delete[] chunkIndex;
       delete blockReader;
@@ -868,6 +880,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
     if (colNr < 0 || colNr >= nrOfCols)
     {
       delete[] metaDataBlock;
+      metaDataBlock = nullptr;
       delete[] colIndex;
       delete[] chunkIndex;
       delete blockReader;
@@ -955,6 +968,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
 
     default:
       delete[] metaDataBlock;
+      metaDataBlock = nullptr;
       delete[] colIndex;
       delete[] chunkIndex;
       delete blockReader;
@@ -980,6 +994,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
   }
 
   delete[] metaDataBlock;
+  metaDataBlock = nullptr;
   delete[] colIndex;
   delete[] chunkIndex;
 }

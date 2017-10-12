@@ -53,6 +53,7 @@ class FstStore
     IStringColumn* blockReader;
     unsigned long long* p_nrOfRows;
     int* keyColPos;
+    char* metaDataBlock;
 
 	// column info
     unsigned short int* colTypes;
@@ -65,7 +66,7 @@ class FstStore
 
     FstStore(std::string fstFile);
 
-    ~FstStore() { delete blockReader;  }
+    ~FstStore() { delete blockReader; delete[] metaDataBlock;  }
 
 	/**
      * \brief Stream a data table

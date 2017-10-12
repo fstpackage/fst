@@ -200,7 +200,7 @@ SEXP fstmetadata(String fileName)
       _["fstVersion"]      = fstStore->version,
       _["keyLength"]       = fstStore->keyLength,
       _["colBaseType"]     = colBaseType,
-      _["colType"] = colAttributeTypes,
+      _["colType"]         = colAttributeTypes,
       _["colNames"]        = colNames);
   }
 
