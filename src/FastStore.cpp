@@ -306,8 +306,8 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
   UNPROTECT(1);
 
   return List::create(
-    _["keyNames"] = keyNames,
-    _["keyIndex"] = keyIndex,
+    _["keyNames"]   = keyNames,
+    _["keyIndex"]   = keyIndex,
     _["colNameVec"] = colNameVec,
-    _["resTable"] = tableReader.resTable);
+    _["resTable"]   = tableReader.resTable);
 }

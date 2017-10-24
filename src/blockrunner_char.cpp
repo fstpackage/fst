@@ -47,7 +47,7 @@ using namespace std;
 using namespace Rcpp;
 
 
-BlockWriterChar::BlockWriterChar(SEXP &strVec, unsigned int vecLength, unsigned int stackBufSize, int uniformEncoding)
+BlockWriterChar::BlockWriterChar(SEXP &strVec, unsigned long long vecLength, unsigned int stackBufSize, int uniformEncoding)
 {
   this->strVec = &strVec;
   this->naInts = naInts_buf;
@@ -67,28 +67,28 @@ BlockWriterChar::~BlockWriterChar()
 }
 
 
-void BlockWriterChar::SetBuffersFromVec(unsigned int startCount, unsigned int endCount)
+void BlockWriterChar::SetBuffersFromVec(unsigned long long startCount, unsigned long long endCount)
 {
   // Determine string lengths
   // unsigned int startCount = block * BLOCKSIZE_CHAR;
-  unsigned int nrOfElements = endCount - startCount;  // the string at position endCount is not included
-  unsigned int nrOfNAInts = 1 + nrOfElements / 32;  // add 1 bit for NA present flag
+  unsigned long long nrOfElements = endCount - startCount;  // the string at position endCount is not included
+  unsigned long long nrOfNAInts = 1 + nrOfElements / 32;  // add 1 bit for NA present flag
 
-  unsigned int totSize = 0;
+  unsigned long long totSize = 0;
   unsigned int hasNA = 0;
-  int sizeCount = -1;
+  long long sizeCount = -1;
 
   memset(naInts, 0, nrOfNAInts * 4);  // clear NA bit metadata block (neccessary?)
 
-  for (unsigned int count = startCount; count != endCount; ++count)
+  for (unsigned long long count = startCount; count != endCount; ++count)
   {
     SEXP strElem = STRING_ELT(*strVec, count);
 
     if (strElem == NA_STRING)  // set NA bit
     {
       ++hasNA;
-      unsigned int intPos = (count - startCount) / 32;
-      unsigned int bitPos = (count - startCount) % 32;
+      unsigned long long intPos = (count - startCount) / 32;
+      unsigned long long bitPos = (count - startCount) % 32;
       naInts[intPos] |= 1 << bitPos;
     }
 
@@ -99,14 +99,14 @@ void BlockWriterChar::SetBuffersFromVec(unsigned int startCount, unsigned int en
   if (hasNA != 0)  // NA's present in vector
   {
     // set last bit
-    int bitPos = nrOfElements % 32;
+    unsigned long long bitPos = nrOfElements % 32;
     naInts[nrOfNAInts - 1] |= 1 << bitPos;
   }
 
 
   // Write string data
-  unsigned int pos;
-  unsigned int lastPos = 0;
+  unsigned long long pos;
+  unsigned long long lastPos = 0;
   sizeCount = -1;
 
   activeBuf = buf;
@@ -123,7 +123,7 @@ void BlockWriterChar::SetBuffersFromVec(unsigned int startCount, unsigned int en
     activeBuf = heapBuf;
   }
 
-  for (unsigned int count = startCount; count < endCount; ++count)
+  for (unsigned long long count = startCount; count < endCount; ++count)
   {
     const char* str = CHAR(STRING_ELT(*strVec, count));
     pos = strSizes[++sizeCount];
@@ -135,18 +135,18 @@ void BlockWriterChar::SetBuffersFromVec(unsigned int startCount, unsigned int en
 }
 
 
-void BlockReaderChar::AllocateVec(unsigned int vecLength)
+void BlockReaderChar::AllocateVec(unsigned long long vecLength)
 {
   PROTECT(this->strVec = Rf_allocVector(STRSXP, vecLength));
   isProtected = true;
 }
 
-void BlockReaderChar::BufferToVec(unsigned int nrOfElements, unsigned int startElem, unsigned int endElem,
-  unsigned int vecOffset, unsigned int* sizeMeta, char* buf)
+void BlockReaderChar::BufferToVec(unsigned long long nrOfElements, unsigned long long startElem,
+  unsigned long long endElem, unsigned long long vecOffset, unsigned int* sizeMeta, char* buf)
 {
-  unsigned int nrOfNAInts = 1 + nrOfElements / 32;  // last bit is NA flag
+  unsigned long long nrOfNAInts = 1 + nrOfElements / 32;  // last bit is NA flag
   unsigned int* bitsNA = &sizeMeta[nrOfElements];
-  unsigned int pos = 0;
+  unsigned long long pos = 0;
 
   if (startElem != 0)
   {
@@ -157,9 +157,9 @@ void BlockReaderChar::BufferToVec(unsigned int nrOfElements, unsigned int startE
   unsigned int flagNA = bitsNA[nrOfNAInts - 1] & (1 << (nrOfElements % 32));
   if (flagNA == 0)  // no NA's in vector
   {
-    for (unsigned int blockElem = startElem; blockElem <= endElem; ++blockElem)
+    for (unsigned long long blockElem = startElem; blockElem <= endElem; ++blockElem)
     {
-      unsigned int newPos = sizeMeta[blockElem];
+      unsigned long long newPos = sizeMeta[blockElem];
       SEXP curStr = Rf_mkCharLenCE(buf + pos, newPos - pos, this->strEncoding);
       SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
       pos = newPos;  // update to new string offset
@@ -170,8 +170,8 @@ void BlockReaderChar::BufferToVec(unsigned int nrOfElements, unsigned int startE
 
   // We process the datablock in cycles of 32 strings. This minimizes the impact of NA testing for vectors with a small number of NA's
 
-  unsigned int startCycle = startElem / 32;
-  unsigned int endCycle = endElem / 32;
+  unsigned long long startCycle = startElem / 32;
+  unsigned long long endCycle = endElem / 32;
   unsigned int cycleNAs = bitsNA[startCycle];
 
   // A single 32 string cycle
@@ -191,7 +191,7 @@ void BlockReaderChar::BufferToVec(unsigned int nrOfElements, unsigned int startE
 
       // Get string from data stream
 
-      unsigned int newPos = sizeMeta[blockElem];
+      unsigned long long newPos = sizeMeta[blockElem];
       SEXP curStr = Rf_mkCharLenCE(buf + pos, newPos - pos, this->strEncoding);
       SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
       pos = newPos;  // update to new string offset
@@ -202,8 +202,8 @@ void BlockReaderChar::BufferToVec(unsigned int nrOfElements, unsigned int startE
 
   // Get possibly partial first cycle
 
-  unsigned int firstCylceEnd = startCycle * 32 + 31;
-  for (unsigned int blockElem = startElem; blockElem <= firstCylceEnd; ++blockElem)
+  unsigned long long firstCylceEnd = startCycle * 32 + 31;
+  for (unsigned long long blockElem = startElem; blockElem <= firstCylceEnd; ++blockElem)
   {
     unsigned int bitMask = 1 << (blockElem % 32);
 
@@ -216,7 +216,7 @@ void BlockReaderChar::BufferToVec(unsigned int nrOfElements, unsigned int startE
 
     // Get string from data stream
 
-    unsigned int newPos = sizeMeta[blockElem];
+    unsigned long long newPos = sizeMeta[blockElem];
     SEXP curStr = Rf_mkCharLenCE(buf + pos, newPos - pos, this->strEncoding);
     SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
     pos = newPos;  // update to new string offset
@@ -224,16 +224,16 @@ void BlockReaderChar::BufferToVec(unsigned int nrOfElements, unsigned int startE
 
   // Get all but last cycle with fast NA test
 
-  for (unsigned int cycle = startCycle + 1; cycle != endCycle; ++cycle)
+  for (unsigned long long cycle = startCycle + 1; cycle != endCycle; ++cycle)
   {
     unsigned int cycleNAs = bitsNA[cycle];
-    unsigned int middleCycleEnd = cycle * 32 + 32;
+    unsigned long long middleCycleEnd = cycle * 32 + 32;
 
     if (cycleNAs == 0)  // no NA's
     {
-      for (unsigned int blockElem = cycle * 32; blockElem != middleCycleEnd; ++blockElem)
+      for (unsigned long long blockElem = cycle * 32; blockElem != middleCycleEnd; ++blockElem)
       {
-        unsigned int newPos = sizeMeta[blockElem];
+        unsigned long long newPos = sizeMeta[blockElem];
         SEXP curStr = Rf_mkCharLenCE(buf + pos, newPos - pos, this->strEncoding);
         SET_STRING_ELT(strVec, vecOffset + blockElem - startElem, curStr);
         pos = newPos;  // update to new string offset
@@ -243,10 +243,10 @@ void BlockReaderChar::BufferToVec(unsigned int nrOfElements, unsigned int startE
 
     // Cycle contains one or more NA's
 
-    for (unsigned int blockElem = cycle * 32; blockElem != middleCycleEnd; ++blockElem)
+    for (unsigned long long blockElem = cycle * 32; blockElem != middleCycleEnd; ++blockElem)
     {
       unsigned int bitMask = 1 << (blockElem % 32);
-      unsigned int newPos = sizeMeta[blockElem];
+      unsigned long long newPos = sizeMeta[blockElem];
 
       if ((cycleNAs & bitMask) != 0)  // set string to NA
       {
@@ -268,10 +268,10 @@ void BlockReaderChar::BufferToVec(unsigned int nrOfElements, unsigned int startE
   cycleNAs = bitsNA[endCycle];
 
   ++endElem;
-  for (unsigned int blockElem = endCycle * 32; blockElem != endElem; ++blockElem)
+  for (unsigned long long blockElem = endCycle * 32; blockElem != endElem; ++blockElem)
   {
     unsigned int bitMask = 1 << (blockElem % 32);
-    unsigned int newPos = sizeMeta[blockElem];
+    unsigned long long newPos = sizeMeta[blockElem];
 
     if ((cycleNAs & bitMask) != 0)  // set string to NA
     {

@@ -41,7 +41,7 @@
 using namespace std;
 
 
-void fdsWriteInt64Vec_v11(ofstream &myfile, long long* int64Vector, unsigned int nrOfRows, unsigned int compression, std::string annotation)
+void fdsWriteInt64Vec_v11(ofstream &myfile, long long* int64Vector, unsigned long long nrOfRows, unsigned int compression, std::string annotation)
 {
   int blockSize = 8 * BLOCKSIZE_INT64;  // block size in bytes
 
@@ -78,7 +78,8 @@ void fdsWriteInt64Vec_v11(ofstream &myfile, long long* int64Vector, unsigned int
 }
 
 
-void fdsReadInt64Vec_v11(istream &myfile, long long* int64Vector, unsigned long long blockPos, unsigned int startRow, unsigned int length, unsigned int size)
+void fdsReadInt64Vec_v11(istream &myfile, long long* int64Vector, unsigned long long blockPos, unsigned long long startRow,
+  unsigned long long length, unsigned long long size)
 {
   std::string annotation;
 

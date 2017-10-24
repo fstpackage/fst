@@ -127,15 +127,15 @@ public:
 
   virtual ~IStringArray() {};
 
-  virtual void AllocateArray(int vecLength) = 0;
+  virtual void AllocateArray(unsigned int vecLength) = 0;
 
-  virtual void SetElement(int elementNr, const char* str) = 0;
+  virtual void SetElement(unsigned int elementNr, const char* str) = 0;
 
-  virtual void SetElement(int elementNr, const char* str, int strLen) = 0;
+  virtual void SetElement(unsigned int elementNr, const char* str, unsigned int strLen) = 0;
 
-  virtual const char* GetElement(int elementNr) = 0;
+  virtual const char* GetElement(unsigned int elementNr) = 0;
 
-  virtual int Length() = 0;
+  virtual unsigned int Length() = 0;
 };
 
 
@@ -145,14 +145,14 @@ public:
 
   virtual ~IStringColumn() {}
 
-  virtual void AllocateVec(unsigned int vecLength) = 0;
+  virtual void AllocateVec(unsigned long long vecLength) = 0;
 
   virtual void SetEncoding(StringEncoding stringEncoding) = 0;
 
-  virtual void BufferToVec(unsigned int nrOfElements, unsigned int startElem, unsigned int endElem,
-    unsigned int vecOffset, unsigned int* sizeMeta, char* buf) = 0;
+  virtual void BufferToVec(unsigned long long nrOfElements, unsigned long long startElem, unsigned long long endElem,
+    unsigned long long vecOffset, unsigned int* sizeMeta, char* buf) = 0;
 
-  virtual const char* GetElement(int elementNr) = 0;
+  virtual const char* GetElement(unsigned long long elementNr) = 0;
 };
 
 

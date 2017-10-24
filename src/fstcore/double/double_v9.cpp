@@ -40,7 +40,7 @@
 
 using namespace std;
 
-void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned int nrOfRows, unsigned int compression, std::string annotation)
+void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned long long nrOfRows, unsigned int compression, std::string annotation)
 {
   int blockSize = 8 * BLOCKSIZE_REAL;  // block size in bytes
 
@@ -75,8 +75,8 @@ void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned int nrO
 }
 
 
-void fdsReadRealVec_v9(istream &myfile, double* doubleVector, unsigned long long blockPos, unsigned int startRow, unsigned int length,
-  unsigned int size, std::string &annotation)
+void fdsReadRealVec_v9(istream &myfile, double* doubleVector, unsigned long long blockPos, unsigned long long startRow,
+  unsigned long long length, unsigned long long size, std::string &annotation)
 {
   return fdsReadColumn_v2(myfile, reinterpret_cast<char*>(doubleVector), blockPos, startRow, length, size, 8, annotation, BATCH_SIZE_READ_DOUBLE);
 }

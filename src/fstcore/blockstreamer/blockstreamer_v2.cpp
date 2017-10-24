@@ -64,7 +64,7 @@ using namespace std;
 
 
 // Method for writing column data of any type to a ofstream.
-void fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLength, int elementSize, int blockSizeElems,
+void fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned long long vecLength, int elementSize, int blockSizeElems,
   FixedRatioCompressor* fixedRatioCompressor, std::string annotation)
 {
   unsigned int annotationLength = annotation.length();
@@ -163,7 +163,7 @@ void fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned int vecLengt
 #define BATCH_SIZE_WRITE 25
 
 // Method for writing column data of any type to a stream.
-void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRows, int elementSize,
+void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned long long nrOfRows, int elementSize,
   StreamCompressor* streamCompressor, int blockSizeElems, std::string annotation)
 {
   unsigned int annotationLength = annotation.length();
@@ -228,7 +228,7 @@ void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRow
 
 			  int threadNr = OMP_GET_THREAD_NUM;  // use memory buffer specific for this thread
 
-			  unsigned int totSize = 0;
+			  unsigned long long totSize = 0;
 			  unsigned int localMax = 0;
 
 			  for (int offset = 0; offset < batchSize; offset++)
@@ -236,8 +236,9 @@ void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRow
 				  int block = batch * batchSize + offset;
 				  CompAlgo compAlgo;
 				  char* compBuf = &threadBuffer[threadNr * MAX_COMPRESSBOUND * batchSize + totSize];
-				  compSize[offset] = static_cast<unsigned int>(streamCompressor->Compress(&colVec[block * blockSize], blockSize, compBuf, compAlgo, block));
-				  totSize += compSize[offset];
+          unsigned long long vecOffset = static_cast<unsigned long long>(block) * static_cast<unsigned long long>(blockSize);
+				  compSize[offset] = static_cast<unsigned int>(streamCompressor->Compress(&colVec[vecOffset], blockSize, compBuf, compAlgo, block));
+				  totSize += static_cast<unsigned long long>(compSize[offset]);
 				  blockAlgorithm[offset] = static_cast<unsigned int>(compAlgo);
 				  if (compSize[offset] > localMax) localMax = compSize[offset];
 			  }
@@ -266,37 +267,39 @@ void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRow
 
   // 1 long file pointer and 1 short algorithmID per block
   {
-	char* compBuf = threadBuffer;
-	unsigned int compSize;
-	unsigned int blockAlgorithm;
-	unsigned int totSize = 0;
-	CompAlgo compAlgo;
+	  char* compBuf = threadBuffer;
+	  unsigned int compSize;
+	  unsigned int blockAlgorithm;
+	  unsigned long long totSize = 0;
+	  CompAlgo compAlgo;
 
-	int fullBlocksRemain = nrOfBlocks - nrOfBatches * batchSize;
+	  int fullBlocksRemain = nrOfBlocks - nrOfBatches * batchSize;
 
-	for (int offset = 0; offset < fullBlocksRemain; offset++)
-	{
-		int block = nrOfBatches * batchSize + offset;
+	  for (int offset = 0; offset < fullBlocksRemain; offset++)
+	  {
+		  int block = nrOfBatches * batchSize + offset;
 
-		compSize = static_cast<unsigned int>(streamCompressor->Compress(&colVec[block * blockSize], blockSize, &compBuf[totSize], compAlgo, block));
-		totSize += compSize;
-		blockAlgorithm = static_cast<unsigned int>(compAlgo);
-		if (compSize > maxCompressionSize) maxCompressionSize = compSize;
+      unsigned long long vecOffset = static_cast<unsigned long long>(block) * static_cast<unsigned long long>(blockSize);
+		  compSize = static_cast<unsigned int>(streamCompressor->Compress(&colVec[vecOffset], blockSize, &compBuf[totSize], compAlgo, block));
+		  totSize += compSize;
+		  blockAlgorithm = static_cast<unsigned int>(compAlgo);
+		  if (compSize > maxCompressionSize) maxCompressionSize = compSize;
 
-		blockPosition[block] = blockIndexPos | (static_cast<unsigned long long>(blockAlgorithm) << 48); // starting position and algorithm in 2 high bytes
-		blockIndexPos += compSize;  // compressed block length
-	}
+		  blockPosition[block] = blockIndexPos | (static_cast<unsigned long long>(blockAlgorithm) << 48); // starting position and algorithm in 2 high bytes
+		  blockIndexPos += compSize;  // compressed block length
+	  }
 
-	// last (possibly) partial block
-	compSize = static_cast<unsigned int>(streamCompressor->Compress(&colVec[nrOfBlocks * blockSize], remain * elementSize, &compBuf[totSize], compAlgo, nrOfBlocks));
-	totSize += compSize;
+	  // last (possibly) partial block
+    unsigned long long vecOffset = static_cast<unsigned long long>(nrOfBlocks) * static_cast<unsigned long long>(blockSize);
+    compSize = static_cast<unsigned int>(streamCompressor->Compress(&colVec[vecOffset], remain * elementSize, &compBuf[totSize], compAlgo, nrOfBlocks));
+	  totSize += compSize;
 
-	if (compSize > maxCompressionSize) maxCompressionSize = compSize;
-	blockAlgorithm = static_cast<unsigned int>(compAlgo);
-	blockPosition[nrOfBlocks] = blockIndexPos | (static_cast<unsigned long long>(blockAlgorithm) << 48); // starting position and algorithm in 2 high bytes
-	blockIndexPos += compSize;  // compressed block length
+	  if (compSize > maxCompressionSize) maxCompressionSize = compSize;
+	  blockAlgorithm = static_cast<unsigned int>(compAlgo);
+	  blockPosition[nrOfBlocks] = blockIndexPos | (static_cast<unsigned long long>(blockAlgorithm) << 48); // starting position and algorithm in 2 high bytes
+	  blockIndexPos += compSize;  // compressed block length
 
-	myfile.write(compBuf, totSize);
+	  myfile.write(compBuf, totSize);
   }
 
   delete[] threadBuffer;
@@ -320,7 +323,7 @@ void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned int nrOfRow
 // Read data compressed with a fixed ratio compressor from a stream
 // Note that repSize is assumed to be a multiple of elementSize
 inline void fdsReadFixedCompStream_v2(istream &myfile, char* outVec, unsigned long long blockPos,
-  unsigned int* meta, unsigned int startRow, int elementSize, unsigned int vecLength)
+  unsigned int* meta, unsigned long long startRow, int elementSize, unsigned long long vecLength)
 {
   unsigned int compAlgo = meta[1];  // identifier of the fixed ratio compressor
   unsigned int repSize = fixedRatioSourceRepSize[static_cast<int>(compAlgo)];  // in bytes
@@ -471,8 +474,8 @@ void ProcessBatch(char* outVec, char* blockIndex, int blockSize, Decompressor de
 	}
 }
 
-void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size,
-  int elementSize, std::string &annotation, int maxbatchSize)
+void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos, unsigned long long startRow,
+  unsigned long long length, unsigned long long size, int elementSize, std::string &annotation, int maxbatchSize)
 {
   myfile.seekg(blockPos);
 
@@ -656,16 +659,13 @@ void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
 	int nrOfBatches = (maxBlock + batchSize - 1) / batchSize;  // number of batches (last one may be smaller)
   int blockCount = 0;
 
-	//if (nrOfBatches > 0)
-	//{
-
   //////////////////////////////////////////////////////////
   // Parallel logic starts here
   //////////////////////////////////////////////////////////
 
 #pragma omp parallel num_threads(nrOfThreads) shared(isAlligned,nrOfBatches,batchSize,blockCount)
   {
-#pragma omp for schedule(static, 1) nowait
+#pragma omp for schedule(static, 1)
     for (int blockJob = 0; blockJob < nrOfBatches; blockJob++)  // a blockJob is a single unit of work
     {
       int threadNr = OMP_GET_THREAD_NUM;  // use memory buffer specific for this thread

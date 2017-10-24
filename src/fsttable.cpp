@@ -67,7 +67,7 @@ unsigned int FstTable::NrOfColumns()
 }
 
 
-unsigned int FstTable::NrOfRows()
+unsigned long long FstTable::NrOfRows()
 {
   if (nrOfCols == 0)  // table has zero columns
   {
@@ -77,7 +77,7 @@ unsigned int FstTable::NrOfRows()
   }
 
   SEXP colVec = VECTOR_ELT(*rTable, 0);  // retrieve column vector
-  return Rf_length(colVec);
+  return XLENGTH(colVec);
 }
 
 
@@ -366,7 +366,7 @@ void FstTable::GetKeyColumns(int* keyColPos)
 
 //  FstTableReader implementation
 
-void FstTable::InitTable(unsigned int nrOfCols, int nrOfRows)
+void FstTable::InitTable(unsigned int nrOfCols, unsigned long long nrOfRows)
 {
   this->nrOfCols = nrOfCols;
   this->nrOfRows = nrOfRows;

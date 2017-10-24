@@ -44,13 +44,13 @@
 #include <interface/ifstcolumn.h>
 
 
-void fdsWriteFactorVec_v7(std::ofstream &myfile, int* intP, IStringWriter* blockRunner, unsigned int size, unsigned int compression,
+void fdsWriteFactorVec_v7(std::ofstream &myfile, int* intP, IStringWriter* blockRunner, unsigned long long size, unsigned int compression,
 	StringEncoding stringEncoding, std::string annotation);
 
 
 // Parameter 'startRow' is zero based.
-void fdsReadFactorVec_v7(std::istream &myfile, IStringColumn* blockReader, int* intP, unsigned long long blockPos, unsigned int startRow,
-  unsigned int length, unsigned int size);
+void fdsReadFactorVec_v7(std::istream &myfile, IStringColumn* blockReader, int* intP, unsigned long long blockPos, unsigned long long startRow,
+  unsigned long long length, unsigned long long size);
 
 
 #endif  // FACTOR_v7_H

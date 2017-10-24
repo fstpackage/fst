@@ -45,7 +45,7 @@ You can contact the author at :
 using namespace std;
 
 
-inline unsigned int StoreCharBlock_v6(ofstream &myfile, IStringWriter* blockRunner, unsigned int startCount, unsigned int endCount)
+inline unsigned int StoreCharBlock_v6(ofstream &myfile, IStringWriter* blockRunner, unsigned long long startCount, unsigned long long endCount)
 {
   blockRunner->SetBuffersFromVec(startCount, endCount);
 
@@ -113,10 +113,10 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream &myfile, IStringWriter*
 
 void fdsWriteCharVec_v6(ofstream &myfile, IStringWriter* stringWriter, int compression, StringEncoding stringEncoding)
 {
-  unsigned int vecLength = stringWriter->vecLength;  // expected to be larger than zero
+  unsigned long long vecLength = stringWriter->vecLength;  // expected to be larger than zero
 
   unsigned long long curPos = myfile.tellp();
-  unsigned int nrOfBlocks = (vecLength - 1) / BLOCKSIZE_CHAR;  // number of blocks minus 1
+  unsigned long long nrOfBlocks = (vecLength - 1) / BLOCKSIZE_CHAR;  // number of blocks minus 1
 
   if (compression == 0)
   {
@@ -134,7 +134,7 @@ void fdsWriteCharVec_v6(ofstream &myfile, IStringWriter* stringWriter, int compr
     unsigned long long* blockPos = reinterpret_cast<unsigned long long*>(&meta[CHAR_HEADER_SIZE]);
     unsigned long long fullSize = metaSize;
 
-    for (unsigned int block = 0; block < nrOfBlocks; ++block)
+    for (unsigned long long block = 0; block < nrOfBlocks; ++block)
     {
       unsigned int totSize = StoreCharBlock_v6(myfile, stringWriter, block * BLOCKSIZE_CHAR, (block + 1) * BLOCKSIZE_CHAR);
       fullSize += totSize;
@@ -203,7 +203,7 @@ void fdsWriteCharVec_v6(ofstream &myfile, IStringWriter* stringWriter, int compr
     streamCompressChar = new StreamCompositeCompressor(compressChar, compressChar2, 2 * (compression - 50));
   }
 
-  for (unsigned int block = 0; block < nrOfBlocks; ++block)
+  for (unsigned long long block = 0; block < nrOfBlocks; ++block)
   {
     unsigned long long* blockPos = (unsigned long long*) blockP;
     unsigned short int* algoInt  = (unsigned short int*) (blockP + 8);
@@ -211,7 +211,7 @@ void fdsWriteCharVec_v6(ofstream &myfile, IStringWriter* stringWriter, int compr
     int* intBufSize = (int*) (blockP + 12);
 
     stringWriter->SetBuffersFromVec(block * BLOCKSIZE_CHAR, (block + 1) * BLOCKSIZE_CHAR);
-    unsigned int totSize = storeCharBlockCompressed_v6(myfile, stringWriter, block * BLOCKSIZE_CHAR,
+    unsigned long long totSize = storeCharBlockCompressed_v6(myfile, stringWriter, block * BLOCKSIZE_CHAR,
       (block + 1) * BLOCKSIZE_CHAR, streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize, block);
 
     fullSize += totSize;
@@ -225,7 +225,7 @@ void fdsWriteCharVec_v6(ofstream &myfile, IStringWriter* stringWriter, int compr
   int* intBufSize = (int*) (blockP + 12);
 
   stringWriter->SetBuffersFromVec(nrOfBlocks * BLOCKSIZE_CHAR, vecLength);
-  unsigned int totSize = storeCharBlockCompressed_v6(myfile, stringWriter, nrOfBlocks * BLOCKSIZE_CHAR,
+  unsigned long long totSize = storeCharBlockCompressed_v6(myfile, stringWriter, nrOfBlocks * BLOCKSIZE_CHAR,
     vecLength, streamCompressInt, streamCompressChar, *algoInt, *algoChar, *intBufSize, nrOfBlocks);
 
   fullSize += totSize;
@@ -248,11 +248,11 @@ void fdsWriteCharVec_v6(ofstream &myfile, IStringWriter* stringWriter, int compr
 }
 
 
-inline void ReadDataBlock_v6(istream &myfile, IStringColumn* blockReader, unsigned long long blockSize, unsigned int nrOfElements,
-  unsigned int startElem, unsigned int endElem, unsigned int vecOffset)
+inline void ReadDataBlock_v6(istream &myfile, IStringColumn* blockReader, unsigned long long blockSize, unsigned long long nrOfElements,
+  unsigned long long startElem, unsigned long long endElem, unsigned long long vecOffset)
 {
-  unsigned int nrOfNAInts = 1 + nrOfElements / 32;  // last bit is NA flag
-  unsigned int totElements = nrOfElements + nrOfNAInts;
+  unsigned long long nrOfNAInts = 1 + nrOfElements / 32;  // last bit is NA flag
+  unsigned long long totElements = nrOfElements + nrOfNAInts;
   unsigned int *sizeMeta = new unsigned int[totElements];
   myfile.read((char*) sizeMeta, totElements * 4);  // read cumulative string lengths and NA bits
 
@@ -273,12 +273,12 @@ inline void ReadDataBlock_v6(istream &myfile, IStringColumn* blockReader, unsign
 }
 
 
-inline void ReadDataBlockCompressed_v6(istream &myfile, IStringColumn* blockReader, unsigned long long blockSize, unsigned int nrOfElements,
-  unsigned int startElem, unsigned int endElem, unsigned int vecOffset,
+inline void ReadDataBlockCompressed_v6(istream &myfile, IStringColumn* blockReader, unsigned long long blockSize, unsigned long long nrOfElements,
+  unsigned long long startElem, unsigned long long endElem, unsigned long long vecOffset,
   unsigned int intBlockSize, Decompressor &decompressor, unsigned short int &algoInt, unsigned short int &algoChar)
 {
-  unsigned int nrOfNAInts = 1 + nrOfElements / 32;  // NA metadata including overall NA bit
-  unsigned int totElements = nrOfElements + nrOfNAInts;
+  unsigned long long nrOfNAInts = 1 + nrOfElements / 32;  // NA metadata including overall NA bit
+  unsigned long long totElements = nrOfElements + nrOfNAInts;
   unsigned int *sizeMeta = new unsigned int[totElements];
 
   // Read and uncompress str sizes data
@@ -325,7 +325,8 @@ inline void ReadDataBlockCompressed_v6(istream &myfile, IStringColumn* blockRead
 }
 
 
-void fdsReadCharVec_v6(istream &myfile, IStringColumn* blockReader, unsigned long long blockPos, unsigned int startRow, unsigned int vecLength, unsigned int size)
+void fdsReadCharVec_v6(istream &myfile, IStringColumn* blockReader, unsigned long long blockPos, unsigned long long startRow,
+  unsigned long long vecLength, unsigned long long size)
 {
   // Jump to startRow size
   myfile.seekg(blockPos);
@@ -337,13 +338,13 @@ void fdsReadCharVec_v6(istream &myfile, IStringColumn* blockReader, unsigned lon
   unsigned int compression = meta[0] & 1;  // maximum 8 encodings
   StringEncoding stringEncoding = static_cast<StringEncoding>(meta[0] >> 1 & 7);  // at maximum 8 encodings
 
-  unsigned int blockSizeChar = meta[1];
-  unsigned int totNrOfBlocks = (size - 1) / blockSizeChar;  // total number of blocks minus 1
-  unsigned int startBlock = startRow / blockSizeChar;
-  unsigned int startOffset = startRow - (startBlock * blockSizeChar);
-  unsigned int endBlock = (startRow + vecLength - 1)  / blockSizeChar;
-  unsigned int endOffset = (startRow + vecLength - 1)  -  endBlock *blockSizeChar;
-  unsigned int nrOfBlocks = 1 + endBlock - startBlock;  // total number of blocks to read
+  unsigned long long blockSizeChar = static_cast<unsigned long long>(meta[1]);
+  unsigned long long totNrOfBlocks = (size - 1) / blockSizeChar;  // total number of blocks minus 1
+  unsigned long long startBlock = startRow / blockSizeChar;
+  unsigned long long startOffset = startRow - (startBlock * blockSizeChar);
+  unsigned long long endBlock = (startRow + vecLength - 1)  / blockSizeChar;
+  unsigned long long endOffset = (startRow + vecLength - 1)  -  endBlock *blockSizeChar;
+  unsigned long long nrOfBlocks = 1 + endBlock - startBlock;  // total number of blocks to read
 
   // Create result vector
   blockReader->AllocateVec(vecLength);
@@ -370,8 +371,8 @@ void fdsReadCharVec_v6(istream &myfile, IStringColumn* blockReader, unsigned lon
     unsigned long long offset = blockOffset[0];
     myfile.seekg(blockPos + offset);
 
-    unsigned int endElem = blockSizeChar - 1;
-    unsigned int nrOfElements = blockSizeChar;
+    unsigned long long endElem = blockSizeChar - 1;
+    unsigned long long nrOfElements = blockSizeChar;
 
     if (startBlock == endBlock)  // subset start and end of block
     {
@@ -395,7 +396,7 @@ void fdsReadCharVec_v6(istream &myfile, IStringColumn* blockReader, unsigned lon
     }
 
     offset = blockOffset[1];
-    unsigned int vecPos = blockSizeChar - startOffset;
+    unsigned long long vecPos = blockSizeChar - startOffset;
 
     if (endBlock == totNrOfBlocks)
     {
@@ -403,7 +404,7 @@ void fdsReadCharVec_v6(istream &myfile, IStringColumn* blockReader, unsigned lon
     }
 
     --nrOfBlocks;  // iterate full blocks
-    for (unsigned int block = 1; block < nrOfBlocks; ++block)
+    for (unsigned long long block = 1; block < nrOfBlocks; ++block)
     {
       unsigned long long newPos = blockOffset[block + 1];
 
@@ -452,8 +453,8 @@ void fdsReadCharVec_v6(istream &myfile, IStringColumn* blockReader, unsigned lon
 
   myfile.seekg(blockPos + *offset);
 
-  unsigned int endElem = blockSizeChar - 1;
-  unsigned int nrOfElements = blockSizeChar;
+  unsigned long long endElem = blockSizeChar - 1;
+  unsigned long long nrOfElements = blockSizeChar;
 
   if (startBlock == endBlock)  // subset start and end of block
   {
@@ -482,7 +483,7 @@ void fdsReadCharVec_v6(istream &myfile, IStringColumn* blockReader, unsigned lon
 
   offset = curBlockPos;
 
-  unsigned int vecPos = blockSizeChar - startOffset;
+  unsigned long long vecPos = blockSizeChar - startOffset;
 
   if (endBlock == totNrOfBlocks)
   {

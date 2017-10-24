@@ -10,7 +10,7 @@ matrix:
   - r: devel
   - os: osx
   - os: linux
-  allow_failures:
+allow_failures:
   - os: osx
 
 r_packages:

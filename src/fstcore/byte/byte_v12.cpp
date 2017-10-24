@@ -41,7 +41,7 @@
 using namespace std;
 
 
-void fdsWriteByteVec_v12(ofstream &myfile, char* byteVector, unsigned int nrOfRows, unsigned int compression, std::string annotation)
+void fdsWriteByteVec_v12(ofstream &myfile, char* byteVector, unsigned long long nrOfRows, unsigned int compression, std::string annotation)
 {
   int blockSize = BLOCKSIZE_BYTE;  // block size in bytes
 
@@ -78,7 +78,8 @@ void fdsWriteByteVec_v12(ofstream &myfile, char* byteVector, unsigned int nrOfRo
 }
 
 
-void fdsReadByteVec_v12(istream &myfile, char* byteVec, unsigned long long blockPos, unsigned int startRow, unsigned int length, unsigned int size)
+void fdsReadByteVec_v12(istream &myfile, char* byteVec, unsigned long long blockPos, unsigned long long startRow, unsigned long long length,
+  unsigned long long size)
 {
   std::string annotation;
 

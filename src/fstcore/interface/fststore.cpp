@@ -150,7 +150,7 @@ inline unsigned int ReadHeader(ifstream &myfile, int &keyLength, int &nrOfColsFi
   if (!myfile)
   {
     myfile.close();
-    throw(runtime_error("Error reading file header, your fst file is incomplete or damaged."));
+    throw(runtime_error(FSTERROR_ERROR_OPEN_READ));
   }
 
   unsigned long long* p_headerHash = reinterpret_cast<unsigned long long*>(tableMeta);
@@ -168,7 +168,7 @@ inline unsigned int ReadHeader(ifstream &myfile, int &keyLength, int &nrOfColsFi
   if (hHash != *p_headerHash)
   {
     myfile.close();
-    throw(runtime_error(FSTERROR_DAMAGED_HEADER));
+    throw(runtime_error(FSTERROR_NON_FST_FILE));
   }
 
   // Compare file version with current
@@ -315,7 +315,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
   *p_primChunksetIndex     = 0;
   *p_secChunksetIndex      = 0;
 
-  int nrOfRows             = fstTable.NrOfRows();
+  unsigned long long nrOfRows = fstTable.NrOfRows();
   *p_nrOfRows              = nrOfRows;
   *p_nrOfChunksetCols      = nrOfCols;
 
@@ -660,7 +660,6 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
     if (*p_keyIndexHash != hHash)
     {
       delete[] metaDataBlock;
-      metaDataBlock = nullptr;
       myfile.close();
       throw(runtime_error(FSTERROR_DAMAGED_HEADER));
     }
@@ -690,7 +689,6 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
   if (*p_chunksetHash != chunksetHash)
   {
     delete[] metaDataBlock;
-    metaDataBlock = nullptr;
     myfile.close();
     throw(runtime_error(FSTERROR_DAMAGED_HEADER));
   }
@@ -707,7 +705,6 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
   if (*p_colNamesHash != colNamesHash)
   {
     delete[] metaDataBlock;
-    metaDataBlock = nullptr;
     myfile.close();
     throw(runtime_error(FSTERROR_DAMAGED_HEADER));
   }
@@ -751,7 +748,6 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
   if (*p_chunkIndexHash != chunkIndexHash)
   {
     delete[] metaDataBlock;
-    metaDataBlock = nullptr;
     delete[] chunkIndex;
     delete blockReader;
     blockReader = nullptr;
@@ -764,7 +760,6 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
   if (*p_chunkDataHash != chunkDataHash)
   {
     delete[] metaDataBlock;
-    metaDataBlock = nullptr;
     delete[] chunkIndex;
     delete blockReader;
     blockReader = nullptr;
@@ -795,10 +790,9 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
   {
     nrOfSelect = columnSelection->Length();
     colIndex = new int[nrOfSelect];
-    int equal;
     for (int colSel = 0; colSel < nrOfSelect; ++colSel)
     {
-      equal = -1;
+      int equal = -1;
       const char* str1 = columnSelection->GetElement(colSel);
 
       for (int colNr = 0; colNr < nrOfCols; ++colNr)
@@ -814,7 +808,6 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
       if (equal == -1)
       {
         delete[] metaDataBlock;
-        metaDataBlock = nullptr;
         delete[] colIndex;
         delete[] chunkIndex;
         delete blockReader;
@@ -829,13 +822,12 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
 
 
   // Check range of selected rows
-  unsigned long long firstRow = startRow - 1;
+  long long firstRow = startRow - 1;
   unsigned long long nrOfRows = *p_chunkRows;  // TODO: check for row numbers > INT_MAX !!!
 
-  if (firstRow >= nrOfRows || firstRow < 0)
+  if (firstRow >= static_cast<long long>(nrOfRows) || firstRow < 0)
   {
     delete[] metaDataBlock;
-    metaDataBlock = nullptr;
     delete[] colIndex;
     delete[] chunkIndex;
     delete blockReader;
@@ -856,10 +848,9 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
   // Determine vector length
   if (endRow != -1)
   {
-    if ((unsigned long long) endRow <= firstRow)
+    if (static_cast<long long>(endRow) <= firstRow)
     {
       delete[] metaDataBlock;
-      metaDataBlock = nullptr;
       delete[] colIndex;
       delete[] chunkIndex;
       delete blockReader;
@@ -868,7 +859,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
       throw(runtime_error("Incorrect row range specified."));
     }
 
-    length = min(endRow - firstRow, nrOfRows - firstRow);
+    length = min(endRow - firstRow, static_cast<long long>(nrOfRows) - firstRow);
   }
 
   tableReader.InitTable(nrOfSelect, length);
@@ -880,7 +871,6 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
     if (colNr < 0 || colNr >= nrOfCols)
     {
       delete[] metaDataBlock;
-      metaDataBlock = nullptr;
       delete[] colIndex;
       delete[] chunkIndex;
       delete blockReader;
@@ -968,7 +958,6 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
 
     default:
       delete[] metaDataBlock;
-      metaDataBlock = nullptr;
       delete[] colIndex;
       delete[] chunkIndex;
       delete blockReader;
@@ -994,7 +983,6 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
   }
 
   delete[] metaDataBlock;
-  metaDataBlock = nullptr;
   delete[] colIndex;
   delete[] chunkIndex;
 }

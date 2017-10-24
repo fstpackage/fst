@@ -49,7 +49,7 @@ public:
 
   ~StringArray() { if (isProtected) UNPROTECT(1); }
 
-  void AllocateArray(int length)
+  void AllocateArray(unsigned int length)
   {
     PROTECT(this->strVec = Rf_allocVector(STRSXP, length));
     isProtected = true;
@@ -61,22 +61,22 @@ public:
     this->strVec = strVec;
   }
 
-  void SetElement(int elementNr, const char* str)
+  void SetElement(unsigned int elementNr, const char* str)
   {
     SET_STRING_ELT(strVec, elementNr, Rf_mkChar(str));
   }
 
-  const char* GetElement(int elementNr)
+  const char* GetElement(unsigned int elementNr)
   {
     return CHAR(STRING_ELT(strVec, elementNr));
   }
 
-  void SetElement(int elementNr, const char* str, int strLen)
+  void SetElement(unsigned int elementNr, const char* str, unsigned int strLen)
   {
     SET_STRING_ELT(strVec, elementNr, Rf_mkCharLen(str, strLen));
   }
 
-  int Length()
+  unsigned int Length()
   {
     return LENGTH(strVec);
   }
@@ -306,6 +306,7 @@ public:
     // store for later reference
     this->columnAttribute = columnAttribute;
 
+    // set attributes if required
     if (columnAttribute == FstColumnAttribute::INT_32_TIMEINTERVAL_SECONDS)
     {
       Rf_classgets(colVec, Rf_mkString("difftime"));

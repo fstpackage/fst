@@ -41,17 +41,17 @@
 #include <compression/compressor.h>
 
 // Method for writing column data of any type to a ofstream.
-void fdsStreamUncompressed_v2(std::ofstream &myfile, char* vec, unsigned int vecLength, int elementSize, int blockSizeElems,
+void fdsStreamUncompressed_v2(std::ofstream &myfile, char* vec, unsigned long long vecLength, int elementSize, int blockSizeElems,
   FixedRatioCompressor* fixedRatioCompressor, std::string annotation);
 
 
 // Method for writing column data of any type to a stream.
-void fdsStreamcompressed_v2(std::ofstream &myfile, char* colVec, unsigned int nrOfRows, int elementSize,
+void fdsStreamcompressed_v2(std::ofstream &myfile, char* colVec, unsigned long long nrOfRows, int elementSize,
   StreamCompressor* streamCompressor, int blockSizeElems, std::string annotation);
 
 
-void fdsReadColumn_v2(std::istream &myfile, char* outVec, unsigned long long blockPos, unsigned startRow, unsigned length, unsigned size,
-  int elementSize, std::string &annotation, int maxbatchSize);
+void fdsReadColumn_v2(std::istream &myfile, char* outVec, unsigned long long blockPos, unsigned long long startRow, unsigned long long length,
+  unsigned long long size, int elementSize, std::string &annotation, int maxbatchSize);
 
 
 #endif // BLOCKSTORE_H

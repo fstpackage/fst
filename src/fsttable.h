@@ -58,7 +58,7 @@ class FstTable : public IFstTable
 
   // Table metadata
   unsigned int nrOfCols;
-  int nrOfRows;
+  unsigned long long nrOfRows;
   bool isProtected;
   int uniformEncoding;
 
@@ -72,7 +72,7 @@ class FstTable : public IFstTable
 
     ~FstTable() { if (isProtected) UNPROTECT(1); }
 
-    void InitTable(unsigned int nrOfCols, int nrOfRows);
+    void InitTable(unsigned int nrOfCols, unsigned long long nrOfRows);
 
     void SetStringColumn(IStringColumn* stringColumn, int colNr);
 
@@ -116,7 +116,7 @@ class FstTable : public IFstTable
 
     unsigned int NrOfColumns();
 
-    unsigned int NrOfRows();
+    unsigned long long NrOfRows();
 };
 
 

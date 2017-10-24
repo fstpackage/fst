@@ -52,13 +52,13 @@ public:
   unsigned int* naInts;
   unsigned int bufSize;
   char* activeBuf;
-  unsigned int vecLength;
+  unsigned long long vecLength;
 
   virtual ~IStringWriter() {}
 
   virtual StringEncoding Encoding() = 0;
 
-  virtual void SetBuffersFromVec(unsigned int startCount, unsigned int endCount) = 0;
+  virtual void SetBuffersFromVec(unsigned long long startCount, unsigned long long endCount) = 0;
 };
 
 

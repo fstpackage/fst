@@ -44,7 +44,7 @@ using namespace std;
 
 // Logical vectors are always compressed to fill all available bits (factor 16 compression).
 // On top of that, we can compress the resulting bytes with a custom compressor.
-void fdsWriteLogicalVec_v10(ofstream &myfile, int* boolVector, unsigned nrOfLogicals, int compression, std::string annotation)
+void fdsWriteLogicalVec_v10(ofstream &myfile, int* boolVector, unsigned long long nrOfLogicals, int compression, std::string annotation)
 {
   if (compression == 0)
   {
@@ -90,8 +90,8 @@ void fdsWriteLogicalVec_v10(ofstream &myfile, int* boolVector, unsigned nrOfLogi
 }
 
 
-void fdsReadLogicalVec_v10(istream &myfile, int* boolVector, unsigned long long blockPos, unsigned int startRow,
-  unsigned int length, unsigned int size)
+void fdsReadLogicalVec_v10(istream &myfile, int* boolVector, unsigned long long blockPos, unsigned long long startRow,
+  unsigned long long length, unsigned long long size)
 {
   std::string annotation;
   return fdsReadColumn_v2(myfile, (char*) boolVector, blockPos, startRow, length, size, 4, annotation, BATCH_SIZE_READ_LOGICAL);

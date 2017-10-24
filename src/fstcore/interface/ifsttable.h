@@ -74,10 +74,10 @@ class IFstTable
 
     virtual unsigned int NrOfColumns() = 0;
 
-    virtual unsigned int NrOfRows() = 0;
+    virtual unsigned long long NrOfRows() = 0;
 
 	// Reader interface
-  	virtual void InitTable(unsigned int nrOfCols, int nrOfRows) = 0;
+  	virtual void InitTable(unsigned int nrOfCols, unsigned long long nrOfRows) = 0;
 
   	virtual void SetStringColumn(IStringColumn* stringColumn, int colNr) = 0;
 

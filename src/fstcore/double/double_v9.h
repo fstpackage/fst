@@ -41,9 +41,9 @@
 #include <istream>
 
 
-void fdsWriteRealVec_v9(std::ofstream &myfile, double* doubleVector, unsigned int nrOfRows, unsigned int compression, std::string annotation);
+void fdsWriteRealVec_v9(std::ofstream &myfile, double* doubleVector, unsigned long long nrOfRows, unsigned int compression, std::string annotation);
 
-void fdsReadRealVec_v9(std::istream &myfile, double* doubleVector, unsigned long long blockPos, unsigned int startRow,
-  unsigned int length, unsigned int size, std::string &annotation);
+void fdsReadRealVec_v9(std::istream &myfile, double* doubleVector, unsigned long long blockPos, unsigned long long startRow,
+  unsigned long long length, unsigned long long size, std::string &annotation);
 
 #endif // DOUBLE_v9_H

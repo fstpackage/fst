@@ -40,12 +40,10 @@
 #include <ostream>
 #include <istream>
 
-#include <interface/fstdefines.h>
 
+void fdsWriteIntVec_v8(std::ofstream &myfile, int* integerVector, unsigned long long nrOfRows, unsigned int compression, std::string annotation);
 
-void fdsWriteIntVec_v8(std::ofstream &myfile, int* integerVector, unsigned int nrOfRows, unsigned int compression, std::string annotation);
-
-void fdsReadIntVec_v8(std::istream &myfile, int* integerVector, unsigned long long blockPos, unsigned startRow, unsigned length,
-  unsigned size, std::string &annotation);
+void fdsReadIntVec_v8(std::istream &myfile, int* integerVector, unsigned long long blockPos, unsigned long long startRow,
+  unsigned long long length, unsigned long long size, std::string &annotation);
 
 #endif // INTEGER_V8_H

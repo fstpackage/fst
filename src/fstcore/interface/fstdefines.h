@@ -91,6 +91,7 @@
 #define FSTERROR_NON_FST_FILE        "File format was not recognised as a fst file"
 #define FSTERROR_NO_DATA             "The dataset contains no data"
 #define FSTERROR_ERROR_OPEN_WRITE    "There was an error creating the file, please check path"
+#define FSTERROR_ERROR_OPEN_READ     "There was an error opening the file, it seems to be incomplete or damaged."
 #define FSTERROR_UPDATE_FST          "Incompatible fst file: file was created by a newer version of fst"
 
 #define FST_NA_INT					         0x80000000

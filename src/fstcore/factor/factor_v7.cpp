@@ -54,7 +54,7 @@ using namespace std;
 #define HEADER_SIZE_FACTOR 16
 #define VERSION_NUMBER_FACTOR 1
 
-void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunner, unsigned int size, unsigned int compression,
+void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunner, unsigned long long size, unsigned int compression,
 	StringEncoding stringEncoding, std::string annotation)
 {
   unsigned long long blockPos = myfile.tellp();  // offset for factor
@@ -186,8 +186,8 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
 
 // Parameter 'startRow' is zero based
 // Data vector intP is expected to point to a memory block 4 * size bytes long
-void fdsReadFactorVec_v7(istream &myfile, IStringColumn* blockReader, int* intP, unsigned long long blockPos, unsigned int startRow,
-  unsigned int length, unsigned int size)
+void fdsReadFactorVec_v7(istream &myfile, IStringColumn* blockReader, int* intP, unsigned long long blockPos, unsigned long long startRow,
+  unsigned long long length, unsigned long long size)
 {
   // Jump to factor level
   myfile.seekg(blockPos);

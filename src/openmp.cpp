@@ -20,7 +20,6 @@
 *    avoid the deadlock/hang (#1745 and #1727) and return to prior state afterwards.
 */
 
-
 SEXP getnrofthreads()
 {
     return Rf_ScalarInteger(GetFstThreads());
@@ -42,18 +41,12 @@ int setnrofthreads(SEXP nrOfThreads)
 }
 
 
-// auto avoid deadlock when fst called from parallel::mclapply
-static int preFork_Fstthreads = 0;
+// Folowing code was adopted from package data.table:
+// TODO: implement in fstcore to guard against forking issues with OpenMP
 
 void when_fork()
 {
-    preFork_Fstthreads = GetFstThreads();
     SetFstThreads(1);
-}
-
-void when_fork_end()
-{
-    SetFstThreads(preFork_Fstthreads);
 }
 
 
@@ -61,7 +54,7 @@ extern "C" int avoid_openmp_hang_within_fork()
 {
     // Called once on loading fst from init.c
 #ifdef _OPENMP
-    return pthread_atfork(&when_fork, &when_fork_end, nullptr);
+    return pthread_atfork(&when_fork, nullptr, nullptr);
 #endif
 
     return 0;

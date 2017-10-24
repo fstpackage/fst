@@ -58,7 +58,7 @@ class BlockWriterChar : public IStringWriter
   char buf[MAX_CHAR_STACK_SIZE];
 
   public:
-    BlockWriterChar(SEXP &strVec, unsigned int vecLength, unsigned int stackBufSize, int uniformEncoding);
+    BlockWriterChar(SEXP &strVec, unsigned long long vecLength, unsigned int stackBufSize, int uniformEncoding);
 
     ~BlockWriterChar();
 
@@ -108,7 +108,7 @@ class BlockWriterChar : public IStringWriter
       }
     }
 
-    void SetBuffersFromVec(unsigned int startCount, unsigned int endCount);
+    void SetBuffersFromVec(unsigned long long startCount, unsigned long long endCount);
 };
 
 
@@ -128,7 +128,7 @@ public:
 
   ~BlockReaderChar(){ if (isProtected) UNPROTECT(1); }
 
-  void AllocateVec(unsigned int vecLength);
+  void AllocateVec(unsigned long long vecLength);
 
   void SetEncoding(StringEncoding stringEncoding)
   {
@@ -152,10 +152,10 @@ public:
     }
   }
 
-  void BufferToVec(unsigned int nrOfElements, unsigned int startElem, unsigned int endElem,
-    unsigned int vecOffset, unsigned int* sizeMeta, char* buf);
+  void BufferToVec(unsigned long long nrOfElements, unsigned long long startElem, unsigned long long endElem,
+    unsigned long long vecOffset, unsigned int* sizeMeta, char* buf);
 
-  const char* GetElement(int elementNr)
+  const char* GetElement(unsigned long long elementNr)
   {
     return CHAR(STRING_ELT(strVec, elementNr));
   }
