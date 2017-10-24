@@ -444,10 +444,11 @@ inline void fdsReadFixedCompStream_v2(istream &myfile, char* outVec, unsigned lo
 
 #define UNCOMPRESSED_BLOCKSIZE 262144  // reading in small block is more efficient (probably more efficient L3 caching)
 
-void ProcessBatch(char* outVec, char* blockIndex, int blockSize, Decompressor decompressor, uint64_t outOffset, bool isAlligned, int blockStart, int blockEnd, unsigned long long*& bStart, unsigned long long*& bEnd, char* threadBuf)
+void ProcessBatch(char* outVec, char* blockIndex, unsigned long long blockSize, Decompressor decompressor, unsigned long long outOffset, bool isAlligned,
+  unsigned long long blockStart, unsigned long long blockEnd, unsigned long long*& bStart, unsigned long long*& bEnd, char* threadBuf)
 {
 	unsigned long long totSize = 0;
-	for (int blockCount = blockStart; blockCount < blockEnd; blockCount++)
+	for (unsigned long long blockCount = blockStart; blockCount < blockEnd; blockCount++)
 	{
 		// File offsets and algorithm
 		bStart = reinterpret_cast<unsigned long long*>(&blockIndex[8 * blockCount]);
@@ -540,11 +541,11 @@ void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
 	unsigned int blockSizeElements = compress[1];  // number of elements per block
 
 	// Number of compressed data blocks, the last block can be smaller than blockSizeElements
-	int nrOfBlocks = 1 + (size - 1) / blockSizeElements;
+  unsigned long long nrOfBlocks = 1 + (size - 1) / blockSizeElements;
 
 	// Calculate startRow data block position
-	int startBlock = startRow / blockSizeElements;
-	int endBlock = (startRow + length - 1) / blockSizeElements;
+  unsigned long long startBlock = startRow / blockSizeElements;
+  unsigned long long endBlock = (startRow + length - 1) / blockSizeElements;
 	int startOffset = startRow % blockSizeElements;
 
 	if (startBlock > 0)
@@ -642,8 +643,8 @@ void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
 	int remain = (startRow + length) % blockSizeElements;  // remaining required items in last block
 	if (remain == 0) ++endBlock;
 
-	int maxBlock = endBlock - startBlock;
-	uint64_t outOffset = subBlockSize * elementSize;  // position in output vector
+	unsigned long long maxBlock = endBlock - startBlock;
+  unsigned long long outOffset = subBlockSize * elementSize;  // position in output vector
 
 	// Process middle blocks (if any)
 
@@ -652,12 +653,12 @@ void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
 
 	maxBlock--;  // decrement to get number of full blocks
 
-	int nrOfThreads = max(1, min(GetFstThreads(), maxBlock));
-	int batchSize = min(maxbatchSize, maxBlock / nrOfThreads);  // keep thread buffer small
+	int nrOfThreads = max(1ULL, min((unsigned long long) GetFstThreads(), maxBlock));
+	int batchSize = min((unsigned long long) maxbatchSize, maxBlock / nrOfThreads);  // keep thread buffer small
 	batchSize = max(1, batchSize);
 	char* threadBuffer = new char[nrOfThreads * MAX_COMPRESSBOUND * batchSize];
-	int nrOfBatches = (maxBlock + batchSize - 1) / batchSize;  // number of batches (last one may be smaller)
-  int blockCount = 0;
+  long long nrOfBatches = (maxBlock + batchSize - 1) / batchSize;  // number of batches (last one may be smaller)
+  long long blockCount = 0;
 
   //////////////////////////////////////////////////////////
   // Parallel logic starts here
@@ -666,15 +667,15 @@ void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
 #pragma omp parallel num_threads(nrOfThreads) shared(isAlligned,nrOfBatches,batchSize,blockCount)
   {
 #pragma omp for schedule(static, 1)
-    for (int blockJob = 0; blockJob < nrOfBatches; blockJob++)  // a blockJob is a single unit of work
+    for (long long blockJob = 0; blockJob < nrOfBatches; blockJob++)  // a blockJob is a single unit of work
     {
       int threadNr = OMP_GET_THREAD_NUM;  // use memory buffer specific for this thread
 
-      int blockEnd;
+      unsigned long long blockStart;
+      unsigned long long blockEnd;
       unsigned long long  *bStart, *bEnd;
       char* threadBuf;
       int curBatchSize = batchSize;
-      int blockStart;
 
 #pragma omp critical
       {

@@ -267,6 +267,11 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
   // Test deprecated version format !!!
   if (result == -1)
   {
+    delete colSelection;
+    delete columnFactory;
+    delete fstStore;
+    delete colNames;
+
     try
     {
       SEXP res = fstRead_v1(fileName, columnSelection, startRow, endRow);
@@ -299,6 +304,7 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
     SET_STRING_ELT(keyNames, count++, STRING_ELT(colNameVec, *keyIt));
   }
 
+  delete colSelection;
   delete columnFactory;
   delete fstStore;
   delete colNames;
