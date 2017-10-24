@@ -3,15 +3,23 @@ cache: packages
 sudo: false
 warnings_are_errors: true
 
-matrix:
-  include:
-  - r: release
-  - r: oldrel
-  - r: devel
-  - os: osx
-  - os: linux
-allow_failures:
-  - os: osx
+r:
+  - oldrel
+  - release
+  - devel
+
+os:
+  - linux
+  - osx
+
+# matrix:
+#  exclude:
+#  - r: release
+#    os: osx
+#  - r: devel
+#    os: osx
+#  - r: devel
+#    os: linux
 
 r_packages:
   - covr
