@@ -110,3 +110,8 @@ The read and write speeds reported in the figure are calculated by dividing the 
 As you can see from the figure, the benchmark measures higher speeds than the reported maximum SSD speed for low compression settings. This is due to the fact that the on-disk filesize of the data frame used is actually significantly smaller than the in-memory size, even at a compression setting of zero. Package `fst` employs several type-specific byte- and bit- shifters that are used even in uncompressed mode. For example, a single logical value in R takes up 32 bits in memory, and only 2 bits on-disk (there are 3 possible values: `TRUE`, `FALSE`, and `NA`).
 
 > **Note to users**: The binary format used for data storage by the package (the 'fst file format') is expected to evolve in the coming months. Therefore, **`fst` should not be used for long-term data storage**.
+
+Bindings in other languages
+-----------
+
+**Julia**: [**`fstformat.jl`**](https://github.com/xiaodaigh/fstformat.jl) A naive Julia binding using RCall.jl
