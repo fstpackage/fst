@@ -7,7 +7,7 @@
 #' @return hash value
 #'
 #' @export
-fsthash <- function(x, seed = NULL) {
+hash_fst <- function(x, seed = NULL) {
   if (!is.null(seed) & ( (!is.numeric(seed)) | (length(seed) != 1))) {
     stop("Please specify an integer value for the hash seed.");
   }

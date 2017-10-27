@@ -11,23 +11,23 @@ rawVec <- RawVec(100)  # vector size less than single block
 
 
 test_that("interface for compressing raw vectors", {
-  y <- fstcompress(rawVec)
+  y <- compress_fst(rawVec)
   expect_equal(typeof(y), "raw")
 
-  expect_error(fstcompress(5), "Parameter x is not set to a raw vector")
+  expect_error(compress_fst(5), "Parameter x is not set to a raw vector")
 
-  expect_error(fstcompress(rawVec, 4), "Parameter compressor should be set")
+  expect_error(compress_fst(rawVec, 4), "Parameter compressor should be set")
 
-  expect_error(fstcompress(rawVec, compression = TRUE), "Parameter compression should be a numeric value")
+  expect_error(compress_fst(rawVec, compression = TRUE), "Parameter compression should be a numeric value")
 
-  expect_error(fstcompress(rawVec[0], compressor = "LZ4", compression = 0), "Source contains no data")
+  expect_error(compress_fst(rawVec[0], compressor = "LZ4", compression = 0), "Source contains no data")
 })
 
 
 # rest write / read cycle for single vector and compression settings
 TestRoundCycle <- function(vec, compressor, compression) {
-  y <- fstcompress(rawVec, compressor, compression)
-  z <- fstdecompress(y)
+  y <- compress_fst(rawVec, compressor, compression)
+  z <- decompress_fst(y)
   expect_equal(rawVec, z, info = paste("compressor:", compressor, "compression:", compression))  # return type
 
   y
@@ -44,13 +44,12 @@ TestVec <- function(rawVec) {
 
 
 test_that("compress round cycle small vector", {
-
   # single core
-  fstsetthreads(1)
+  threads_fst(1)
   comp_result1 <- TestVec(rawVec)
 
   # dual core (max on CRAN)
-  fstsetthreads(2)
+  threads_fst(2)
   comp_result2 <- TestVec(rawVec)
 
   # result independent of the number of blocks used
@@ -59,16 +58,15 @@ test_that("compress round cycle small vector", {
 
 
 test_that("compress round cycle single block", {
-
-  # fstcompress prefers 48 block of at least 16384 bytes (16 kB)
+  # compress_fst prefers 48 block of at least 16384 bytes (16 kB)
   rawVec <- RawVec(16384)  # exactly single block
 
   # single core single block
-  fstsetthreads(1)
+  threads_fst(1)
   comp_result1 <- TestVec(rawVec)
 
   # only 1 core will be active on a single block
-  fstsetthreads(2)
+  threads_fst(2)
   comp_result2 <- TestVec(rawVec)
 
   # result independent of the number of blocks used
@@ -77,16 +75,15 @@ test_that("compress round cycle single block", {
 
 
 test_that("compress round cycle around single block", {
-
-  # fstcompress prefers 48 block of at least 16384 bytes (16 kB)
+  # compress_fst prefers 48 block of at least 16384 bytes (16 kB)
   rawVec <- RawVec(16383)  # exactly single block minus 1
 
   # single core single block
-  fstsetthreads(1)
+  threads_fst(1)
   comp_result1 <- TestVec(rawVec)
 
   # only 1 core will be active on a single block
-  fstsetthreads(2)
+  threads_fst(2)
   comp_result2 <- TestVec(rawVec)
 
   # result independent of the number of blocks used
@@ -95,11 +92,11 @@ test_that("compress round cycle around single block", {
   rawVec <- RawVec(16385)  # exactly single block plus 1
 
   # single core single block
-  fstsetthreads(1)
+  threads_fst(1)
   comp_result1 <- TestVec(rawVec)
 
   # 2 cores will be active on two blocks
-  fstsetthreads(2)
+  threads_fst(2)
   comp_result2 <- TestVec(rawVec)
 
   # result independent of the number of blocks used
@@ -108,13 +105,12 @@ test_that("compress round cycle around single block", {
 
 
 test_that("compress round cycle multiple blocks per thread", {
-
   rawVec <- RawVec(100000)
 
-  fstsetthreads(1)
+  threads_fst(1)
   comp_result1 <- TestVec(rawVec)
 
-  fstsetthreads(2)
+  threads_fst(2)
   comp_result2 <- TestVec(rawVec)
 
   # result independent of the number of blocks used
@@ -123,13 +119,12 @@ test_that("compress round cycle multiple blocks per thread", {
 
 
 test_that("compress round cycle blocksize larger than 16kB", {
-
   rawVec <- RawVec(1000000)
 
-  fstsetthreads(1)
+  threads_fst(1)
   comp_result1 <- TestVec(rawVec)
 
-  fstsetthreads(2)
+  threads_fst(2)
   comp_result2 <- TestVec(rawVec)
 
   # result independent of the number of blocks used
@@ -141,28 +136,27 @@ rawVec <- RawVec(50000)  # 4 blocks
 
 
 test_that("erroneous compressed data", {
-
   # Test LZ4 compressor
-  z <- fstcompress(rawVec, compressor = "LZ4", compression = 100)  # note: very bad compression ratio
+  z <- compress_fst(rawVec, compressor = "LZ4", compression = 100)  # note: very bad compression ratio
 
   y <- z
   y[41:48] <- as.raw(0L)  # mess up second block offset
-  expect_error(fstdecompress(y), "Incorrect header information found")
+  expect_error(decompress_fst(y), "Incorrect header information found")
 
   y <- z
   y[17:24] <- as.raw(0L)  # set vector length to zero
-  expect_error(fstdecompress(y), "Incorrect header information found")
+  expect_error(decompress_fst(y), "Incorrect header information found")
 
-  y <- fstdecompress(z)
+  y <- decompress_fst(z)
   expect_equal(rawVec, y)  # return type
 
   # Test ZSTD compressor
-  y <- fstcompress(rawVec, compressor = "ZSTD", compression = 0)
-  z <- fstdecompress(y)
+  y <- compress_fst(rawVec, compressor = "ZSTD", compression = 0)
+  z <- decompress_fst(y)
   expect_equal(rawVec, z)  # return type
 
-  y <- fstcompress(rawVec, compressor = "ZSTD", compression = 100)  # maximum compression
-  z <- fstdecompress(y)
+  y <- compress_fst(rawVec, compressor = "ZSTD", compression = 100)  # maximum compression
+  z <- decompress_fst(y)
   expect_equal(rawVec, z)  # return type
 
   # Mess up compressed data block
@@ -170,23 +164,23 @@ test_that("erroneous compressed data", {
 
   # This error is catched by ZSTD
   y[77] <- as.raw(0L)  # set vector length to zero
-  expect_error(fstdecompress(y), "An error was detected in the compressed data stream")
+  expect_error(decompress_fst(y), "An error was detected in the compressed data stream")
 
   # If using block hashes, erro is catched by fst
-  y <- fstcompress(rawVec, compressor = "ZSTD", compression = 100, hash = TRUE)  # hash data blocks
+  y <- compress_fst(rawVec, compressor = "ZSTD", compression = 100, hash = TRUE)  # hash data blocks
   y[77] <- as.raw(0L)  # set vector length to zero
-  expect_error(fstdecompress(y), "Incorrect input vector")
+  expect_error(decompress_fst(y), "Incorrect input vector")
 })
 
 
 test_that("erroneous compressed data", {
-  hash1 <- fsthash(rawVec)
-  hash2 <- fsthash(rawVec, 345345)
+  hash1 <- hash_fst(rawVec)
+  hash2 <- hash_fst(rawVec, 345345)
 
   # alter vector in two places
   rawVec[100] <- as.raw( (as.integer(rawVec[100]) + 2) %% 256)
   rawVec[200] <- as.raw( (as.integer(rawVec[200]) + 2) %% 256)
-  hash3 <- fsthash(rawVec)
+  hash3 <- hash_fst(rawVec)
 
   expect_true(hash1 != hash2)
   expect_true(hash1 != hash3)
@@ -195,10 +189,10 @@ test_that("erroneous compressed data", {
 
 
 test_that("argument error", {
-  expect_error(fstcompress(1), "Parameter x is not set to a raw vector")
+  expect_error(compress_fst(1), "Parameter x is not set to a raw vector")
 
-  expect_error(fsthash(as.raw(1), "no integer"), "Please specify an integer value for the hash seed")
+  expect_error(hash_fst(as.raw(1), "no integer"), "Please specify an integer value for the hash seed")
 
-  expect_error(fsthash(1), "Please specify a raw vector as input parameter x")
+  expect_error(hash_fst(1), "Please specify a raw vector as input parameter x")
 
 })

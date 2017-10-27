@@ -5,51 +5,44 @@
 #' Allows for compression and (file level) random access of stored data, even for compressed datasets.
 #' When using a \code{data.table} object for \code{x}, the key (if any) is preserved,
 #' allowing storage of sorted data.
-#' Methods \code{fstread} and \code{fstwrite} are equivalent to \code{read.fst} and \code{write.fst} (but the
+#' Methods \code{read_fst} and \code{write_fst} are equivalent to \code{read.fst} and \code{write.fst} (but the
 #' former syntax is preferred).
 #'
 #' @param x a data frame to write to disk
 #' @param path path to fst file
 #' @param compress value in the range 0 to 100, indicating the amount of compression to use.
-#' @param uniform.encoding If TRUE, all character vectors will be assumed to have elements with equal encoding.
+#' @param uniform_encoding If TRUE, all character vectors will be assumed to have elements with equal encoding.
 #' The encoding (latin1, UTF8 or native) of the first non-NA element will used as encoding for the whole column.
 #' This will be a correct assumption for most use cases.
 #' If \code{uniform.encoding} is set to FALSE, no such assumption will be made and all elements will be converted
 #' to the same encoding. The latter is a relatively expensive operation and will reduce write performance for
 #' character columns.
-#' @return all methods return a data frame. \code{fstwrite}
+#' @return \code{read_fst} returns a data frame with the selected columns and rows. \code{read_fst})
 #' invisibly returns \code{x} (so you can use this function in a pipeline).
 #' @examples
 #' # Sample dataset
 #' x <- data.frame(A = 1:10000, B = sample(c(TRUE, FALSE, NA), 10000, replace = TRUE))
 #'
 #' # Uncompressed
-#' fstwrite(x, "dataset.fst")  # filesize: 41 KB
-#' y <- fstread("dataset.fst") # read uncompressed data
+#' write_fst(x, "dataset.fst")  # filesize: 41 KB
+#' y <- read_fst("dataset.fst") # read uncompressed data
 #'
 #' # Compressed
-#' fstwrite(x, "dataset.fst", 100)  # fileSize: 4 KB
-#' y <- fstread("dataset.fst") # read compressed data
+#' write_fst(x, "dataset.fst", 100)  # fileSize: 4 KB
+#' y <- read_fst("dataset.fst") # read compressed data
 #'
 #' # Random access
-#' y <- fstread("dataset.fst", "B") # read selection of columns
-#' y <- fstread("dataset.fst", "A", 100, 200) # read selection of columns and rows
+#' y <- read_fst("dataset.fst", "B") # read selection of columns
+#' y <- read_fst("dataset.fst", "A", 100, 200) # read selection of columns and rows
 #' @export
-fstwrite <- function(x, path, compress = 0, uniform.encoding = TRUE) {
+write_fst <- function(x, path, compress = 0, uniform_encoding = TRUE) {
   if (!is.character(path)) stop("Please specify a correct path.")
 
   if (!is.data.frame(x)) stop("Please make sure 'x' is a data frame.")
 
-  fststore(normalizePath(path, mustWork = FALSE), x, as.integer(compress), uniform.encoding)
+  fststore(normalizePath(path, mustWork = FALSE), x, as.integer(compress), uniform_encoding)
 
   invisible(x)
-}
-
-
-#' @rdname fstwrite
-#' @export
-write.fst <- function(x, path, compress = 0, uniform.encoding = TRUE) {
-  fstwrite(x, path, compress, uniform.encoding)
 }
 
 
@@ -68,12 +61,12 @@ write.fst <- function(x, path, compress = 0, uniform.encoding = TRUE) {
 #'   Last = sample(LETTERS, 10))
 #'
 #' # Write to fst file
-#' fstwrite(x, "dataset.fst")
+#' write_fst(x, "dataset.fst")
 #'
 #' # Display meta information
-#' fstmeta("dataset.fst")
+#' metadata_fst("dataset.fst")
 #' @export
-fstmeta <- function(path) {
+metadata_fst <- function(path) {
   metadata <- fstmetadata(normalizePath(path, mustWork = TRUE))
 
   colInfo <- list(path = path, nrOfRows = metadata$nrOfRows,
@@ -83,13 +76,6 @@ fstmeta <- function(path) {
   class(colInfo) <- "fstmetadata"
 
   colInfo
-}
-
-
-#' @rdname fstmeta
-#' @export
-fst.metadata <- function(path) {
-  fstmeta(path)
 }
 
 
@@ -122,7 +108,7 @@ print.fstmetadata <- function(x, ...) {
 }
 
 
-#' @rdname fstwrite
+#' @rdname write_fst
 #'
 #' @param columns Column names to read. The default is to read all all columns.
 #' @param from Read data starting from this row number.
@@ -131,7 +117,7 @@ print.fstmetadata <- function(x, ...) {
 #' dataset \code{x} before writing, will be retained. This allows for storage of sorted datasets.
 #'
 #' @export
-fstread <- function(path, columns = NULL, from = 1, to = NULL,
+read_fst <- function(path, columns = NULL, from = 1, to = NULL,
   as.data.table = FALSE) {
   fileName <- normalizePath(path, mustWork = TRUE)
 
@@ -173,9 +159,22 @@ fstread <- function(path, columns = NULL, from = 1, to = NULL,
 }
 
 
-#' @rdname fstwrite
+#' @rdname write_fst
+#' @export
+write.fst <- function(x, path, compress = 0, uniform_encoding = TRUE) {
+  write_fst(x, path, compress, uniform_encoding)
+}
+
+
+#' @rdname write_fst
 #' @export
 read.fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE) {
+  read_fst(path, columns, from, to, as.data.table)
+}
 
-  fstread(path, columns, from, to, as.data.table)
+
+#' @rdname metadata_fst
+#' @export
+fst.metadata <- function(path) {
+  metadata_fst(path)
 }

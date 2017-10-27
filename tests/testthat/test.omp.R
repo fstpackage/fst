@@ -11,11 +11,11 @@ if (!file.exists("testdata")) {
 
 
 test_that("Get number of threads", {
-  nrOfThreads <- fstgetthreads()
-  expect_gte(nrOfThreads, 1)
-  prevThreads <- fstsetthreads(2)  # Set number of OpenMP threads
+  nrOfThreads <- threads_fst()
+  expect_gte(nrOfThreads, 1)  # expect at least a single thread
+  prevThreads <- threads_fst(2)  # Set number of OpenMP threads
   expect_equal(nrOfThreads, prevThreads)
-  nrOfThreads <- fstgetthreads()
+  nrOfThreads <- threads_fst()
 
   # Systems with OpenMP activated should have more than a single thread
   if (fst:::hasopenmp()) {

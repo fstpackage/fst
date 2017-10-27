@@ -18,9 +18,7 @@ test_that("Package Style", {
   codeFiles <- codeFiles[!(codeFiles %in%
     c("../../R/RcppExports.R",
       "../../fst-Ex.R",
-      "../../00_pkg_src/fst/R/RcppExports.R",
-      "../../R-ex/fstmeta.R",
-      "../../R-ex/fstwrite.R"))]
+      "../../00_pkg_src/fst/R/RcppExports.R"))]
 
   # Calculate lintr results for all code files
   lintResults <- lintr:::flatten_lints(lapply(codeFiles, function(file) {

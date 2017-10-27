@@ -10,7 +10,7 @@
 #' so the performance hit will be very small.
 #'
 #' @export
-fstcompress <- function(x, compressor = "LZ4", compression = 0, hash = FALSE) {
+compress_fst <- function(x, compressor = "LZ4", compression = 0, hash = FALSE) {
   if (!is.numeric(compression)) {
     stop("Parameter compression should be a numeric value in the range 0 to 100")
   }
@@ -29,11 +29,11 @@ fstcompress <- function(x, compressor = "LZ4", compression = 0, hash = FALSE) {
 
 #' Decompress a raw vector with compressed data.
 #'
-#' @param x raw vector with data previously compressed with \code{fstcompress}.
+#' @param x raw vector with data previously compressed with \code{compress_fst}.
 #'
 #' @return a raw vector with previously compressed data.
 #' @export
-fstdecompress <- function(x) {
+decompress_fst <- function(x) {
 
   if (!is.raw(x)) {
     stop("Parameter x should be a raw vector with compressed data.")
