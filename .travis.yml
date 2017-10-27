@@ -30,7 +30,7 @@ r_packages:
   - data.table
 
 after_success:
-  - Rscript -e 'library(covr); codecov()'
+  - Rscript -e 'library(covr); codecov(quiet = FALSE)'
 
 env:
   global:
