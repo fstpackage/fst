@@ -38,7 +38,7 @@
 #include <interface/fstcompressor.h>
 #include <interface/fsthash.h>
 
-#include <typefactory.h>
+#include <fst_type_factory.h>
 
 using namespace Rcpp;
 

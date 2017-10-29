@@ -42,7 +42,7 @@
 #include <Rcpp.h>
 
 #include <integer/integer_v2.h>
-#include <blockstreamer_v1.h>
+#include <blockstreamer/blockstreamer_v1.h>
 #include <compression/compression.h>
 #include <compression/compressor.h>
 

@@ -12,14 +12,12 @@ os:
   - linux
   - osx
 
-# matrix:
-#  exclude:
-#  - r: release
-#    os: osx
-#  - r: devel
-#    os: osx
-#  - r: devel
-#    os: linux
+matrix:
+exclude:
+  - r: release
+    os: osx
+  - r: devel
+    os: osx
 
 r_packages:
   - covr

@@ -45,8 +45,8 @@
 #include <interface/ifstcolumn.h>
 #include <interface/ifsttable.h>
 
-#include <fstcolumn.h>
-#include <blockrunner_char.h>
+#include <fst_column.h>
+#include <fst_blockrunner_char.h>
 
 
 class ColumnFactory : public IColumnFactory

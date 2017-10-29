@@ -38,7 +38,7 @@
 #include <interface/ifstcolumn.h>
 #include <interface/fstdefines.h>
 
-#include <blockrunner_char.h>
+#include <fst_blockrunner_char.h>
 
 #include <Rcpp.h>
 

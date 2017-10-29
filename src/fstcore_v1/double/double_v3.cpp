@@ -41,8 +41,7 @@
 
 #include <compression/compression.h>
 #include <compression/compressor.h>
-
-#include <blockstreamer_v1.h>
+#include <blockstreamer/blockstreamer_v1.h>
 
 
 using namespace std;

@@ -45,8 +45,7 @@
 #include <factor/factor_v5.h>
 #include <compression/compression.h>
 #include <compression/compressor.h>
-
-#include <blockstreamer_v1.h>
+#include <blockstreamer/blockstreamer_v1.h>
 
 using namespace std;
 using namespace Rcpp;

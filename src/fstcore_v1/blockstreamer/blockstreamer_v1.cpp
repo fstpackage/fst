@@ -32,7 +32,6 @@ You can contact the author at :
 - fst source repository : https://github.com/fstPackage/fst
 */
 
-#include <blockstreamer_v1.h>
 
 // System libraries
 #include <ctime>
@@ -42,9 +41,10 @@ You can contact the author at :
 // R libraries
 #include <Rcpp.h>
 
-// External libraries
+// fst libraries
 #include <compression/compression.h>
 #include <compression/compressor.h>
+#include <blockstreamer/blockstreamer_v1.h>
 
 using namespace std;
 using namespace Rcpp;
@@ -52,29 +52,6 @@ using namespace Rcpp;
 #define COL_META_SIZE_V1 8
 #define PREF_BLOCK_SIZE_V1 16384
 
-
-//
-// inline unsigned long long CompressBlock_v1(StreamCompressor* streamCompressor, ofstream &myfile, char* vecP, char* compBuf, char* blockIndex,
-//   int block, unsigned long long blockIndexPos, unsigned int *maxCompSize, int sourceBlockSize)
-// {
-//   // 1 long file pointer and 1 short algorithmID per block
-//   unsigned long long* blockPosition = (unsigned long long*) &blockIndex[COL_META_SIZE_V1 + block * 10];
-//   unsigned short* blockAlgorithm = (unsigned short*) &blockIndex[COL_META_SIZE_V1 + 8 + block * 10];
-//   *blockPosition = blockIndexPos;  // starting position
-//
-//   // Compress block
-//   CompAlgo compAlgo;
-//   char* buf;
-//
-//   unsigned int compSize = (unsigned int) streamCompressor->Compress(vecP, sourceBlockSize, compBuf, compAlgo, block, buf);
-//   myfile.write(buf, compSize);
-//
-//   if (compSize > *maxCompSize) *maxCompSize = compSize;
-//   *blockAlgorithm = (int) compAlgo;
-//
-//   return compSize;  // compressed block length
-// }
-//
 
 // Read data compressed with a fixed ratio compressor from a stream
 // Note that repSize is assumed to be a multiple of elementSize

@@ -42,9 +42,6 @@
 
 #include <Rcpp.h>
 
-#include <compression/compression.h>
-#include <compression/compressor.h>
-
 
 // Parameter 'startRow' is zero based.
 SEXP fdsReadFactorVec_v5(std::ifstream &myfile, SEXP &intVec, unsigned long long blockPos, unsigned int startRow,

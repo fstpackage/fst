@@ -32,7 +32,7 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
-#include <FastStore_v1.h>
+#include <flex_store_v1.h>
 
 #include <iostream>
 #include <fstream>

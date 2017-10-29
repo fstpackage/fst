@@ -45,13 +45,13 @@
 #include <interface/icolumnfactory.h>
 #include <interface/fststore.h>
 
-#include <blockrunner_char.h>
-#include <fsttable.h>
-#include <fstcolumn.h>
-#include <columnfactory.h>
+#include <fst_blockrunner_char.h>
+#include <fst_table.h>
+#include <fst_column.h>
+#include <fst_column_factory.h>
 
-#include <FastStore.h>
-#include <FastStore_v1.h>
+#include <flex_store.h>
+#include <flex_store_v1.h>
 
 
 using namespace std;

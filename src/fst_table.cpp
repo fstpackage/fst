@@ -40,9 +40,9 @@
 #include <interface/istringwriter.h>
 #include <interface/fstdefines.h>
 
-#include <blockrunner_char.h>
-#include <fstcolumn.h>
-#include <fsttable.h>
+#include <fst_blockrunner_char.h>
+#include <fst_column.h>
+#include <fst_table.h>
 
 using namespace Rcpp;
 
