@@ -102,8 +102,12 @@ static const U32 repStartValue[ZSTD_REP_NUM] = { 1, 4, 8 };
 #define BIT0   1
 
 #define ZSTD_WINDOWLOG_ABSOLUTEMIN 10
+#define ZSTD_WINDOWLOG_DEFAULTMAX 27 /* Default maximum allowed window log */
 static const size_t ZSTD_fcs_fieldSize[4] = { 0, 2, 4, 8 };
 static const size_t ZSTD_did_fieldSize[4] = { 0, 1, 2, 4 };
+
+#define ZSTD_FRAMEIDSIZE 4
+static const size_t ZSTD_frameIdSize = ZSTD_FRAMEIDSIZE;  /* magic number size */
 
 #define ZSTD_BLOCKHEADERSIZE 3   /* C standard doesn't allow `static const` variable to be init using another `static const` variable */
 static const size_t ZSTD_blockHeaderSize = ZSTD_BLOCKHEADERSIZE;
@@ -123,7 +127,8 @@ typedef enum { set_basic, set_rle, set_compressed, set_repeat } symbolEncodingTy
 #define MaxLit ((1<<Litbits) - 1)
 #define MaxML  52
 #define MaxLL  35
-#define MaxOff 28
+#define DefaultMaxOff 28
+#define MaxOff 31
 #define MaxSeq MAX(MaxLL, MaxML)   /* Assumption : MaxOff < MaxLL,MaxML */
 #define MLFSELog    9
 #define LLFSELog    9
@@ -149,8 +154,8 @@ static const S16 ML_defaultNorm[MaxML+1] = { 1, 4, 3, 2, 2, 2, 2, 2, 2, 1, 1, 1,
 #define ML_DEFAULTNORMLOG 6  /* for static allocation */
 static const U32 ML_defaultNormLog = ML_DEFAULTNORMLOG;
 
-static const S16 OF_defaultNorm[MaxOff+1] = { 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1,
-                                              1, 1, 1, 1, 1, 1, 1, 1,-1,-1,-1,-1,-1 };
+static const S16 OF_defaultNorm[DefaultMaxOff+1] = { 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1,
+                                                     1, 1, 1, 1, 1, 1, 1, 1,-1,-1,-1,-1,-1 };
 #define OF_DEFAULTNORMLOG 5  /* for static allocation */
 static const U32 OF_defaultNormLog = OF_DEFAULTNORMLOG;
 
@@ -282,6 +287,7 @@ typedef struct {
 } ZSTD_entropyCTables_t;
 
 struct ZSTD_CCtx_params_s {
+    ZSTD_format_e format;
     ZSTD_compressionParameters cParams;
     ZSTD_frameParameters fParams;
 
