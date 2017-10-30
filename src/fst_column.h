@@ -277,7 +277,7 @@ class DoubleColumn : public IDoubleColumn
 
     void Annotate(std::string annotation)
     {
-      // annotation is used to set timezone
+      // annotation is used to set timezone. Empty annotation sets an empty time-zone
       if (this->columnAttribute == FstColumnAttribute::DOUBLE_64_TIMESTAMP_SECONDS)
       {
         if (annotation.length() > 0)
@@ -286,6 +286,9 @@ class DoubleColumn : public IDoubleColumn
           Rf_setAttrib(colVec, Rf_install("tzone"), timeZone);
           return;
         }
+
+        Rf_setAttrib(colVec, Rf_install("tzone"), Rf_mkString(""));
+        return;
       }
     }
 };
@@ -352,7 +355,13 @@ public:
 
     if (columnAttribute == FstColumnAttribute::INT_32_TIMESTAMP_SECONDS)
     {
-      Rf_classgets(colVec, Rf_mkString("POSIXct"));
+      SEXP classes;
+      PROTECT(classes = Rf_allocVector(STRSXP, 2));
+      SET_STRING_ELT(classes, 0, Rf_mkChar("POSIXct"));
+      SET_STRING_ELT(classes, 1, Rf_mkChar("POSIXt"));
+      UNPROTECT(1);
+
+      Rf_classgets(colVec, classes);
       return;
     }
   }
@@ -378,6 +387,9 @@ public:
         Rf_setAttrib(colVec, Rf_install("tzone"), timeZone);
         return;
       }
+
+      Rf_setAttrib(colVec, Rf_install("tzone"), Rf_mkString(""));
+      return;
     }
   }
 };

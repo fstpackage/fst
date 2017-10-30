@@ -10,7 +10,6 @@ if (!file.exists("testdata")) {
 }
 
 
-# Note: probably crashes on non-openmp system
 test_that("Type double Date issue #22 and #33", {
   u1 <- data.frame(DT = Sys.Date() - 1:10, variable = rep(c("A", "B"), 5), value = 1:10)
   fstwriteproxy(u1, "testdata/u1.fst")
