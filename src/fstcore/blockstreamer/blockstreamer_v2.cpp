@@ -332,7 +332,7 @@ inline void fdsReadFixedCompStream_v2(istream &myfile, char* outVec, unsigned lo
   unsigned int compAlgo = meta[1];  // identifier of the fixed ratio compressor
   unsigned int repSize = fixedRatioSourceRepSize[static_cast<int>(compAlgo)];  // in bytes
   unsigned int targetRepSize = fixedRatioTargetRepSize[static_cast<int>(compAlgo)];  // in bytes
-
+ 
   // robustness: test for correct algo here
   if (repSize < 1)
   {

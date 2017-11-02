@@ -43,10 +43,10 @@
 
 // Format related defines
 #define FST_VERSION          1                  // version of fst codebase
-#define TABLE_META_SIZE      44                 // size of table meta-data block
+#define TABLE_META_SIZE      48                 // size of table meta-data block
 #define FST_FILE_ID          0xa91c12f8b245a71d // identifies a fst file or memory block
 #define FST_HASH_SEED        912824571          // default seed used for xxhash algorithm
-#define CHUNKSET_HEADER_SIZE 76                 // size of chunkset header
+#define CHUNKSET_HEADER_SIZE 80                 // size of chunkset header
 #define CHUNK_INDEX_SIZE     96                 // size of chunk index header
 #define DATA_INDEX_SIZE      24                 // size of data index header
 #define CHAR_HEADER_SIZE     8                  // meta data header size
