@@ -49,8 +49,6 @@
 
 class FstStore
 {
-  unsigned int metaHash;
-
   std::string fstFile;
 
   public:

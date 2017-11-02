@@ -62,7 +62,7 @@
 using namespace std;
 
 
-// Table header [node A] [size: 44]
+// Table header [node A] [size: 48]
 //
 //  8                      | unsigned long long | hash value         // hash of table header
 //  4                      | unsigned int       | FST_VERSION        // table header fstcore version
@@ -74,7 +74,7 @@ using namespace std;
 //  4                      | int                | keyLength          // number of keys in table
 //  4                      | int                | free bytes         // free bytes (for 8-byte allignment)
 
-// Key index vector (only needed when keyLength > 0) [attached leaf of A] [size: 8 + 4 * keyLength]
+// Key index vector (only needed when keyLength > 0) [attached leaf of A] [size: 8 + 4 * (keyLength + keyLength % 2]
 //
 //  8                      | unsigned long long | hash value         // hash of key index vector (if present)
 //  4 * keyLength          | int                | keyColPos          // key column indexes in the first horizontal chunk
@@ -93,6 +93,7 @@ using namespace std;
 //  8                      | unsigned long long | secChunksetIndex   // reference to primary chunkset data (nrOfCols columns)
 //  8                      | unsigned long long | nrOfRows           // total number of rows in chunkset
 //  4                      | int                | p_nrOfChunksetCols // number of columns in primary chunkset
+//  4                      |                    | free bytes         // possible future use
 //  2 * nrOfCols           | unsigned short int | colAttributesType  // column attributes
 //  2 * nrOfCols           | unsigned short int | colTypes           // column types
 //  2 * nrOfCols           | unsigned short int | colBaseTypes       // column base types
