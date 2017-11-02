@@ -97,6 +97,11 @@
 #define FSTERROR_ERROR_OPEN_WRITE    "There was an error creating the file, please check path"
 #define FSTERROR_ERROR_OPEN_READ     "There was an error opening the file, it seems to be incomplete or damaged."
 #define FSTERROR_UPDATE_FST          "Incompatible fst file: file was created by a newer version of fst"
+#define FSTERROR_COMP_DATA_HASH      "Incorrect input vector: data block hash does not match."
+#define FSTERROR_COMP_STREAM         "An error was detected in the compressed data stream."
+#define FSTERROR_COMP_SIZE           "Compressed data vector has incorrect size."
+#define FSTERROR_COMP_HEADER         "Incorrect header information found in raw vector."
+#define FSTERROR_COMP_NO_DATA        "Source contains no data."
 
 #define FST_NA_INT					         0x80000000
 

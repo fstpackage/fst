@@ -112,18 +112,17 @@ SEXP fststore(String fileName, SEXP table, SEXP compression, SEXP uniformEncodin
 
 SEXP fstmetadata(String fileName)
 {
-  FstStore* fstStore = new FstStore(fileName.get_cstring());
+  FstStore fstStore(fileName.get_cstring());
   IColumnFactory* columnFactory = new ColumnFactory();
 
   try
   {
-    fstStore->fstMeta(columnFactory);
+    fstStore.fstMeta(columnFactory);
 
   }
   catch (const std::runtime_error& e)
   {
     delete columnFactory;
-    delete fstStore;
 
     // We may be looking at a fst v0.7.2 file format, this unsafe code will be removed later
     if (std::strcmp(e.what(), FSTERROR_NON_FST_FILE) == 0)
@@ -148,44 +147,44 @@ SEXP fstmetadata(String fileName)
   }
 
   // R internals part
-  SEXP colNames = ((BlockReaderChar*) fstStore->blockReader)->StrVector();
+  SEXP colNames = ((BlockReaderChar*) fstStore.blockReader)->StrVector();
 
   // Convert column info to integer vector
-  IntegerVector colTypeVec(fstStore->nrOfCols);
-  IntegerVector colBaseType(fstStore->nrOfCols);
-  IntegerVector colAttributeTypes(fstStore->nrOfCols);
+  IntegerVector colTypeVec(fstStore.nrOfCols);
+  IntegerVector colBaseType(fstStore.nrOfCols);
+  IntegerVector colAttributeTypes(fstStore.nrOfCols);
 
-  for (int col = 0; col != fstStore->nrOfCols; ++col)
+  for (int col = 0; col != fstStore.nrOfCols; ++col)
   {
-    colTypeVec[col] = fstStore->colTypes[col];
-    colBaseType[col] = fstStore->colBaseTypes[col];
-    colAttributeTypes[col] = fstStore->colAttributeTypes[col];
+    colTypeVec[col] = fstStore.colTypes[col];
+    colBaseType[col] = fstStore.colBaseTypes[col];
+    colAttributeTypes[col] = fstStore.colAttributeTypes[col];
   }
 
   List retList;
 
-  if (fstStore->keyLength > 0)
+  if (fstStore.keyLength > 0)
   {
     SEXP keyNames;
-    PROTECT(keyNames = Rf_allocVector(STRSXP, fstStore->keyLength));
-    for (int i = 0; i < fstStore->keyLength; ++i)
+    PROTECT(keyNames = Rf_allocVector(STRSXP, fstStore.keyLength));
+    for (int i = 0; i < fstStore.keyLength; ++i)
     {
-      SET_STRING_ELT(keyNames, i, STRING_ELT(colNames, fstStore->keyColPos[i]));
+      SET_STRING_ELT(keyNames, i, STRING_ELT(colNames, fstStore.keyColPos[i]));
     }
 
-    IntegerVector keyColIndex(fstStore->keyLength);
-    for (int col = 0; col != fstStore->keyLength; ++col)
+    IntegerVector keyColIndex(fstStore.keyLength);
+    for (int col = 0; col != fstStore.keyLength; ++col)
     {
-      keyColIndex[col] = fstStore->keyColPos[col];
+      keyColIndex[col] = fstStore.keyColPos[col];
     }
 
     UNPROTECT(1);  // keyNames
 
     retList = List::create(
-      _["nNofCols"]         = fstStore->nrOfCols,
-      _["nrOfRows"]         = *(fstStore->p_nrOfRows),
-      _["fstVersion"]       = fstStore->version,
-      _["keyLength"]        = fstStore->keyLength,
+      _["nNofCols"]         = fstStore.nrOfCols,
+      _["nrOfRows"]         = *(fstStore.p_nrOfRows),
+      _["fstVersion"]       = fstStore.version,
+      _["keyLength"]        = fstStore.keyLength,
       _["colBaseType"]      = colBaseType,
       _["colType"]          = colAttributeTypes,
       _["colNames"]         = colNames,
@@ -195,17 +194,16 @@ SEXP fstmetadata(String fileName)
   else
   {
     retList = List::create(
-      _["nrOfCols"]        = fstStore->nrOfCols,
-      _["nrOfRows"]        = *fstStore->p_nrOfRows,
-      _["fstVersion"]      = fstStore->version,
-      _["keyLength"]       = fstStore->keyLength,
+      _["nrOfCols"]        = fstStore.nrOfCols,
+      _["nrOfRows"]        = *fstStore.p_nrOfRows,
+      _["fstVersion"]      = fstStore.version,
+      _["keyLength"]       = fstStore.keyLength,
       _["colBaseType"]     = colBaseType,
       _["colType"]         = colAttributeTypes,
       _["colNames"]        = colNames);
   }
 
   delete columnFactory;
-  delete fstStore;
 
   return retList;
 }
@@ -215,7 +213,7 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
 {
   FstTable tableReader;
   IColumnFactory* columnFactory = new ColumnFactory();
-  FstStore* fstStore = new FstStore(fileName.get_cstring());
+  FstStore fstStore(fileName.get_cstring());
 
   int sRow = *INTEGER(startRow);
 
@@ -242,13 +240,12 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
 
   try
   {
-    fstStore->fstRead(tableReader, colSelection, sRow, eRow, columnFactory, keyIndex, colNames);
+    fstStore.fstRead(tableReader, colSelection, sRow, eRow, columnFactory, keyIndex, colNames);
   }
   catch (const std::runtime_error& e)
   {
     delete colSelection;
     delete columnFactory;
-    delete fstStore;
     delete colNames;
 
     // We may be looking at a fst v0.7.2 file format, this unsafe code will be removed later
@@ -269,7 +266,6 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
   {
     delete colSelection;
     delete columnFactory;
-    delete fstStore;
     delete colNames;
 
     try
@@ -306,7 +302,6 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
 
   delete colSelection;
   delete columnFactory;
-  delete fstStore;
   delete colNames;
 
   UNPROTECT(1);

@@ -111,11 +111,13 @@ void BlockWriterChar::SetBuffersFromVec(unsigned long long startCount, unsigned 
 
   activeBuf = buf;
 
+  // This needs better memory management, for example a memory pool
   if (totSize > stackBufSize)  // don't use cache memory
   {
     if (totSize > heapBufSize)
     {
       delete[] heapBuf;
+      heapBuf = nullptr;
       heapBufSize = totSize * 1.1;
       heapBuf = new char[heapBufSize];
     }

@@ -28,6 +28,7 @@ test_that("interface for compressing raw vectors", {
 TestRoundCycle <- function(vec, compressor, compression) {
   y <- compress_fst(rawVec, compressor, compression)
   z <- decompress_fst(y)
+
   expect_equal(rawVec, z, info = paste("compressor:", compressor, "compression:", compression))  # return type
 
   y
@@ -36,10 +37,12 @@ TestRoundCycle <- function(vec, compressor, compression) {
 
 # rest write / read cycle for multiple compression settings
 TestVec <- function(rawVec) {
-  TestRoundCycle(rawVec, "LZ4", 0)
-  TestRoundCycle(rawVec, "LZ4", 100)
-  TestRoundCycle(rawVec, "ZSTD", 0)
-  TestRoundCycle(rawVec, "ZSTD", 100)
+  y1 <- TestRoundCycle(rawVec, "LZ4", 0)
+  y2 <- TestRoundCycle(rawVec, "LZ4", 100)
+  y3 <- TestRoundCycle(rawVec, "ZSTD", 0)
+  y4 <- TestRoundCycle(rawVec, "ZSTD", 100)
+
+  list(y1, y2, y3, y4)
 }
 
 
