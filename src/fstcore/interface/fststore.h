@@ -53,17 +53,18 @@ class FstStore
 
   public:
     IStringColumn* blockReader;
+
     unsigned long long* p_nrOfRows;
     int* keyColPos;
     char* metaDataBlock;
 
-	// column info
+  	// column info
     unsigned short int* colTypes;
     unsigned short int* colBaseTypes;
     unsigned short int* colAttributeTypes;
     unsigned short int* colScales;
 
-    unsigned int version;
+    //unsigned int version;
     int nrOfCols, keyLength;
 
     FstStore(std::string fstFile);

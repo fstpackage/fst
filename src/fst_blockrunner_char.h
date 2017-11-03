@@ -117,13 +117,11 @@ class BlockReaderChar : public IStringColumn
   SEXP strVec;
   bool isProtected;
   cetype_t strEncoding;
-  FstColumnAttribute columnAttribute;
 
 public:
   BlockReaderChar()
   {
     isProtected = true;
-    this->columnAttribute = columnAttribute;  // keep attribute for later use
   }
 
   ~BlockReaderChar(){ if (isProtected) UNPROTECT(1); }

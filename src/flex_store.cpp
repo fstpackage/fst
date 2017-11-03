@@ -146,17 +146,17 @@ SEXP fstmetadata(String fileName)
     ::Rf_error(e.what());
   }
 
-  // R internals part
+  // R internals part TODO: speed up this code
   SEXP colNames = ((BlockReaderChar*) fstStore.blockReader)->StrVector();
 
   // Convert column info to integer vector
-  IntegerVector colTypeVec(fstStore.nrOfCols);
+  // IntegerVector colTypeVec(fstStore.nrOfCols);
   IntegerVector colBaseType(fstStore.nrOfCols);
   IntegerVector colAttributeTypes(fstStore.nrOfCols);
 
   for (int col = 0; col != fstStore.nrOfCols; ++col)
   {
-    colTypeVec[col] = fstStore.colTypes[col];
+    // colTypeVec[col] = fstStore.colTypes[col];
     colBaseType[col] = fstStore.colBaseTypes[col];
     colAttributeTypes[col] = fstStore.colAttributeTypes[col];
   }
@@ -183,7 +183,7 @@ SEXP fstmetadata(String fileName)
     retList = List::create(
       _["nNofCols"]         = fstStore.nrOfCols,
       _["nrOfRows"]         = *(fstStore.p_nrOfRows),
-      _["fstVersion"]       = fstStore.version,
+      // _["fstVersion"]       = fstStore.version,
       _["keyLength"]        = fstStore.keyLength,
       _["colBaseType"]      = colBaseType,
       _["colType"]          = colAttributeTypes,
@@ -196,7 +196,7 @@ SEXP fstmetadata(String fileName)
     retList = List::create(
       _["nrOfCols"]        = fstStore.nrOfCols,
       _["nrOfRows"]        = *fstStore.p_nrOfRows,
-      _["fstVersion"]      = fstStore.version,
+      // _["fstVersion"]      = fstStore.version,
       _["keyLength"]       = fstStore.keyLength,
       _["colBaseType"]     = colBaseType,
       _["colType"]         = colAttributeTypes,
