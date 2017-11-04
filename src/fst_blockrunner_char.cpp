@@ -33,14 +33,15 @@
   - fst source repository : https://github.com/fstPackage/fst
 */
 
+#include <memory>
+
+#include <Rcpp.h>
 
 #include <interface/istringwriter.h>
 #include <interface/ifstcolumn.h>
 #include <interface/fstdefines.h>
 
 #include <fst_blockrunner_char.h>
-
-#include <Rcpp.h>
 
 
 using namespace std;
@@ -57,13 +58,13 @@ BlockWriterChar::BlockWriterChar(SEXP &strVec, unsigned long long vecLength, uns
   this->uniformEncoding = uniformEncoding;
 
   heapBufSize = BASIC_HEAP_SIZE;
-  heapBuf = new char[BASIC_HEAP_SIZE];
+
+  heapBuf = std::unique_ptr<char[]>(new char[BASIC_HEAP_SIZE]);
 }
 
 
 BlockWriterChar::~BlockWriterChar()
 {
-  delete[] heapBuf;
 }
 
 
@@ -116,13 +117,11 @@ void BlockWriterChar::SetBuffersFromVec(unsigned long long startCount, unsigned 
   {
     if (totSize > heapBufSize)
     {
-      delete[] heapBuf;
-      heapBuf = nullptr;
       heapBufSize = totSize * 1.1;
-      heapBuf = new char[heapBufSize];
+      heapBuf = std::unique_ptr<char[]>(new char[heapBufSize]);
     }
 
-    activeBuf = heapBuf;
+    activeBuf = heapBuf.get();
   }
 
   for (unsigned long long count = startCount; count < endCount; ++count)

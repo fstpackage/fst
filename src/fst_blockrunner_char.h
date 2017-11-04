@@ -38,6 +38,7 @@
 
 
 #include <stdexcept>
+#include <memory>
 
 #include <Rcpp.h>
 
@@ -50,7 +51,8 @@ class BlockWriterChar : public IStringWriter
   unsigned int stackBufSize;
   unsigned int heapBufSize;
   int uniformEncoding;
-  char *heapBuf;
+
+  std::unique_ptr<char[]> heapBuf;
 
   // Buffers for blockRunner (make these local !!!!)
   unsigned int naInts_buf[1 + BLOCKSIZE_CHAR / 32];  // we have 32 NA bits per integer

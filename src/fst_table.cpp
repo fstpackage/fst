@@ -424,7 +424,7 @@ void FstTable::SetByteColumn(IByteColumn* byteColumn, int colNr)
 void FstTable::SetFactorColumn(IFactorColumn* factorColumn, int colNr)
 {
   FactorColumn* factColumn = (FactorColumn*) factorColumn;
-  Rf_setAttrib(factColumn->intVec, Rf_mkString("levels"), factColumn->blockReaderStrVec->StrVector());
+  Rf_setAttrib(factColumn->intVec, Rf_mkString("levels"), factColumn->blockReaderStrVecP->StrVector());
 
   if (factColumn->Attribute() == FstColumnAttribute::FACTOR_ORDERED)  // ordered factor
   {

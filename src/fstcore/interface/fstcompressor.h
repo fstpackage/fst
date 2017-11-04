@@ -52,6 +52,7 @@
 #include "interface/openmphelper.h"
 
 #include "ZSTD/common/xxhash.h"
+#include <memory>
 
 enum COMPRESSION_ALGORITHM
 {
@@ -63,7 +64,7 @@ enum COMPRESSION_ALGORITHM
 
 class FstCompressor
 {
-	Compressor* compressor;
+  std::unique_ptr<Compressor> compressor;
 	ITypeFactory* typeFactory;
 	COMPRESSION_ALGORITHM compAlgorithm;
 
@@ -72,14 +73,18 @@ public:
 	FstCompressor(ITypeFactory* typeFactory)
 	{
 		this->typeFactory = typeFactory;
-		compressor = nullptr;  // only use this class for decompression (not checked!)
 	}
 
   ~FstCompressor()
   {
-    delete compressor;
   }
 
+  /**
+	 * \brief constructor for a FstCompressor object
+	 * \param compAlgorithm algorithm to use for compression
+	 * \param compressionLevel compression level between 0 and 100
+	 * \param typeFactory type factory to create a IBlobContainer
+	 */
 	FstCompressor(COMPRESSION_ALGORITHM compAlgorithm, unsigned int compressionLevel, ITypeFactory* typeFactory)
 	{
 		this->typeFactory = typeFactory;
@@ -89,19 +94,19 @@ public:
 		{
 			case COMPRESSION_ALGORITHM::ALGORITHM_LZ4:
 			{
-				compressor = new SingleCompressor(CompAlgo::LZ4, compressionLevel);
+				compressor = std::unique_ptr<Compressor>(new SingleCompressor(CompAlgo::LZ4, compressionLevel));
 				break;
 			}
 
 			case COMPRESSION_ALGORITHM::ALGORITHM_ZSTD:
 			{
-				compressor = new SingleCompressor(CompAlgo::ZSTD, compressionLevel);
+				compressor = std::unique_ptr<Compressor>(new SingleCompressor(CompAlgo::ZSTD, compressionLevel));
 				break;
 			}
 
 			default:
 			{
-				compressor = new SingleCompressor(CompAlgo::LZ4, compressionLevel);
+				compressor = std::unique_ptr<Compressor>(new SingleCompressor(CompAlgo::LZ4, compressionLevel));
 				break;
 			}
 		}
@@ -141,19 +146,26 @@ public:
 		float blocksPerThread = static_cast<float>(nrOfBlocks) / nrOfThreads;
 
 		// Compressed sizes
-		unsigned long long* compSizes = new unsigned long long[nrOfBlocks + 1];
-		unsigned long long* compBatchSizes = new unsigned long long[nrOfThreads];
+    std::unique_ptr<unsigned long long[]> compSizesP(new unsigned long long[nrOfBlocks + 1]);
+    unsigned long long* compSizes = compSizesP.get();
 
-		unsigned long long* blockHashes = nullptr;
+    std::unique_ptr<unsigned long long[]> compBatchSizesP(new unsigned long long[nrOfThreads]);
+    unsigned long long* compBatchSizes = compBatchSizesP.get();
+
+    std::unique_ptr<unsigned long long[]> blockHashesP;
 
 		if (hash)
 		{
-			blockHashes = new unsigned long long[nrOfBlocks];
+			blockHashesP = std::unique_ptr<unsigned long long[]>(new unsigned long long[nrOfBlocks]);
 		}
+
+    unsigned long long* blockHashes = blockHashesP.get();
 
 		// We need nrOfBlocks buffers
 		unsigned int compressionAlgo;
-		unsigned char* calcBuffer = new unsigned char[bufSize];
+
+    std::unique_ptr<unsigned char[]> calcBufferP(new unsigned char[bufSize]);
+		unsigned char* calcBuffer = calcBufferP.get();
 
 #pragma omp parallel num_threads(nrOfThreads) shared(compSizes,nrOfThreads,blocksPerThread,maxCompressSize,lastBlockSize,compBatchSizes)
 		{
@@ -236,7 +248,6 @@ public:
 		if (hash)
 		{
 			allBlockHash = XXH64(blockHashes, nrOfBlocks * 8, FST_HASH_SEED);
-			delete[] blockHashes;
 		}
 
 		unsigned long long totCompSize = 0;
@@ -276,7 +287,10 @@ public:
 
 		// calculate offsets for memcpy
 		unsigned long long dataOffset = headerSize;
-		unsigned long long* dataOffsets = new unsigned long long[nrOfThreads];
+
+    std::unique_ptr<unsigned long long[]> dataOffsetsP(new unsigned long long[nrOfThreads]);
+		unsigned long long* dataOffsets = dataOffsetsP.get();
+
 		for (int blockBatch = 0; blockBatch < nrOfThreads; blockBatch++)
 		{
 			dataOffsets[blockBatch] = dataOffset;
@@ -293,10 +307,6 @@ public:
 			std::memcpy(blobData + dataOffsets[blockBatch], threadBuf, compBatchSizes[blockBatch]);
 		}  // end parallel region
 
-		delete[] compBatchSizes;
-		delete[] calcBuffer;
-		delete[] dataOffsets;
-
 		unsigned long long blockOffset = headerSize;
 		for (int block = 0; block < nrOfBlocks; block++)
 		{
@@ -304,8 +314,6 @@ public:
 			blockOffset += compSizes[block];
 		}
 		blockOffsets[nrOfBlocks] = blockOffset;
-
-		delete[] compSizes;
 
 		*headerHash = XXH32(&blobData[4], headerSize - 4, FST_HASH_SEED);  // header hash
 
@@ -390,7 +398,8 @@ public:
 
 		if (hash)
 		{
-			unsigned long long* blockHashes = new unsigned long long[nrOfBlocks];
+      std::unique_ptr<unsigned long long[]> blockHashesP(new unsigned long long[nrOfBlocks]);
+			unsigned long long* blockHashes = blockHashesP.get();
 
 #pragma omp parallel num_threads(nrOfThreads)
 			{
@@ -433,7 +442,6 @@ public:
 			}
 
 			unsigned long long totHashes = XXH64(blockHashes, 8 * nrOfBlocks, FST_HASH_SEED);
-			delete[] blockHashes;
 
 			if (totHashes != *hashResult)
 			{

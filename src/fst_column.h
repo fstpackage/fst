@@ -89,7 +89,7 @@ class FactorColumn : public IFactorColumn
 {
 public:
   SEXP intVec;
-  BlockReaderChar* blockReaderStrVec;
+  std::unique_ptr<BlockReaderChar> blockReaderStrVecP;
   FstColumnAttribute columnAttribute;
 
   FactorColumn(int nrOfRows, FstColumnAttribute columnAttribute)
@@ -98,13 +98,12 @@ public:
     PROTECT(intVec);
 
     this->columnAttribute = columnAttribute;  // e.g. for 'FACTOR_ORDERED' specification
-    blockReaderStrVec = new BlockReaderChar();
+    blockReaderStrVecP = std::unique_ptr<BlockReaderChar>(new BlockReaderChar());
   }
 
   ~FactorColumn()
   {
     UNPROTECT(1);
-    delete blockReaderStrVec;
   };
 
   int* LevelData()
@@ -114,7 +113,7 @@ public:
 
   IStringColumn* Levels()
   {
-    return blockReaderStrVec;
+    return blockReaderStrVecP.get();
   }
 
   FstColumnAttribute Attribute()

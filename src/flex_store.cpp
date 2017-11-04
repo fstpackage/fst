@@ -36,6 +36,7 @@
 #include <fstream>
 #include <vector>
 #include <cstring>
+#include <memory>
 
 #include <Rcpp.h>
 
@@ -113,17 +114,15 @@ SEXP fststore(String fileName, SEXP table, SEXP compression, SEXP uniformEncodin
 SEXP fstmetadata(String fileName)
 {
   FstStore fstStore(fileName.get_cstring());
-  IColumnFactory* columnFactory = new ColumnFactory();
+  std::unique_ptr<IColumnFactory> columnFactory(new ColumnFactory());
 
   try
   {
-    fstStore.fstMeta(columnFactory);
+    fstStore.fstMeta(columnFactory.get());
 
   }
   catch (const std::runtime_error& e)
   {
-    delete columnFactory;
-
     // We may be looking at a fst v0.7.2 file format, this unsafe code will be removed later
     if (std::strcmp(e.what(), FSTERROR_NON_FST_FILE) == 0)
     {
@@ -203,8 +202,6 @@ SEXP fstmetadata(String fileName)
       _["colNames"]        = colNames);
   }
 
-  delete columnFactory;
-
   return retList;
 }
 
@@ -212,7 +209,7 @@ SEXP fstmetadata(String fileName)
 SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 {
   FstTable tableReader;
-  IColumnFactory* columnFactory = new ColumnFactory();
+  std::unique_ptr<IColumnFactory> columnFactory(new ColumnFactory());
   FstStore fstStore(fileName.get_cstring());
 
   int sRow = *INTEGER(startRow);
@@ -227,12 +224,12 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
 
   vector<int> keyIndex;
 
-  StringArray* colNames = new StringArray();
-  StringArray* colSelection = nullptr;
+  std::unique_ptr<StringArray> colNames(new StringArray());
+  std::unique_ptr<StringArray> colSelection;
 
   if (!Rf_isNull(columnSelection))
   {
-    colSelection = new StringArray();
+    colSelection = std::unique_ptr<StringArray>(new StringArray());
     colSelection->SetArray(columnSelection);
   }
 
@@ -240,14 +237,10 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
 
   try
   {
-    fstStore.fstRead(tableReader, colSelection, sRow, eRow, columnFactory, keyIndex, colNames);
+    fstStore.fstRead(tableReader, colSelection.get(), sRow, eRow, columnFactory.get(), keyIndex, &*colNames);
   }
   catch (const std::runtime_error& e)
   {
-    delete colSelection;
-    delete columnFactory;
-    delete colNames;
-
     // We may be looking at a fst v0.7.2 file format, this unsafe code will be removed later
     if (std::strcmp(e.what(), FSTERROR_NON_FST_FILE) == 0)
     {
@@ -264,10 +257,6 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
   // Test deprecated version format !!!
   if (result == -1)
   {
-    delete colSelection;
-    delete columnFactory;
-    delete colNames;
-
     try
     {
       SEXP res = fstRead_v1(fileName, columnSelection, startRow, endRow);
@@ -299,10 +288,6 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
   {
     SET_STRING_ELT(keyNames, count++, STRING_ELT(colNameVec, *keyIt));
   }
-
-  delete colSelection;
-  delete columnFactory;
-  delete colNames;
 
   UNPROTECT(1);
 
