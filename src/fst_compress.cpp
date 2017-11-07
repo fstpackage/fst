@@ -33,14 +33,15 @@
 */
 
 
+#include <memory>
+
 #include <Rcpp.h>
 
 #include <interface/fstcompressor.h>
 #include <interface/fsthash.h>
 
 #include <fst_type_factory.h>
-
-using namespace Rcpp;
+#include <fst_error.h>
 
 
 SEXP fsthasher(SEXP rawVec, SEXP seed)
@@ -71,12 +72,11 @@ SEXP fsthasher(SEXP rawVec, SEXP seed)
 
 SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash)
 {
-  ITypeFactory* typeFactory = new TypeFactory();
+  std::unique_ptr<TypeFactory> typeFactoryP(new TypeFactory());
   COMPRESSION_ALGORITHM algo;
 
   if (!Rf_isLogical(hash))
   {
-    delete typeFactory;
     Rf_error("Please specify true of false for parameter hash.");
   }
 
@@ -88,35 +88,30 @@ SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash)
     algo = COMPRESSION_ALGORITHM::ALGORITHM_ZSTD;
   } else
   {
-    delete typeFactory;
-    Rf_error("Unknown compression algorithm selected");
+    return fst_error("Unknown compression algorithm selected");
   }
 
-  FstCompressor fstcompressor(algo, *INTEGER(compression), (ITypeFactory*) typeFactory);
+  FstCompressor fstcompressor(algo, *INTEGER(compression), (ITypeFactory*) typeFactoryP.get());
 
   unsigned long long vecLength = Rf_xlength(rawVec);
   unsigned char* data = (unsigned char*) RAW(rawVec);
-  BlobContainer* blobContainer;
+
+  std::unique_ptr<IBlobContainer> blobContainerP;
 
   try
   {
-    blobContainer = (BlobContainer*) fstcompressor.CompressBlob(data, vecLength, *LOGICAL(hash));
+    blobContainerP = std::unique_ptr<IBlobContainer>(fstcompressor.CompressBlob(data, vecLength, *LOGICAL(hash)));
   }
   catch(const std::runtime_error& e)
   {
-    delete typeFactory;
-    ::Rf_error(e.what());
+    return fst_error(e.what());
   }
   catch ( ... )
   {
-    delete typeFactory;
-    ::Rf_error("Unexpected error detected while compressing data.");
+    return fst_error("Unexpected error detected while compressing data.");
   }
 
-  SEXP resVec = blobContainer->RVector();
-
-  delete typeFactory;
-  delete blobContainer;
+  SEXP resVec = ((BlobContainer*)(blobContainerP.get()))->RVector();
 
   return resVec;
 }
@@ -124,14 +119,14 @@ SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash)
 
 SEXP fstdecomp(SEXP rawVec)
 {
-  ITypeFactory* typeFactory = new TypeFactory();
+  std::unique_ptr<ITypeFactory> typeFactoryP(new TypeFactory());
 
-  FstCompressor fstcompressor((ITypeFactory*) typeFactory);
+  FstCompressor fstcompressor((ITypeFactory*) typeFactoryP.get());
 
   unsigned long long vecLength = Rf_xlength(rawVec);
   unsigned char* data = (unsigned char*) (RAW(rawVec));
 
-  BlobContainer* resultContainer;
+  BlobContainer* resultContainer = nullptr;
 
   try
   {
@@ -139,18 +134,19 @@ SEXP fstdecomp(SEXP rawVec)
   }
   catch(const std::runtime_error& e)
   {
-    delete typeFactory;
-    ::Rf_error(e.what());
+    delete resultContainer;
+
+    return fst_error(e.what());
   }
   catch ( ... )
   {
-    delete typeFactory;
-    ::Rf_error("Error detected while decompressing data.");
+    delete resultContainer;
+
+    return fst_error("Error detected while decompressing data.");
   }
 
   SEXP resVec = resultContainer->RVector();
 
-  delete typeFactory;
   delete resultContainer;
 
   return resVec;

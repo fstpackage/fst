@@ -42,6 +42,7 @@
 
 
 #include <vector>
+#include <memory>
 
 #include <interface/icolumnfactory.h>
 #include <interface/ifsttable.h>
@@ -50,12 +51,15 @@
 class FstStore
 {
   std::string fstFile;
+  std::unique_ptr<char[]> metaDataBlockP;
+  std::unique_ptr<IStringColumn> blockReaderP;
 
   public:
     IStringColumn* blockReader;
 
     unsigned long long* p_nrOfRows;
     int* keyColPos;
+
     char* metaDataBlock;
 
   	// column info
@@ -69,7 +73,7 @@ class FstStore
 
     FstStore(std::string fstFile);
 
-    ~FstStore() { delete blockReader; delete[] metaDataBlock;  }
+    ~FstStore() { }
 
 	/**
      * \brief Stream a data table

@@ -46,6 +46,7 @@
 #include <interface/icolumnfactory.h>
 #include <interface/fststore.h>
 
+#include <fst_error.h>
 #include <fst_blockrunner_char.h>
 #include <fst_table.h>
 #include <fst_column.h>
@@ -81,18 +82,18 @@ SEXP fststore(String fileName, SEXP table, SEXP compression, SEXP uniformEncodin
 {
   if (!Rf_isLogical(uniformEncoding))
   {
-    ::Rf_error("Parameter uniform.encoding should be a logical value");
+    return fst_error("Parameter uniform.encoding should be a logical value");
   }
 
   if (!Rf_isInteger(compression))
   {
-    ::Rf_error("Parameter compression should be an integer value between 0 and 100");
+    return fst_error("Parameter compression should be an integer value between 0 and 100");
   }
 
   int compress = *INTEGER(compression);
   if ((compress < 0) | (compress > 100))
   {
-    ::Rf_error("Parameter compression should be an integer value between 0 and 100");
+    return fst_error("Parameter compression should be an integer value between 0 and 100");
   }
 
   FstTable fstTable(table, *LOGICAL(uniformEncoding));
@@ -104,10 +105,10 @@ SEXP fststore(String fileName, SEXP table, SEXP compression, SEXP uniformEncodin
   }
   catch (const std::runtime_error& e)
   {
-    ::Rf_error(e.what());
+    return fst_error(e.what());
   }
 
-  return table;
+  return R_NilValue;
 }
 
 
@@ -142,7 +143,7 @@ SEXP fstmetadata(String fileName)
       return resOld;  // scans further for safety
     }
 
-    ::Rf_error(e.what());
+    return fst_error(e.what());
   }
 
   // R internals part TODO: speed up this code
@@ -249,7 +250,7 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
     else
     {
       // Re-throw uncatched errors
-      ::Rf_error(e.what());
+      return fst_error(e.what());
     }
   }
 
@@ -268,7 +269,7 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
     catch (const std::exception& ex)
     {
       // Re-throw uncatched errors
-      ::Rf_error(ex.what());
+      return fst_error(ex.what());
     }
   }
 

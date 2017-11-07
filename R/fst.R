@@ -40,9 +40,13 @@ write_fst <- function(x, path, compress = 0, uniform_encoding = TRUE) {
 
   if (!is.data.frame(x)) stop("Please make sure 'x' is a data frame.")
 
-  fststore(normalizePath(path, mustWork = FALSE), x, as.integer(compress), uniform_encoding)
+  dt <- fststore(normalizePath(path, mustWork = FALSE), x, as.integer(compress), uniform_encoding)
 
-  invisible(x)
+  if (inherits(dt, "fst_error")) {
+    stop(dt)
+  }
+
+  return(invisible(x))
 }
 
 
@@ -68,6 +72,10 @@ write_fst <- function(x, path, compress = 0, uniform_encoding = TRUE) {
 #' @export
 metadata_fst <- function(path) {
   metadata <- fstmetadata(normalizePath(path, mustWork = TRUE))
+
+  if (inherits(metadata, "fst_error")) {
+    stop(metadata)
+  }
 
   colInfo <- list(path = path, nrOfRows = metadata$nrOfRows,
     keys = metadata$keyNames, columnNames = metadata$colNames,
@@ -117,8 +125,7 @@ print.fstmetadata <- function(x, ...) {
 #' dataset \code{x} before writing, will be retained. This allows for storage of sorted datasets.
 #'
 #' @export
-read_fst <- function(path, columns = NULL, from = 1, to = NULL,
-  as.data.table = FALSE) {
+read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE) {
   fileName <- normalizePath(path, mustWork = TRUE)
 
   if (!is.null(columns)) {
@@ -142,6 +149,11 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL,
   }
 
   res <- fstretrieve(fileName, columns, from, to)
+
+  if (inherits(res, "fst_error")) {
+    stop(res)
+  }
+
 
   if (as.data.table) {
     if (!requireNamespace("data.table")) {

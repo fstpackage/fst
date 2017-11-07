@@ -163,7 +163,7 @@ public:
 
       if (scale != FstTimeScale::NANOSECONDS)
       {
-        Rf_error("Timestamp column with unknown scale detected");
+        throw(std::runtime_error("Timestamp column with unknown scale detected"));
       }
 
       PROTECT(classAttr = Rf_mkString("nanotime"));

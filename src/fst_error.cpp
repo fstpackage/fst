@@ -33,61 +33,13 @@
 */
 
 
-#ifndef TYPE_FACTORY_H
-#define TYPE_FACTORY_H
+#include <Rcpp.h>
 
 
-#include <interface/itypefactory.h>
-
-
-class BlobContainer : public IBlobContainer
+SEXP fst_error(const char* error_message)
 {
-  SEXP rawVec;
+  SEXP fst_error = Rf_mkString(error_message);
+  Rf_classgets(fst_error, Rf_mkString("fst_error"));
 
-public:
-  BlobContainer(unsigned long long size)
-  {
-    PROTECT(rawVec = Rf_allocVector(RAWSXP, size));
-  }
-
-  ~BlobContainer()
-  {
-    UNPROTECT(1);
-  }
-
-  unsigned char* Data()
-  {
-    return RAW(rawVec);
-  }
-
-  SEXP RVector()
-  {
-    return rawVec;
-  }
-
-  unsigned long long Size()
-  {
-    return Rf_xlength(rawVec);
-  }
-};
-
-
-class TypeFactory : public ITypeFactory
-{
-public:
-  ~TypeFactory() { }
-
-  /**
-   * \brief Create a BlobContainer type of size indicated.
-   * \param size Size of BlobContainer to create.
-   * \return Pointer to the generated BlobContainer object;
-   */
-  IBlobContainer* CreateBlobContainer(unsigned long long size)
-  {
-    return new BlobContainer(size);
-  }
-};
-
-
-#endif  // TYPE_FACTORY_H
-
+  return fst_error;
+}

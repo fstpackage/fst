@@ -516,7 +516,6 @@ public:
 
 		return blobContainer;
 	}
-
 };
 
 
