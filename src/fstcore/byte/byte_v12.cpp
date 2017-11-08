@@ -45,13 +45,14 @@
 using namespace std;
 
 
-void fdsWriteByteVec_v12(ofstream &myfile, char* byteVector, unsigned long long nrOfRows, unsigned int compression, std::string annotation)
+void fdsWriteByteVec_v12(ofstream &myfile, char* byteVector, unsigned long long nrOfRows, unsigned int compression,
+  std::string annotation, bool hasAnnotation)
 {
   int blockSize = BLOCKSIZE_BYTE;  // block size in bytes
 
   if (compression == 0)
   {
-    return fdsStreamUncompressed_v2(myfile, byteVector, nrOfRows, 1, BLOCKSIZE_BYTE, nullptr, annotation);
+    return fdsStreamUncompressed_v2(myfile, byteVector, nrOfRows, 1, BLOCKSIZE_BYTE, nullptr, annotation, hasAnnotation);
   }
 
   if (compression <= 50)  // low compression: linear mix of uncompressed and LZ4_SHUF
@@ -61,7 +62,7 @@ void fdsWriteByteVec_v12(ofstream &myfile, char* byteVector, unsigned long long 
     StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, 2 * compression);
 
     streamCompressor->CompressBufferSize(blockSize);
-    fdsStreamcompressed_v2(myfile, byteVector, nrOfRows, 1, streamCompressor, BLOCKSIZE_BYTE, annotation);
+    fdsStreamcompressed_v2(myfile, byteVector, nrOfRows, 1, streamCompressor, BLOCKSIZE_BYTE, annotation, hasAnnotation);
 
     delete compress1;
     delete streamCompressor;
@@ -72,7 +73,7 @@ void fdsWriteByteVec_v12(ofstream &myfile, char* byteVector, unsigned long long 
   Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD, 0);
   StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
   streamCompressor->CompressBufferSize(blockSize);
-  fdsStreamcompressed_v2(myfile, byteVector, nrOfRows, 1, streamCompressor, BLOCKSIZE_BYTE, annotation);
+  fdsStreamcompressed_v2(myfile, byteVector, nrOfRows, 1, streamCompressor, BLOCKSIZE_BYTE, annotation, hasAnnotation);
 
   delete compress1;
   delete compress2;
@@ -86,6 +87,7 @@ void fdsReadByteVec_v12(istream &myfile, char* byteVec, unsigned long long block
   unsigned long long size)
 {
   std::string annotation;
+  bool hasAnnotation;
 
-  return fdsReadColumn_v2(myfile, byteVec, blockPos, startRow, length, size, 1, annotation, BATCH_SIZE_READ_BYTE);
+  return fdsReadColumn_v2(myfile, byteVec, blockPos, startRow, length, size, 1, annotation, BATCH_SIZE_READ_BYTE, hasAnnotation);
 }

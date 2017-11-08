@@ -68,7 +68,7 @@ class FstStore
     unsigned short int* colAttributeTypes;
     unsigned short int* colScales;
 
-    //unsigned int version;
+    unsigned int tableVersionMax;
     int nrOfCols, keyLength;
 
     FstStore(std::string fstFile);

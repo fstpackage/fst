@@ -69,19 +69,30 @@ using namespace std;
 
 // Method for writing column data of any type to a ofstream.
 void fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned long long vecLength, int elementSize, int blockSizeElems,
-  FixedRatioCompressor* fixedRatioCompressor, std::string annotation)
+  FixedRatioCompressor* fixedRatioCompressor, std::string annotation, bool hasAnnotation)
 {
   unsigned int annotationLength = annotation.length();
   int nrOfBlocks = 1 + (vecLength - 1) / blockSizeElems;  // number of compressed / uncompressed blocks
   int remain = 1 + (vecLength + blockSizeElems - 1) % blockSizeElems;  // number of elements in last incomplete block
   int blockSize = blockSizeElems * elementSize;
 
-  myfile.write((char*) &annotationLength, 4);
 
-  if (annotationLength > 0)
+  if (hasAnnotation)
   {
-    myfile.write(annotation.c_str(), annotationLength);
+    unsigned int aLength = annotationLength | 0x80000000;
+    myfile.write(reinterpret_cast<char*>(&aLength), 4);
+
+    if (annotationLength > 0)
+    {
+      myfile.write(annotation.c_str(), annotationLength);
+    }
   }
+  else  // no annotation
+  {
+    unsigned int aLength = 0;
+    myfile.write(reinterpret_cast<char*>(&aLength), 4);
+  }
+
 
   // Write uncompressed vector to disk in blocks
   --nrOfBlocks;  // Do last block later
@@ -168,18 +179,27 @@ void fdsStreamUncompressed_v2(ofstream &myfile, char* vec, unsigned long long ve
 
 // Method for writing column data of any type to a stream.
 void fdsStreamcompressed_v2(ofstream &myfile, char* colVec, unsigned long long nrOfRows, int elementSize,
-  StreamCompressor* streamCompressor, int blockSizeElems, std::string annotation)
+  StreamCompressor* streamCompressor, int blockSizeElems, std::string annotation, bool hasAnnotation)
 {
   unsigned int annotationLength = annotation.length();
   int nrOfBlocks = 1 + (nrOfRows - 1) / blockSizeElems;  // number of compressed / uncompressed blocks
   int remain = 1 + (nrOfRows + blockSizeElems - 1) % blockSizeElems;  // number of elements in last incomplete block
   int blockSize = blockSizeElems * elementSize;
 
-  myfile.write((char*) &annotationLength, 4);
-
-  if (annotationLength > 0)
+  if (hasAnnotation)
   {
-    myfile.write(annotation.c_str(), annotationLength);
+    unsigned int aLength = annotationLength | 0x80000000;
+    myfile.write(reinterpret_cast<char*>(&aLength), 4);
+
+    if (annotationLength > 0)
+    {
+      myfile.write(annotation.c_str(), annotationLength);
+    }
+  }
+  else  // no annotation
+  {
+    unsigned int aLength = 0;
+    myfile.write(reinterpret_cast<char*>(&aLength), 4);
   }
 
   unsigned long long curPos = myfile.tellp();
@@ -480,21 +500,29 @@ void ProcessBatch(char* outVec, char* blockIndex, unsigned long long blockSize, 
 }
 
 void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos, unsigned long long startRow,
-  unsigned long long length, unsigned long long size, int elementSize, std::string &annotation, int maxbatchSize)
+  unsigned long long length, unsigned long long size, int elementSize, std::string &annotation, int maxbatchSize, bool &hasAnnotation)
 {
   myfile.seekg(blockPos);
 
   unsigned int annotationLength;
-  myfile.read((char*) &annotationLength, 4);
+  myfile.read(reinterpret_cast<char*>(&annotationLength), 4);
 
-  if (annotationLength > 0)
+  hasAnnotation = (annotationLength & (1 << 31)) != 0;
+
+  if (hasAnnotation)
   {
-    char* annotationBuf = new char[annotationLength];
-    myfile.read(annotationBuf, annotationLength);
+    // highest bit is toogle bit for availability
+    annotationLength = annotationLength & 0x7fffffff;
 
-    annotation += std::string(annotationBuf, annotationLength);
+    if (annotationLength > 0)
+    {
+      char* annotationBuf = new char[annotationLength];
+      myfile.read(annotationBuf, annotationLength);
 
-    delete[] annotationBuf;
+      annotation += std::string(annotationBuf, annotationLength);
+
+      delete[] annotationBuf;
+    }
   }
 
 
@@ -657,7 +685,7 @@ void fdsReadColumn_v2(istream &myfile, char* outVec, unsigned long long blockPos
 
 	maxBlock--;  // decrement to get number of full blocks
 
-	int nrOfThreads = max(1ULL, min((unsigned long long) GetFstThreads(), maxBlock));
+	int nrOfThreads = max(1ULL, min(static_cast<unsigned long long>(GetFstThreads()), maxBlock));
 	int batchSize = min((unsigned long long) maxbatchSize, maxBlock / nrOfThreads);  // keep thread buffer small
 	batchSize = max(1, batchSize);
 	char* threadBuffer = new char[nrOfThreads * MAX_COMPRESSBOUND * batchSize];

@@ -44,9 +44,10 @@
 #include <istream>
 
 
-void fdsWriteIntVec_v8(std::ofstream &myfile, int* integerVector, unsigned long long nrOfRows, unsigned int compression, std::string annotation);
+void fdsWriteIntVec_v8(std::ofstream &myfile, int* integerVector, unsigned long long nrOfRows, unsigned int compression,
+  std::string annotation, bool hasAnnotation);
 
 void fdsReadIntVec_v8(std::istream &myfile, int* integerVector, unsigned long long blockPos, unsigned long long startRow,
-  unsigned long long length, unsigned long long size, std::string &annotation);
+  unsigned long long length, unsigned long long size, std::string &annotation, bool &hasAnnotation);
 
 #endif // INTEGER_V8_H

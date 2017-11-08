@@ -46,10 +46,10 @@
 SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression, SEXP uniformEncoding);
 
 // [[Rcpp::export]]
-SEXP fstmetadata(Rcpp::String fileName);
+SEXP fstmetadata(Rcpp::String fileName, SEXP oldFormat);
 
 // [[Rcpp::export]]
-SEXP fstretrieve(Rcpp::String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
+SEXP fstretrieve(Rcpp::String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow, SEXP oldFormat);
 
 
 #endif  // FASTSTORE_H

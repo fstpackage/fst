@@ -5,12 +5,14 @@
 \alias{fst.metadata}
 \title{Read metadata from a fst file}
 \usage{
-metadata_fst(path)
+metadata_fst(path, old_format = FALSE)
 
 fst.metadata(path)
 }
 \arguments{
 \item{path}{path to fst file}
+
+\item{old_format}{use TRUE to read fst files generated with a fst package version lower than v0.8.0}
 }
 \value{
 Returns a list with meta information on the stored dataset in \code{path}.

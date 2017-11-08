@@ -59,7 +59,7 @@ using namespace std;
 #define VERSION_NUMBER_FACTOR 1
 
 void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunner, unsigned long long size, unsigned int compression,
-	StringEncoding stringEncoding, std::string annotation)
+	StringEncoding stringEncoding, std::string annotation, bool hasAnnotation)
 {
   unsigned long long blockPos = myfile.tellp();  // offset for factor
   unsigned int nrOfFactorLevels = blockRunner->vecLength;
@@ -108,7 +108,7 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
     if (*nrOfLevels < 128)
     {
       FixedRatioCompressor* compressor = new FixedRatioCompressor(CompAlgo::INT_TO_BYTE);  // compression level not relevant here
-      fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, compressor, annotation);
+      fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, compressor, annotation, hasAnnotation);
 
       delete compressor;
 
@@ -118,13 +118,13 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
     if (*nrOfLevels < 32768)
     {
       FixedRatioCompressor* compressor = new FixedRatioCompressor(CompAlgo::INT_TO_SHORT);  // compression level not relevant here
-      fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, compressor, annotation);
+      fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, compressor, annotation, hasAnnotation);
       delete compressor;
 
       return;
     }
 
-    fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, nullptr, annotation);
+    fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, nullptr, annotation, hasAnnotation);
 
     return;
   }
@@ -152,7 +152,7 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
 
     streamCompressor->CompressBufferSize(blockSize);
 
-    fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(intP), nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation);
+    fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(intP), nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation, hasAnnotation);
     delete defaultCompress;
     delete compress2;
     delete streamCompressor;
@@ -167,7 +167,7 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
     StreamCompressor* streamCompressor = new StreamCompositeCompressor(defaultCompress, compress2, compression);
     streamCompressor->CompressBufferSize(blockSize);
 
-    fdsStreamcompressed_v2(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation);
+    fdsStreamcompressed_v2(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation, hasAnnotation);
     delete defaultCompress;
     delete compress2;
     delete streamCompressor;
@@ -180,7 +180,7 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
   Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4_SHUF4, 0);
   StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, compression);
   streamCompressor->CompressBufferSize(blockSize);
-  fdsStreamcompressed_v2(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation);
+  fdsStreamcompressed_v2(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation, hasAnnotation);
   delete compress1;
   delete streamCompressor;
 
@@ -231,8 +231,9 @@ void fdsReadFactorVec_v7(istream &myfile, IStringColumn* blockReader, int* intP,
 
   // Read level values
   std::string annotation;
+  bool hasAnnotation;
 
-  fdsReadColumn_v2(myfile, (char*) intP, *levelVecPos, startRow, length, size, 4, annotation, BATCH_SIZE_READ_FACTOR);
+  fdsReadColumn_v2(myfile, reinterpret_cast<char*>(intP), *levelVecPos, startRow, length, size, 4, annotation, BATCH_SIZE_READ_FACTOR, hasAnnotation);
 
   return;
 }

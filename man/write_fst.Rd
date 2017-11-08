@@ -10,7 +10,7 @@
 write_fst(x, path, compress = 0, uniform_encoding = TRUE)
 
 read_fst(path, columns = NULL, from = 1, to = NULL,
-  as.data.table = FALSE)
+  as.data.table = FALSE, old_format = FALSE)
 
 write.fst(x, path, compress = 0, uniform_encoding = TRUE)
 
@@ -37,7 +37,9 @@ character columns.}
 
 \item{to}{Read data up until this row number. The default is to read to the last row of the stored dataset.}
 
-\item{as.data.table}{If TRUE, the result will be returned as a \code{data.table} object. Any keys set on
+\item{as.data.table}{If TRUE, the result will be returned as a \code{data.table} object. Any keys set on}
+
+\item{old_format}{use TRUE to read fst files generated with a fst package version lower than v0.8.0
 dataset \code{x} before writing, will be retained. This allows for storage of sorted datasets.}
 }
 \value{

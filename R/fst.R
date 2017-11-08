@@ -55,6 +55,7 @@ write_fst <- function(x, path, compress = 0, uniform_encoding = TRUE) {
 #' Method for checking basic properties of the dataset stored in \code{path}.
 #'
 #' @param path path to fst file
+#' @param old_format use TRUE to read fst files generated with a fst package version lower than v0.8.0
 #' @return Returns a list with meta information on the stored dataset in \code{path}.
 #' Has class \code{fstmetadata}.
 #' @examples
@@ -70,8 +71,12 @@ write_fst <- function(x, path, compress = 0, uniform_encoding = TRUE) {
 #' # Display meta information
 #' metadata_fst("dataset.fst")
 #' @export
-metadata_fst <- function(path) {
-  metadata <- fstmetadata(normalizePath(path, mustWork = TRUE))
+metadata_fst <- function(path, old_format = FALSE) {
+  if (!is.logical(old_format)) {
+    stop("A logical value is expected for parameter 'old_format'.")
+  }
+
+  metadata <- fstmetadata(normalizePath(path, mustWork = TRUE), old_format)
 
   if (inherits(metadata, "fst_error")) {
     stop(metadata)
@@ -122,10 +127,11 @@ print.fstmetadata <- function(x, ...) {
 #' @param from Read data starting from this row number.
 #' @param to Read data up until this row number. The default is to read to the last row of the stored dataset.
 #' @param as.data.table If TRUE, the result will be returned as a \code{data.table} object. Any keys set on
+#' @param old_format use TRUE to read fst files generated with a fst package version lower than v0.8.0
 #' dataset \code{x} before writing, will be retained. This allows for storage of sorted datasets.
 #'
 #' @export
-read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE) {
+read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE, old_format = FALSE) {
   fileName <- normalizePath(path, mustWork = TRUE)
 
   if (!is.null(columns)) {
@@ -148,7 +154,11 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
     to <- as.integer(to)
   }
 
-  res <- fstretrieve(fileName, columns, from, to)
+  if (!is.logical(old_format)) {
+    stop("A logical value is expected for parameter 'old_format'.")
+  }
+
+  res <- fstretrieve(fileName, columns, from, to, old_format)
 
   if (inherits(res, "fst_error")) {
     stop(res)

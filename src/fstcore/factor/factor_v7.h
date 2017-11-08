@@ -48,7 +48,7 @@
 
 
 void fdsWriteFactorVec_v7(std::ofstream &myfile, int* intP, IStringWriter* blockRunner, unsigned long long size, unsigned int compression,
-	StringEncoding stringEncoding, std::string annotation);
+	StringEncoding stringEncoding, std::string annotation, bool hasAnnotation);
 
 
 // Parameter 'startRow' is zero based.

@@ -45,13 +45,14 @@
 using namespace std;
 
 
-void fdsWriteInt64Vec_v11(ofstream &myfile, long long* int64Vector, unsigned long long nrOfRows, unsigned int compression, std::string annotation)
+void fdsWriteInt64Vec_v11(ofstream &myfile, long long* int64Vector, unsigned long long nrOfRows, unsigned int compression,
+  std::string annotation, bool hasAnnotation)
 {
   int blockSize = 8 * BLOCKSIZE_INT64;  // block size in bytes
 
   if (compression == 0)
   {
-    return fdsStreamUncompressed_v2(myfile, reinterpret_cast<char*>(int64Vector), nrOfRows, 8, BLOCKSIZE_INT64, nullptr, annotation);
+    return fdsStreamUncompressed_v2(myfile, reinterpret_cast<char*>(int64Vector), nrOfRows, 8, BLOCKSIZE_INT64, nullptr, annotation, hasAnnotation);
   }
 
   if (compression <= 50)  // low compression: linear mix of uncompressed and LZ4_SHUF8
@@ -59,7 +60,7 @@ void fdsWriteInt64Vec_v11(ofstream &myfile, long long* int64Vector, unsigned lon
     Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4_SHUF8, 2 * compression);
     StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, 2 * compression);
     streamCompressor->CompressBufferSize(blockSize);
-    fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(int64Vector), nrOfRows, 8, streamCompressor, BLOCKSIZE_INT64, annotation);
+    fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(int64Vector), nrOfRows, 8, streamCompressor, BLOCKSIZE_INT64, annotation, hasAnnotation);
 
     delete compress1;
     delete streamCompressor;
@@ -72,7 +73,7 @@ void fdsWriteInt64Vec_v11(ofstream &myfile, long long* int64Vector, unsigned lon
   Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD_SHUF8, compression - 50);
   StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
   streamCompressor->CompressBufferSize(blockSize);
-  fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(int64Vector), nrOfRows, 8, streamCompressor, BLOCKSIZE_INT64, annotation);
+  fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(int64Vector), nrOfRows, 8, streamCompressor, BLOCKSIZE_INT64, annotation, hasAnnotation);
 
   delete compress1;
   delete compress2;
@@ -86,6 +87,8 @@ void fdsReadInt64Vec_v11(istream &myfile, long long* int64Vector, unsigned long 
   unsigned long long length, unsigned long long size)
 {
   std::string annotation;
+  bool hasAnnotation;
 
-  return fdsReadColumn_v2(myfile, reinterpret_cast<char*>(int64Vector), blockPos, startRow, length, size, 8, annotation, BATCH_SIZE_READ_INT64);
+  return fdsReadColumn_v2(myfile, reinterpret_cast<char*>(int64Vector), blockPos, startRow, length, size, 8, annotation,
+    BATCH_SIZE_READ_INT64, hasAnnotation);
 }

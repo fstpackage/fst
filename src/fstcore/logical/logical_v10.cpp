@@ -48,12 +48,13 @@ using namespace std;
 
 // Logical vectors are always compressed to fill all available bits (factor 16 compression).
 // On top of that, we can compress the resulting bytes with a custom compressor.
-void fdsWriteLogicalVec_v10(ofstream &myfile, int* boolVector, unsigned long long nrOfLogicals, int compression, std::string annotation)
+void fdsWriteLogicalVec_v10(ofstream &myfile, int* boolVector, unsigned long long nrOfLogicals, int compression,
+  std::string annotation, bool hasAnnotation)
 {
   if (compression == 0)
   {
     FixedRatioCompressor* compressor = new FixedRatioCompressor(CompAlgo::LOGIC64);  // compression level not relevant here
-    fdsStreamUncompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, BLOCKSIZE_LOGICAL, compressor, annotation);
+    fdsStreamUncompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, BLOCKSIZE_LOGICAL, compressor, annotation, hasAnnotation);
 
     delete compressor;
 
@@ -69,7 +70,7 @@ void fdsWriteLogicalVec_v10(ofstream &myfile, int* boolVector, unsigned long lon
     StreamCompressor* streamCompressor = new StreamCompositeCompressor(defaultCompress, compress2, 2 * compression);
     streamCompressor->CompressBufferSize(blockSize);
 
-    fdsStreamcompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, streamCompressor, BLOCKSIZE_LOGICAL, annotation);
+    fdsStreamcompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, streamCompressor, BLOCKSIZE_LOGICAL, annotation, hasAnnotation);
 
     delete defaultCompress;
     delete compress2;
@@ -83,7 +84,7 @@ void fdsWriteLogicalVec_v10(ofstream &myfile, int* boolVector, unsigned long lon
     Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD_LOGIC64, 30 + 7 * (compression - 50) / 5);
     StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
     streamCompressor->CompressBufferSize(blockSize);
-    fdsStreamcompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, streamCompressor, BLOCKSIZE_LOGICAL, annotation);
+    fdsStreamcompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, streamCompressor, BLOCKSIZE_LOGICAL, annotation, hasAnnotation);
 
     delete compress1;
     delete compress2;
@@ -98,5 +99,7 @@ void fdsReadLogicalVec_v10(istream &myfile, int* boolVector, unsigned long long 
   unsigned long long length, unsigned long long size)
 {
   std::string annotation;
-  return fdsReadColumn_v2(myfile, (char*) boolVector, blockPos, startRow, length, size, 4, annotation, BATCH_SIZE_READ_LOGICAL);
+  bool hasAnnotation;
+
+  return fdsReadColumn_v2(myfile, (char*) boolVector, blockPos, startRow, length, size, 4, annotation, BATCH_SIZE_READ_LOGICAL, hasAnnotation);
 }

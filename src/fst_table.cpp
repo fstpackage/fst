@@ -81,9 +81,11 @@ unsigned long long FstTable::NrOfRows()
 }
 
 
-FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &columnAttribute, short int &scale, std::string &annotation)
+FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &columnAttribute, short int &scale,
+  std::string &annotation, bool &hasAnnotation)
 {
   SEXP colVec = VECTOR_ELT(*rTable, colNr);  // retrieve column vector
+  hasAnnotation = false;
 
   switch (TYPEOF(colVec))
   {
@@ -156,6 +158,7 @@ FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &colum
 
         SEXP tzoneR = Rf_getAttrib(colVec, Rf_install("tzone"));
         annotation += Rf_isNull(tzoneR) ? "UTC" : Rf_translateCharUTF8(STRING_ELT(tzoneR, 0));
+        hasAnnotation = true;
 
         return FstColumnType::INT_32;
       }
@@ -216,6 +219,7 @@ FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &colum
 
         SEXP tzoneR = Rf_getAttrib(colVec, Rf_install("tzone"));
         annotation += Rf_isNull(tzoneR) ? "UTC" : Rf_translateCharUTF8(STRING_ELT(tzoneR, 0));
+        hasAnnotation = true;
 
         return FstColumnType::DOUBLE_64;
       }
@@ -398,11 +402,25 @@ void FstTable::SetInt64Column(IInt64Column* int64Column, int colNr)
 }
 
 
+void FstTable::SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr)
+{
+  DoubleColumn* dColumn = (DoubleColumn*) doubleColumn;
+  SET_VECTOR_ELT(resTable, colNr, dColumn->colVec);
+}
+
+
 void FstTable::SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr, std::string &annotation)
 {
   DoubleColumn* dColumn = (DoubleColumn*) doubleColumn;
   dColumn->Annotate(annotation);
   SET_VECTOR_ELT(resTable, colNr, dColumn->colVec);
+}
+
+
+void FstTable::SetIntegerColumn(IIntegerColumn* integerColumn, int colNr)
+{
+  IntegerColumn* iColumn = (IntegerColumn*) integerColumn;
+  SET_VECTOR_ELT(resTable, colNr, iColumn->colVec);
 }
 
 

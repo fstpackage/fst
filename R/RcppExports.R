@@ -5,12 +5,12 @@ fststore <- function(fileName, table, compression, uniformEncoding) {
     .Call(`_fst_fststore`, fileName, table, compression, uniformEncoding)
 }
 
-fstmetadata <- function(fileName) {
-    .Call(`_fst_fstmetadata`, fileName)
+fstmetadata <- function(fileName, oldFormat) {
+    .Call(`_fst_fstmetadata`, fileName, oldFormat)
 }
 
-fstretrieve <- function(fileName, columnSelection, startRow, endRow) {
-    .Call(`_fst_fstretrieve`, fileName, columnSelection, startRow, endRow)
+fstretrieve <- function(fileName, columnSelection, startRow, endRow, oldFormat) {
+    .Call(`_fst_fstretrieve`, fileName, columnSelection, startRow, endRow, oldFormat)
 }
 
 fsthasher <- function(rawVec, seed) {

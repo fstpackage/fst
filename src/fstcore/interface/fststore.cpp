@@ -421,9 +421,10 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
   	FstColumnAttribute colAttribute;
   	std::string annotation = "";
     short int scale = 0;
+    bool hasAnnotation;
 
   	// get type and add annotation
-    FstColumnType colType = fstTable.ColumnType(colNr, colAttribute, scale, annotation);
+    FstColumnType colType = fstTable.ColumnType(colNr, colAttribute, scale, annotation, hasAnnotation);
 
     colBaseTypes[colNr] = static_cast<unsigned short int>(colType);
   	colAttributeTypes[colNr] = static_cast<unsigned short int>(colAttribute);
@@ -447,7 +448,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
 
         std::unique_ptr<IStringWriter> stringWriterP(fstTable.GetLevelWriter(colNr));
      		IStringWriter* stringWriter = stringWriterP.get();
-        fdsWriteFactorVec_v7(myfile, intP, stringWriter, nrOfRows, compress, stringWriter->Encoding(), annotation);
+        fdsWriteFactorVec_v7(myfile, intP, stringWriter, nrOfRows, compress, stringWriter->Encoding(), annotation, hasAnnotation);
         break;
       }
 
@@ -455,7 +456,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
       {
         colTypes[colNr] = 8;
         int* intP = fstTable.GetIntWriter(colNr);
-        fdsWriteIntVec_v8(myfile, intP, nrOfRows, compress, annotation);
+        fdsWriteIntVec_v8(myfile, intP, nrOfRows, compress, annotation, hasAnnotation);
         break;
       }
 
@@ -463,7 +464,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
       {
         colTypes[colNr] = 9;
         double* doubleP = fstTable.GetDoubleWriter(colNr);
-        fdsWriteRealVec_v9(myfile, doubleP, nrOfRows, compress, annotation);
+        fdsWriteRealVec_v9(myfile, doubleP, nrOfRows, compress, annotation, hasAnnotation);
         break;
       }
 
@@ -471,7 +472,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
       {
         colTypes[colNr] = 10;
         int* intP = fstTable.GetLogicalWriter(colNr);
-        fdsWriteLogicalVec_v10(myfile, intP, nrOfRows, compress, annotation);
+        fdsWriteLogicalVec_v10(myfile, intP, nrOfRows, compress, annotation, hasAnnotation);
         break;
       }
 
@@ -479,7 +480,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
       {
         colTypes[colNr] = 11;
         long long* intP = fstTable.GetInt64Writer(colNr);
-        fdsWriteInt64Vec_v11(myfile, intP, nrOfRows, compress, annotation);
+        fdsWriteInt64Vec_v11(myfile, intP, nrOfRows, compress, annotation, hasAnnotation);
         break;
       }
 
@@ -487,7 +488,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
 	  {
 		  colTypes[colNr] = 12;
 		  char* byteP = fstTable.GetByteWriter(colNr);
-		  fdsWriteByteVec_v12(myfile, byteP, nrOfRows, compress, annotation);
+		  fdsWriteByteVec_v12(myfile, byteP, nrOfRows, compress, annotation, hasAnnotation);
 		  break;
 	  }
 
@@ -538,7 +539,7 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
   }
 
   // Read variables from fst file header and check header hash
-  ReadHeader(myfile, keyLength, nrOfCols);
+  tableVersionMax = ReadHeader(myfile, keyLength, nrOfCols);
 
   unsigned long long keyIndexHeaderSize = 0;
 
@@ -642,7 +643,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
   }
 
   int keyLength;
-  ReadHeader(myfile, keyLength, nrOfCols);
+  tableVersionMax = ReadHeader(myfile, keyLength, nrOfCols);
 
   unsigned long long keyIndexHeaderSize = 0;
 
@@ -892,9 +893,18 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
       {
         std::unique_ptr<IIntegerColumn> integerColumnP(columnFactory->CreateIntegerColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]), scale));
         IIntegerColumn* integerColumn = integerColumnP.get();
+
         std::string annotation = "";
-        fdsReadIntVec_v8(myfile, integerColumn->Data(), pos, firstRow, length, nrOfRows, annotation);
-        tableReader.SetIntegerColumn(integerColumn, colSel, annotation);
+        bool hasAnnotation;
+        fdsReadIntVec_v8(myfile, integerColumn->Data(), pos, firstRow, length, nrOfRows, annotation, hasAnnotation);
+
+        if (hasAnnotation)
+        {
+          tableReader.SetIntegerColumn(integerColumn, colSel, annotation);
+          break;
+        }
+
+        tableReader.SetIntegerColumn(integerColumn, colSel);
         break;
       }
 
@@ -903,9 +913,18 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
       {
         std::unique_ptr<IDoubleColumn> doubleColumnP(columnFactory->CreateDoubleColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]), scale));
         IDoubleColumn* doubleColumn = doubleColumnP.get();
+
         std::string annotation = "";
-        fdsReadRealVec_v9(myfile, doubleColumn->Data(), pos, firstRow, length, nrOfRows, annotation);
-        tableReader.SetDoubleColumn(doubleColumn, colSel, annotation);
+        bool hasAnnotation;
+        fdsReadRealVec_v9(myfile, doubleColumn->Data(), pos, firstRow, length, nrOfRows, annotation, hasAnnotation);
+
+        if (hasAnnotation)
+        {
+          tableReader.SetDoubleColumn(doubleColumn, colSel, annotation);
+          break;
+        }
+
+        tableReader.SetDoubleColumn(doubleColumn, colSel);
         break;
       }
 

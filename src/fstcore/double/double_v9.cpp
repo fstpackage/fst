@@ -44,13 +44,14 @@
 
 using namespace std;
 
-void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned long long nrOfRows, unsigned int compression, std::string annotation)
+void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned long long nrOfRows, unsigned int compression,
+  std::string annotation, bool hasAnnotation)
 {
   int blockSize = 8 * BLOCKSIZE_REAL;  // block size in bytes
 
   if (compression == 0)
   {
-    return fdsStreamUncompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, BLOCKSIZE_REAL, nullptr, annotation);
+    return fdsStreamUncompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, BLOCKSIZE_REAL, nullptr, annotation, hasAnnotation);
   }
 
   if (compression <= 50)  // low compression: linear mix of uncompressed LZ4
@@ -58,7 +59,7 @@ void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned long lo
     Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4, 2 * compression);
     StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, 2 * compression);
     streamCompressor->CompressBufferSize(blockSize);
-    fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, streamCompressor, BLOCKSIZE_REAL, annotation);
+    fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, streamCompressor, BLOCKSIZE_REAL, annotation, hasAnnotation);
 
     delete compress1;
     delete streamCompressor;
@@ -69,7 +70,7 @@ void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned long lo
   Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD, 20);
   StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
   streamCompressor->CompressBufferSize(blockSize);
-  fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, streamCompressor, BLOCKSIZE_REAL, annotation);
+  fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, streamCompressor, BLOCKSIZE_REAL, annotation, hasAnnotation);
 
   delete compress1;
   delete compress2;
@@ -80,7 +81,8 @@ void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned long lo
 
 
 void fdsReadRealVec_v9(istream &myfile, double* doubleVector, unsigned long long blockPos, unsigned long long startRow,
-  unsigned long long length, unsigned long long size, std::string &annotation)
+  unsigned long long length, unsigned long long size, std::string &annotation, bool &hasAnnotation)
 {
-  return fdsReadColumn_v2(myfile, reinterpret_cast<char*>(doubleVector), blockPos, startRow, length, size, 8, annotation, BATCH_SIZE_READ_DOUBLE);
+  return fdsReadColumn_v2(myfile, reinterpret_cast<char*>(doubleVector), blockPos, startRow, length, size, 8, annotation,
+    BATCH_SIZE_READ_DOUBLE, hasAnnotation);
 }

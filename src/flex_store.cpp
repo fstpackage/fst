@@ -112,11 +112,50 @@ SEXP fststore(String fileName, SEXP table, SEXP compression, SEXP uniformEncodin
 }
 
 
-SEXP fstmetadata(String fileName)
+SEXP fstmetadata(String fileName, SEXP oldFormat)
 {
   FstStore fstStore(fileName.get_cstring());
   std::unique_ptr<IColumnFactory> columnFactory(new ColumnFactory());
 
+  // Character vector case 1:   2 2
+  // Integer vector case 2:     4 5
+  // Real vector case 3:        5 10
+  // Logical vector case 4:     6 15
+  // Factor vector case 5:      3 3
+
+  // use fst format v0.7.2
+  if (*LOGICAL(oldFormat) != 0)
+  {
+    try
+    {
+      List resOld = fstMeta_v1(fileName);  // scans further for safety
+
+      IntegerVector typeVec = resOld[4];
+      IntegerVector attributeVec(typeVec.size());
+
+      // change type ordering
+      int types[6] { 0, 2, 4, 5, 6, 3};
+      int attributeTypes[6] { 0, 2, 5, 10, 15, 3};
+
+      for (int pos = 0; pos < typeVec.size(); pos++)
+      {
+        int oldType = typeVec[pos];
+        typeVec[pos] = types[oldType];
+        attributeVec[pos] = attributeTypes[oldType];
+      }
+
+      resOld[4] = typeVec;
+      resOld.push_back(attributeVec, "colType");
+
+      return resOld;  // scans further for safety
+    }
+    catch(...)
+    {
+      return fst_error("An unknown C++ error occured in the legacy fstlib library. Please rewrite your fst files using the latest version of the fst package.");
+    }
+  }
+
+  // use fst format >= v0.8.0
   try
   {
     fstStore.fstMeta(columnFactory.get());
@@ -127,23 +166,16 @@ SEXP fstmetadata(String fileName)
     // We may be looking at a fst v0.7.2 file format, this unsafe code will be removed later
     if (std::strcmp(e.what(), FSTERROR_NON_FST_FILE) == 0)
     {
-      List resOld = fstMeta_v1(fileName);  // scans further for safety
-
-      IntegerVector typeVec = resOld[4];
-
-      // change type ordering
-      int types[6] { 0, 2, 4, 5, 6, 3};
-      for (int pos = 0; pos < typeVec.size(); pos++)
-      {
-        int oldType = typeVec[pos];
-        typeVec[pos] = types[oldType];
-      }
-
-      resOld[4] = typeVec;
-      return resOld;  // scans further for safety
+      return fst_error("File header information does not contain the fst format marker. "
+        "If this is a fst file generated with package version older than v0.8.0, "
+        "you can read your file by using 'old_format = TRUE'.");
     }
 
     return fst_error(e.what());
+  }
+  catch(...)
+  {
+    return fst_error("An unknown C++ error occured in the fstlib library.");
   }
 
   // R internals part TODO: speed up this code
@@ -183,7 +215,7 @@ SEXP fstmetadata(String fileName)
     retList = List::create(
       _["nNofCols"]         = fstStore.nrOfCols,
       _["nrOfRows"]         = *(fstStore.p_nrOfRows),
-      // _["fstVersion"]       = fstStore.version,
+      _["fstVersion"]       = fstStore.tableVersionMax,
       _["keyLength"]        = fstStore.keyLength,
       _["colBaseType"]      = colBaseType,
       _["colType"]          = colAttributeTypes,
@@ -196,7 +228,7 @@ SEXP fstmetadata(String fileName)
     retList = List::create(
       _["nrOfCols"]        = fstStore.nrOfCols,
       _["nrOfRows"]        = *fstStore.p_nrOfRows,
-      // _["fstVersion"]      = fstStore.version,
+      _["fstVersion"]      = fstStore.tableVersionMax,
       _["keyLength"]       = fstStore.keyLength,
       _["colBaseType"]     = colBaseType,
       _["colType"]         = colAttributeTypes,
@@ -207,7 +239,7 @@ SEXP fstmetadata(String fileName)
 }
 
 
-SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
+SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow, SEXP oldFormat)
 {
   FstTable tableReader;
   std::unique_ptr<IColumnFactory> columnFactory(new ColumnFactory());
@@ -234,8 +266,23 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
     colSelection->SetArray(columnSelection);
   }
 
-  int result = 0;
+  // use fst format v0.7.2
+  if (*LOGICAL(oldFormat) != 0)
+  {
+    try
+    {
+      SEXP res = fstRead_v1(fileName, columnSelection, startRow, endRow);
 
+      return res;
+    }
+    catch(...)
+    {
+      return fst_error("An unknown C++ error occured in the legacy fstlib library. "
+        "Please rewrite your fst files using the latest version of the fst package.");
+    }
+  }
+
+  // use fst format >= v0.8.0
   try
   {
     fstStore.fstRead(tableReader, colSelection.get(), sRow, eRow, columnFactory.get(), keyIndex, &*colNames);
@@ -245,32 +292,17 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
     // We may be looking at a fst v0.7.2 file format, this unsafe code will be removed later
     if (std::strcmp(e.what(), FSTERROR_NON_FST_FILE) == 0)
     {
-      result = -1;
+      return fst_error("File header information does not contain the fst format marker. "
+        "If this is a fst file generated with package version older than v0.8.0, "
+        "you can read your file by using 'old_format = TRUE'.");
     }
-    else
-    {
-      // Re-throw uncatched errors
-      return fst_error(e.what());
-    }
+
+    // re-throw uncatched errors
+    return fst_error(e.what());
   }
-
-
-  // Test deprecated version format !!!
-  if (result == -1)
+  catch(...)
   {
-    try
-    {
-      SEXP res = fstRead_v1(fileName, columnSelection, startRow, endRow);
-
-      Rf_warning("This fst file was created with a beta version of the fst package. Please re-write the data as this format will not be supported in future releases.");
-
-      return res;
-    }
-    catch (const std::exception& ex)
-    {
-      // Re-throw uncatched errors
-      return fst_error(ex.what());
-    }
+    return fst_error("An unknown C++ error occured in the fstlib library");
   }
 
   SEXP colNameVec = colNames->StrVector();

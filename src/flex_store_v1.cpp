@@ -119,8 +119,6 @@ List fstMeta_v1(String fileName)
   }
 
 
-
-
   // Convert to integer vector
   IntegerVector colTypeVec(nrOfCols);
   for (int col = 0; col != nrOfCols; ++col)
@@ -178,6 +176,9 @@ List fstMeta_v1(String fileName)
   delete[] colTypes;
   delete[] allBlockPos;
   myfile.close();
+
+  // add deprecated warning
+  Rf_warning("This fst file was created with a beta version of the fst package. Please re-write the data as this format will not be supported in future releases.");
 
   if (keyLength > 0)
   {

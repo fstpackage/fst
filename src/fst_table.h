@@ -66,7 +66,7 @@ class FstTable : public IFstTable
   public:
     SEXP resTable;
 
-    FstTable() {}
+    FstTable() { isProtected = false; nrOfCols = 0; }
 
     FstTable(SEXP &table, int uniformEncoding);
 
@@ -78,21 +78,26 @@ class FstTable : public IFstTable
 
     void SetLogicalColumn(ILogicalColumn* logicalColumn, int colNr);
 
+    void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr);
+
     void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr, std::string &annotation);
 
     void SetByteColumn(IByteColumn* byteColumn, int colNr);
 
     void SetInt64Column(IInt64Column* int64Column, int colNr);
 
+  	void SetDoubleColumn(IDoubleColumn * doubleColumn, int colNr);
+
   	void SetDoubleColumn(IDoubleColumn * doubleColumn, int colNr, std::string &annotation);
 
-    void SetFactorColumn(IFactorColumn* factorColumn, int colNr);
+  	void SetFactorColumn(IFactorColumn* factorColumn, int colNr);
 
     void SetColNames();
 
     void SetKeyColumns(int* keyColPos, unsigned int nrOfKeys);
 
-    FstColumnType ColumnType(unsigned int colNr, FstColumnAttribute &columnAttribute, short int &scale, std::string &annotation);
+    FstColumnType ColumnType(unsigned int colNr, FstColumnAttribute &columnAttribute, short int &scale,
+      std::string &annotation, bool &hasAnnotation);
 
     IStringWriter* GetStringWriter(unsigned int colNr);
 

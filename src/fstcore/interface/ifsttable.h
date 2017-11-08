@@ -53,7 +53,8 @@ class IFstTable
   public:
     virtual ~IFstTable() {};
 
-    virtual FstColumnType ColumnType(unsigned int colNr, FstColumnAttribute &columnAttribute, short int &scale, std::string &annotation) = 0;
+    virtual FstColumnType ColumnType(unsigned int colNr, FstColumnAttribute &columnAttribute, short int &scale,
+      std::string &annotation, bool &hasAnnotation) = 0;
 
 	// Writer interface
     virtual IStringWriter* GetStringWriter(unsigned int colNr) = 0;
@@ -89,7 +90,11 @@ class IFstTable
 
   	virtual void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr, std::string &annotation) = 0;
 
-  	virtual void SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr, std::string &annotation) = 0;
+    virtual void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr) = 0;
+
+  	virtual void SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr) = 0;
+
+    virtual void SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr, std::string &annotation) = 0;
 
   	virtual void SetFactorColumn(IFactorColumn* factorColumn, int colNr) = 0;
 
