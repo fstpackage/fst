@@ -70,7 +70,7 @@ context("legacy format")
 test_that("Read legacy format", {
 
   # only test on little endian platforms
-  if (.Platform$endian == "little") {
+  if (.Platform$endian == "little" && .Platform$OS.type == "windows") {
     expect_error(
       read_fst("datasets/legacy.fst"),
       "File header information does not contain the fst format marker"
