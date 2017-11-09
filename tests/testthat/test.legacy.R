@@ -81,6 +81,13 @@ test_that("Read legacy format", {
       "This fst file was created with a beta version of the fst package. Please"
     )
 
+    expect_warning(
+      dt_legacy <- read.fst("datasets/legacy.fst", old_format = TRUE),
+      "This fst file was created with a beta version of the fst package. Please"
+    )
+
+    expect_equal(dt, dt_legacy)
+
     dt_old <- readRDS("datasets/legacy.rds")
 
     expect_equal(dt, dt_old)
@@ -94,6 +101,13 @@ test_that("Read legacy format", {
       res <- capture_output(print(metadata_fst("datasets/legacy.fst", old_format = TRUE))),
         "This fst file was created with a beta version of the fst package. Please"
     )
+
+    expect_warning(
+      res_legacy <- capture_output(print(fst.metadata("datasets/legacy.fst", old_format = TRUE))),
+        "This fst file was created with a beta version of the fst package. Please"
+    )
+
+    expect_equal(res, res_legacy)
 
     expect_equal(res, paste(
       "<fst file>\n1000 rows, 12 columns (datasets/legacy.fst)\n",

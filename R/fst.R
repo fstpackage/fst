@@ -190,13 +190,13 @@ write.fst <- function(x, path, compress = 0, uniform_encoding = TRUE) {
 
 #' @rdname write_fst
 #' @export
-read.fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE) {
-  read_fst(path, columns, from, to, as.data.table)
+read.fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE, old_format = FALSE) {
+  read_fst(path, columns, from, to, as.data.table, old_format)
 }
 
 
 #' @rdname metadata_fst
 #' @export
-fst.metadata <- function(path) {
-  metadata_fst(path)
+fst.metadata <- function(path, old_format = FALSE) {
+  metadata_fst(path, old_format)
 }

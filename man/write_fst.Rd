@@ -15,7 +15,7 @@ read_fst(path, columns = NULL, from = 1, to = NULL,
 write.fst(x, path, compress = 0, uniform_encoding = TRUE)
 
 read.fst(path, columns = NULL, from = 1, to = NULL,
-  as.data.table = FALSE)
+  as.data.table = FALSE, old_format = FALSE)
 }
 \arguments{
 \item{x}{a data frame to write to disk}

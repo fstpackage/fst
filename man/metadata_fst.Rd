@@ -7,7 +7,7 @@
 \usage{
 metadata_fst(path, old_format = FALSE)
 
-fst.metadata(path)
+fst.metadata(path, old_format = FALSE)
 }
 \arguments{
 \item{path}{path to fst file}
