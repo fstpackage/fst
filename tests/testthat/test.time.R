@@ -32,7 +32,6 @@ test_that("preserves times", {
   expect_identical(attr(x1, "tzone"), attr(x2, "tzone"))
   expect_identical(attr(x1, "class"), attr(x1, "class"))
   expect_identical(unclass(x1), unclass(x2))
-
 })
 
 
@@ -61,7 +60,6 @@ test_that("empty timezone attribute", {
 
   expect_identical(attr(x1, "tzone"), attr(x2, "tzone"))
   expect_identical(x1, x2)
-
 })
 
 
@@ -71,4 +69,26 @@ test_that("doesn't lose undue precision", {
   x2 <- roundtrip_vector(x1)
 
   expect_identical(x1, x2)
+})
+
+
+test_that("NULL tzone attribute is retained", {
+  x1 <- Sys.time()
+  attributes(x1)$tzone <- NULL  # no tzone set
+
+  expect_equal(typeof(x1), "double")
+
+  # write / read cycle
+  x2 <- roundtrip_vector(x1)
+
+  expect_equal(typeof(x2), "double")
+  expect_null(attributes(x2)$tzone)
+
+  mode(x1) <- "integer"
+  expect_equal(typeof(x1), "integer")
+
+  # write / read cycle
+  x2 <- roundtrip_vector(x1)
+  expect_equal(typeof(x2), "integer")
+  expect_null(attributes(x2)$tzone)
 })

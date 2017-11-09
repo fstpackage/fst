@@ -17,9 +17,8 @@
   You should have received a copy of the GNU Affero General Public License
   along with fstlib. If not, see <http://www.gnu.org/licenses/>.
 
-  You can contact the author at :
+  You can contact the author at:
   - fstlib source repository : https://github.com/fstpackage/fstlib
-  - email : markklik@gmail.com
 */
 
 // System libraries

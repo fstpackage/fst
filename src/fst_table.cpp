@@ -154,11 +154,16 @@ FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &colum
 
       if (Rf_inherits(colVec, "POSIXct"))
       {
+        hasAnnotation = false;
         columnAttribute = FstColumnAttribute::INT_32_TIMESTAMP_SECONDS;
 
         SEXP tzoneR = Rf_getAttrib(colVec, Rf_install("tzone"));
-        annotation += Rf_isNull(tzoneR) ? "UTC" : Rf_translateCharUTF8(STRING_ELT(tzoneR, 0));
-        hasAnnotation = true;
+
+        if (!Rf_isNull(tzoneR))
+        {
+          hasAnnotation = true;
+          annotation += Rf_translateCharUTF8(STRING_ELT(tzoneR, 0));
+        }
 
         return FstColumnType::INT_32;
       }
@@ -215,11 +220,16 @@ FstColumnType FstTable::ColumnType(unsigned int colNr, FstColumnAttribute &colum
 
       if (Rf_inherits(colVec, "POSIXct"))
       {
+        hasAnnotation = false;
         columnAttribute = FstColumnAttribute::DOUBLE_64_TIMESTAMP_SECONDS;
 
         SEXP tzoneR = Rf_getAttrib(colVec, Rf_install("tzone"));
-        annotation += Rf_isNull(tzoneR) ? "UTC" : Rf_translateCharUTF8(STRING_ELT(tzoneR, 0));
-        hasAnnotation = true;
+
+        if (!Rf_isNull(tzoneR))
+        {
+          hasAnnotation = true;
+          annotation += Rf_translateCharUTF8(STRING_ELT(tzoneR, 0));
+        }
 
         return FstColumnType::DOUBLE_64;
       }
