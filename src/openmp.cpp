@@ -1,3 +1,26 @@
+/*
+ fst - R package for ultra fast storage and retrieval of datasets
+
+ Copyright (C) 2017-present, Mark AJ Klik
+
+ This file is part of the fst R package.
+
+ The fst R package is free software: you can redistribute it and/or modify it
+ under the terms of the GNU Affero General Public License version 3 as
+ published by the Free Software Foundation.
+
+ The fst R package is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License
+ for more details.
+
+ You should have received a copy of the GNU Affero General Public License along
+ with the fst R package. If not, see <http://www.gnu.org/licenses/>.
+
+ You can contact the author at:
+ - fst R package source repository : https://github.com/fstpackage/fst
+*/
+
 
 #include <Rcpp.h>
 
@@ -6,19 +29,6 @@
 #ifdef _OPENMP
 #include <pthread.h>
 #endif
-
-/* GOALS:
-* 1) By default use all CPU for end-user convenience in most usage scenarios.
-* 2) But not on CRAN - two threads max is policy
-* 3) And not if user doesn't want to:
-*    i) Respect env variable OMP_NUM_THREADS (which just calls (ii) on startup)
-*    ii) Respect omp_set_num_threads()
-*    iii) Provide way to restrict data.table only independently of base R and
-*         other packages using openMP
-* 4) Avoid user needing to remember to unset this control after their use of data.table
-* 5) Automatically drop down to 1 thread when called from parallel package (e.g. mclapply) to
-*    avoid the deadlock/hang (#1745 and #1727) and return to prior state afterwards.
-*/
 
 SEXP getnrofthreads()
 {

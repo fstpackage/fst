@@ -1,37 +1,26 @@
 /*
-  fst - An R-package for ultra fast storage and retrieval of datasets.
-  Header File
-  Copyright (C) 2017, Mark AJ Klik
+ fst - R package for ultra fast storage and retrieval of datasets
 
-  BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
+ Copyright (C) 2017-present, Mark AJ Klik
 
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
+ This file is part of the fst R package.
 
-  * Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
+ The fst R package is free software: you can redistribute it and/or modify it
+ under the terms of the GNU Affero General Public License version 3 as
+ published by the Free Software Foundation.
 
-  * Redistributions in binary form must reproduce the above
-    copyright notice, this list of conditions and the following disclaimer
-    in the documentation and/or other materials provided with the
-    distribution.
+ The fst R package is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License
+ for more details.
 
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-    A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-    OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ You should have received a copy of the GNU Affero General Public License along
+ with the fst R package. If not, see <http://www.gnu.org/licenses/>.
 
-  You can contact the author at :
-  - fst source repository : https://github.com/fstPackage/fst
+ You can contact the author at:
+ - fst R package source repository : https://github.com/fstpackage/fst
 */
+
 
 #ifndef FASTSTORE_V1_H
 #define FASTSTORE_V1_H
