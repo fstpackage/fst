@@ -64,7 +64,7 @@ extern "C" int avoid_openmp_hang_within_fork()
 {
     // Called once on loading fst from init.c
 #ifdef _OPENMP
-    return pthread_atfork(&when_fork, nullptr, nullptr);
+    return pthread_atfork(&when_fork, NULL, NULL);
 #endif
 
     return 0;

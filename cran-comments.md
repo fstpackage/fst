@@ -1,20 +1,26 @@
 
 ## Test environments
-* OS X on travis-ci (old, release and devel), R 3.1.2
-* Ubuntu 12.04 on travis-ci (old, release and devel) R 3.1.2
-* Windows 10 local and on AppVeyor (old, release and devel) R 3.1.2
+
+* OS X on travis-ci (old, release and devel)
+* Ubuntu 14.04 on travis-ci (old, release and devel)
+* Ubuntu 16.04 locally
+* docker with the rocker/r-devel-ubsan-clang instrumented image
+* docker with the rocker/r-devel-san instrumented image
+* Windows 10 local R 3.4.2
+* Windows Server 2012 R2 x64 (build 9600) on AppVeyor R 3.4.2
+* R-hub all available platforms
 
 ## R CMD check results
+
 There were no ERRORs or WARNINGs. 
 There were no NOTEs
 
 ## Downstream dependencies
 
-I have also run R CMD check on downstream dependencies of httr 
-(https://github.com/wch/checkresults/blob/master/httr/r-release). 
+I have run R CMD check on downstream dependencies:
+
+* 
+* 
+
 All packages that I could install passed except:
 
-* Ecoengine: this appears to be a failure related to config on 
-  that machine. I couldn't reproduce it locally, and it doesn't 
-  seem to be related to changes in httr (the same problem exists 
-  with httr 0.4).

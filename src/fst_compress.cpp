@@ -115,28 +115,22 @@ SEXP fstdecomp(SEXP rawVec)
   unsigned long long vecLength = Rf_xlength(rawVec);
   unsigned char* data = (unsigned char*) (RAW(rawVec));
 
-  BlobContainer* resultContainer = nullptr;
+  std::unique_ptr<BlobContainer> resultContainerP;
 
   try
   {
-    resultContainer = static_cast<BlobContainer*>(fstcompressor.DecompressBlob(data, vecLength));
+    resultContainerP = std::unique_ptr<BlobContainer>(static_cast<BlobContainer*>(fstcompressor.DecompressBlob(data, vecLength)));
   }
   catch(const std::runtime_error& e)
   {
-    delete resultContainer;
-
     return fst_error(e.what());
   }
   catch ( ... )
   {
-    delete resultContainer;
-
     return fst_error("Error detected while decompressing data.");
   }
 
-  SEXP resVec = resultContainer->RVector();
-
-  delete resultContainer;
+  SEXP resVec = resultContainerP->RVector();
 
   return resVec;
 }

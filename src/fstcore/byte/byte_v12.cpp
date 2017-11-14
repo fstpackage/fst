@@ -30,17 +30,17 @@
 using namespace std;
 
 
-void fdsWriteByteVec_v12(ofstream &myfile, char* byteVector, unsigned long long nrOfRows, unsigned int compression,
-  std::string annotation, bool hasAnnotation)
+void fdsWriteByteVec_v12(ofstream& myfile, char* byteVector, unsigned long long nrOfRows, unsigned int compression,
+                         std::string annotation, bool hasAnnotation)
 {
-  int blockSize = BLOCKSIZE_BYTE;  // block size in bytes
+  int blockSize = BLOCKSIZE_BYTE; // block size in bytes
 
   if (compression == 0)
   {
     return fdsStreamUncompressed_v2(myfile, byteVector, nrOfRows, 1, BLOCKSIZE_BYTE, nullptr, annotation, hasAnnotation);
   }
 
-  if (compression <= 50)  // low compression: linear mix of uncompressed and LZ4_SHUF
+  if (compression <= 50) // low compression: linear mix of uncompressed and LZ4_SHUF
   {
     Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4, 0);
 
@@ -68,8 +68,8 @@ void fdsWriteByteVec_v12(ofstream &myfile, char* byteVector, unsigned long long 
 }
 
 
-void fdsReadByteVec_v12(istream &myfile, char* byteVec, unsigned long long blockPos, unsigned long long startRow, unsigned long long length,
-  unsigned long long size)
+void fdsReadByteVec_v12(istream& myfile, char* byteVec, unsigned long long blockPos, unsigned long long startRow, unsigned long long length,
+                        unsigned long long size)
 {
   std::string annotation;
   bool hasAnnotation;

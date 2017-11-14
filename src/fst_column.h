@@ -371,8 +371,8 @@ public:
     {
       if (annotation.length() > 0)
       {
-        SEXP timeZone = Rf_ScalarString(Rf_mkCharLen(annotation.c_str(), annotation.length()));
-        Rf_setAttrib(colVec, Rf_install("tzone"), timeZone);
+        Rf_setAttrib(colVec, Rf_install("tzone"),
+          Rf_ScalarString(Rf_mkCharLen(annotation.c_str(), annotation.length())));
         return;
       }
 

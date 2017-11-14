@@ -4,12 +4,12 @@
 \alias{compress_fst}
 \title{Compress a raw vector using the LZ4 or ZSTD compressor.}
 \usage{
-compress_fst(x, compressor = "LZ4", compression = 0, hash = FALSE)
+compress_fst(x, compressor = "ZSTD", compression = 0, hash = FALSE)
 }
 \arguments{
 \item{x}{raw vector.}
 
-\item{compressor}{compressor to use for compressing \code{x}. Valid options are "LZ4" (default) and "ZSTD".}
+\item{compressor}{compressor to use for compressing \code{x}. Valid options are "LZ4" and "ZSTD" (default).}
 
 \item{compression}{compression factor used. Must be in the range 0 (lowest compression) to 100 (maximum compression).}
 

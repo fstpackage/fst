@@ -60,6 +60,10 @@ using namespace std;
 //  4                      | int                | keyLength          // number of keys in table
 //  4                      | int                | free bytes         // free bytes (for 8-byte allignment)
 
+// Table flag specification:
+//
+// bit 0                   | endianess          | if true, integers are stored in little endian format
+
 // Key index vector (only needed when keyLength > 0) [attached leaf of A] [size: 8 + 4 * (keyLength + keyLength % 2]
 //
 //  8                      | unsigned long long | hash value         // hash of key index vector (if present)
@@ -283,18 +287,24 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
   int* p_colNamesFlags                    = reinterpret_cast<int*>(&metaDataWriteBlock[offset + 12]);
   unsigned long long* p_freeBytes5        = reinterpret_cast<unsigned long long*>(&metaDataWriteBlock[offset + 16]);
 
+  // Determine integer endianness
+  int endianTest = 0x01234567;
+  bool isLittleEndian = (*reinterpret_cast<uint8_t*>(&endianTest)) == 0x67;
 
   // Set table header parameters
   
-  *p_tableVersion          = FST_VERSION;
-  *p_tableFlags            = 0;
-  *p_freeBytes1            = 0;
-  *p_tableVersionMax       = FST_VERSION;
+  *p_tableFlags = 0;
+  *p_tableVersion                   = FST_VERSION;
 
-  *p_nrOfCols              = nrOfCols;
-  *primaryChunkSetLoc      = TABLE_META_SIZE + keyIndexHeaderSize;
-  *p_keyLength             = keyLength;
-  *p_freeBytesA            = 0;
+  *p_freeBytes1                     = 0;
+  *p_tableVersionMax                = FST_VERSION;
+
+  if (isLittleEndian) *p_tableFlags = 1;
+
+  *p_nrOfCols                       = nrOfCols;
+  *primaryChunkSetLoc               = TABLE_META_SIZE + keyIndexHeaderSize;
+  *p_keyLength                      = keyLength;
+  *p_freeBytesA                     = 0;
 
   *p_headerHash = XXH64(&metaDataWriteBlock[8], tableHeaderSize - 8, FST_HASH_SEED);
 

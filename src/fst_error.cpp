@@ -27,8 +27,13 @@
 
 SEXP fst_error(const char* error_message)
 {
-  SEXP fst_error = Rf_mkString(error_message);
+  SEXP fst_error;
+
+  PROTECT(fst_error = Rf_mkString(error_message));
+
   Rf_classgets(fst_error, Rf_mkString("fst_error"));
+
+  UNPROTECT(1);
 
   return fst_error;
 }

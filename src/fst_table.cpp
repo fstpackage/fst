@@ -448,8 +448,8 @@ void FstTable::SetFactorColumn(IFactorColumn* factorColumn, int colNr)
     PROTECT(classes = Rf_allocVector(STRSXP, 2));
     SET_STRING_ELT(classes, 0, Rf_mkChar("ordered"));
     SET_STRING_ELT(classes, 1, Rf_mkChar("factor"));
-    UNPROTECT(1);
     Rf_setAttrib(factColumn->intVec, Rf_mkString("class"), classes);
+    UNPROTECT(1);
   }
   else  // unordered factor
   {
