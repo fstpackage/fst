@@ -35,6 +35,9 @@
 
 #include "blockstreamer_v2.h"
 
+#define BATCH_SIZE_WRITE 25
+
+
 // Use compile time thread counter for speed
 #ifdef _OPENMP
   #include <omp.h>
@@ -54,7 +57,7 @@ using namespace std;
 
 // Method for writing column data of any type to a ofstream.
 void fdsStreamUncompressed_v2(ofstream& myfile, char* vec, unsigned long long vecLength, int elementSize, int blockSizeElems,
-                              FixedRatioCompressor* fixedRatioCompressor, std::string annotation, bool hasAnnotation)
+  FixedRatioCompressor* fixedRatioCompressor, std::string annotation, bool hasAnnotation)
 {
   unsigned int annotationLength = annotation.length();
   int nrOfBlocks = 1 + (vecLength - 1) / blockSizeElems; // number of compressed / uncompressed blocks
@@ -79,31 +82,62 @@ void fdsStreamUncompressed_v2(ofstream& myfile, char* vec, unsigned long long ve
   }
 
 
-  // Write uncompressed vector to disk in blocks
-  --nrOfBlocks; // Do last block later
-
   // No fixed ratio compressor specified
   if (fixedRatioCompressor == nullptr)
   {
-    unsigned int compress[2] = {0, 0};
+    unsigned int compress[2] = {0, 0};  // set to uncompressed
     myfile.write(reinterpret_cast<char*>(compress), COL_META_SIZE);
 
-    uint64_t blockPos = 0;
+    // At most 4 or nrOfBlocks threads and at least 1
+    int nrOfThreads = max(1, min(min(4, GetFstThreads()), nrOfBlocks));
 
-    // use larger blocks here for faster writing !
-    // and test for parallel improvements (use multiple cores to fetch data from main memory
-    // and use (thread-) local cache for writing)
-    for (int block = 0; block != nrOfBlocks; ++block)
+    // 1 <= batchSize <= BATCH_SIZE_WRITE
+    int batchSize = min(BATCH_SIZE_WRITE, nrOfBlocks / nrOfThreads); // keep thread buffer small
+
+    // batch size in bytes
+    unsigned long long totSize = static_cast<unsigned long long>(batchSize) * static_cast<unsigned long long>(blockSize);
+
+    batchSize = max(1, batchSize);  // at least 1 batch
+
+    // each thread has memory available of blockSize * batchSize
+    char* threadBuffer = new char[nrOfThreads * totSize];
+
+    // number of (partial) batches. Last batch may contain an incomplete last block
+    int nrOfBatches = 1 + (nrOfBlocks - 1) / batchSize;
+
+    // Parallel logic starts here
+
+#pragma omp parallel num_threads(nrOfThreads)
     {
-      myfile.write(&vec[blockPos], blockSize);
-      blockPos += blockSize;
-    }
+#pragma omp for ordered schedule(static, 1)
+      for (int batch = 0; batch < nrOfBatches; batch++)
+      {
+        unsigned long long writeSize = totSize;
+        int threadNr = OMP_GET_THREAD_NUM; // use memory buffer specific for this thread
 
-    myfile.write(&vec[blockPos], remain * elementSize);
+        // last batch
+        if (batch == (nrOfBatches - 1))
+        {
+          writeSize = vecLength * elementSize - batch * totSize;
+        }
+
+        // copy to buffer to use core cache more effectively
+        char* compBuf = &threadBuffer[threadNr * blockSize * batchSize];
+
+        // the memcpy activates cache buffering
+        std::memcpy(compBuf, &vec[batch * totSize], writeSize);
+
+#pragma omp ordered
+        {
+          myfile.write(compBuf, writeSize);
+        }
+      }
+    }
 
     return;
   }
 
+  --nrOfBlocks; // set to number of full blocks
 
   // Use a fixed-ratio compressor
 
@@ -160,11 +194,9 @@ void fdsStreamUncompressed_v2(ofstream& myfile, char* vec, unsigned long long ve
 }
 
 
-#define BATCH_SIZE_WRITE 25
-
 // Method for writing column data of any type to a stream.
 void fdsStreamcompressed_v2(ofstream& myfile, char* colVec, unsigned long long nrOfRows, int elementSize,
-                            StreamCompressor* streamCompressor, int blockSizeElems, std::string annotation, bool hasAnnotation)
+  StreamCompressor* streamCompressor, int blockSizeElems, std::string annotation, bool hasAnnotation)
 {
   unsigned int annotationLength = annotation.length();
   int nrOfBlocks = 1 + (nrOfRows - 1) / blockSizeElems; // number of compressed / uncompressed blocks
@@ -190,7 +222,7 @@ void fdsStreamcompressed_v2(ofstream& myfile, char* colVec, unsigned long long n
   unsigned long long curPos = myfile.tellp();
 
   // Blocks meta information
-  // Allocate a 8 bytes alligned buffer
+  // Aligned at 8 byte boundary
   char* blockIndex = new char[(2 + nrOfBlocks) * 8]; // 1 long file pointer with 2 highest bytes indicating algorithmID
 
   unsigned int* maxCompSize = reinterpret_cast<unsigned int*>(&blockIndex[0]); // maximum uncompressed block length
@@ -671,7 +703,7 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
   maxBlock--; // decrement to get number of full blocks
 
   int nrOfThreads = max(1ULL, min(static_cast<unsigned long long>(GetFstThreads()), maxBlock));
-  int batchSize = min((unsigned long long)maxbatchSize, maxBlock / nrOfThreads); // keep thread buffer small
+  int batchSize = min(static_cast<unsigned long long>(maxbatchSize), maxBlock / nrOfThreads); // keep thread buffer small
   batchSize = max(1, batchSize);
   char* threadBuffer = new char[nrOfThreads * MAX_COMPRESSBOUND * batchSize];
   long long nrOfBatches = (maxBlock + batchSize - 1) / batchSize; // number of batches (last one may be smaller)

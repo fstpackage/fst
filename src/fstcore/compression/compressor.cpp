@@ -23,7 +23,6 @@
 
 #include <algorithm>
 #include <fstream>
-#include <cstring>
 
 #include <compression/compressor.h>
 #include <compression/compression.h>
@@ -228,9 +227,9 @@ int Decompressor::Decompress(unsigned int algo, char* dst, unsigned int dstCapac
 FixedRatioCompressor::FixedRatioCompressor(CompAlgo algo)
 {
   this->algo = algo;
-  a1 = compAlgorithms[(int) algo];
-  repSize = fixedRatioSourceRepSize[(int) algo];
-  targetRepSize = fixedRatioTargetRepSize[(int) algo];
+  a1 = compAlgorithms[static_cast<int>(algo)];
+  repSize = fixedRatioSourceRepSize[static_cast<int>(algo)];
+  targetRepSize = fixedRatioTargetRepSize[static_cast<int>(algo)];
 }
 
 int FixedRatioCompressor::CompressBufferSize(int maxBlockSize)
@@ -252,12 +251,12 @@ SingleCompressor::SingleCompressor(CompAlgo algo1, int compressionLevel)
 {
   this->algo1 = algo1;
   this->compLevel = compressionLevel;
-  a1 = compAlgorithms[(int) algo1];
+  a1 = compAlgorithms[static_cast<int>(algo1)];
 }
 
 int SingleCompressor::CompressBufferSize(int maxBlockSize)
 {
-  return MaxCompressSize(maxBlockSize, algorithmType[(int) algo1]);
+  return MaxCompressSize(maxBlockSize, algorithmType[static_cast<int>(algo1)]);
 }
 
 int SingleCompressor::Compress(char* dst, unsigned int dstCapacity, const char* src,  unsigned int srcSize, CompAlgo &compAlgorithm)
@@ -280,14 +279,14 @@ DualCompressor::DualCompressor(CompAlgo algo1, CompAlgo algo2, int compressionLe
   this->compLevel1 = compressionLevel1;
   this->compLevel2 = compressionLevel2;
 
-  a1 = compAlgorithms[(int) algo1];
-  a2 = compAlgorithms[(int) algo2];
+  a1 = compAlgorithms[static_cast<int>(algo1)];
+  a2 = compAlgorithms[static_cast<int>(algo2)];
 }
 
 int DualCompressor::CompressBufferSize(int maxBlockSize)
 {
-  int size1 = MaxCompressSize(maxBlockSize, algorithmType[(int) algo1]);
-  int size2 = MaxCompressSize(maxBlockSize, algorithmType[(int) algo2]);
+  int size1 = MaxCompressSize(maxBlockSize, algorithmType[static_cast<int>(algo1)]);
+  int size2 = MaxCompressSize(maxBlockSize, algorithmType[static_cast<int>(algo2)]);
   return max(size1, size2);
 }
 
@@ -378,7 +377,7 @@ int StreamLinearCompressor::CompressBufferSize(unsigned int srcSize)
 
 int StreamLinearCompressor::Compress(char* src, unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr)
 {
-	int delta = (int)((blockNr + 1) * compFactor) - (int)(blockNr * compFactor);
+	int delta = static_cast<int>((blockNr + 1) * compFactor) - static_cast<int>(blockNr * compFactor);
 	int compSize;
 
 	// Algortihm 1
@@ -443,7 +442,7 @@ int StreamCompositeCompressor::CompressBufferSize(unsigned int srcSize)
 
 int StreamCompositeCompressor::Compress(char* src,  unsigned int srcSize, char* compBuf, CompAlgo &compAlgorithm, int blockNr)
 {
-  int delta = (int)((blockNr + 1) * compFactor) - (int)(blockNr * compFactor);
+  int delta = static_cast<int>((blockNr + 1) * compFactor) - static_cast<int>(blockNr * compFactor);
   int compSize;
 
   // Algortihm 1
