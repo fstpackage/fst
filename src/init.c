@@ -11,7 +11,7 @@
 /* .Call calls */
 extern SEXP _fst_fstcomp(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _fst_fstdecomp(SEXP);
-extern SEXP _fst_fsthasher(SEXP, SEXP);
+extern SEXP _fst_fsthasher(SEXP, SEXP, SEXP);
 extern SEXP _fst_fstmetadata(SEXP, SEXP);
 extern SEXP _fst_fstretrieve(SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _fst_fststore(SEXP, SEXP, SEXP, SEXP);
@@ -25,7 +25,7 @@ extern int avoid_openmp_hang_within_fork();
 static const R_CallMethodDef CallEntries[] = {
     {"_fst_fstcomp",        (DL_FUNC) &_fst_fstcomp,        4},
     {"_fst_fstdecomp",      (DL_FUNC) &_fst_fstdecomp,      1},
-    {"_fst_fsthasher",      (DL_FUNC) &_fst_fsthasher,      2},
+    {"_fst_fsthasher",      (DL_FUNC) &_fst_fsthasher,      3},
     {"_fst_fstmetadata",    (DL_FUNC) &_fst_fstmetadata,    2},
     {"_fst_fstretrieve",    (DL_FUNC) &_fst_fstretrieve,    5},
     {"_fst_fststore",       (DL_FUNC) &_fst_fststore,       4},

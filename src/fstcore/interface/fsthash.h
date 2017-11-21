@@ -46,19 +46,33 @@ public:
 	{
 	}
 
-	unsigned int HashBlob(unsigned char* blobSource, unsigned long long blobLength) const
+  /**
+	 * \brief Calculate 64-bit xxHash of an arbitrary length input vector
+	 * \param blobSource input buffer for hash calculation
+	 * \param blobLength length of the input buffer in bytes
+	 * \param blockHash if true, use a multi-threaded blocked hash format (hash of hashes)
+	 * \return hash value of the input buffer
+	 */
+	unsigned long long HashBlob(unsigned char* blobSource, unsigned long long blobLength, bool blockHash = true) const
 	{
-		return HashBlob(blobSource, blobLength, FST_HASH_SEED);
+		return HashBlobSeed(blobSource, blobLength, FST_HASH_SEED, blockHash);
 	}
 
 	/**
-	 * \brief Compress data with the 'LZ4' or 'ZSTD' compressor.
-	 * \param blobSource source buffer to compress.
-	 * \param blobLength Length of source buffer.
-	 * \param seed Seed for hashing
-	 */
-	unsigned int HashBlob(unsigned char* blobSource, unsigned long long blobLength, unsigned int seed) const
+  * \brief Calculate 64-bit xxHash of an arbitrary length input vector
+  * \param blobSource input buffer for hash calculation
+  * \param blobLength length of the input buffer in bytes
+  * \param seed Seed for hashing
+  * \param blockHash if true, use a multi-threaded blocked hash format (hash of hashes)
+	* \return hash value of the input buffer
+   */
+	unsigned long long HashBlobSeed(unsigned char* blobSource, unsigned long long blobLength, unsigned long long seed, bool blockHash = true) const
 	{
+    if (!blockHash)
+    {
+      return XXH64(blobSource, blobLength, seed);
+    }
+
 		int nrOfThreads = GetFstThreads();
 
 		// Check for empty source
@@ -117,12 +131,18 @@ public:
 
 		}  // end parallel region and join all threads
 
+    unsigned long long allBlockHash = blockHashes[0];
 
-		unsigned long long allBlockHash = XXH64(blockHashes, nrOfBlocks * 8, seed);
+    // combine multiple hashes
+    if (nrOfBlocks > 1)
+    {
+      allBlockHash = XXH64(blockHashes, nrOfBlocks * 8, seed);
+    }
 		delete[] blockHashes;
 
-		return static_cast<unsigned int>((allBlockHash >> 32) & 0xffffffff);
-	}
+		//return static_cast<unsigned int>((allBlockHash >> 32) & 0xffffffff);
+    return allBlockHash;
+  }
 };
 
 #endif  // FST_HASH_H

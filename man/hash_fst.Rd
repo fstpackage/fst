@@ -4,12 +4,15 @@
 \alias{hash_fst}
 \title{Parallel calculation of the hash of a raw vector}
 \usage{
-hash_fst(x, seed = NULL)
+hash_fst(x, seed = NULL, block_hash = TRUE)
 }
 \arguments{
 \item{x}{raw vector that you want to hash}
 
 \item{seed}{The seed value for the hashing algorithm. If NULL, a default seed will be used.}
+
+\item{block_hash}{If TRUE, a multi-threaded implementation of the 64-bit xxHash algorithm will
+be used. Note that block_hash = TRUE or block_hash = FALSE will result in different hash values.}
 }
 \value{
 hash value

@@ -23,6 +23,7 @@
 
 
 #include <memory>
+#include <cstring>
 
 #include <Rcpp.h>
 
@@ -32,27 +33,46 @@
 #include <fst_type_factory.h>
 #include <fst_error.h>
 
-
-SEXP fsthasher(SEXP rawVec, SEXP seed)
+// Calculate the 64-bit xxHash of a raw vector using a default or
+// custom hash seed
+SEXP fsthasher(SEXP rawVec, SEXP seed, SEXP blockHash)
 {
   FstHasher hasher;
 
-  SEXP res = PROTECT(Rf_allocVector(INTSXP, 1));
+  SEXP res = PROTECT(Rf_allocVector(INTSXP, 2));
 
-  unsigned int* uintP = (unsigned int*)(INTEGER(res));
+  bool bHash = false;
 
-  *uintP = 5;
+  // blockHash == FALSE
+  if (*LOGICAL(blockHash) == 1)
+  {
+    bHash = true;
+  }
 
+  int* uintP = INTEGER(res);
+
+  unsigned long long hashResult = 0;
+
+  // use default fst seed
   if (Rf_isNull(seed))
   {
-    *uintP = hasher.HashBlob((unsigned char*) RAW(rawVec), Rf_length(rawVec));
+    hashResult = hasher.HashBlob((unsigned char*) RAW(rawVec), Rf_length(rawVec), bHash);
+    std::memcpy(uintP, &hashResult, 8);
 
     UNPROTECT(1);
     return res;
   }
 
-  *uintP = hasher.HashBlob((unsigned char*) RAW(rawVec), Rf_length(rawVec),
-    *((unsigned int*) INTEGER(seed)));
+  uintP[0] = 2;
+  uintP[1] = 2;
+
+  UNPROTECT(1);
+  return res;
+
+  // use custom seed
+  hashResult = hasher.HashBlobSeed((unsigned char*) RAW(rawVec), Rf_length(rawVec),
+    *((unsigned int*) INTEGER(seed)), bHash);
+  std::memcpy(uintP, &hashResult, 8);
 
   UNPROTECT(1);
   return res;

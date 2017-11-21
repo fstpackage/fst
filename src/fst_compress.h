@@ -30,7 +30,7 @@
 
 
 // [[Rcpp::export]]
-SEXP fsthasher(SEXP rawVec, SEXP seed);
+SEXP fsthasher(SEXP rawVec, SEXP seed, SEXP blockHash);
 
 
 // [[Rcpp::export]]

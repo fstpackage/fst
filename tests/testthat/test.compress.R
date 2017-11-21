@@ -176,7 +176,7 @@ test_that("erroneous compressed data", {
 })
 
 
-test_that("erroneous compressed data", {
+test_that("hash can use custom seed", {
   hash1 <- hash_fst(rawVec)
   hash2 <- hash_fst(rawVec, 345345)
 
@@ -185,8 +185,24 @@ test_that("erroneous compressed data", {
   rawVec[200] <- as.raw( (as.integer(rawVec[200]) + 2) %% 256)
   hash3 <- hash_fst(rawVec)
 
-  expect_true(hash1 != hash2)
-  expect_true(hash1 != hash3)
+  expect_true(sum(hash1 != hash2) == 2)
+  expect_true(sum(hash1 != hash3) == 2)
+})
+
+
+test_that("block_hash can be set", {
+  hash1 <- hash_fst(rawVec)
+
+  # larger than 1 block raw vectors give different results
+  hash4 <- hash_fst(rawVec, block_hash = FALSE)  # single threaded hash
+  expect_true(sum(hash1 != hash4) == 2)
+
+  small_raw_vec <- as.raw(rep(0, 10))
+  hash1 <- hash_fst(small_raw_vec)
+
+  # smaller than 1 block raw vectors give identical results
+  hash4 <- hash_fst(small_raw_vec, block_hash = FALSE)  # single threaded hash
+  expect_true(sum(hash1 != hash4) == 0)
 })
 
 
@@ -197,5 +213,7 @@ test_that("argument error", {
   expect_error(hash_fst(as.raw(1), "no integer"), "Please specify an integer value for the hash seed")
 
   expect_error(hash_fst(1), "Please specify a raw vector as input parameter x")
+
+  expect_error(hash_fst(as.raw(1), block_hash = 1), "Please specify a logical value for parameter block_hash")
 
 })

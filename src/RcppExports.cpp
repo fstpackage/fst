@@ -47,14 +47,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // fsthasher
-SEXP fsthasher(SEXP rawVec, SEXP seed);
-RcppExport SEXP _fst_fsthasher(SEXP rawVecSEXP, SEXP seedSEXP) {
+SEXP fsthasher(SEXP rawVec, SEXP seed, SEXP blockHash);
+RcppExport SEXP _fst_fsthasher(SEXP rawVecSEXP, SEXP seedSEXP, SEXP blockHashSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type rawVec(rawVecSEXP);
     Rcpp::traits::input_parameter< SEXP >::type seed(seedSEXP);
-    rcpp_result_gen = Rcpp::wrap(fsthasher(rawVec, seed));
+    Rcpp::traits::input_parameter< SEXP >::type blockHash(blockHashSEXP);
+    rcpp_result_gen = Rcpp::wrap(fsthasher(rawVec, seed, blockHash));
     return rcpp_result_gen;
 END_RCPP
 }

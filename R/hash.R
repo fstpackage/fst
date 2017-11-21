@@ -24,18 +24,28 @@
 #'
 #' @param x raw vector that you want to hash
 #' @param seed The seed value for the hashing algorithm. If NULL, a default seed will be used.
+#' @param block_hash If TRUE, a multi-threaded implementation of the 64-bit xxHash algorithm will
+#' be used. Note that block_hash = TRUE or block_hash = FALSE will result in different hash values.
 #'
 #' @return hash value
 #'
 #' @export
-hash_fst <- function(x, seed = NULL) {
-  if (!is.null(seed) & ( (!is.numeric(seed)) | (length(seed) != 1))) {
-    stop("Please specify an integer value for the hash seed.");
+hash_fst <- function(x, seed = NULL, block_hash = TRUE) {
+  if (!is.null(seed)) {
+    if ( ( (!is.numeric(seed)) | (length(seed) != 1))) {
+      stop("Please specify an integer value for the hash seed.");
+    }
+
+    seed <- as.integer(seed)
+  }
+
+  if (!is.logical(block_hash) | length(block_hash) != 1) {
+    stop("Please specify a logical value for parameter block_hash.");
   }
 
   if (!is.raw(x)) {
     stop("Please specify a raw vector as input parameter x.");
   }
 
-  fsthasher(x, as.integer(seed))
+  fsthasher(x, seed, block_hash)
 }
