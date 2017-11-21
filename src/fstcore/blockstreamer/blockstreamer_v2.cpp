@@ -34,6 +34,7 @@
 #include <interface/openmphelper.h>
 
 #include "blockstreamer_v2.h"
+#include <memory>
 
 #define BATCH_SIZE_WRITE 25
 
@@ -100,7 +101,8 @@ void fdsStreamUncompressed_v2(ofstream& myfile, char* vec, unsigned long long ve
     batchSize = max(1, batchSize);  // at least 1 batch
 
     // each thread has memory available of blockSize * batchSize
-    char* threadBuffer = new char[nrOfThreads * totSize];
+    std::unique_ptr<char[]> threadBufferP(new char[nrOfThreads * totSize]);
+    char* threadBuffer = threadBufferP.get();
 
     // number of (partial) batches. Last batch may contain an incomplete last block
     int nrOfBatches = 1 + (nrOfBlocks - 1) / batchSize;
@@ -223,7 +225,8 @@ void fdsStreamcompressed_v2(ofstream& myfile, char* colVec, unsigned long long n
 
   // Blocks meta information
   // Aligned at 8 byte boundary
-  char* blockIndex = new char[(2 + nrOfBlocks) * 8]; // 1 long file pointer with 2 highest bytes indicating algorithmID
+  std::unique_ptr<char[]> blockIndexP(new char[(2 + nrOfBlocks) * 8]);
+  char* blockIndex = blockIndexP.get(); // 1 long file pointer with 2 highest bytes indicating algorithmID
 
   unsigned int* maxCompSize = reinterpret_cast<unsigned int*>(&blockIndex[0]); // maximum uncompressed block length
   unsigned int* blockSizeElements = reinterpret_cast<unsigned int*>(&blockIndex[4]); // number of elements per block
@@ -252,7 +255,10 @@ void fdsStreamcompressed_v2(ofstream& myfile, char* colVec, unsigned long long n
   int nrOfThreads = max(1, min(GetFstThreads(), nrOfBlocks));
   int batchSize = min(BATCH_SIZE_WRITE, nrOfBlocks / nrOfThreads); // keep thread buffer small
   batchSize = max(1, batchSize);
-  char* threadBuffer = new char[nrOfThreads * MAX_COMPRESSBOUND * batchSize];
+
+  std::unique_ptr<char[]> threadBufferP(new char[nrOfThreads * MAX_COMPRESSBOUND * batchSize]);
+  char* threadBuffer = threadBufferP.get();
+
   int nrOfBatches = nrOfBlocks / batchSize; // number of complete batches with complete blocks
 
   if (nrOfBatches > 0)
@@ -343,8 +349,6 @@ void fdsStreamcompressed_v2(ofstream& myfile, char* colVec, unsigned long long n
     myfile.write(compBuf, totSize);
   }
 
-  delete[] threadBuffer;
-
   // Might be usefull in future implementation
   *maxCompSize = maxCompressionSize;
 
@@ -356,8 +360,6 @@ void fdsStreamcompressed_v2(ofstream& myfile, char* colVec, unsigned long long n
   myfile.seekp(curPos);
   myfile.write(static_cast<char*>(blockIndex), COL_META_SIZE + 16 + nrOfBlocks * 8);
   myfile.seekp(0, ios_base::end);
-
-  delete[] blockIndex;
 }
 
 
@@ -533,12 +535,11 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
 
     if (annotationLength > 0)
     {
-      char* annotationBuf = new char[annotationLength];
+      std::unique_ptr<char[]> annotationBufP(new char[annotationLength]);
+      char* annotationBuf = annotationBufP.get();
       myfile.read(annotationBuf, annotationLength);
 
       annotation += std::string(annotationBuf, annotationLength);
-
-      delete[] annotationBuf;
     }
   }
 
@@ -603,7 +604,9 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
   }
 
   // Read block index (position pointer and algorithm for each block)
-  char* blockIndex = new char[(2 + endBlock - startBlock) * 8]; // 1 long file pointer using 2 highest bytes for algorithm
+  std::unique_ptr<char[]> blockIndexP(new char[(2 + endBlock - startBlock) * 8]);
+  char* blockIndex = blockIndexP.get(); // 1 long file pointer using 2 highest bytes for algorithm
+
   myfile.read(blockIndex, (2 + endBlock - startBlock) * 8);
 
   int blockSize = elementSize * blockSizeElements;
@@ -633,8 +636,6 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
       myfile.seekg(blockPos + blockPosStart + elementSize * startOffset); // move to block data position
       myfile.read(static_cast<char*>(outVec), static_cast<uint64_t>(length) * elementSize);
 
-      delete[] blockIndex;
-
       return;
     }
 
@@ -657,8 +658,6 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
       decompressor.Decompress(algo, tmpBuf, elementSize * curSize, compBuf, compSize); // decompress in tmp buffer
       memcpy(outVec, &tmpBuf[elementSize * startOffset], elementSize * length); // data range
     }
-
-    delete[] blockIndex;
 
     return;
   }
@@ -705,7 +704,11 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
   int nrOfThreads = max(1ULL, min(static_cast<unsigned long long>(GetFstThreads()), maxBlock));
   int batchSize = min(static_cast<unsigned long long>(maxbatchSize), maxBlock / nrOfThreads); // keep thread buffer small
   batchSize = max(1, batchSize);
-  char* threadBuffer = new char[nrOfThreads * MAX_COMPRESSBOUND * batchSize];
+
+  // TODO: localize threadBuffer in small area
+  std::unique_ptr<char[]> threadBufferP(new char[nrOfThreads * MAX_COMPRESSBOUND * batchSize]);
+  char* threadBuffer = threadBufferP.get();
+
   long long nrOfBatches = (maxBlock + batchSize - 1) / batchSize; // number of batches (last one may be smaller)
   long long blockCount = 0;
 
@@ -755,8 +758,6 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
     }
   }
 
-  delete[] threadBuffer;
-
   //////////////////////////////////////////////////////////
   // Parallel logic ends here
   //////////////////////////////////////////////////////////
@@ -768,8 +769,6 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
   // No last block
   if (remain == 0) // no additional elements required
   {
-    delete[] blockIndex;
-
     return;
   }
 
@@ -817,7 +816,5 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
       memcpy(static_cast<char*>(&outVec[outOffset]), tmpBuf, elementSize * remain);
     }
   }
-
-  delete[] blockIndex;
 }
 

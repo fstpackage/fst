@@ -27,6 +27,7 @@
 #include <compression/compressor.h>
 
 #include <fstream>
+#include <memory>
 
 
 // #include <boost/unordered_map.hpp>
@@ -67,7 +68,9 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream& myfile, IStringWriter*
   // 1) Use stack buffer here !!!!!!
   // 2) compress to 1 or 2 bytes if possible with strSizesBufLength
   int bufSize = intCompressor->CompressBufferSize(strSizesBufLength); // 1 integer per string
-  char* intBuf = new char[bufSize];
+
+  std::unique_ptr<char[]> intBufP(new char[bufSize]);
+  char* intBuf = intBufP.get();
 
   CompAlgo compAlgorithm;
   intBufSize = intCompressor->Compress(reinterpret_cast<char*>(blockRunner->strSizes), strSizesBufLength, intBuf, compAlgorithm, blockNr);
@@ -82,8 +85,9 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream& myfile, IStringWriter*
   unsigned int totSize = blockRunner->bufSize;
 
   int compBufSize = charCompressor->CompressBufferSize(totSize);
-  char* compBuf = new char[compBufSize]; // character buffer   check if reuse possible?
 
+  std::unique_ptr<char[]> compBufP(new char[compBufSize]);
+  char* compBuf = compBufP.get();
 
   // Compress buffer
   int resSize = charCompressor->Compress(blockRunner->activeBuf, totSize, compBuf, compAlgorithm, blockNr);
@@ -91,9 +95,6 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream& myfile, IStringWriter*
   //charCompressor->WriteBlock(myfile, stringWriter->activeBuf, compBuf);
 
   algoChar = static_cast<unsigned short int>(compAlgorithm); // store selected algorithm
-
-  delete[] compBuf;
-  delete[] intBuf;
 
   return nrOfNAInts * 4 + resSize + intBufSize;
 }
@@ -109,7 +110,10 @@ void fdsWriteCharVec_v6(ofstream& myfile, IStringWriter* stringWriter, int compr
   if (compression == 0)
   {
     unsigned int metaSize = CHAR_HEADER_SIZE + (nrOfBlocks + 1) * 8;
-    char* meta = new char[metaSize]; // first CHAR_HEADER_SIZE bytes store compression setting and block size
+
+    // first CHAR_HEADER_SIZE bytes store compression setting and block size
+    std::unique_ptr<char[]> metaP(new char[metaSize]);
+    char* meta = metaP.get();
 
     // Set column header
     unsigned int* isCompressed = reinterpret_cast<unsigned int*>(meta);
@@ -137,8 +141,6 @@ void fdsWriteCharVec_v6(ofstream& myfile, IStringWriter* stringWriter, int compr
     myfile.write(reinterpret_cast<char*>(blockPos), (nrOfBlocks + 1) * 8); // additional zero for index convenience
     myfile.seekp(curPos + fullSize); // back to end of file
 
-    delete[] meta;
-
     return;
   }
 
@@ -146,7 +148,9 @@ void fdsWriteCharVec_v6(ofstream& myfile, IStringWriter* stringWriter, int compr
   // Use compression
 
   unsigned int metaSize = CHAR_HEADER_SIZE + (nrOfBlocks + 1) * CHAR_INDEX_SIZE; // 1 long and 2 unsigned int per block
-  char* meta = new char[metaSize];
+
+  std::unique_ptr<char[]> metaP(new char[metaSize]);
+  char* meta = metaP.get();
 
   // Set column header
   unsigned int* isCompressed = reinterpret_cast<unsigned int*>(meta);
@@ -230,8 +234,6 @@ void fdsWriteCharVec_v6(ofstream& myfile, IStringWriter* stringWriter, int compr
   myfile.seekp(curPos + CHAR_HEADER_SIZE);
   myfile.write(static_cast<char*>(&meta[CHAR_HEADER_SIZE]), (nrOfBlocks + 1) * CHAR_INDEX_SIZE); // additional zero for index convenience
   myfile.seekp(0, ios_base::end);
-
-  delete[] meta;
 }
 
 
@@ -240,33 +242,32 @@ inline void ReadDataBlock_v6(istream& myfile, IStringColumn* blockReader, unsign
 {
   unsigned long long nrOfNAInts = 1 + nrOfElements / 32; // last bit is NA flag
   unsigned long long totElements = nrOfElements + nrOfNAInts;
-  unsigned int* sizeMeta = new unsigned int[totElements];
+
+  std::unique_ptr<unsigned int[]> sizeMetaP(new unsigned int[totElements]);
+  unsigned int* sizeMeta = sizeMetaP.get();
+
   myfile.read(reinterpret_cast<char*>(sizeMeta), totElements * 4); // read cumulative string lengths and NA bits
 
   unsigned int charDataSize = blockSize - totElements * 4;
 
-  char* buf = new char[charDataSize];
+  std::unique_ptr<char[]> bufP(new char[charDataSize]);
+  char* buf = bufP.get();
+
   myfile.read(buf, charDataSize); // read string lengths
 
-  // Create IBlockReader
-  // IBlockReader* blockReader = new BlockReaderChar(strVec);
   blockReader->BufferToVec(nrOfElements, startElem, endElem, vecOffset, sizeMeta, buf);
-  // delete blockReader;
-
-  // ReadDataBlockInfo_v6(strVec, nrOfElements, startElem, endElem, vecOffset, sizeMeta, buf);
-
-  delete[] sizeMeta;
-  delete[] buf;
 }
 
 
 inline void ReadDataBlockCompressed_v6(istream& myfile, IStringColumn* blockReader, unsigned long long blockSize, unsigned long long nrOfElements,
-                                       unsigned long long startElem, unsigned long long endElem, unsigned long long vecOffset,
-                                       unsigned int intBlockSize, Decompressor& decompressor, unsigned short int& algoInt, unsigned short int& algoChar)
+  unsigned long long startElem, unsigned long long endElem, unsigned long long vecOffset,
+  unsigned int intBlockSize, Decompressor& decompressor, unsigned short int& algoInt, unsigned short int& algoChar)
 {
   unsigned long long nrOfNAInts = 1 + nrOfElements / 32; // NA metadata including overall NA bit
   unsigned long long totElements = nrOfElements + nrOfNAInts;
-  unsigned int* sizeMeta = new unsigned int[totElements];
+
+  std::unique_ptr<unsigned int[]> sizeMetaP(new unsigned int[totElements]);
+  unsigned int* sizeMeta = sizeMetaP.get();
 
   // Read and uncompress str sizes data
   if (algoInt == 0) // uncompressed
@@ -276,22 +277,25 @@ inline void ReadDataBlockCompressed_v6(istream& myfile, IStringColumn* blockRead
   else
   {
     unsigned int intBufSize = intBlockSize;
-    char* strSizeBuf = new char[intBufSize];
+
+    std::unique_ptr<char[]> strSizeBufP(new char[intBufSize]);
+    char* strSizeBuf = strSizeBufP.get();
+
     myfile.read(strSizeBuf, intBufSize);
     myfile.read(reinterpret_cast<char*>(&sizeMeta[nrOfElements]), nrOfNAInts * 4); // read cumulative string lengths
 
     // Decompress size but not NA metadata (which is currently uncompressed)
 
     decompressor.Decompress(algoInt, reinterpret_cast<char*>(sizeMeta), nrOfElements * 4, strSizeBuf, intBlockSize);
-
-    delete[] strSizeBuf;
   }
 
   unsigned int charDataSizeUncompressed = sizeMeta[nrOfElements - 1];
 
   // Read and uncompress string vector data, use stack if possible here !!!!!
   unsigned int charDataSize = blockSize - intBlockSize - nrOfNAInts * 4;
-  char* buf = new char[charDataSizeUncompressed];
+
+  std::unique_ptr<char[]> bufP(new char[charDataSizeUncompressed]);
+  char* buf = bufP.get();
 
   if (algoChar == 0)
   {
@@ -299,16 +303,14 @@ inline void ReadDataBlockCompressed_v6(istream& myfile, IStringColumn* blockRead
   }
   else
   {
-    char* bufCompressed = new char[charDataSize];
+    std::unique_ptr<char[]> bufCompressedP(new char[charDataSize]);
+    char* bufCompressed = bufCompressedP.get();
+
     myfile.read(bufCompressed, charDataSize); // read string lengths
     decompressor.Decompress(algoChar, buf, charDataSizeUncompressed, bufCompressed, charDataSize);
-    delete[] bufCompressed;
   }
 
   blockReader->BufferToVec(nrOfElements, startElem, endElem, vecOffset, sizeMeta, buf);
-
-  delete[] buf; // character vector buffer
-  delete[] sizeMeta;
 }
 
 
@@ -340,7 +342,8 @@ void fdsReadCharVec_v6(istream& myfile, IStringColumn* blockReader, unsigned lon
   // Vector data is uncompressed
   if (compression == 0)
   {
-    unsigned long long* blockOffset = new unsigned long long[1 + nrOfBlocks]; // block positions
+    std::unique_ptr<unsigned long long[]> blockOffsetP(new unsigned long long[1 + nrOfBlocks]);
+    unsigned long long* blockOffset = blockOffsetP.get(); // block positions
 
     if (startBlock > 0) // include previous block offset
     {
@@ -377,8 +380,6 @@ void fdsReadCharVec_v6(istream& myfile, IStringColumn* blockReader, unsigned lon
 
     if (startBlock == endBlock) // subset start and end of block
     {
-      delete[] blockOffset;
-
       return;
     }
 
@@ -404,8 +405,6 @@ void fdsReadCharVec_v6(istream& myfile, IStringColumn* blockReader, unsigned lon
     unsigned long long newPos = blockOffset[nrOfBlocks + 1];
     ReadDataBlock_v6(myfile, blockReader, newPos - offset, nrOfElements, 0, endOffset, vecPos);
 
-    delete[] blockOffset;
-
     return;
   }
 
@@ -413,8 +412,10 @@ void fdsReadCharVec_v6(istream& myfile, IStringColumn* blockReader, unsigned lon
   // Vector data is compressed
 
   unsigned int bufLength = (nrOfBlocks + 1) * CHAR_INDEX_SIZE; // 1 long and 2 unsigned int per block
-  char* blockInfo = new char[bufLength + CHAR_INDEX_SIZE]; // add extra first element for convenience
 
+  // add extra first element for convenience
+  std::unique_ptr<char[]> blockInfoP = std::unique_ptr<char[]>(new char[bufLength + CHAR_INDEX_SIZE]);
+  char* blockInfo = blockInfoP.get();
 
   if (startBlock > 0) // include previous block offset
   {
@@ -443,6 +444,8 @@ void fdsReadCharVec_v6(istream& myfile, IStringColumn* blockReader, unsigned lon
   unsigned long long endElem = blockSizeChar - 1;
   unsigned long long nrOfElements = blockSizeChar;
 
+  Decompressor decompressor; // uncompresses all available algorithms
+
   if (startBlock == endBlock) // subset start and end of block
   {
     endElem = endOffset;
@@ -455,18 +458,16 @@ void fdsReadCharVec_v6(istream& myfile, IStringColumn* blockReader, unsigned lon
   // Read first block with offset
   unsigned long long blockSize = *curBlockPos - *offset; // size of data block
 
-  Decompressor decompressor; // uncompress all availble algorithms
-
   ReadDataBlockCompressed_v6(myfile, blockReader, blockSize, nrOfElements, startOffset, endElem, 0, *intBufSize,
-                             decompressor, *algoInt, *algoChar);
+    decompressor, *algoInt, *algoChar);
 
 
   if (startBlock == endBlock) // subset start and end of block
   {
-    delete[] blockInfo;
-
     return;
   }
+
+  // more than 1 block
 
   offset = curBlockPos;
 
@@ -487,7 +488,7 @@ void fdsReadCharVec_v6(istream& myfile, IStringColumn* blockReader, unsigned lon
     intBufSize = reinterpret_cast<int*>(blockP + 12);
 
     ReadDataBlockCompressed_v6(myfile, blockReader, *curBlockPos - *offset, blockSizeChar, 0, blockSizeChar - 1, vecPos, *intBufSize,
-                               decompressor, *algoInt, *algoChar);
+      decompressor, *algoInt, *algoChar);
 
     vecPos += blockSizeChar;
     offset = curBlockPos;
@@ -500,7 +501,5 @@ void fdsReadCharVec_v6(istream& myfile, IStringColumn* blockReader, unsigned lon
   intBufSize = reinterpret_cast<int*>(blockP + 12);
 
   ReadDataBlockCompressed_v6(myfile, blockReader, *curBlockPos - *offset, nrOfElements, 0, endOffset, vecPos, *intBufSize,
-                             decompressor, *algoInt, *algoChar);
-
-  delete[] blockInfo;
+    decompressor, *algoInt, *algoChar);
 }

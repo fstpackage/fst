@@ -87,6 +87,15 @@ MEM_STATIC void MEM_check(void) { MEM_STATIC_ASSERT((sizeof(size_t)==4) || (size
  * See http://fastcompression.blogspot.fr/2015/08/accessing-unaligned-memory.html for details.
  * Prefer these methods in priority order (0 > 1 > 2)
  */
+
+// this block inserted to force MEM_FORCE_MEMORY_ACCESS = 0
+#ifndef MEM_FORCE_MEMORY_ACCESS
+#  define MEM_FORCE_MEMORY_ACCESS 0
+#else
+#  undef MEM_FORCE_MEMORY_ACCESS
+#  define MEM_FORCE_MEMORY_ACCESS 0
+#endif
+
 #ifndef MEM_FORCE_MEMORY_ACCESS   /* can be defined externally, on command line for example */
 #  if defined(__GNUC__) && ( defined(__ARM_ARCH_6__) || defined(__ARM_ARCH_6J__) || defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6Z__) || defined(__ARM_ARCH_6ZK__) || defined(__ARM_ARCH_6T2__) )
 #    define MEM_FORCE_MEMORY_ACCESS 2

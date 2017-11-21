@@ -111,7 +111,7 @@ class BlockReaderChar : public IStringColumn
 public:
   BlockReaderChar()
   {
-    isProtected = true;
+    isProtected = false;
   }
 
   ~BlockReaderChar(){ if (isProtected) UNPROTECT(1); }
