@@ -28,6 +28,7 @@
 
 // Format related defines
 #define FST_VERSION          1                  // version of fst codebase
+#define FST_MAGIC_NUMBER     0x50414150         // magic number and signature of the fst format
 #define TABLE_META_SIZE      48                 // size of table meta-data block
 #define FST_FILE_ID          0xa91c12f8b245a71d // identifies a fst file or memory block
 #define FST_HASH_SEED        912824571          // default seed used for xxhash algorithm

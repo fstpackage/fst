@@ -50,6 +50,17 @@ test_that("v0.7.2 interface still works", {
 })
 
 
+test_that("format contains fst magic value", {
+  zz <- file("testdata/meta.fst", "rb")  # open file in binary mode
+  header_hash <- readBin(zz, integer(), 6)
+  close(zz)
+
+  expect_equal(header_hash[3], 1)  # fst format version
+  expect_equal(header_hash[5], 1346453840)  # fst magic number
+  expect_equal(header_hash[6], 0)  # free bytes
+})
+
+
 test_that("Read meta of uncompressed file", {
   fstwriteproxy(x, "testdata/meta.fst")
   y <- fstmetaproxy("testdata/meta.fst")
