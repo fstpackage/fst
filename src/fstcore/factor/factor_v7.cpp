@@ -72,7 +72,7 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
   else
   {
 	  // With zero levels all data values must be zero. Therefore, we only need to
-  	  // add the vector length to have enough information. 
+ 	  // add the vector length to have enough information. 
 	  // (see also https://github.com/fstpackage/fst/issues/56)
 	  *nrOfLevels = 0;
 	  *versionNr = VERSION_NUMBER_FACTOR;
@@ -131,7 +131,7 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
     else
     {
       defaultCompress = new SingleCompressor(CompAlgo::LZ4_INT_TO_BYTE, 100);  // compression not relevant here
-      compress2 = new SingleCompressor(CompAlgo::ZSTD_INT_TO_BYTE, compression - 70);  // use maximum compression for LZ4 algorithm
+      compress2 = new SingleCompressor(CompAlgo::ZSTD_INT_TO_BYTE, 30 + (compression * 0.5));  // up to compression 80
       streamCompressor = new StreamCompositeCompressor(defaultCompress, compress2, 2 * (compression - 50));
     }
 
@@ -162,7 +162,7 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
 
   // use default integer compression with shuffle
 
-  Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4_SHUF4, 0);
+  Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4_SHUF4, compression);
   StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, compression);
   streamCompressor->CompressBufferSize(blockSize);
   fdsStreamcompressed_v2(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation, hasAnnotation);

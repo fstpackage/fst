@@ -56,7 +56,7 @@
 #' y <- read_fst("dataset.fst", "B") # read selection of columns
 #' y <- read_fst("dataset.fst", "A", 100, 200) # read selection of columns and rows
 #' @export
-write_fst <- function(x, path, compress = 0, uniform_encoding = TRUE) {
+write_fst <- function(x, path, compress = 30, uniform_encoding = TRUE) {
   if (!is.character(path)) stop("Please specify a correct path.")
 
   if (!is.data.frame(x)) stop("Please make sure 'x' is a data frame.")

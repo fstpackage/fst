@@ -52,11 +52,12 @@ test_that("v0.7.2 interface still works", {
 
 test_that("format contains fst magic value", {
   zz <- file("testdata/meta.fst", "rb")  # open file in binary mode
-  header_hash <- readBin(zz, integer(), 6)
+  header_hash <- readBin(zz, integer(), 12)
   close(zz)
 
   expect_equal(header_hash[3], 1)  # fst format version
-  expect_equal(header_hash[5], 1346453840)  # fst magic number
+  expect_equal(header_hash[12], 1346453840)  # fst magic number
+  expect_equal(header_hash[5], 0)  # free bytes
   expect_equal(header_hash[6], 0)  # free bytes
 })
 
