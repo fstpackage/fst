@@ -366,7 +366,7 @@ void fdsStreamcompressed_v2(ofstream& myfile, char* colVec, unsigned long long n
 // Read data compressed with a fixed ratio compressor from a stream
 // Note that repSize is assumed to be a multiple of elementSize
 inline void fdsReadFixedCompStream_v2(istream& myfile, char* outVec, unsigned long long blockPos,
-                                      unsigned int* meta, unsigned long long startRow, int elementSize, unsigned long long vecLength)
+  unsigned int* meta, unsigned long long startRow, int elementSize, unsigned long long vecLength)
 {
   unsigned int compAlgo = meta[1]; // identifier of the fixed ratio compressor
   unsigned int repSize = fixedRatioSourceRepSize[static_cast<int>(compAlgo)]; // in bytes
@@ -488,7 +488,7 @@ inline void fdsReadFixedCompStream_v2(istream& myfile, char* outVec, unsigned lo
 #define UNCOMPRESSED_BLOCKSIZE 262144  // reading in small block is more efficient (probably more efficient L3 caching)
 
 void ProcessBatch(char* outVec, char* blockIndex, unsigned long long blockSize, Decompressor decompressor, unsigned long long outOffset, bool isAlligned,
-                  unsigned long long blockStart, unsigned long long blockEnd, unsigned long long*& bStart, unsigned long long*& bEnd, char* threadBuf)
+  unsigned long long blockStart, unsigned long long blockEnd, unsigned long long*& bStart, unsigned long long*& bEnd, char* threadBuf)
 {
   unsigned long long totSize = 0;
   for (unsigned long long blockCount = blockStart; blockCount < blockEnd; blockCount++)
@@ -519,7 +519,7 @@ void ProcessBatch(char* outVec, char* blockIndex, unsigned long long blockSize, 
 }
 
 void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos, unsigned long long startRow,
-                      unsigned long long length, unsigned long long size, int elementSize, std::string& annotation, int maxbatchSize, bool& hasAnnotation)
+  unsigned long long length, unsigned long long size, int elementSize, std::string& annotation, int maxbatchSize, bool& hasAnnotation)
 {
   myfile.seekg(blockPos);
 
@@ -560,12 +560,11 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
 
       uint64_t totBytes = static_cast<uint64_t>(length) * elementSize;
 
-      // just read in one single block
-      //myfile.read(outVec, totBytes);
-
       uint64_t nrOfBlocks = (totBytes - 1) / UNCOMPRESSED_BLOCKSIZE; // all but last block
       uint64_t remainingBytes = totBytes - nrOfBlocks * UNCOMPRESSED_BLOCKSIZE; // last block
       uint64_t curBlockPos = 0;
+
+      // TODO: use multi-threaded logic here
 
       for (uint64_t block = 0; block != nrOfBlocks; ++block)
       {
@@ -611,11 +610,6 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
 
   int blockSize = elementSize * blockSizeElements;
 
-  // char compBuf[*maxCompSize];  // read buffer
-  // char tmpBuf[blockSize];  // temporary buffer
-  char compBuf[MAX_COMPRESSBOUND]; // maximum size needed in worst case scenario compression
-  char tmpBuf[MAX_SIZE_COMPRESS_BLOCK]; // temporary buffer
-
   Decompressor decompressor;
 
   unsigned long long* blockPStart = reinterpret_cast<unsigned long long*>(&blockIndex[0]);
@@ -631,6 +625,9 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
   // Process single block and return
   if (startBlock == endBlock) // Read single block and subset result
   {
+    char compBuf[MAX_COMPRESSBOUND]; // maximum size needed in worst case scenario compression
+    char tmpBuf[MAX_SIZE_COMPRESS_BLOCK]; // temporary buffer
+
     if (algo == 0) // no compression on this block
     {
       myfile.seekg(blockPos + blockPosStart + elementSize * startOffset); // move to block data position
@@ -674,6 +671,9 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
   }
   else
   {
+    char compBuf[MAX_COMPRESSBOUND]; // maximum size needed in worst case scenario compression
+    char tmpBuf[MAX_SIZE_COMPRESS_BLOCK]; // temporary buffer
+
     myfile.seekg(blockPos + blockPosStart); // move to block data position
     myfile.read(compBuf, compSize);
 
@@ -695,7 +695,6 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
   unsigned long long outOffset = subBlockSize * elementSize; // position in output vector
 
   // Process middle blocks (if any)
-
 
   bool isAlligned = (outOffset % 8) == 0; // test for 8 byte alligned output vector
 
@@ -726,7 +725,7 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
       unsigned long long blockStart;
       unsigned long long blockEnd;
       unsigned long long *bStart, *bEnd;
-      char* threadBuf;
+      char* threadBuf = &threadBuffer[threadNr * MAX_COMPRESSBOUND * batchSize]; // MAX_COMPRESSBOUND is adjusted to 16-byte allignment
       int curBatchSize = batchSize;
 
 #pragma omp critical
@@ -746,8 +745,6 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
         blockCount++;
         bEnd = reinterpret_cast<unsigned long long*>(&blockIndex[8 * blockEnd]);
         unsigned long long curCompSize = (*bEnd & BLOCK_POS_MASK) - (*bStart & BLOCK_POS_MASK);
-
-        threadBuf = &threadBuffer[threadNr * MAX_COMPRESSBOUND * batchSize]; // MAX_COMPRESSBOUND is adjusted to 16-byte allignment
 
         myfile.read(threadBuf, curCompSize); // always cache in threadBuf first (non zero copy for uncompressed blocks)
       }
@@ -791,6 +788,9 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
   }
   else
   {
+    char compBuf[MAX_COMPRESSBOUND]; // maximum size needed in worst case scenario compression
+    char tmpBuf[MAX_SIZE_COMPRESS_BLOCK]; // temporary buffer
+
     myfile.read(compBuf, compSize);
 
     if (endBlock == (nrOfBlocks - 1)) // test for last block

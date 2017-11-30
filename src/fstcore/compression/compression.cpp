@@ -1001,7 +1001,6 @@ unsigned int LZ4_INT_TO_SHORT_SHUF2_C(char* dst, unsigned int dstCapacity, const
   int nrOfLongs = 1 + (srcSize - 1) / 16;  // srcSize is processed in blocks of 16 bytes
 
   // Compress buffer
-  // char buf[nrOfLongs * 8];
   char buf[MAX_SIZE_COMPRESS_BLOCK_HALF];
 
   CompactIntToShort(buf, src, srcSize / 4);  // expecting a integer vector here
@@ -1014,7 +1013,6 @@ unsigned int LZ4_INT_TO_SHORT_SHUF2_D(char* dst, unsigned int dstCapacity, const
   int nrOfDstInts = dstCapacity / 4;
 
   // Compress buffer
-  // char buf[nrOfLongs * 8];
   char buf[MAX_SIZE_COMPRESS_BLOCK_HALF];
 
   // Decompress
@@ -1023,6 +1021,35 @@ unsigned int LZ4_INT_TO_SHORT_SHUF2_D(char* dst, unsigned int dstCapacity, const
 
   return errorCode;
 }
+
+unsigned int ZSTD_INT_TO_SHORT_SHUF2_C(char* dst, unsigned int dstCapacity, const char* src, unsigned int srcSize, int compressionLevel)
+{
+  int nrOfLongs = 1 + (srcSize - 1) / 16;  // srcSize is processed in blocks of 16 bytes
+
+  // Compress buffer
+  char buf[MAX_SIZE_COMPRESS_BLOCK_HALF];
+
+  CompactIntToShort(buf, src, srcSize / 4);  // expecting a integer vector here
+
+  return ZSTD_compress(dst, dstCapacity, static_cast<char*>(buf), nrOfLongs * 8, (compressionLevel * ZSTD_maxCLevel()) / 100);
+}
+
+unsigned int ZSTD_INT_TO_SHORT_SHUF2_D(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize)
+{
+  int nrOfLongs = 1 + (dstCapacity - 1) / 16;  // srcSize is processed in blocks of 32 bytes
+  int nrOfDstInts = dstCapacity / 4;
+
+  // Compress buffer
+  char buf[MAX_SIZE_COMPRESS_BLOCK_HALF];
+
+  // Decompress
+  unsigned int errorCode = static_cast<unsigned int>(ZSTD_decompress(static_cast<char*>(buf), 8 * nrOfLongs, src, 8 * nrOfLongs) != compressedSize);
+
+  DecompactShortToInt(buf, dst, nrOfDstInts);  // one integer per byte
+
+  return errorCode;
+}
+
 
 // Factor algorithms
 

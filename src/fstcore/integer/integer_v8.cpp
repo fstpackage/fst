@@ -43,7 +43,6 @@ void fdsWriteIntVec_v8(ofstream &myfile, int* integerVector, unsigned long long 
   if (compression <= 50)  // low compression: linear mix of uncompressed and LZ4_SHUF
   {
     Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4_SHUF4, 0);
-
     StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, 2 * compression);
 
     streamCompressor->CompressBufferSize(blockSize);
@@ -55,7 +54,7 @@ void fdsWriteIntVec_v8(ofstream &myfile, int* integerVector, unsigned long long 
   }
 
   Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4_SHUF4, 0);
-  Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD_SHUF4, 0);
+  Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD_SHUF4, 2 * (compression - 50));
   StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
   streamCompressor->CompressBufferSize(blockSize);
   fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(integerVector), nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation, hasAnnotation);

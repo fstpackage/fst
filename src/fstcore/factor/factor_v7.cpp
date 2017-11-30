@@ -88,52 +88,56 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
 
   // With zero compression only a fixed width compactor is used (int to byte or int to short)
 
-  if (compression == 0)
-  {
-    if (*nrOfLevels < 128)
-    {
-      FixedRatioCompressor* compressor = new FixedRatioCompressor(CompAlgo::INT_TO_BYTE);  // compression level not relevant here
-      fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, compressor, annotation, hasAnnotation);
+  // TODO: create multi-threaded code for a fixed ratio compressor
 
-      delete compressor;
+  //if (compression == 0)
+  //{
+  //  if (*nrOfLevels < 128)
+  //  {
+  //    FixedRatioCompressor* compressor = new FixedRatioCompressor(CompAlgo::INT_TO_BYTE);  // compression level not relevant here
+  //    fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, compressor, annotation, hasAnnotation);
 
-      return;
-    }
+  //    delete compressor;
 
-    if (*nrOfLevels < 32768)
-    {
-      FixedRatioCompressor* compressor = new FixedRatioCompressor(CompAlgo::INT_TO_SHORT);  // compression level not relevant here
-      fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, compressor, annotation, hasAnnotation);
-      delete compressor;
+  //    return;
+  //  }
 
-      return;
-    }
+  //  if (*nrOfLevels < 32768)
+  //  {
+  //    FixedRatioCompressor* compressor = new FixedRatioCompressor(CompAlgo::INT_TO_SHORT);  // compression level not relevant here
+  //    fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, compressor, annotation, hasAnnotation);
+  //    delete compressor;
 
-    fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, nullptr, annotation, hasAnnotation);
+  //    return;
+  //  }
 
-    return;
-  }
+  //  fdsStreamUncompressed_v2(myfile, (char*) intP, nrOfRows, 4, BLOCKSIZE_INT, nullptr, annotation, hasAnnotation);
+
+  //  return;
+  //}
 
   int blockSize = 4 * BLOCKSIZE_INT;  // block size in bytes
 
-  if (*nrOfLevels < 128)  // use 1 byte per int
+  if (*nrOfLevels < 128)  // use 1 byte per int (Na encoding takes 1 bit)
   {
-    Compressor* defaultCompress;
-    Compressor* compress2;
-    StreamCompressor* streamCompressor = nullptr;
-
     if (compression <= 50)
     {
-      defaultCompress = new SingleCompressor(CompAlgo::INT_TO_BYTE, 0);  // compression not relevant here
-      compress2 = new SingleCompressor(CompAlgo::LZ4_INT_TO_BYTE, 100);  // use maximum compression for LZ4 algorithm
-      streamCompressor = new StreamCompositeCompressor(defaultCompress, compress2, 2 * compression);
+      Compressor* defaultCompress = new SingleCompressor(CompAlgo::INT_TO_BYTE, 0);  // just pack the bytes
+      Compressor* compress2 = new SingleCompressor(CompAlgo::LZ4_INT_TO_BYTE, compression);  // maximum compression of 80
+      StreamCompressor* streamCompressor = new StreamCompositeCompressor(defaultCompress, compress2, 2 * compression);
+
+      streamCompressor->CompressBufferSize(blockSize);
+
+      fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(intP), nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation, hasAnnotation);
+      delete defaultCompress;
+      delete streamCompressor;
+
+      return;
     }
-    else
-    {
-      defaultCompress = new SingleCompressor(CompAlgo::LZ4_INT_TO_BYTE, 100);  // compression not relevant here
-      compress2 = new SingleCompressor(CompAlgo::ZSTD_INT_TO_BYTE, 30 + (compression * 0.5));  // up to compression 80
-      streamCompressor = new StreamCompositeCompressor(defaultCompress, compress2, 2 * (compression - 50));
-    }
+
+    Compressor* defaultCompress = new SingleCompressor(CompAlgo::LZ4_INT_TO_BYTE, compression);  // maximum LZ4 compression on smaller vectors
+    Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD_INT_TO_BYTE, compression - 50);  // maximum compression of 80
+    StreamCompressor* streamCompressor = new StreamCompositeCompressor(defaultCompress, compress2, 2 * (compression - 50));
 
     streamCompressor->CompressBufferSize(blockSize);
 
@@ -147,12 +151,28 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
 
   if (*nrOfLevels < 32768)  // use 2 bytes per int
   {
-    Compressor* defaultCompress = new SingleCompressor(CompAlgo::INT_TO_SHORT, 0);  // compression not relevant here
-    Compressor* compress2 = new SingleCompressor(CompAlgo::LZ4_INT_TO_SHORT_SHUF2, 100);  // use maximum compression for LZ4 algorithm
-    StreamCompressor* streamCompressor = new StreamCompositeCompressor(defaultCompress, compress2, compression);
+    if (compression <= 50)
+    {
+      Compressor* defaultCompress = new SingleCompressor(CompAlgo::LZ4_INT_TO_SHORT_SHUF2, 0);  // just pack the bytes
+      Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD_INT_TO_SHORT_SHUF2, 0);  // maximum compression of 80
+      StreamCompressor* streamCompressor = new StreamCompositeCompressor(defaultCompress, compress2, 2 * compression);
+
+      streamCompressor->CompressBufferSize(blockSize);
+
+      fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(intP), nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation, hasAnnotation);
+      delete defaultCompress;
+      delete streamCompressor;
+
+      return;
+    }
+
+    Compressor* defaultCompress = new SingleCompressor(CompAlgo::ZSTD_INT_TO_SHORT_SHUF2, 0);  // maximum LZ4 compression on smaller vectors
+    Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD_INT_TO_SHORT_SHUF2, compression - 50);  // maximum compression of 80
+    StreamCompressor* streamCompressor = new StreamCompositeCompressor(defaultCompress, compress2, 2 * (compression - 50));
+
     streamCompressor->CompressBufferSize(blockSize);
 
-    fdsStreamcompressed_v2(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation, hasAnnotation);
+    fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(intP), nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation, hasAnnotation);
     delete defaultCompress;
     delete compress2;
     delete streamCompressor;
@@ -162,11 +182,27 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
 
   // use default integer compression with shuffle
 
-  Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4_SHUF4, compression);
-  StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, compression);
+  if (compression <= 50)  // low compression: linear mix of uncompressed and LZ4_SHUF
+  {
+    Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4_SHUF4, 0);
+    StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, 2 * compression);
+
+    streamCompressor->CompressBufferSize(blockSize);
+    fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(intP), nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation, hasAnnotation);
+
+    delete compress1;
+    delete streamCompressor;
+    return;
+  }
+
+  Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4_SHUF4, 0);
+  Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD_SHUF4, 2 * (compression - 50));
+  StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
   streamCompressor->CompressBufferSize(blockSize);
-  fdsStreamcompressed_v2(myfile, (char*) intP, nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation, hasAnnotation);
+  fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(intP), nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation, hasAnnotation);
+
   delete compress1;
+  delete compress2;
   delete streamCompressor;
 
   return;

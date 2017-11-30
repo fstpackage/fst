@@ -36,15 +36,17 @@ using namespace std;
 void fdsWriteLogicalVec_v10(ofstream &myfile, int* boolVector, unsigned long long nrOfLogicals, int compression,
   std::string annotation, bool hasAnnotation)
 {
-  if (compression == 0)
-  {
-    FixedRatioCompressor* compressor = new FixedRatioCompressor(CompAlgo::LOGIC64);  // compression level not relevant here
-    fdsStreamUncompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, BLOCKSIZE_LOGICAL, compressor, annotation, hasAnnotation);
+  // TODO: create multi-threaded code for a fixed ratio compressor
 
-    delete compressor;
+  //if (compression == 0)
+  //{
+  //  FixedRatioCompressor* compressor = new FixedRatioCompressor(CompAlgo::LOGIC64);  // compression level not relevant here
+  //  fdsStreamUncompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, BLOCKSIZE_LOGICAL, compressor, annotation, hasAnnotation);
 
-    return;
-  }
+  //  delete compressor;
+
+  //  return;
+  //}
 
   int blockSize = 4 * BLOCKSIZE_LOGICAL;  // block size in bytes
 
@@ -66,7 +68,7 @@ void fdsWriteLogicalVec_v10(ofstream &myfile, int* boolVector, unsigned long lon
   else if (compression <= 100)  // compress 51 - 100
   {
     Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4_LOGIC64, 100);
-    Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD_LOGIC64, 30 + 7 * (compression - 50) / 5);
+    Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD_LOGIC64, 2 * (compression - 50));
     StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
     streamCompressor->CompressBufferSize(blockSize);
     fdsStreamcompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, streamCompressor, BLOCKSIZE_LOGICAL, annotation, hasAnnotation);

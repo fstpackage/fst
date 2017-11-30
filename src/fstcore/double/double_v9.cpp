@@ -39,9 +39,9 @@ void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned long lo
     return fdsStreamUncompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, BLOCKSIZE_REAL, nullptr, annotation, hasAnnotation);
   }
 
-  if (compression <= 50)  // low compression: linear mix of uncompressed LZ4
+  if (compression <= 50)  // low compression: linear mix of uncompressed and LZ4
   {
-    Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4, 2 * compression);
+    Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4, 50);
     StreamCompressor* streamCompressor = new StreamLinearCompressor(compress1, 2 * compression);
     streamCompressor->CompressBufferSize(blockSize);
     fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, streamCompressor, BLOCKSIZE_REAL, annotation, hasAnnotation);
@@ -51,8 +51,8 @@ void fdsWriteRealVec_v9(ofstream &myfile, double* doubleVector, unsigned long lo
     return;
   }
 
-  Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4, 100);
-  Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD, 20);
+  Compressor* compress1 = new SingleCompressor(CompAlgo::LZ4, compression);
+  Compressor* compress2 = new SingleCompressor(CompAlgo::ZSTD, compression - 50);
   StreamCompressor* streamCompressor = new StreamCompositeCompressor(compress1, compress2, 2 * (compression - 50));
   streamCompressor->CompressBufferSize(blockSize);
   fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(doubleVector), nrOfRows, 8, streamCompressor, BLOCKSIZE_REAL, annotation, hasAnnotation);

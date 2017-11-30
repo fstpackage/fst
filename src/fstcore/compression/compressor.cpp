@@ -50,7 +50,8 @@ CompAlgorithm compAlgorithms[NR_OF_ALGORITHMS] = {  // all current and historic 
   LZ4_INT_TO_SHORT_SHUF2_C,
   INT_TO_BYTE_C,
   INT_TO_SHORT_C,
-  ZSTD_INT_TO_BYTE_C
+  ZSTD_INT_TO_BYTE_C,
+  ZSTD_INT_TO_SHORT_SHUF2_C
 };
 
 
@@ -69,7 +70,8 @@ DecompAlgorithm decompAlgorithms[NR_OF_ALGORITHMS] = {  // all current and histo
   LZ4_INT_TO_SHORT_SHUF2_D,
   INT_TO_BYTE_D,
   INT_TO_SHORT_D,
-  ZSTD_INT_TO_BYTE_D
+  ZSTD_INT_TO_BYTE_D,
+  ZSTD_INT_TO_SHORT_SHUF2_D
 };
 
 
@@ -88,7 +90,8 @@ CompAlgoType algorithmType[NR_OF_ALGORITHMS] = {  // type of algorithm
   CompAlgoType::LZ4_INT_TO_SHORT_TYPE,
   CompAlgoType::INT_TO_BYTE_TYPE,
   CompAlgoType::INT_TO_SHORT_TYPE,
-  CompAlgoType::ZSTD_INT_TO_BYTE_TYPE
+  CompAlgoType::ZSTD_INT_TO_BYTE_TYPE,
+  CompAlgoType::ZSTD_INT_TO_SHORT_TYPE
 };
 
 
@@ -108,6 +111,7 @@ unsigned int fixedRatioSourceRepSize[NR_OF_ALGORITHMS] = {  // all current and h
   0,
   32,
   16,
+  0,
   0
 };
 
@@ -128,8 +132,10 @@ unsigned int fixedRatioTargetRepSize[NR_OF_ALGORITHMS] = {  // all current and h
   0,
   8,
   8,
+  0,
   0
 };
+
 
 inline int MaxCompressSize(int blockSize, CompAlgoType algoType)
 {
@@ -196,6 +202,15 @@ inline int MaxCompressSize(int blockSize, CompAlgoType algoType)
       compBufSize = LZ4_COMPRESSBOUND(8 * nrOfLongs);  // 32 logicals are stored in a single 64 bit long
       break;
     }
+
+    case CompAlgoType::ZSTD_INT_TO_SHORT_TYPE:
+    {
+      int nrOfInts = (blockSize + 3) / 4;  // safely round upwards
+      int nrOfLongs = 1 + (nrOfInts - 1) / 4;  // 4 integers per long
+      compBufSize = ZSTD_compressBound(8 * nrOfLongs);  // 32 logicals are stored in a single 64 bit long
+      break;
+    }
+
 
     case CompAlgoType::INT_TO_BYTE_TYPE:
     {

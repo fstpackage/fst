@@ -43,12 +43,12 @@
 #define FLAG_INDIRECT_HEADER 1                  // Next value is the absolute position of the extended header
 
 // Read batch sizes per type
-#define BATCH_SIZE_READ_INT             100
+#define BATCH_SIZE_READ_INT             25
 #define BATCH_SIZE_READ_LOGICAL         400
-#define BATCH_SIZE_READ_INT64           100
-#define BATCH_SIZE_READ_FACTOR          100
-#define BATCH_SIZE_READ_DOUBLE          100
-#define BATCH_SIZE_READ_BYTE            100
+#define BATCH_SIZE_READ_INT64           25
+#define BATCH_SIZE_READ_FACTOR          25
+#define BATCH_SIZE_READ_DOUBLE          25
+#define BATCH_SIZE_READ_BYTE            25
 
 // Cache-size related defines
 #define CACHEFACTOR						1

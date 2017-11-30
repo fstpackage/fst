@@ -28,7 +28,7 @@
 #include <interface/fstdefines.h>
 
 
-#define NR_OF_ALGORITHMS 15
+#define NR_OF_ALGORITHMS 16
 #define MAX_TARGET_REP_SIZE 8
 #define MAX_SOURCE_REP_SIZE 128
 
@@ -45,7 +45,8 @@ enum CompAlgoType
   LZ4_INT_TO_SHORT_TYPE,
   INT_TO_BYTE_TYPE,
   INT_TO_SHORT_TYPE,
-  ZSTD_INT_TO_BYTE_TYPE
+  ZSTD_INT_TO_BYTE_TYPE,
+  ZSTD_INT_TO_SHORT_TYPE
 };
 
 
@@ -65,7 +66,8 @@ enum CompAlgo
   LZ4_INT_TO_SHORT_SHUF2,
   INT_TO_BYTE,
   INT_TO_SHORT,
-  ZSTD_INT_TO_BYTE
+  ZSTD_INT_TO_BYTE,
+  ZSTD_INT_TO_SHORT_SHUF2
 };
 
 

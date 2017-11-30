@@ -110,6 +110,12 @@ unsigned int LZ4_INT_TO_SHORT_SHUF2_C(char* dst, unsigned int dstCapacity, const
 unsigned int LZ4_INT_TO_SHORT_SHUF2_D(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize);
 
 
+unsigned int ZSTD_INT_TO_SHORT_SHUF2_C(char* dst, unsigned int dstCapacity, const char* src, unsigned int srcSize, int compressionLevel);
+
+
+unsigned int ZSTD_INT_TO_SHORT_SHUF2_D(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize);
+
+
 // Factor algorithms
 
 unsigned int INT_TO_BYTE_C(char* dst, unsigned int dstCapacity, const char* src,  unsigned int srcSize, int compressionLevel);
