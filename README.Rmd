@@ -24,7 +24,7 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-Package `fst` [(code here)][fstRepo] provides a fast, easy and flexible way to serialize data frames. It allows for fast compression and decompression and has the ability to access stored frames randomly. With access speeds of multiple GB/s, `fst` is specifically designed to unlock the potential of high speed solid state disks that can be found in most modern computers. The figure below compares the read and write performance of the `fst` package to various alternatives.
+Package `fst` [(code here)][fstRepo] provides a fast, easy and flexible way to serialize data frames. It allows for fast compression and decompression and has the ability to access stored frames randomly. With access speeds of multiple GB/s, `fst` is specifically designed to unlock the potential of high speed solid state disks that can be found in most modern computers. The figure below compares the read and write performance of the `fst` package to various alternatives:
 
 
 ```{r speedTable, results='asis', message=FALSE, echo=FALSE}
@@ -33,37 +33,35 @@ require(data.table)
 require(fst)
 require(knitr)
 
-speeds <- read.fst("speeds.fst", as.data.table = TRUE)
-memSize <- speeds[Compression == 0 & Package == "rds", Size[1]]
-speeds <- speeds[, Time := memSize / Speed]
+speed_results <- read_fst("res - readme.fst", as.data.table = TRUE)[NrOfRows == 5e7]
+speed_results[Package == "baseR", Threads := 8]
+speed_results[Package == "feather", Threads := 8]
 
-speeds <- speeds[Package == "feather" & Mode == "Read", Function := "read_feather"]
-speeds <- speeds[Package == "feather" & Mode == "Write", Function := "write_feather"]
-speeds <- speeds[Package == "fst" & Mode == "Read", Function := "**read.fst**"]
-speeds <- speeds[Package == "fst" & Mode == "Write", Function := "**write.fst**"]
-speeds <- speeds[Package == "csv" & Mode == "Read", Function := "fread"]
-speeds <- speeds[Package == "csv" & Mode == "Write", Function := "fwrite"]
-speeds <- speeds[Package == "rds" & Mode == "Read", Function := "readRDS"]
-speeds <- speeds[Package == "rds" & Mode == "Write", Function := "saveRDS"]
-
-speeds <- speeds[Package == "feather", Methods := "read_feather/write_feather"]
-speeds <- speeds[Package == "fst", Methods := "read.fst/write.fst"]
-speeds <- speeds[Package == "csv", Methods := "fread/fwrite"]
-speeds <- speeds[Package == "rds", Methods := "readRDS/saveRDS"]
-speeds <- speeds[Package == "csv", Package := "data.table"]
-
-speedNoCompress <- speeds[Compression == 0, list(Time = 1e-6 * median(Time), `Size (MB)` = format(1e-6*median(Size), digits = 2), `Speed (MB/s)` = median(Speed), N = .N), by = "Function"]
+speeds <- speed_results[Threads == 8, list(`Time (ms)` = median(Time), `Size (MB)` = format(1e-6*median(Size),
+  digits = 2), `Speed (MB/s)` = median(Speed), N = .N), by = "Package,Mode"]
 
 
-kable(speedNoCompress)
+speeds[Package == "data.table" & Mode == "Write", Method := "fwrite"]
+speeds[Package == "data.table" & Mode == "Read", Method := "fread"]
+speeds[Package == "fst" & Mode == "Write", Method := "write_fst"]
+speeds[Package == "fst" & Mode == "Read", Method := "read_fst"]
+speeds[Package == "baseR" & Mode == "Write", Method := "saveRDS"]
+speeds[Package == "baseR" & Mode == "Read", Method := "readRDS"]
+speeds[Package == "feather" & Mode == "Write", Method := "write_feather"]
+speeds[Package == "feather" & Mode == "Read", Method := "write_feather"]
+
+speeds[, Format := "bin"]
+speeds[Package == "data.table", Format := "csv"]
+setkey(speeds, Package, Mode)
+
+kable(speeds[, c(7, 8, 3, 4, 5, 6)])
 ```
 
-These benchmarks were performed on a Xeon E5 CPU @2.5GHz (more systems will follow). Parameter *speed* was calculated by dividing the in-memory size of the data frame by the measured time. The results are also visualized in the figure below.
+These benchmarks were performed on a modest laptop (i7 4710HQ @2.5 GHz) with a reasonably fast SSD (M.2 Samsung SM951). Parameter *Speed* was calculated by dividing the in-memory size of the data frame by the measured time. The results are also visualized in the figure below.
 
 ```{r speedCode, echo=FALSE, message=FALSE, results='hide', fig.width=8.5, fig.height=6}
-ggplot(speeds[Compression == 0]) +
-  geom_violin(aes(Mode, Speed, colour = Mode)) +
-  geom_jitter(aes(Mode, Speed, colour = Mode), size = 1, alpha = 0.05, width = 0.25) +
+ggplot(speed_results[, .(Speed = median(Speed)), by = "Package,Mode"]) +
+  geom_bar(aes(Mode, Speed, fill = Mode), colour = "darkgrey", stat = "identity") +
   facet_wrap(~ Package, 1) +
   ylim(0, NA) +
   ylab("Read or Write speed (MB/s)") +
