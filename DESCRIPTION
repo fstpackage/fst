@@ -1,9 +1,9 @@
 Package: fst
 Type: Package
 Title: Lightning Fast Serialization of Data Frames for R
-Description: Read and write data frames at high speed. Compress your data with fast and efficient type-optimized algorithms that allow for random access of stored data frames (columns and rows).
-Version: 0.7.3
-Date: 2017-01-11
+Description: Read and write data frames at high speed using multiple-threads. Compress your data with fast and efficient type-optimized algorithms that allow for random access of stored data frames (columns and rows).
+Version: 0.8.0
+Date: 2017-12-07
 Authors@R: c(
     person("Mark", "Klik", ,"markklik@gmail.com", role = c("aut", "cre", "cph")))
 LazyData: true
