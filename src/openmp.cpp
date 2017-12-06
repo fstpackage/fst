@@ -43,7 +43,7 @@ int setnrofthreads(SEXP nrOfThreads)
     if (!Rf_isInteger(intVal) || Rf_length(intVal) != 1 || INTEGER(intVal)[0] < 0)
     {
         // catches NA too since NA is -ve
-        Rf_error("Argument to setNrOfActiveThreads must be a single integer >= 0. \
+        Rf_error("Argument to threads_fst must be a single integer >= 0. \
             Default 0 is recommended to use all CPU.");
     }
 

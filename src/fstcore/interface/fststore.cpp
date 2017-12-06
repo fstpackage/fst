@@ -341,11 +341,19 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
     throw(runtime_error(FSTERROR_NO_DATA));
   }
 
+  // Create file buffer
+  //const size_t bufsize = 4096;
+  //char buf[bufsize];
+
+  // Create file and set buffer
+  ofstream myfile;
+  //myfile.rdbuf()->pubsetbuf(nullptr, 0);
+  //myfile.rdbuf()->pubsetbuf(buf, bufsize);  // set write buffer
+
   *p_colNamesHash = XXH64(p_colNamesVersion, colNamesHeaderSize - 8, FST_HASH_SEED);
 
 
-  // Open file with default buffer
-  ofstream myfile;
+  // Open file in binary mode
   myfile.open(fstFile.c_str(), ios::out | ios::binary);  // write stream only
 
   if (myfile.fail())

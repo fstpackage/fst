@@ -7,7 +7,7 @@
 \alias{read.fst}
 \title{Read and write fst files.}
 \usage{
-write_fst(x, path, compress = 30, uniform_encoding = TRUE)
+write_fst(x, path, compress = 50, uniform_encoding = TRUE)
 
 read_fst(path, columns = NULL, from = 1, to = NULL,
   as.data.table = FALSE, old_format = FALSE)
