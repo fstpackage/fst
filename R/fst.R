@@ -204,7 +204,7 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
 
 #' @rdname write_fst
 #' @export
-write.fst <- function(x, path, compress = 0, uniform_encoding = TRUE) {
+write.fst <- function(x, path, compress = 50, uniform_encoding = TRUE) {
   write_fst(x, path, compress, uniform_encoding)
 }
 
