@@ -7,4 +7,5 @@
 \.md$
 \.png$
 \.yml$
+dataset\.fst$
 res - readme\.fst$
