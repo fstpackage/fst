@@ -95,7 +95,7 @@ For compression the excellent and speedy [LZ4](https://github.com/lz4/lz4) and [
 write.fst(df, "dataset.fst", 100)  # use maximum compression
 ```
 
-Compression reduces the size of the *fst* file that holds your data. But because the (de-)compression is done *on background threads*, it will usually increase the read- and write speed as well! The graph below shows how the use of multiple threads enhances the read and write speed of the *fst* package.
+Compression reduces the size of the *fst* file that holds your data. But because the (de-)compression is done *on background threads*, it can increase the total read- and write speed as well. The graph below shows how the use of multiple threads enhances the read and write speed of our sample dataset.
 
 ![](README-multi-threading-1.png)
 
