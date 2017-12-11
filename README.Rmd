@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 [![WIndows Build status](https://ci.appveyor.com/api/projects/status/6g6kp8onpb26jhnm/branch/develop?svg=true)](https://ci.appveyor.com/project/fstpackage/fst/branch/develop)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/fst)](https://cran.r-project.org/package=fst)
-[![codecov](https://codecov.io/gh/fstpackage/fst/branch/master/graph/badge.svg)](https://codecov.io/gh/fstpackage/fst)
+[![codecov](https://codecov.io/gh/fstpackage/fst/branch/develop/graph/badge.svg)](https://codecov.io/gh/fstpackage/fst)
 
 
 ## Overview
@@ -53,12 +53,19 @@ speeds[Package == "baseR" & Mode == "Write", Method := "saveRDS"]
 speeds[Package == "baseR" & Mode == "Read", Method := "readRDS"]
 speeds[Package == "feather" & Mode == "Write", Method := "write_feather"]
 speeds[Package == "feather" & Mode == "Read", Method := "read_feather"]
-
 speeds[, Format := "bin"]
 speeds[Package == "data.table", Format := "csv"]
 setkey(speeds, Package, Mode)
 
-kable(speeds[, c(7, 8, 3, 4, 5, 6)])
+display_speeds <- copy(speeds)
+for (col in colnames(display_speeds)[2:ncol(display_speeds)]) {
+  setnames(display_speeds, col, "CurCol")
+  display_speeds[, CurCol := as.character(CurCol)]
+  display_speeds[Package == "fst", CurCol := paste0("**", CurCol, "**")]
+  setnames(display_speeds, "CurCol", col)
+}
+
+kable(display_speeds[, c(7, 8, 3, 4, 5, 6)])
 ```
 
 These benchmarks were performed on a laptop (i7 4710HQ @2.5 GHz) with a reasonably fast SSD (M.2 Samsung SM951) using the dataset defined below. Parameter *Speed* was calculated by dividing the in-memory size of the data frame by the measured time. These results are also visualized in the following graph:

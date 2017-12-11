@@ -1,7 +1,7 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 <img src="logo.png" align="right" />
 
-[![Linux/OSX Build Status](https://travis-ci.org/fstpackage/fst.svg?branch=develop)](https://travis-ci.org/fstpackage/fst) [![WIndows Build status](https://ci.appveyor.com/api/projects/status/6g6kp8onpb26jhnm/branch/develop?svg=true)](https://ci.appveyor.com/project/fstpackage/fst/branch/develop) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/fst)](https://cran.r-project.org/package=fst) [![codecov](https://codecov.io/gh/fstpackage/fst/branch/master/graph/badge.svg)](https://codecov.io/gh/fstpackage/fst)
+[![Linux/OSX Build Status](https://travis-ci.org/fstpackage/fst.svg?branch=develop)](https://travis-ci.org/fstpackage/fst) [![WIndows Build status](https://ci.appveyor.com/api/projects/status/6g6kp8onpb26jhnm/branch/develop?svg=true)](https://ci.appveyor.com/project/fstpackage/fst/branch/develop) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/fst)](https://cran.r-project.org/package=fst) [![codecov](https://codecov.io/gh/fstpackage/fst/branch/develop/graph/badge.svg)](https://codecov.io/gh/fstpackage/fst)
 
 Overview
 --------
@@ -10,16 +10,16 @@ The [*fst* package](https://github.com/fstpackage/fst) for R provides a fast, ea
 
 The figure below compares the read and write performance of the *fst* package to various alternatives.
 
-| Method         | Format |  Time (ms)| Size (MB) |  Speed (MB/s)|    N|
-|:---------------|:-------|----------:|:----------|-------------:|----:|
-| readRDS        | bin    |       1577| 1000      |           633|  112|
-| saveRDS        | bin    |       2042| 1000      |           489|  112|
-| fread          | csv    |       2925| 1038      |           410|  232|
-| fwrite         | csv    |       2790| 1038      |           358|  241|
-| read\_feather  | bin    |       3950| 813       |           253|  112|
-| write\_feather | bin    |       1820| 813       |           549|  112|
-| read\_fst      | bin    |        457| 303       |          2184|  282|
-| write\_fst     | bin    |        314| 303       |          3180|  291|
+| Method         | Format  | Time (ms) | Size (MB) | Speed (MB/s) | N       |
+|:---------------|:--------|:----------|:----------|:-------------|:--------|
+| readRDS        | bin     | 1577      | 1000      | 633          | 112     |
+| saveRDS        | bin     | 2042      | 1000      | 489          | 112     |
+| fread          | csv     | 2925      | 1038      | 410          | 232     |
+| fwrite         | csv     | 2790      | 1038      | 358          | 241     |
+| read\_feather  | bin     | 3950      | 813       | 253          | 112     |
+| write\_feather | bin     | 1820      | 813       | 549          | 112     |
+| **read\_fst**  | **bin** | **457**   | **303**   | **2184**     | **282** |
+| **write\_fst** | **bin** | **314**   | **303**   | **3180**     | **291** |
 
 These benchmarks were performed on a laptop (i7 4710HQ @2.5 GHz) with a reasonably fast SSD (M.2 Samsung SM951) using the dataset defined below. Parameter *Speed* was calculated by dividing the in-memory size of the data frame by the measured time. These results are also visualized in the following graph:
 
