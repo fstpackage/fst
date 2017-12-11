@@ -6,22 +6,22 @@
 Overview
 --------
 
-The [*fst* package](https://github.com/fstpackage/fst) for R provides a fast, easy and flexible way to serialize data frames. With access speeds of multiple GB/s, *fst* is specifically designed to unlock the potential of high speed solid state disks that can be found in most modern computers. Data frames stored in the *fst* file format have full random access, both in column and rows.
+The [*fst* package](https://github.com/fstpackage/fst) for R provides a fast, easy and flexible way to serialize data frames. With access speeds of multiple GB/s, *fst* is specifically designed to unlock the potential of high speed solid state disks that can be found in most modern computers. Data frames stored in the *fst* format have full random access, both in column and rows.
 
 The figure below compares the read and write performance of the *fst* package to various alternatives.
 
 | Method         | Format |  Time (ms)| Size (MB) |  Speed (MB/s)|    N|
 |:---------------|:-------|----------:|:----------|-------------:|----:|
-| readRDS        | bin    |  1577.3458| 1000      |      633.9800|  112|
-| saveRDS        | bin    |  2042.9202| 1000      |      489.5016|  112|
-| fread          | csv    |  2925.3084| 1038      |      410.2145|  232|
-| fwrite         | csv    |  2790.7263| 1038      |      358.3306|  241|
-| read\_feather  | bin    |  3950.2600| 813       |      253.1484|  112|
-| write\_feather | bin    |  1820.7428| 813       |      549.2279|  112|
-| read\_fst      | bin    |   457.7168| 303       |     2184.7629|  282|
-| write\_fst     | bin    |   314.3822| 303       |     3180.8495|  291|
+| readRDS        | bin    |       1577| 1000      |           633|  112|
+| saveRDS        | bin    |       2042| 1000      |           489|  112|
+| fread          | csv    |       2925| 1038      |           410|  232|
+| fwrite         | csv    |       2790| 1038      |           358|  241|
+| read\_feather  | bin    |       3950| 813       |           253|  112|
+| write\_feather | bin    |       1820| 813       |           549|  112|
+| read\_fst      | bin    |        457| 303       |          2184|  282|
+| write\_fst     | bin    |        314| 303       |          3180|  291|
 
-These benchmarks were performed on a laptop (with a i7 4710HQ processor @2.5 GHz) and with a reasonably fast SSD (M.2 Samsung SM951). Parameter *Speed* was calculated by dividing the in-memory size of the data frame by the measured time. The results are also visualized in the graph below.
+These benchmarks were performed on a laptop (with a i7 4710HQ processor @2.5 GHz) and with a reasonably fast SSD (M.2 Samsung SM951) using the dataset defined below. Parameter *Speed* was calculated by dividing the in-memory size of the data frame by the measured time. The results are also visualized in the graph below.
 
 ![](README-speed-bench-1.png)
 
@@ -56,7 +56,17 @@ Basic usage
 Using *fst* is simple. Data can be stored and retrieved using methods *write\_fst* and *read\_fst*:
 
 ``` r
-# Store a data frame to disk
+# Generate some random data frame with 10 million rows and various column types
+nr_of_rows <- 1e7
+
+df <- data.frame(
+    Logical = sample(c(TRUE, FALSE, NA), prob = c(0.85, 0.1, 0.05), nr_of_rows, replace = TRUE),
+    Integer = sample(1L:100L, nr_of_rows, replace = TRUE),
+    Real = sample(sample(1:10000, 20) / 100, nr_of_rows, replace = TRUE),
+    Factor = as.factor(sample(labels(UScitiesD), nr_of_rows, replace = TRUE))
+  )
+
+# Store the data frame to disk
   write.fst(df, "dataset.fst")
   
 # Retrieve the data frame again

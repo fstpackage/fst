@@ -24,7 +24,7 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-The [_fst_ package][fstRepo] for R  provides a fast, easy and flexible way to serialize data frames. With access speeds of multiple GB/s, _fst_ is specifically designed to unlock the potential of high speed solid state disks that can be found in most modern computers. Data frames stored in the _fst_ file format have full random access, both in column and rows.
+The [_fst_ package][fstRepo] for R  provides a fast, easy and flexible way to serialize data frames. With access speeds of multiple GB/s, _fst_ is specifically designed to unlock the potential of high speed solid state disks that can be found in most modern computers. Data frames stored in the _fst_ format have full random access, both in column and rows.
 
 The figure below compares the read and write performance of the _fst_ package to various alternatives.
 
@@ -37,9 +37,9 @@ require(knitr)
 speed_results <- read_fst("res - readme.fst", as.data.table = TRUE)
 
 speeds <- speed_results[NrOfRows == 5e7, list(
-  `Time (ms)` = median(Time),
+  `Time (ms)` = as.integer(median(Time)),
   `Size (MB)` = format(median(FileSize), digits = 2),
-  `Speed (MB/s)` = median(Speed),
+  `Speed (MB/s)` = as.integer(median(Speed)),
   N = .N),
     by = "Package,Mode"]
 
