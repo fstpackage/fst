@@ -17,9 +17,9 @@ knitr::opts_chunk$set(
 
 <img src="logo.png" align="right" />
 
-[![Linux/OSX Build Status](https://travis-ci.org/fstpackage/fst.svg?branch=develop)](https://travis-ci.org/fstpackage/fst) [![WIndows Build status](https://ci.appveyor.com/api/projects/status/6g6kp8onpb26jhnm/branch/develop?svg=true)](https://ci.appveyor.com/project/fstpackage/fst/branch/develop)
-
-[![Build Status](https://travis-ci.org/fstpackage/fst.svg?branch=master)](https://travis-ci.org/fstpackage/fst)
+[![Linux/OSX Build Status](https://travis-ci.org/fstpackage/fst.svg?branch=develop)](https://travis-ci.org/fstpackage/fst)
+[![WIndows Build status](https://ci.appveyor.com/api/projects/status/6g6kp8onpb26jhnm/branch/develop?svg=true)](https://ci.appveyor.com/project/fstpackage/fst/branch/develop)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/fst)](https://cran.r-project.org/package=fst)
 [![codecov](https://codecov.io/gh/fstpackage/fst/branch/master/graph/badge.svg)](https://codecov.io/gh/fstpackage/fst)
 
@@ -61,7 +61,7 @@ setkey(speeds, Package, Mode)
 kable(speeds[, c(7, 8, 3, 4, 5, 6)])
 ```
 
-These benchmarks were performed on a laptop (i7 4710HQ @2.5 GHz) with a reasonably fast SSD (M.2 Samsung SM951) using the dataset defined below. Parameter *Speed* was calculated by dividing the in-memory size of the data frame by the measured time. The results are also visualized in the graph below.
+These benchmarks were performed on a laptop (i7 4710HQ @2.5 GHz) with a reasonably fast SSD (M.2 Samsung SM951) using the dataset defined below. Parameter *Speed* was calculated by dividing the in-memory size of the data frame by the measured time. These results are also visualized in the following graph:
 
 ```{r speed-bench, echo = FALSE, message = FALSE, results = 'hide', fig.width = 8.5, fig.height = 6}
 ggplot(speed_results[NrOfRows == 5e7, .(Speed = median(Speed)), by = "Package,Mode"]) +
@@ -73,7 +73,7 @@ ggplot(speed_results[NrOfRows == 5e7, .(Speed = median(Speed)), by = "Package,Mo
   theme(legend.position="none")
 ```
 
-As you can see, the measured speeds for the _fst_ package are very fast and even top the maximum drive speed of the SSD used. The package accomplishes this by an effective combination of multi-threading and compression. The on-disk file sizes of _fst_ files are also much smaller than that of the other formats tested. This is an added benefit of _fst_'s use of type-specific compressors on each stored column.
+As can be seen from the figure, the measured speeds for the _fst_ package are very high and even top the maximum drive speed of the SSD used. The package accomplishes this by an effective combination of multi-threading and compression. The on-disk file sizes of _fst_ files are also much smaller than that of the other formats tested. This is an added benefit of _fst_'s use of type-specific compressors on each stored column.
 
 In addition to methods for data frame serialization, _fst_ also provides methods for multi-threaded in-memory compression with the popular LZ4 and ZSTD compressors and an extremely fast multi-threaded hasher.
 
@@ -122,7 +122,7 @@ df <- data.frame(
   df <- read.fst("dataset.fst")
 ```
 
-_Note: the dataset defined in this example code was also used for benchmarking_
+_Note: the dataset defined in this example code was also used to obtain the benchmark results shown in the introduction._
 
 ## Random access
 
@@ -162,13 +162,14 @@ ggplot(fig_results) +
   theme_minimal()
 ```
 
-The _csv_ format used by the _fread_ and _fwrite_ methods of package _data.table_ is actually a human-readable text format and not a binary format. Normally, binary formats would be much faster than the _csv_ format, because _csv_ takes more space on disk, is row based, is uncompressed and needs to be parsed into a computer-native format to have any meaning. So any serializer that's working on _csv_ has an enormous disadvantage as compared to binary formats. Yet, the results show that _data.table_ is on par with binary formats and when more threads are used, it can even be faster. Because of this impressive performance, it was included in the graph for comparison.
-
-> **Note to users**: From CRAN release v0.8.0, the _fst_ format is stable and backwards compatible. That means that all _fst_ files generated with package v0.8.0 or later can be read by future versions of the package.
+The _csv_ format used by the _fread_ and _fwrite_ methods of package _data.table_ is actually a human-readable text format and not a binary format. Normally, binary formats would be much faster than the _csv_ format, because _csv_ takes more space on disk, is row based, uncompressed and needs to be parsed into a computer-native format to have any meaning. So any serializer that's working on _csv_ has an enormous disadvantage as compared to binary formats. Yet, the results show that _data.table_ is on par with binary formats and when more threads are used, it can even be faster. Because of this impressive performance, it was included in the graph for comparison.
 
 ## Bindings in other languages
 
 **Julia**: [**`fstformat.jl`**][fstformatRepo] A naive Julia binding using RCall.jl
+
+> **Note to users**: From CRAN release v0.8.0, the _fst_ format is stable and backwards compatible. That means that all _fst_ files generated with package v0.8.0 or later can be read by future versions of the package.
+
 
 [fstRepo]: https://github.com/fstpackage/fst
 [lz4Repo]: https://github.com/lz4/lz4

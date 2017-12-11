@@ -1,9 +1,7 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 <img src="logo.png" align="right" />
 
-[![Linux/OSX Build Status](https://travis-ci.org/fstpackage/fst.svg?branch=develop)](https://travis-ci.org/fstpackage/fst) [![WIndows Build status](https://ci.appveyor.com/api/projects/status/6g6kp8onpb26jhnm/branch/develop?svg=true)](https://ci.appveyor.com/project/fstpackage/fst/branch/develop)
-
-[![Build Status](https://travis-ci.org/fstpackage/fst.svg?branch=master)](https://travis-ci.org/fstpackage/fst) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/fst)](https://cran.r-project.org/package=fst) [![codecov](https://codecov.io/gh/fstpackage/fst/branch/master/graph/badge.svg)](https://codecov.io/gh/fstpackage/fst)
+[![Linux/OSX Build Status](https://travis-ci.org/fstpackage/fst.svg?branch=develop)](https://travis-ci.org/fstpackage/fst) [![WIndows Build status](https://ci.appveyor.com/api/projects/status/6g6kp8onpb26jhnm/branch/develop?svg=true)](https://ci.appveyor.com/project/fstpackage/fst/branch/develop) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/fst)](https://cran.r-project.org/package=fst) [![codecov](https://codecov.io/gh/fstpackage/fst/branch/master/graph/badge.svg)](https://codecov.io/gh/fstpackage/fst)
 
 Overview
 --------
@@ -23,11 +21,11 @@ The figure below compares the read and write performance of the *fst* package to
 | read\_fst      | bin    |        457| 303       |          2184|  282|
 | write\_fst     | bin    |        314| 303       |          3180|  291|
 
-These benchmarks were performed on a laptop (i7 4710HQ @2.5 GHz) with a reasonably fast SSD (M.2 Samsung SM951) using the dataset defined below. Parameter *Speed* was calculated by dividing the in-memory size of the data frame by the measured time. The results are also visualized in the graph below.
+These benchmarks were performed on a laptop (i7 4710HQ @2.5 GHz) with a reasonably fast SSD (M.2 Samsung SM951) using the dataset defined below. Parameter *Speed* was calculated by dividing the in-memory size of the data frame by the measured time. These results are also visualized in the following graph:
 
 ![](README-speed-bench-1.png)
 
-As you can see, the measured speeds for the *fst* package are very fast and even top the maximum drive speed of the SSD used. The package accomplishes this by an effective combination of multi-threading and compression. The on-disk file sizes of *fst* files are also much smaller than that of the other formats tested. This is an added benefit of *fst*'s use of type-specific compressors on each stored column.
+As can be seen from the figure, the measured speeds for the *fst* package are very high and even top the maximum drive speed of the SSD used. The package accomplishes this by an effective combination of multi-threading and compression. The on-disk file sizes of *fst* files are also much smaller than that of the other formats tested. This is an added benefit of *fst*'s use of type-specific compressors on each stored column.
 
 In addition to methods for data frame serialization, *fst* also provides methods for multi-threaded in-memory compression with the popular LZ4 and ZSTD compressors and an extremely fast multi-threaded hasher.
 
@@ -75,7 +73,7 @@ df <- data.frame(
   df <- read.fst("dataset.fst")
 ```
 
-*Note: the dataset defined in this example code was also used for benchmarking*
+*Note: the dataset defined in this example code was also used to obtain the benchmark results shown in the introduction.*
 
 Random access
 -------------
@@ -101,11 +99,11 @@ Compression reduces the size of the *fst* file that holds your data. But because
 
 ![](README-multi-threading-1.png)
 
-The *csv* format used by the *fread* and *fwrite* methods of package *data.table* is actually a human-readable text format and not a binary format. Normally, binary formats would be much faster than the *csv* format, because *csv* takes more space on disk, is row based, is uncompressed and needs to be parsed into a computer-native format to have any meaning. So any serializer that's working on *csv* has an enormous disadvantage as compared to binary formats. Yet, the results show that *data.table* is on par with binary formats and when more threads are used, it can even be faster. Because of this impressive performance, it was included in the graph for comparison.
-
-> **Note to users**: From CRAN release v0.8.0, the *fst* format is stable and backwards compatible. That means that all *fst* files generated with package v0.8.0 or later can be read by future versions of the package.
+The *csv* format used by the *fread* and *fwrite* methods of package *data.table* is actually a human-readable text format and not a binary format. Normally, binary formats would be much faster than the *csv* format, because *csv* takes more space on disk, is row based, uncompressed and needs to be parsed into a computer-native format to have any meaning. So any serializer that's working on *csv* has an enormous disadvantage as compared to binary formats. Yet, the results show that *data.table* is on par with binary formats and when more threads are used, it can even be faster. Because of this impressive performance, it was included in the graph for comparison.
 
 Bindings in other languages
 ---------------------------
 
 **Julia**: [**`fstformat.jl`**](https://github.com/xiaodaigh/fstformat.jl) A naive Julia binding using RCall.jl
+
+> **Note to users**: From CRAN release v0.8.0, the *fst* format is stable and backwards compatible. That means that all *fst* files generated with package v0.8.0 or later can be read by future versions of the package.
