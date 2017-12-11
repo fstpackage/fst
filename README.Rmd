@@ -59,7 +59,7 @@ setkey(speeds, Package, Mode)
 kable(speeds[, c(7, 8, 3, 4, 5, 6)])
 ```
 
-These benchmarks were performed on a laptop (with a i7 4710HQ processor @2.5 GHz) and with a reasonably fast SSD (M.2 Samsung SM951) using the dataset defined below. Parameter *Speed* was calculated by dividing the in-memory size of the data frame by the measured time. The results are also visualized in the graph below.
+These benchmarks were performed on a laptop (i7 4710HQ @2.5 GHz) with a reasonably fast SSD (M.2 Samsung SM951) using the dataset defined below. Parameter *Speed* was calculated by dividing the in-memory size of the data frame by the measured time. The results are also visualized in the graph below.
 
 ```{r speed-bench, echo = FALSE, message = FALSE, results = 'hide', fig.width = 8.5, fig.height = 6}
 ggplot(speed_results[NrOfRows == 5e7, .(Speed = median(Speed)), by = "Package,Mode"]) +
@@ -71,13 +71,13 @@ ggplot(speed_results[NrOfRows == 5e7, .(Speed = median(Speed)), by = "Package,Mo
   theme(legend.position="none")
 ```
 
-As you can see, the measured speeds for the _fst_ package are very fast and even top the maximum drive speed of the SSD used. The package accomplishes this by an effective combination of multi-threading and compresion. The on-disk file sizes of _fst_ files are also much smaller than that of the other formats tested. This is an added benefit of _fst_'s use of type-specific compressors on each stored column.
+As you can see, the measured speeds for the _fst_ package are very fast and even top the maximum drive speed of the SSD used. The package accomplishes this by an effective combination of multi-threading and compression. The on-disk file sizes of _fst_ files are also much smaller than that of the other formats tested. This is an added benefit of _fst_'s use of type-specific compressors on each stored column.
 
 In addition to methods for data frame serialization, _fst_ also provides methods for multi-threaded in-memory compression with the popular LZ4 and ZSTD compressors and an extremely fast multi-threaded hasher.
 
-## Multi-threaded
+## Multi-threading
 
-The _fst_ package relies heavily on multi-threading to boost the read- and write speed of data frames. To maximise throughput, _fst_ compresses and decompresses data _in the background_ and tries to keep the disk busy writing or reading at the same time.
+The _fst_ package relies heavily on multi-threading to boost the read- and write speed of data frames. To maximize throughput, _fst_ compresses and decompresses data _in the background_ and tries to keep the disk busy writing and reading data at the same time.
 
 ## Installation
 
@@ -120,6 +120,7 @@ df <- data.frame(
   df <- read.fst("dataset.fst")
 ```
 
+_Note: the dataset defined in this example code was also used for benchmarking_
 
 ## Random access
 
@@ -159,7 +160,7 @@ ggplot(fig_results) +
   theme_minimal()
 ```
 
-Note that the _csv_ format used by the _fread_ and _fwrite_ methods of package _data.table_ is a humna-readable text format and not a binary format. Normally, binary formats would be much faster than the _csv_ format, because _csv_ takes more space on disk, is row based, is uncompressed and needs to be parsed into a computer-native format to have any meaning. So any serializer that's working on _csv_ has an enormous disadvantage as compared to binary formats. Yet, the results show that _data.table_ is on par with binary formats and when more threads are used, it can even be faster. Because of this impressive performance, it was included in the graph next to the binary formats.
+Note that the _csv_ format used by the _fread_ and _fwrite_ methods of package _data.table_ is actually a human-readable text format and not a binary format. Normally, binary formats would be much faster than the _csv_ format, because _csv_ takes more space on disk, is row based, is uncompressed and needs to be parsed into a computer-native format to have any meaning. So any serializer that's working on _csv_ has an enormous disadvantage as compared to binary formats. Yet, the results show that _data.table_ is on par with binary formats and when more threads are used, it can even be faster. Because of this impressive performance, it was included in the graph next to the binary formats.
 
 > **Note to users**: With CRAN release v0.8.0, the format is stable and backwards compatible. That means that all _fst_ files generated with _fst_ package v0.8.0 or later can be read by future versions of the package.
 
