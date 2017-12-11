@@ -101,9 +101,9 @@ Compression reduces the size of the *fst* file that holds your data. But because
 
 ![](README-multi-threading-1.png)
 
-Note that the *csv* format used by the *fread* and *fwrite* methods of package *data.table* is actually a human-readable text format and not a binary format. Normally, binary formats would be much faster than the *csv* format, because *csv* takes more space on disk, is row based, is uncompressed and needs to be parsed into a computer-native format to have any meaning. So any serializer that's working on *csv* has an enormous disadvantage as compared to binary formats. Yet, the results show that *data.table* is on par with binary formats and when more threads are used, it can even be faster. Because of this impressive performance, it was included in the graph next to the binary formats.
+The *csv* format used by the *fread* and *fwrite* methods of package *data.table* is actually a human-readable text format and not a binary format. Normally, binary formats would be much faster than the *csv* format, because *csv* takes more space on disk, is row based, is uncompressed and needs to be parsed into a computer-native format to have any meaning. So any serializer that's working on *csv* has an enormous disadvantage as compared to binary formats. Yet, the results show that *data.table* is on par with binary formats and when more threads are used, it can even be faster. Because of this impressive performance, it was included in the graph for comparison.
 
-> **Note to users**: With CRAN release v0.8.0, the format is stable and backwards compatible. That means that all *fst* files generated with *fst* package v0.8.0 or later can be read by future versions of the package.
+> **Note to users**: From CRAN release v0.8.0, the *fst* format is stable and backwards compatible. That means that all *fst* files generated with package v0.8.0 or later can be read by future versions of the package.
 
 Bindings in other languages
 ---------------------------

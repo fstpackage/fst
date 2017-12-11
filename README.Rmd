@@ -162,9 +162,9 @@ ggplot(fig_results) +
   theme_minimal()
 ```
 
-Note that the _csv_ format used by the _fread_ and _fwrite_ methods of package _data.table_ is actually a human-readable text format and not a binary format. Normally, binary formats would be much faster than the _csv_ format, because _csv_ takes more space on disk, is row based, is uncompressed and needs to be parsed into a computer-native format to have any meaning. So any serializer that's working on _csv_ has an enormous disadvantage as compared to binary formats. Yet, the results show that _data.table_ is on par with binary formats and when more threads are used, it can even be faster. Because of this impressive performance, it was included in the graph next to the binary formats.
+The _csv_ format used by the _fread_ and _fwrite_ methods of package _data.table_ is actually a human-readable text format and not a binary format. Normally, binary formats would be much faster than the _csv_ format, because _csv_ takes more space on disk, is row based, is uncompressed and needs to be parsed into a computer-native format to have any meaning. So any serializer that's working on _csv_ has an enormous disadvantage as compared to binary formats. Yet, the results show that _data.table_ is on par with binary formats and when more threads are used, it can even be faster. Because of this impressive performance, it was included in the graph for comparison.
 
-> **Note to users**: With CRAN release v0.8.0, the format is stable and backwards compatible. That means that all _fst_ files generated with _fst_ package v0.8.0 or later can be read by future versions of the package.
+> **Note to users**: From CRAN release v0.8.0, the _fst_ format is stable and backwards compatible. That means that all _fst_ files generated with package v0.8.0 or later can be read by future versions of the package.
 
 ## Bindings in other languages
 
