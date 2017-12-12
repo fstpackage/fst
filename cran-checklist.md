@@ -11,6 +11,7 @@
 # After releasing to CRAN
 
 * Merge branch master into release
-* Update NEWS.md and add '(in development)' to version title
+* Go to the repository release page and create a new release with tag version vx.y.z. Copy and paste the contents of the relevant NEWS.md section into the release notes.
+* Add '(in development)' to version title in NEWS.md
 * Bump version to odd value and check package startup message
 * Merge release branch into develop
