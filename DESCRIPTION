@@ -1,7 +1,7 @@
 Package: fst
 Type: Package
 Title: Lightning Fast Serialization of Data Frames for R
-Description: Multi-threaded serialization of compressed data frames. The fst format allows for random (column and row) access of stored data.
+Description: Multithreaded serialization of compressed data frames using the 'fst' format. Allows for random (column and row) access of stored data.
 Version: 0.8.0
 Date: 2017-12-11
 Authors@R: c(
