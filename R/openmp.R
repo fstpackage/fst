@@ -28,10 +28,10 @@
 #' number of threads used. Therefore, using the maximum number of available threads is not always the
 #' fastest solution. With \code{threads_fst} the number of threads can be adjusted to the users
 #' specific requirements. As a default, \code{fst} uses a number of threads equal to the number of
-#' physical cores in the system (not the number of logical cores).
+#' logical cores in the system.
 #'
 #' @param nr_of_threads number of threads to use or \code{NULL} to get the current number of threads used in
-#' multi-threaded operations.
+#' multithreaded operations.
 #'
 #' @return the number of threads (previously) used
 #' @export
