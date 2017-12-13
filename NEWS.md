@@ -1,7 +1,7 @@
 
 **If you are viewing this file on CRAN, please check latest news on GitHub [here](https://github.com/fstpackage/fst/blob/develop/NEWS.md).**
 
-### Changes in v0.8.0
+### Changes in v0.8.2
 
 #### New features
 
