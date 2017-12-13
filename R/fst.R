@@ -193,7 +193,7 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
 
     keyNames <- res$keyNames
     res <- data.table::setDT(res$resTable)  # nolint
-    if (length(keyNames) > 0 ) attr(res, "sorted") <- keyNames
+    if (length(keyNames) > 0 ) data.table::setattr(res, "sorted", keyNames)
     return(res)
   }
 
