@@ -39,7 +39,7 @@
     # version number odd => dev
     dev <- as.integer(v[1, 3]) %% 2 == 1
 
-    packageStartupMessage("fst ", v, if (dev) paste0(" IN DEVELOPMENT built ", d))
+    packageStartupMessage("fst package v", v, if (dev) paste0(" IN DEVELOPMENT built ", d))
 
     # Check for old version
     if (dev && (Sys.Date() - as.Date(d)) > 28)
@@ -50,8 +50,12 @@
       packageStartupMessage("(OpenMP was not detected, using single threaded mode)")
     } else {
       # Use only physical cores to maximize performance (no hyperthreading)
-      threads_fst(parallel::detectCores(logical = FALSE))
-      packageStartupMessage("(OpenMP detected, using ", threads_fst(), " cores)")
+      physical_cores <- parallel::detectCores(logical = FALSE)
+      logical_cores <- parallel::detectCores(logical = TRUE)
+
+      threads_fst(logical_cores)
+      packageStartupMessage("(OpenMP detected, using ", threads_fst(),
+        if (physical_cores != logical_cores) " logical", " cores)")
     }
   }
 }

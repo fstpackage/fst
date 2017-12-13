@@ -148,8 +148,8 @@ print.fstmetadata <- function(x, ...) {
 #' @param from Read data starting from this row number.
 #' @param to Read data up until this row number. The default is to read to the last row of the stored dataset.
 #' @param as.data.table If TRUE, the result will be returned as a \code{data.table} object. Any keys set on
+#' dataset \code{x} before writing will be retained. This allows for storage of sorted datasets.
 #' @param old_format use TRUE to read fst files generated with a fst package version lower than v0.8.0
-#' dataset \code{x} before writing, will be retained. This allows for storage of sorted datasets.
 #'
 #' @export
 read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE, old_format = FALSE) {
@@ -204,7 +204,7 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
 
 #' @rdname write_fst
 #' @export
-write.fst <- function(x, path, compress = 0, uniform_encoding = TRUE) {
+write.fst <- function(x, path, compress = 50, uniform_encoding = TRUE) {
   write_fst(x, path, compress, uniform_encoding)
 }
 

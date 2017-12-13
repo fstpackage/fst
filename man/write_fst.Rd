@@ -12,7 +12,7 @@ write_fst(x, path, compress = 50, uniform_encoding = TRUE)
 read_fst(path, columns = NULL, from = 1, to = NULL,
   as.data.table = FALSE, old_format = FALSE)
 
-write.fst(x, path, compress = 0, uniform_encoding = TRUE)
+write.fst(x, path, compress = 50, uniform_encoding = TRUE)
 
 read.fst(path, columns = NULL, from = 1, to = NULL,
   as.data.table = FALSE, old_format = FALSE)
@@ -37,10 +37,10 @@ character columns.}
 
 \item{to}{Read data up until this row number. The default is to read to the last row of the stored dataset.}
 
-\item{as.data.table}{If TRUE, the result will be returned as a \code{data.table} object. Any keys set on}
+\item{as.data.table}{If TRUE, the result will be returned as a \code{data.table} object. Any keys set on
+dataset \code{x} before writing will be retained. This allows for storage of sorted datasets.}
 
-\item{old_format}{use TRUE to read fst files generated with a fst package version lower than v0.8.0
-dataset \code{x} before writing, will be retained. This allows for storage of sorted datasets.}
+\item{old_format}{use TRUE to read fst files generated with a fst package version lower than v0.8.0}
 }
 \value{
 \code{read_fst} returns a data frame with the selected columns and rows. \code{read_fst})
