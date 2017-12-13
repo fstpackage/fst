@@ -1,13 +1,26 @@
 
-PKG_CPPFLAGS = -I. -ILZ4 -IZSTD -IZSTD/common -IZSTD/decompress -IZSTD/compress
+PKG_CPPFLAGS = $(SHLIB_OPENMP_CXXFLAGS) -I. -Ifstcore -Ifstcore_v1 -Ifstcore/LZ4 -Ifstcore/ZSTD -Ifstcore/ZSTD/common \
+	-Ifstcore/ZSTD/decompress -Ifstcore/ZSTD/compress
 CXX_STD      = CXX11
-PKG_LIBS     = -L. -lLZ4 -lZSTD
+PKG_LIBS     = $(SHLIB_OPENMP_CXXFLAGS) -L. -lFRAME -lCOMPRESSION -lLZ4 -lZSTD
 
 # libraries
-LIBLZ4  = LZ4/lz4.o
-LIBZSTD = ZSTD/common/entropy_common.o ZSTD/common/error_private.o ZSTD/common/fse_decompress.o ZSTD/compress/fse_compress.o ZSTD/decompress/huf_decompress.o ZSTD/compress/huf_compress.o ZSTD/decompress/zstd_decompress.o ZSTD/common/xxhash.o ZSTD/common/zstd_common.o ZSTD/compress/zstd_compress.o
+LIBLZ4  = fstcore/LZ4/lz4.o
+LIBZSTD = fstcore/ZSTD/common/entropy_common.o fstcore/ZSTD/common/error_private.o fstcore/ZSTD/common/fse_decompress.o \
+	fstcore/ZSTD/compress/fse_compress.o fstcore/ZSTD/decompress/huf_decompress.o fstcore/ZSTD/compress/huf_compress.o \
+	fstcore/ZSTD/decompress/zstd_decompress.o fstcore/ZSTD/common/xxhash.o fstcore/ZSTD/common/zstd_common.o \
+	fstcore/ZSTD/compress/zstd_compress.o fstcore/ZSTD/dictBuilder/cover.o fstcore/ZSTD/dictBuilder/divsufsort.o \
+	fstcore/ZSTD/compress/zstd_fast.o fstcore/ZSTD/compress/zstd_lazy.o fstcore/ZSTD/compress/zstd_ldm.o \
+	fstcore/ZSTD/common/pool.o fstcore/ZSTD/compress/zstd_opt.o fstcore/ZSTD/dictBuilder/zdict.o \
+	fstcore/ZSTD/compress/zstd_double_fast.o
+LIBCOMPRESSION  = fstcore/compression/compression.o fstcore/compression/compressor.o
+LIBFRAME = fstcore/interface/openmphelper.o fstcore/interface/fststore.o fstcore_v1/logical/logical_v4.o \
+  fstcore/logical/logical_v10.o fstcore_v1/integer/integer_v2.o fstcore/integer/integer_v8.o fstcore/byte/byte_v12.o \
+	fstcore_v1/double/double_v3.o fstcore/double/double_v9.o fstcore_v1/character/character_v1.o fstcore/character/character_v6.o \
+	fstcore_v1/factor/factor_v5.o fstcore/factor/factor_v7.o fstcore/blockstreamer/blockstreamer_v2.o \
+	fstcore_v1/blockstreamer/blockstreamer_v1.o fstcore/integer64/integer64_v11.o
 
-$(SHLIB): libLZ4.a libZSTD.a
+$(SHLIB): libLZ4.a libZSTD.a libCOMPRESSION.a libFRAME.a
 
 libLZ4.a: $(LIBLZ4)
 	$(AR) rcs libLZ4.a $(LIBLZ4)
@@ -15,5 +28,12 @@ libLZ4.a: $(LIBLZ4)
 libZSTD.a: $(LIBZSTD)
 	$(AR) rcs libZSTD.a $(LIBZSTD)
 
+libCOMPRESSION.a: $(LIBCOMPRESSION) libLZ4.a libZSTD.a
+	$(AR) rcs libCOMPRESSION.a $(LIBCOMPRESSION)
+
+libFRAME.a: $(LIBFRAME) libCOMPRESSION.a
+	$(AR) rcs libFRAME.a $(LIBFRAME)
+
 clean:
-	rm -f $(SHLIB) $(LIBLZ4) $(OBJECTS) libLZ4.a $(LIBZSTD) libZSTD.a
+	rm -f $(SHLIB) $(OBJECTS) $(LIBLZ4) libLZ4.a $(LIBZSTD) libZSTD.a $(LIBFRAME) \
+	libFRAME.a libCOMPRESSION.a $(LIBCOMPRESSION)

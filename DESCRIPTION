@@ -1,20 +1,21 @@
 Package: fst
 Type: Package
 Title: Lightning Fast Serialization of Data Frames for R
-Version: 0.7.2
-Date: 2017-01-11
-Author: Mark Klik
-Maintainer: Mark Klik <markklik@gmail.com>
-Description: Read and write data frames at high speed. Compress your data with fast and efficient type-optimized algorithms that allow for random access of stored data frames (columns and rows).
+Description: Multithreaded serialization of compressed data frames using the 'fst' format. Allows for random (column and row) access of stored data.
+Version: 0.8.0
+Date: 2017-12-12
+Authors@R: c(
+    person("Mark", "Klik", ,"markklik@gmail.com", role = c("aut", "cre", "cph")))
 LazyData: true
 Depends: R (>= 3.0.0)
-Imports: data.table, Rcpp
+Imports: Rcpp
 LinkingTo: Rcpp
 SystemRequirements: little-endian platform
-RoxygenNote: 5.0.1
-Suggests: testthat
-License: BSD_2_clause + file LICENSE
+RoxygenNote: 6.0.1
+Suggests: testthat, bit64, data.table, lintr, nanotime
+License: AGPL-3 | file LICENSE
 Copyright: This package includes sources from the LZ4 library written
-    by Yann Collet and sources of the ZSTD library owned by Facebook, Inc.
+    by Yann Collet, sources of the ZSTD library owned by Facebook, Inc.
+    and sources of the fstlib library owned by Mark Klik 
 URL: https://fstpackage.github.io
-BugReports: https://github.com/fstPackage/fst/issues
+BugReports: https://github.com/fstpackage/fst/issues

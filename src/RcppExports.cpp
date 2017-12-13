@@ -5,140 +5,113 @@
 
 using namespace Rcpp;
 
-// boolToInt
-SEXP boolToInt(SEXP logical);
-RcppExport SEXP fst_boolToInt(SEXP logicalSEXP) {
+// fststore
+SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression, SEXP uniformEncoding);
+RcppExport SEXP _fst_fststore(SEXP fileNameSEXP, SEXP tableSEXP, SEXP compressionSEXP, SEXP uniformEncodingSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type logical(logicalSEXP);
-    rcpp_result_gen = Rcpp::wrap(boolToInt(logical));
-    return rcpp_result_gen;
-END_RCPP
-}
-// intToBool
-SEXP intToBool(SEXP ints);
-RcppExport SEXP fst_intToBool(SEXP intsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type ints(intsSEXP);
-    rcpp_result_gen = Rcpp::wrap(intToBool(ints));
-    return rcpp_result_gen;
-END_RCPP
-}
-// fstStore
-SEXP fstStore(String fileName, SEXP table, SEXP compression);
-RcppExport SEXP fst_fstStore(SEXP fileNameSEXP, SEXP tableSEXP, SEXP compressionSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< String >::type fileName(fileNameSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type fileName(fileNameSEXP);
     Rcpp::traits::input_parameter< SEXP >::type table(tableSEXP);
     Rcpp::traits::input_parameter< SEXP >::type compression(compressionSEXP);
-    rcpp_result_gen = Rcpp::wrap(fstStore(fileName, table, compression));
+    Rcpp::traits::input_parameter< SEXP >::type uniformEncoding(uniformEncodingSEXP);
+    rcpp_result_gen = Rcpp::wrap(fststore(fileName, table, compression, uniformEncoding));
     return rcpp_result_gen;
 END_RCPP
 }
-// fstMeta
-List fstMeta(String fileName);
-RcppExport SEXP fst_fstMeta(SEXP fileNameSEXP) {
+// fstmetadata
+SEXP fstmetadata(Rcpp::String fileName, SEXP oldFormat);
+RcppExport SEXP _fst_fstmetadata(SEXP fileNameSEXP, SEXP oldFormatSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< String >::type fileName(fileNameSEXP);
-    rcpp_result_gen = Rcpp::wrap(fstMeta(fileName));
+    Rcpp::traits::input_parameter< Rcpp::String >::type fileName(fileNameSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type oldFormat(oldFormatSEXP);
+    rcpp_result_gen = Rcpp::wrap(fstmetadata(fileName, oldFormat));
     return rcpp_result_gen;
 END_RCPP
 }
-// fstRead
-SEXP fstRead(SEXP fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
-RcppExport SEXP fst_fstRead(SEXP fileNameSEXP, SEXP columnSelectionSEXP, SEXP startRowSEXP, SEXP endRowSEXP) {
+// fstretrieve
+SEXP fstretrieve(Rcpp::String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow, SEXP oldFormat);
+RcppExport SEXP _fst_fstretrieve(SEXP fileNameSEXP, SEXP columnSelectionSEXP, SEXP startRowSEXP, SEXP endRowSEXP, SEXP oldFormatSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type fileName(fileNameSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type fileName(fileNameSEXP);
     Rcpp::traits::input_parameter< SEXP >::type columnSelection(columnSelectionSEXP);
     Rcpp::traits::input_parameter< SEXP >::type startRow(startRowSEXP);
     Rcpp::traits::input_parameter< SEXP >::type endRow(endRowSEXP);
-    rcpp_result_gen = Rcpp::wrap(fstRead(fileName, columnSelection, startRow, endRow));
+    Rcpp::traits::input_parameter< SEXP >::type oldFormat(oldFormatSEXP);
+    rcpp_result_gen = Rcpp::wrap(fstretrieve(fileName, columnSelection, startRow, endRow, oldFormat));
     return rcpp_result_gen;
 END_RCPP
 }
-// SType
-int SType(SEXP value);
-RcppExport SEXP fst_SType(SEXP valueSEXP) {
+// fsthasher
+SEXP fsthasher(SEXP rawVec, SEXP seed, SEXP blockHash);
+RcppExport SEXP _fst_fsthasher(SEXP rawVecSEXP, SEXP seedSEXP, SEXP blockHashSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type value(valueSEXP);
-    rcpp_result_gen = Rcpp::wrap(SType(value));
+    Rcpp::traits::input_parameter< SEXP >::type rawVec(rawVecSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type seed(seedSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type blockHash(blockHashSEXP);
+    rcpp_result_gen = Rcpp::wrap(fsthasher(rawVec, seed, blockHash));
     return rcpp_result_gen;
 END_RCPP
 }
-// compChar
-int compChar(SEXP str1, SEXP str2);
-RcppExport SEXP fst_compChar(SEXP str1SEXP, SEXP str2SEXP) {
+// fstcomp
+SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash);
+RcppExport SEXP _fst_fstcomp(SEXP rawVecSEXP, SEXP compressorSEXP, SEXP compressionSEXP, SEXP hashSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type str1(str1SEXP);
-    Rcpp::traits::input_parameter< SEXP >::type str2(str2SEXP);
-    rcpp_result_gen = Rcpp::wrap(compChar(str1, str2));
+    Rcpp::traits::input_parameter< SEXP >::type rawVec(rawVecSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type compressor(compressorSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type compression(compressionSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type hash(hashSEXP);
+    rcpp_result_gen = Rcpp::wrap(fstcomp(rawVec, compressor, compression, hash));
     return rcpp_result_gen;
 END_RCPP
 }
-// IsSortedTable
-bool IsSortedTable(SEXP table, SEXP key);
-RcppExport SEXP fst_IsSortedTable(SEXP tableSEXP, SEXP keySEXP) {
+// fstdecomp
+SEXP fstdecomp(SEXP rawVec);
+RcppExport SEXP _fst_fstdecomp(SEXP rawVecSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type table(tableSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type key(keySEXP);
-    rcpp_result_gen = Rcpp::wrap(IsSortedTable(table, key));
+    Rcpp::traits::input_parameter< SEXP >::type rawVec(rawVecSEXP);
+    rcpp_result_gen = Rcpp::wrap(fstdecomp(rawVec));
     return rcpp_result_gen;
 END_RCPP
 }
-// FirstIntEqualHigher
-SEXP FirstIntEqualHigher(SEXP intVec, SEXP intKey, SEXP lower, SEXP upper);
-RcppExport SEXP fst_FirstIntEqualHigher(SEXP intVecSEXP, SEXP intKeySEXP, SEXP lowerSEXP, SEXP upperSEXP) {
+// getnrofthreads
+SEXP getnrofthreads();
+RcppExport SEXP _fst_getnrofthreads() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type intVec(intVecSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type intKey(intKeySEXP);
-    Rcpp::traits::input_parameter< SEXP >::type lower(lowerSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type upper(upperSEXP);
-    rcpp_result_gen = Rcpp::wrap(FirstIntEqualHigher(intVec, intKey, lower, upper));
+    rcpp_result_gen = Rcpp::wrap(getnrofthreads());
     return rcpp_result_gen;
 END_RCPP
 }
-// LastIntEqualLower
-SEXP LastIntEqualLower(SEXP intVec, SEXP intKey, SEXP lower, SEXP upper);
-RcppExport SEXP fst_LastIntEqualLower(SEXP intVecSEXP, SEXP intKeySEXP, SEXP lowerSEXP, SEXP upperSEXP) {
+// setnrofthreads
+int setnrofthreads(SEXP nrOfThreads);
+RcppExport SEXP _fst_setnrofthreads(SEXP nrOfThreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type intVec(intVecSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type intKey(intKeySEXP);
-    Rcpp::traits::input_parameter< SEXP >::type lower(lowerSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type upper(upperSEXP);
-    rcpp_result_gen = Rcpp::wrap(LastIntEqualLower(intVec, intKey, lower, upper));
+    Rcpp::traits::input_parameter< SEXP >::type nrOfThreads(nrOfThreadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(setnrofthreads(nrOfThreads));
     return rcpp_result_gen;
 END_RCPP
 }
-// LowerBoundIndex
-SEXP LowerBoundIndex(SEXP table, SEXP key, SEXP lower, SEXP upper);
-RcppExport SEXP fst_LowerBoundIndex(SEXP tableSEXP, SEXP keySEXP, SEXP lowerSEXP, SEXP upperSEXP) {
+// hasopenmp
+SEXP hasopenmp();
+RcppExport SEXP _fst_hasopenmp() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type table(tableSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type key(keySEXP);
-    Rcpp::traits::input_parameter< SEXP >::type lower(lowerSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type upper(upperSEXP);
-    rcpp_result_gen = Rcpp::wrap(LowerBoundIndex(table, key, lower, upper));
+    rcpp_result_gen = Rcpp::wrap(hasopenmp());
     return rcpp_result_gen;
 END_RCPP
 }

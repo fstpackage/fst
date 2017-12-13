@@ -1,5 +1,7 @@
 ---
-output: github_document
+output:
+  md_document:
+    variant: markdown_github
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -15,14 +17,18 @@ knitr::opts_chunk$set(
 
 <img src="logo.png" align="right" />
 
-[![Build Status](https://travis-ci.org/fstpackage/fst.svg?branch=master)](https://travis-ci.org/fstpackage/fst)
+[![Linux/OSX Build Status](https://travis-ci.org/fstpackage/fst.svg?branch=develop)](https://travis-ci.org/fstpackage/fst)
+[![WIndows Build status](https://ci.appveyor.com/api/projects/status/6g6kp8onpb26jhnm/branch/develop?svg=true)](https://ci.appveyor.com/project/fstpackage/fst/branch/develop)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/fst)](https://cran.r-project.org/package=fst)
+[![codecov](https://codecov.io/gh/fstpackage/fst/branch/develop/graph/badge.svg)](https://codecov.io/gh/fstpackage/fst)
 
 
 ## Overview
 
-Package `fst` [(code here)][fstRepo] provides a fast, easy and flexible way to serialize data frames. It allows for fast compression and decompression and has the ability to access stored frames randomly. With access speeds of above 1 GB/s, `fst` is specifically designed to unlock the potential of high speed solid state disks that can be found in most modern computers. The figure below compares the read and write performance of the `fst` package to various alternatives.
+The [_fst_ package][fstRepo] for R  provides a fast, easy and flexible way to serialize data frames. With access speeds of multiple GB/s, _fst_ is specifically designed to unlock the potential of high speed solid state disks that can be found in most modern computers. Data frames stored in the _fst_ format have full random access, both in column and rows.
 
+The figure below compares the read and write performance of the _fst_ package to various alternatives.
 
 ```{r speedTable, results='asis', message=FALSE, echo=FALSE}
 require(ggplot2)
@@ -30,37 +36,43 @@ require(data.table)
 require(fst)
 require(knitr)
 
-speeds <- read.fst("speeds.fst", as.data.table = TRUE)
-memSize <- speeds[Compression == 0 & Package == "rds", Size[1]]
-speeds <- speeds[, Time := memSize / Speed]
+speed_results <- read_fst("res - readme.fst", as.data.table = TRUE)
 
-speeds <- speeds[Package == "feather" & Mode == "Read", Function := "read_feather"]
-speeds <- speeds[Package == "feather" & Mode == "Write", Function := "write_feather"]
-speeds <- speeds[Package == "fst" & Mode == "Read", Function := "**read.fst**"]
-speeds <- speeds[Package == "fst" & Mode == "Write", Function := "**write.fst**"]
-speeds <- speeds[Package == "csv" & Mode == "Read", Function := "fread"]
-speeds <- speeds[Package == "csv" & Mode == "Write", Function := "fwrite"]
-speeds <- speeds[Package == "rds" & Mode == "Read", Function := "readRDS"]
-speeds <- speeds[Package == "rds" & Mode == "Write", Function := "saveRDS"]
+speeds <- speed_results[NrOfRows == 5e7, list(
+  `Time (ms)` = as.integer(median(Time)),
+  `Size (MB)` = format(median(FileSize), digits = 2),
+  `Speed (MB/s)` = as.integer(median(Speed)),
+  N = .N),
+    by = "Package,Mode"]
 
-speeds <- speeds[Package == "feather", Methods := "read_feather/write_feather"]
-speeds <- speeds[Package == "fst", Methods := "read.fst/write.fst"]
-speeds <- speeds[Package == "csv", Methods := "fread/fwrite"]
-speeds <- speeds[Package == "rds", Methods := "readRDS/saveRDS"]
-speeds <- speeds[Package == "csv", Package := "data.table"]
+speeds[Package == "data.table" & Mode == "Write", Method := "fwrite"]
+speeds[Package == "data.table" & Mode == "Read", Method := "fread"]
+speeds[Package == "fst" & Mode == "Write", Method := "write_fst"]
+speeds[Package == "fst" & Mode == "Read", Method := "read_fst"]
+speeds[Package == "baseR" & Mode == "Write", Method := "saveRDS"]
+speeds[Package == "baseR" & Mode == "Read", Method := "readRDS"]
+speeds[Package == "feather" & Mode == "Write", Method := "write_feather"]
+speeds[Package == "feather" & Mode == "Read", Method := "read_feather"]
+speeds[, Format := "bin"]
+speeds[Package == "data.table", Format := "csv"]
+setkey(speeds, Package, Mode)
 
-speedNoCompress <- speeds[Compression == 0, list(Time = 1e-6 * median(Time), `Size (MB)` = format(1e-6*median(Size), digits = 2), `Speed (MB/s)` = median(Speed), N = .N), by = "Function"]
+display_speeds <- copy(speeds)
+for (col in colnames(display_speeds)[2:ncol(display_speeds)]) {
+  setnames(display_speeds, col, "CurCol")
+  display_speeds[, CurCol := as.character(CurCol)]
+  display_speeds[Package == "fst", CurCol := paste0("**", CurCol, "**")]
+  setnames(display_speeds, "CurCol", col)
+}
 
-
-kable(speedNoCompress)
+kable(display_speeds[, c(7, 8, 3, 4, 5, 6)])
 ```
 
-These benchmarks were performed on a Xeon E5 CPU @2.5GHz (more systems will follow). Parameter *speed* was calculated by dividing the in-memory size of the data frame by the measured time. The results are also visualized in the figure below.
+These benchmarks were performed on a laptop (i7 4710HQ @2.5 GHz) with a reasonably fast SSD (M.2 Samsung SM951) using the dataset defined below. Parameter *Speed* was calculated by dividing the in-memory size of the data frame by the measured time. These results are also visualized in the following graph:
 
-```{r speedCode, echo=FALSE, message=FALSE, results='hide', fig.width=8.5, fig.height=6}
-ggplot(speeds[Compression == 0]) +
-  geom_violin(aes(Mode, Speed, colour = Mode)) +
-  geom_jitter(aes(Mode, Speed, colour = Mode), size = 1, alpha = 0.05, width = 0.25) +
+```{r speed-bench, echo = FALSE, message = FALSE, results = 'hide', fig.width = 8.5, fig.height = 6}
+ggplot(speed_results[NrOfRows == 5e7, .(Speed = median(Speed)), by = "Package,Mode"]) +
+  geom_bar(aes(Mode, Speed, fill = Mode), colour = "darkgrey", stat = "identity") +
   facet_wrap(~ Package, 1) +
   ylim(0, NA) +
   ylab("Read or Write speed (MB/s)") +
@@ -68,8 +80,13 @@ ggplot(speeds[Compression == 0]) +
   theme(legend.position="none")
 ```
 
-Package `fst` outperforms the `feather` and `data.table` packages as well as the base `readRDS` / `writeRDS` functions for uncompressed reads and writes. But it also offers additional features such as very fast compression and random access (columns and rows) to the stored data.
+As can be seen from the figure, the measured speeds for the _fst_ package are very high and even top the maximum drive speed of the SSD used. The package accomplishes this by an effective combination of multi-threading and compression. The on-disk file sizes of _fst_ files are also much smaller than that of the other formats tested. This is an added benefit of _fst_'s use of type-specific compressors on each stored column.
 
+In addition to methods for data frame serialization, _fst_ also provides methods for multi-threaded in-memory compression with the popular LZ4 and ZSTD compressors and an extremely fast multi-threaded hasher.
+
+## Multi-threading
+
+The _fst_ package relies heavily on multi-threading to boost the read- and write speed of data frames. To maximize throughput, _fst_ compresses and decompresses data _in the background_ and tries to keep the disk busy writing and reading data at the same time.
 
 ## Installation
 
@@ -83,94 +100,85 @@ You can also use the development version from GitHub:
 
 ```{r, eval = FALSE}
 # install.packages("devtools")
-devtools::install_github("fstPackage/fst")
+devtools::install_github("fstPackage/fst", ref = "develop")
 ```
-
 
 ## Basic usage
 
-```{r, results='hide', echo=FALSE, message=FALSE}
+```{r, results = 'hide', echo = FALSE, message = FALSE}
 require(fst)
 ```
 
-Using `fst` is extremely simple. Data can be stored and retrieved using methods `fst.write` and `fst.read`:
+Using _fst_ is simple. Data can be stored and retrieved using methods _write\_fst_ and _read\_fst_:
 
 ```{r, echo='hide'}
-# Generate a random data frame with 10 million rows and various column types
-nrOfRows <- 1e7
+# Generate some random data frame with 10 million rows and various column types
+nr_of_rows <- 1e7
 
-x <- data.frame(
-  Integers = 1:nrOfRows,  # integer
-  Logicals = sample(c(TRUE, FALSE, NA), nrOfRows, replace = TRUE),  # logical
-  Text = factor(sample(state.name, nrOfRows, replace = TRUE)),  # text
-  Numericals = runif(nrOfRows, 0.0, 100),  # numericals
-  stringsAsFactors = FALSE)
+df <- data.frame(
+    Logical = sample(c(TRUE, FALSE, NA), prob = c(0.85, 0.1, 0.05), nr_of_rows, replace = TRUE),
+    Integer = sample(1L:100L, nr_of_rows, replace = TRUE),
+    Real = sample(sample(1:10000, 20) / 100, nr_of_rows, replace = TRUE),
+    Factor = as.factor(sample(labels(UScitiesD), nr_of_rows, replace = TRUE))
+  )
 
-# Store it
-  write.fst(x, "dataset.fst")
+# Store the data frame to disk
+  write.fst(df, "dataset.fst")
   
-# Retrieve it
-  y <- read.fst("dataset.fst")
+# Retrieve the data frame again
+  df <- read.fst("dataset.fst")
 ```
 
+_Note: the dataset defined in this example code was also used to obtain the benchmark results shown in the introduction._
 
 ## Random access
 
-With `read.fst` you can access a selection of rows from the stored data frame by specifying a range:
+The _fst_ file format provides full random access to stored datasets. You can retrieve a selection of columns and rows with:
 
 ```{r, results='hide'}
-  read.fst("dataset.fst", from = 2000, to = 4990)  # subset rows
+  df_subset <- read.fst("dataset.fst", c("Logical", "Factor"), from = 2000, to = 5000)
 ```
 
-You will notice that the read times for this small subset are very short because `read.fst` (almost) only touches the on-disk data from within the selected range. Specific columns can be selected with:
-
-```{r, results='hide'}
-  read.fst("dataset.fst", c("Logicals", "Text"), 2000, 4990) # subset rows and columns
-```
-
-Here, only data from the selected rows and columns are deserialized from file.
+This reads rows 1000 to 5000 from columns _Logical_ and _Factor_ without actually touching any other data in the stored file. That means that a subset can be read from file **without reading the complete file first**. This is different from, say, _readRDS_ or _read\_feather_ where you have to read the complete file or column before you can make a subset.
 
 ## Compression
 
-For compression the excellent and speedy [LZ4][lz4Repo] and [ZSTD][zstdRepo] compression algorithms are used. These compressors in combination with type-specific bit and byte filters, enable `fst` to achieve high compression speeds at reasonable compression factors. The compression factor can be tuned from 0 (minimum) to 100 (maximum):
+For compression the excellent and speedy [LZ4][lz4Repo] and [ZSTD][zstdRepo] compression algorithms are used. These compressors (in combination with type-specific bit filters), enable _fst_ to achieve high compression speeds at reasonable compression factors. The compression factor can be tuned from 0 (minimum) to 100 (maximum):
 
 ```{r, results='hide'}
-  write.fst(x, "dataset.fst", 100)  # use maximum compression
+write.fst(df, "dataset.fst", 100)  # use maximum compression
 ```
 
-For this particular data frame the on-disk size of `x` is less than 35 percent of the in-memory size (`object.size(x)`) when full compression is used. The figure below shows the compression ratio depending on the settings used and compares them to the ratio's achieved by the `feather` and `data.table` packages (that offer no additional compression) and method `saveRDS` (gzip mode) from base R:
+Compression reduces the size of the _fst_ file that holds your data. But because the (de-)compression is done _on background threads_, it can increase the total read- and write speed as well. The graph below shows how the use of multiple threads enhances the read and write speed of our sample dataset.
 
-```{r plot, echo=FALSE, message=FALSE, fig.width=8.5, fig.height=6}
-speeds <- speeds[, Factor := Size / memSize]
+```{r multi-threading, fig.width = 10,  fig.height = 8, echo = FALSE}
+speed_results[Package %in% c("baseR", "feather"), Threads := 1]
+speed_results[, Threads := as.factor(Threads)]
+speed_results[, Speed := 0.001 * Speed]
+speed_results[, NrOfRows := ifelse(NrOfRows == 1e7, "1 million rows", "10 million rows")]
 
-ggplot(speeds) +
-  geom_smooth(aes(Compression, 100 * Factor, colour = Methods)) +
-  geom_point(aes(Compression, 100 * Factor, colour = Methods, shape = Methods), size = 2) +
-  ylab("Percentage of in-memory size") +
-  ylim(0, NA)
+
+fig_results <- speed_results[, .(Speed = median(Speed)), by = "Package,Mode,NrOfRows,Threads"]
+
+ggplot(fig_results) +
+  geom_bar(aes(Package, Speed, fill = Threads),
+    stat = "identity", position = "dodge", width = 0.8) +
+  facet_grid(Mode ~ NrOfRows, scales = "free_y") +
+  scale_fill_manual(values = colorRampPalette(c("#FBE3A5", "#433B54"))(10)[10:3]) +
+  ylab("Read or write speed in GB/s") +
+  theme_minimal()
 ```
 
-Note that the on-disk size of a csv file is usually larger than the in-memory size (here with a factor of about 2). Obviously, csv files are text-based and it's no surprise that deserializing from text-based sources takes more time (due to neccessary text parsing). For a non-binary-file writer, method `fwrite` from the `data.table` package actually has a very impressive performance! There are only 10 settings for compression in `saveRDS` (gzip mode), which have been scaled up from 0 (uncompressed) to 100 (setting 9) for easier comparison.
+The _csv_ format used by the _fread_ and _fwrite_ methods of package _data.table_ is actually a human-readable text format and not a binary format. Normally, binary formats would be much faster than the _csv_ format, because _csv_ takes more space on disk, is row based, uncompressed and needs to be parsed into a computer-native format to have any meaning. So any serializer that's working on _csv_ has an enormous disadvantage as compared to binary formats. Yet, the results show that _data.table_ is on par with binary formats and when more threads are used, it can even be faster. Because of this impressive performance, it was included in the graph for comparison.
 
-The read and write speeds measured in the same benchmark:
+## Bindings in other languages
 
-```{r benchmark, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.width=8.5, fig.height=6}
-speeds[, MaxCompression := max(Compression), by = "Package"]
+**Julia**: [**`fstformat.jl`**][fstformatRepo] A naive Julia binding using RCall.jl
 
-ggplot(speeds[MaxCompression > 0]) +
-  geom_smooth(aes(Compression, Speed, colour = Package), size = 1) +
-  geom_point(aes(Compression, Speed, colour = Package), size = 0.7) +
-  facet_wrap(~ Mode, 1) +
-  ylim(0, NA) + ylab("Read / Write speed (MB/s)") + xlab("Compression setting")
-```
+> **Note to users**: From CRAN release v0.8.0, the _fst_ format is stable and backwards compatible. That means that all _fst_ files generated with package v0.8.0 or later can be read by future versions of the package.
 
-The read and write speeds reported in the figure are calculated by dividing the in-memory size of the data frame by the measured elapsed time for a read or write operation (more details will follow). As you can see, `fst` achieves very high read and write speeds, even for compressed data. For this benchmark, a Intel Xeon E5 CPU was used, running  at 2.5 GHz. To cope with the large IO speeds, a OCZ RevoDrive 350 was used with maximum read and write speeds of around 1750 MB/s.
-
-As you can see from the figure, the benchmark measures higher speeds than the reported maximum SSD speed for low compression settings. This is due to the fact that the on-disk filesize of the data frame used is actually significantly smaller than the in-memory size, even at a compression setting of zero. Package `fst` employs several type-specific byte- and bit- shifters that are used even in uncompressed mode. For example, a single logical value in R takes up 32 bits in memory, and only 2 bits on-disk (there are 3 possible values: `TRUE`, `FALSE`, and `NA`).
-
-
-> **Note to users**: The binary format used for data storage by the package (the 'fst file format') is expected to evolve in the coming months. Therefore, **`fst` should not be used for long-term data storage**.
 
 [fstRepo]: https://github.com/fstpackage/fst
 [lz4Repo]: https://github.com/lz4/lz4
 [zstdRepo]: https://github.com/facebook/zstd
+[fstformatRepo]: https://github.com/xiaodaigh/fstformat.jl
