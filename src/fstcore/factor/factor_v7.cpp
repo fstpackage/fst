@@ -55,6 +55,10 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
   unsigned int* nrOfLevels = reinterpret_cast<unsigned int*>(&meta[4]);
   unsigned long long* levelVecPos = reinterpret_cast<unsigned long long*>(&meta[8]);
 
+  *versionNr = 0;
+  *nrOfLevels = 0;
+  *levelVecPos = 0;
+
   // Use blockrunner to store factor levels if length > 0
   if (nrOfFactorLevels > 0)
   {
@@ -72,7 +76,7 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
   else
   {
 	  // With zero levels all data values must be zero. Therefore, we only need to
- 	  // add the vector length to have enough information. 
+ 	  // add the vector length to have enough information.
 	  // (see also https://github.com/fstpackage/fst/issues/56)
 	  *nrOfLevels = 0;
 	  *versionNr = VERSION_NUMBER_FACTOR;
@@ -129,8 +133,10 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
       streamCompressor->CompressBufferSize(blockSize);
 
       fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(intP), nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation, hasAnnotation);
-      delete defaultCompress;
+
       delete streamCompressor;
+      delete compress2;
+      delete defaultCompress;
 
       return;
     }
@@ -142,9 +148,10 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
     streamCompressor->CompressBufferSize(blockSize);
 
     fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(intP), nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation, hasAnnotation);
-    delete defaultCompress;
-    delete compress2;
+
     delete streamCompressor;
+    delete compress2;
+    delete defaultCompress;
 
     return;
   }
@@ -160,8 +167,10 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
       streamCompressor->CompressBufferSize(blockSize);
 
       fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(intP), nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation, hasAnnotation);
-      delete defaultCompress;
+
       delete streamCompressor;
+      delete compress2;
+      delete defaultCompress;
 
       return;
     }
@@ -173,9 +182,10 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
     streamCompressor->CompressBufferSize(blockSize);
 
     fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(intP), nrOfRows, 4, streamCompressor, BLOCKSIZE_INT, annotation, hasAnnotation);
-    delete defaultCompress;
-    delete compress2;
+
     delete streamCompressor;
+    delete compress2;
+    delete defaultCompress;
 
     return;
   }

@@ -973,7 +973,6 @@ unsigned int ZSTD_INT_TO_BYTE_C(char* dst, unsigned int dstCapacity, const char*
 
   // Compress buffer
   char buf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
-  // char buf[nrOfLongs * 8];
 
   CompactIntToByte(buf, src, srcSize / 4);
 
