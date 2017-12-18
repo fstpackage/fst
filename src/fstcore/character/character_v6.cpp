@@ -92,7 +92,6 @@ inline unsigned int storeCharBlockCompressed_v6(ofstream& myfile, IStringWriter*
   // Compress buffer
   int resSize = charCompressor->Compress(blockRunner->activeBuf, totSize, compBuf, compAlgorithm, blockNr);
   myfile.write(compBuf, resSize);
-  //charCompressor->WriteBlock(myfile, stringWriter->activeBuf, compBuf);
 
   algoChar = static_cast<unsigned short int>(compAlgorithm); // store selected algorithm
 

@@ -49,6 +49,8 @@
 
 * No warning was given when disk runs out of space during a `fstwrite` operation.
 
+* A data.table warning message was given on modification of columns of a sorted table. _Thanks @martinblostein._
+
 * Stack imbalance warnings under centain conditions. _Thanks @ryankennedyio_
 
 #### Benchmarks

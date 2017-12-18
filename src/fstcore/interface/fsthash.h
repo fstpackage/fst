@@ -35,7 +35,7 @@
 #include "interface/itypefactory.h"
 #include "interface/openmphelper.h"
 
-#include "ZSTD/common/xxhash.h"
+#include "LZ4/xxhash.h"
 
 
 class FstHasher
