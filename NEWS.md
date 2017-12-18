@@ -1,10 +1,6 @@
 
 **If you are viewing this file on CRAN, please check latest news on GitHub [here](https://github.com/fstpackage/fst/blob/develop/NEWS.md).**
 
-### Changes in v0.8.3 (in development)
-
-
-
 ### Changes in v0.8.2
 
 #### New features
@@ -52,6 +48,8 @@
 * Error/crash when saving factor column with 0 factor levels. _Thanks @martinblostein._
 
 * No warning was given when disk runs out of space during a `fstwrite` operation.
+
+* A data.table warning message was given on modification of columns of a sorted table. _Thanks @martinblostein._
 
 * Stack imbalance warnings under centain conditions. _Thanks @ryankennedyio_
 

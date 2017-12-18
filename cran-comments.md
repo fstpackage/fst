@@ -40,10 +40,9 @@ C++ sources (which causes the  gcc 5.2 build on Solaris to fail)
 
 There were no ERRORs or WARNINGs.
 
-On r-devel-linux-x86_64-fedora-gcc there is a note:
+On CRAN r-devel-linux-x86_64-fedora-gcc there is a note:
    'installed size is 6.8Mb'.
-   The install size on different platforms vary significantly; from 1.42 MB (windows 10) to 6.8 MB on fedora and only on fedora is the size larger than 5 MB.
-
+The install size on different platforms varies significantly; from 1.42 MB (windows 10) to 6.8 MB on fedora (only the fedora build reports a size larger than 5 MB).
 
 ## Downstream dependencies
 
