@@ -36,6 +36,8 @@
 // #include <boost/unordered_map.hpp>
 
 #include <zstd.h>
+
+#define LZ4_DISABLE_DEPRECATE_WARNINGS  // required for Clang++6.0 compiler error
 #include <lz4.h>
 
 

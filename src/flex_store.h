@@ -27,8 +27,6 @@
 
 #include <Rcpp.h>
 
-#define FST_VERSION 1  // version number of the fst package (odd numbers are dev versions)
-
 
 // [[Rcpp::export]]
 SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression, SEXP uniformEncoding);
