@@ -161,7 +161,7 @@ inline unsigned int ReadHeader(ifstream &myfile, int &keyLength, int &nrOfColsFi
   //char* p_freeBytes                      = reinterpret_cast<char*>(&tableMeta[44]);
 
   // check header hash
-  unsigned long long hHash = XXH64(&tableMeta[8], TABLE_META_SIZE - 8, FST_HASH_SEED);  // skip first 8 bytes (hash value itself)
+  const unsigned long long hHash = XXH64(&tableMeta[8], TABLE_META_SIZE - 8, FST_HASH_SEED);  // skip first 8 bytes (hash value itself)
 
   if (hHash != *p_headerHash)
   {
@@ -183,7 +183,7 @@ inline unsigned int ReadHeader(ifstream &myfile, int &keyLength, int &nrOfColsFi
 }
 
 
-inline void SetKeyIndex(vector<int> &keyIndex, int keyLength, int nrOfSelect, int* keyColPos, int* colIndex)
+inline void SetKeyIndex(vector<int> &keyIndex, const int keyLength, const int nrOfSelect, int* keyColPos, int* colIndex)
 {
   for (int i = 0; i < keyLength; ++i)
   {
@@ -209,11 +209,11 @@ inline void SetKeyIndex(vector<int> &keyIndex, int keyLength, int nrOfSelect, in
  * \param fstTable interface to a dataset
  * \param compress compression factor in the range 0 - 100 
  */
-void FstStore::fstWrite(IFstTable &fstTable, int compress) const
+void FstStore::fstWrite(IFstTable &fstTable, const int compress) const
 {
   // Meta on dataset
-  int nrOfCols =  fstTable.NrOfColumns();  // number of columns in table
-  int keyLength = fstTable.NrOfKeys();  // number of key columns in table
+  const int nrOfCols =  fstTable.NrOfColumns();  // number of columns in table
+  const int keyLength = fstTable.NrOfKeys();  // number of key columns in table
 
   if (nrOfCols == 0)
   {
@@ -221,7 +221,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
   }
 
 
-  unsigned long long tableHeaderSize    = TABLE_META_SIZE;
+  const unsigned long long tableHeaderSize    = TABLE_META_SIZE;
   unsigned long long keyIndexHeaderSize = 0;
 
   if (keyLength != 0)
@@ -230,13 +230,13 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
     keyIndexHeaderSize = (keyLength % 2) * 4 + 4 * (keyLength + 2);
   }
 
-  unsigned long long chunksetHeaderSize = CHUNKSET_HEADER_SIZE + 8 * nrOfCols;
-  unsigned long long colNamesHeaderSize = 24;
+  const unsigned long long chunksetHeaderSize = CHUNKSET_HEADER_SIZE + 8 * nrOfCols;
+  const unsigned long long colNamesHeaderSize = 24;
 
   // size of fst file header
-  unsigned long long metaDataSize     = tableHeaderSize + keyIndexHeaderSize + chunksetHeaderSize + colNamesHeaderSize;
-  char * metaDataWriteBlock           = new char[metaDataSize];  // fst metadata
-  std::unique_ptr<char[]> metaDataPtr = std::unique_ptr<char[]>(metaDataWriteBlock);
+  const unsigned long long metaDataSize   = tableHeaderSize + keyIndexHeaderSize + chunksetHeaderSize + colNamesHeaderSize;
+  char * metaDataWriteBlock               = new char[metaDataSize];  // fst metadata
+  std::unique_ptr<char[]> metaDataPtr     = std::unique_ptr<char[]>(metaDataWriteBlock);
 
 
   // Table header [node A] [size: 48]
@@ -289,7 +289,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
 
   // Determine integer endianness
   int endianTest = 0x01234567;
-  bool isLittleEndian = (*reinterpret_cast<uint8_t*>(&endianTest)) == 0x67;
+  const bool isLittleEndian = (*reinterpret_cast<uint8_t*>(&endianTest)) == 0x67;
 
   // Set table header parameters
   
@@ -325,7 +325,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
   *p_primChunksetIndex     = 0;
   *p_secChunksetIndex      = 0;
 
-  unsigned long long nrOfRows = fstTable.NrOfRows();
+  const unsigned long long nrOfRows = fstTable.NrOfRows();
   *p_nrOfRows                 = nrOfRows;
   *p_nrOfChunksetCols         = nrOfCols;
   *p_freeBytes4               = 0;
@@ -373,7 +373,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
   }
 
   // Size of chunkset index header plus data chunk header
-  unsigned long long chunkIndexSize     = CHUNK_INDEX_SIZE + DATA_INDEX_SIZE + 8 * nrOfCols;
+  const unsigned long long chunkIndexSize = CHUNK_INDEX_SIZE + DATA_INDEX_SIZE + 8 * nrOfCols;
   char* chunkIndex = new char[chunkIndexSize];
   std::unique_ptr<char[]> chunkIndexPtr = std::unique_ptr<char[]>(chunkIndex);
 
@@ -427,7 +427,7 @@ void FstStore::fstWrite(IFstTable &fstTable, int compress) const
     bool hasAnnotation;
 
   	// get type and add annotation
-    FstColumnType colType = fstTable.ColumnType(colNr, colAttribute, scale, annotation, hasAnnotation);
+    const FstColumnType colType = fstTable.ColumnType(colNr, colAttribute, scale, annotation, hasAnnotation);
 
     colBaseTypes[colNr] = static_cast<unsigned short int>(colType);
   	colAttributeTypes[colNr] = static_cast<unsigned short int>(colAttribute);
@@ -552,9 +552,9 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
     keyIndexHeaderSize = (keyLength % 2) * 4 + 4 * (keyLength + 2);
   }
 
-  unsigned long long chunksetHeaderSize = CHUNKSET_HEADER_SIZE + 8 * nrOfCols;
-  unsigned long long colNamesHeaderSize = 24;
-  unsigned long long metaSize = keyIndexHeaderSize + chunksetHeaderSize + colNamesHeaderSize;
+  const unsigned long long chunksetHeaderSize = CHUNKSET_HEADER_SIZE + 8 * nrOfCols;
+  const unsigned long long colNamesHeaderSize = 24;
+  const unsigned long long metaSize = keyIndexHeaderSize + chunksetHeaderSize + colNamesHeaderSize;
 
   // Read format headers
   metaDataBlockP = std::unique_ptr<char[]>(new char[metaSize]);
@@ -567,7 +567,7 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
     keyColPos = reinterpret_cast<int*>(&metaDataBlock[8]);  // equals nullptr if there are no keys
 
     unsigned long long* p_keyIndexHash = reinterpret_cast<unsigned long long*>(metaDataBlock);
-    unsigned long long hHash = XXH64(&metaDataBlock[8], keyIndexHeaderSize - 8, FST_HASH_SEED);
+    const unsigned long long hHash = XXH64(&metaDataBlock[8], keyIndexHeaderSize - 8, FST_HASH_SEED);
 
     if (*p_keyIndexHash != hHash)
     {
@@ -596,7 +596,7 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
   colBaseTypes                            = reinterpret_cast<unsigned short int*>(&metaDataBlock[keyIndexHeaderSize + 80 + 4 * nrOfCols]);
   colScales                               = reinterpret_cast<unsigned short int*>(&metaDataBlock[keyIndexHeaderSize + 80 + 6 * nrOfCols]);
 
-  unsigned long long chunksetHash = XXH64(&metaDataBlock[keyIndexHeaderSize + 8], chunksetHeaderSize - 8, FST_HASH_SEED);
+  const unsigned long long chunksetHash = XXH64(&metaDataBlock[keyIndexHeaderSize + 8], chunksetHeaderSize - 8, FST_HASH_SEED);
   if (*p_chunksetHash != chunksetHash)
   {
     myfile.close();
@@ -605,13 +605,13 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
 
   // Column names header
 
-  unsigned long long offset = keyIndexHeaderSize + chunksetHeaderSize;
+  const unsigned long long offset = keyIndexHeaderSize + chunksetHeaderSize;
   unsigned long long* p_colNamesHash = reinterpret_cast<unsigned long long*>(&metaDataBlock[offset]);
   //unsigned int* p_colNamesVersion = reinterpret_cast<unsigned int*>(&metaDataBlock[offset + 8]);
   //int* p_colNamesFlags = reinterpret_cast<int*>(&metaDataBlock[offset + 12]);
   //unsigned long long* p_freeBytes4 = reinterpret_cast<unsigned long long*>(&metaDataBlock[16]);
 
-  unsigned long long colNamesHash = XXH64(&metaDataBlock[offset + 8], colNamesHeaderSize - 8, FST_HASH_SEED);
+  const unsigned long long colNamesHash = XXH64(&metaDataBlock[offset + 8], colNamesHeaderSize - 8, FST_HASH_SEED);
 
   if (*p_colNamesHash != colNamesHash)
   {
@@ -620,7 +620,7 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
   }
 
   // Read column names
-  unsigned long long colNamesOffset = metaSize + TABLE_META_SIZE;
+  const unsigned long long colNamesOffset = metaSize + TABLE_META_SIZE;
 
   blockReaderP = std::unique_ptr<IStringColumn>(columnFactory->CreateStringColumn(nrOfCols, FstColumnAttribute::NONE));
   blockReader = blockReaderP.get();
@@ -632,7 +632,7 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
 }
 
 
-void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, long long startRow, long long endRow,
+void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, const long long startRow, const long long endRow,
   IColumnFactory* columnFactory, vector<int> &keyIndex, IStringArray* selectedCols)
 {
   // fst file stream using a stack buffer
@@ -656,9 +656,9 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
     keyIndexHeaderSize = (keyLength % 2) * 4 + 4 * (keyLength + 2);
   }
 
-  unsigned long long chunksetHeaderSize = CHUNKSET_HEADER_SIZE + 8 * nrOfCols;
-  unsigned long long colNamesHeaderSize = 24;
-  unsigned long long metaSize = keyIndexHeaderSize + chunksetHeaderSize + colNamesHeaderSize;
+  const unsigned long long chunksetHeaderSize = CHUNKSET_HEADER_SIZE + 8 * nrOfCols;
+  const unsigned long long colNamesHeaderSize = 24;
+  const unsigned long long metaSize = keyIndexHeaderSize + chunksetHeaderSize + colNamesHeaderSize;
 
   // Read format headers
   metaDataBlockP = std::unique_ptr<char[]>(new char[metaSize]);
@@ -671,7 +671,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
   if (keyLength != 0)
   {
     unsigned long long* p_keyIndexHash = reinterpret_cast<unsigned long long*>(metaDataBlock);
-    unsigned long long hHash = XXH64(&metaDataBlock[8], keyIndexHeaderSize - 8, FST_HASH_SEED);
+    const unsigned long long hHash = XXH64(&metaDataBlock[8], keyIndexHeaderSize - 8, FST_HASH_SEED);
 
     if (*p_keyIndexHash != hHash)
     {
@@ -702,7 +702,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
   colBaseTypes                            = reinterpret_cast<unsigned short int*>(&metaDataBlock[keyIndexHeaderSize + CHUNKSET_HEADER_SIZE + 4 * nrOfCols]);
   colScales                               = reinterpret_cast<unsigned short int*>(&metaDataBlock[keyIndexHeaderSize + CHUNKSET_HEADER_SIZE + 6 * nrOfCols]);
 
-  unsigned long long chunksetHash = XXH64(&metaDataBlock[keyIndexHeaderSize + 8], chunksetHeaderSize - 8, FST_HASH_SEED);
+  const unsigned long long chunksetHash = XXH64(&metaDataBlock[keyIndexHeaderSize + 8], chunksetHeaderSize - 8, FST_HASH_SEED);
   if (*p_chunksetHash != chunksetHash)
   {
     myfile.close();
@@ -711,13 +711,13 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
 
   // Column names header
 
-  unsigned long long offset          = keyIndexHeaderSize + chunksetHeaderSize;
+  const unsigned long long offset          = keyIndexHeaderSize + chunksetHeaderSize;
   unsigned long long* p_colNamesHash = reinterpret_cast<unsigned long long*>(&metaDataBlock[offset]);
   //unsigned int* p_colNamesVersion    = reinterpret_cast<unsigned int*>(&metaDataBlock[offset + 8]);
   //int* p_colNamesFlags               = reinterpret_cast<int*>(&metaDataBlock[offset + 12]);
   //unsigned long long* p_freeBytes5   = reinterpret_cast<unsigned long long*>(&metaDataBlock[offset + 16]);
 
-  unsigned long long colNamesHash = XXH64(&metaDataBlock[offset + 8], colNamesHeaderSize - 8, FST_HASH_SEED);
+  const unsigned long long colNamesHash = XXH64(&metaDataBlock[offset + 8], colNamesHeaderSize - 8, FST_HASH_SEED);
   if (*p_colNamesHash != colNamesHash)
   {
     myfile.close();
@@ -726,7 +726,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
 
   // Column names
 
-  unsigned long long colNamesOffset = metaSize + TABLE_META_SIZE;
+  const unsigned long long colNamesOffset = metaSize + TABLE_META_SIZE;
 
   blockReaderP = std::unique_ptr<IStringColumn>(columnFactory->CreateStringColumn(nrOfCols, FstColumnAttribute::NONE));
   blockReader = blockReaderP.get();
@@ -734,7 +734,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
   fdsReadCharVec_v6(myfile, blockReader, colNamesOffset, 0, static_cast<unsigned int>(nrOfCols), static_cast<unsigned int>(nrOfCols));
 
   // Size of chunkset index header plus data chunk header
-  unsigned long long chunkIndexSize     = CHUNK_INDEX_SIZE + DATA_INDEX_SIZE + 8 * nrOfCols;
+  const unsigned long long chunkIndexSize = CHUNK_INDEX_SIZE + DATA_INDEX_SIZE + 8 * nrOfCols;
   char* chunkIndex = new char[chunkIndexSize];
   std::unique_ptr<char[]> chunkIndexPtr = std::unique_ptr<char[]>(chunkIndex);
 
@@ -762,7 +762,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
 
   // Check chunk hashes
 
-  unsigned long long chunkIndexHash = XXH64(&chunkIndex[8], CHUNK_INDEX_SIZE - 8, FST_HASH_SEED);
+  const unsigned long long chunkIndexHash = XXH64(&chunkIndex[8], CHUNK_INDEX_SIZE - 8, FST_HASH_SEED);
 
   if (*p_chunkIndexHash != chunkIndexHash)
   {
@@ -770,7 +770,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
     throw(runtime_error(FSTERROR_DAMAGED_CHUNKINDEX));
   }
 
-  unsigned long long chunkDataHash = XXH64(&chunkIndex[CHUNK_INDEX_SIZE + 8], chunkIndexSize - (CHUNK_INDEX_SIZE + 8), FST_HASH_SEED);
+  const unsigned long long chunkDataHash = XXH64(&chunkIndex[CHUNK_INDEX_SIZE + 8], chunkIndexSize - (CHUNK_INDEX_SIZE + 8), FST_HASH_SEED);
 
   if (*p_chunkDataHash != chunkDataHash)
   {
@@ -834,8 +834,8 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
 
 
   // Check range of selected rows
-  long long firstRow = startRow - 1;
-  unsigned long long nrOfRows = *p_chunkRows;  // TODO: check for row numbers > INT_MAX !!!
+  const long long firstRow = startRow - 1;
+  const unsigned long long nrOfRows = *p_chunkRows;  // TODO: check for row numbers > INT_MAX !!!
 
   if (firstRow >= static_cast<long long>(nrOfRows) || firstRow < 0)
   {
@@ -868,7 +868,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
 
   for (int colSel = 0; colSel < nrOfSelect; ++colSel)
   {
-    int colNr = colIndex[colSel];
+    const int colNr = colIndex[colSel];
 
     if (colNr < 0 || colNr >= nrOfCols)
     {
@@ -876,8 +876,8 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, lo
       throw(runtime_error("Column selection is out of range."));
     }
 
-    unsigned long long pos = blockPos[colNr];
-    short int scale = colScales[colNr];
+    const unsigned long long pos = blockPos[colNr];
+    const short int scale = colScales[colNr];
 
     switch (colTypes[colNr])
     {

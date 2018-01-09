@@ -12,13 +12,12 @@ test_that("Package Style", {
   lints <- lints[!(names(lints) %in%
     c("object_usage_linter", "camel_case_linter", "commas_linter", "multiple_dots_linter"))]
 
-  codeFiles <- list.files("../..", "R$", full.names = TRUE, recursive = TRUE)
+  codeFiles <- list.files(
+    c("../../R", "../../tests"), "R$", full.names = TRUE, recursive = TRUE)
 
   # manualy remove RcppExports file and few generated files (e.g. by codecov())
   codeFiles <- codeFiles[!(codeFiles %in%
-    c("../../R/RcppExports.R",
-      "../../fst-Ex.R",
-      "../../00_pkg_src/fst/R/RcppExports.R"))]
+    c("../../R/RcppExports.R"))]
 
   # Calculate lintr results for all code files
   lintResults <- lintr:::flatten_lints(lapply(codeFiles, function(file) {
@@ -40,6 +39,8 @@ test_that("Package Style", {
       function(lintRes) {
         paste(lintRes$filename, " (", lintRes$line_number, "): ", lintRes$message)
       })
+
+    print(lintResults)
   }
 
   expect_true(length(lintResults) == 0, paste(lintResults, sep = "\n", collapse = "\n"))
