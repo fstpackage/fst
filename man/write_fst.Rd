@@ -22,7 +22,8 @@ read.fst(path, columns = NULL, from = 1, to = NULL,
 
 \item{path}{path to fst file}
 
-\item{compress}{value in the range 0 to 100, indicating the amount of compression to use.}
+\item{compress}{value in the range 0 to 100, indicating the amount of compression to use.
+Lower values mean larger file sizes.}
 
 \item{uniform_encoding}{If TRUE, all character vectors will be assumed to have elements with equal encoding.
 The encoding (latin1, UTF8 or native) of the first non-NA element will used as encoding for the whole column.
@@ -43,7 +44,7 @@ dataset \code{x} before writing will be retained. This allows for storage of sor
 \item{old_format}{use TRUE to read fst files generated with a fst package version lower than v0.8.0}
 }
 \value{
-\code{read_fst} returns a data frame with the selected columns and rows. \code{read_fst})
+\code{read_fst} returns a data frame with the selected columns and rows. \code{read_fst}
 invisibly returns \code{x} (so you can use this function in a pipeline).
 }
 \description{
