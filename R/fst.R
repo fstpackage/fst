@@ -98,13 +98,15 @@ metadata_fst <- function(path, old_format = FALSE) {
     stop("A logical value is expected for parameter 'old_format'.")
   }
 
-  metadata <- fstmetadata(normalizePath(path, mustWork = TRUE), old_format)
+  full_path <- normalizePath(path, mustWork = TRUE)
+
+  metadata <- fstmetadata(full_path, old_format)
 
   if (inherits(metadata, "fst_error")) {
     stop(metadata)
   }
 
-  colInfo <- list(path = path, nrOfRows = metadata$nrOfRows,
+  colInfo <- list(path = full_path, nrOfRows = metadata$nrOfRows,
     keys = metadata$keyNames, columnNames = metadata$colNames,
     columnBaseTypes = metadata$colBaseType, keyColIndex = metadata$keyColIndex,
     columnTypes = metadata$colType)
@@ -117,7 +119,8 @@ metadata_fst <- function(path, old_format = FALSE) {
 #' @export
 print.fstmetadata <- function(x, ...) {
   cat("<fst file>\n")
-  cat(x$nrOfRows, " rows, ", length(x$columnNames), " columns (", x$path,
+
+  cat(x$nrOfRows, " rows, ", length(x$columnNames), " columns (", basename(x$path),
     ")\n\n", sep = "")
 
   types <- c("unknown", "character", "factor", "ordered factor", "integer", "POSIXct", "difftime",

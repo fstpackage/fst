@@ -110,7 +110,7 @@ test_that("Read legacy format", {
     expect_equal(res, res_legacy)
 
     expect_equal(res, paste(
-      "<fst file>\n1000 rows, 12 columns (datasets/legacy.fst)\n",
+      "<fst file>\n1000 rows, 12 columns (legacy.fst)\n",
       "* 'Xint'        : integer",
       "* 'Ylog'        : logical",
       "* 'Zdoub'       : double",
