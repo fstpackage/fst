@@ -119,7 +119,6 @@ metadata_fst <- function(path, old_format = FALSE) {
 #' @export
 print.fstmetadata <- function(x, ...) {
   cat("<fst file>\n")
-
   cat(x$nrOfRows, " rows, ", length(x$columnNames), " columns (", basename(x$path),
     ")\n\n", sep = "")
 

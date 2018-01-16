@@ -2,7 +2,6 @@
 % Please edit documentation in R/package.R
 \docType{package}
 \name{fst-package}
-\alias{fst}
 \alias{fst-package}
 \title{Lightning Fast Serialization of Data Frames for R.}
 \description{
@@ -81,22 +80,4 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-}
-\seealso{
-Useful links:
-\itemize{
-  \item \url{https://fstpackage.github.io}
-  \item Report bugs at \url{https://github.com/fstpackage/fst/issues}
-}
-
-}
-\author{
-\strong{Maintainer}: Mark Klik \email{markklik@gmail.com} [copyright holder]
-
-Other contributors:
-\itemize{
-  \item Yann Collet (Yann Collet is author of the bundled LZ4 and ZSTD code and copyright holder of LZ4) [contributor, copyright holder]
-  \item Facebook, Inc. (Bundled ZSTD code) [copyright holder]
-}
-
 }
