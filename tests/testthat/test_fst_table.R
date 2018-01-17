@@ -28,6 +28,18 @@ test_that("fst_table returns a fst_table class object", {
 test_that("fst_table has basic data.frame interface", {
   expect_equal(as.data.frame(x), as.data.frame(df))
 
+  expect_equal(x[2], df[2])
+
+  expect_equal(x[2.6], df[2.6])
+
+  expect_equal(x[TRUE], df[TRUE])
+
+  expect_equal(x[c(1.1, 2)], df[c(1.1, 2)])
+
+  expect_equal(x[c(TRUE, FALSE)], df[c(TRUE, FALSE)])
+
+  expect_equal(x[c(TRUE, FALSE, TRUE)], df[c(TRUE, FALSE, TRUE)])
+
   expect_equal(as.data.frame(x, row.names = LETTERS), as.data.frame(df, row.names = LETTERS))
 
   expect_equal(as.list(x), as.list(df))
@@ -62,10 +74,62 @@ test_that("fst_table has basic data.frame interface", {
 })
 
 
-test_that("fst_table throws errors on incorrect use of interface", {
-  expect_error(x[[c("X", 3)]], "subscript out of bounds")
+test_that("fst_table [ generic", {
 
-  expect_error(x[[c("X", 3)]], "subscript out of bounds")
+  # '[' generic with 2 arguments
+
+  expect_equal(x[], df[])
+
+  expect_equal(x[2], df[2])
+
+  expect_equal(x[i = 2], df[2])
+
+  expect_equal(x[j = 2], df[2])
+
+  expect_equal(x[drop = FALSE], df[,])
+
+  # '[' generic with 3 arguments
+
+  expect_equal(x[,], df[,])
+
+  expect_equal(x[,2:3], df[, 2:3])
+
+  expect_equal(x[j = 2:3, drop = FALSE], df[, 2:3])
+
+  expect_equal(x[i = 2:1, drop = FALSE], df[, 2:1])
+
+  expect_equal(as.list(x[2,]), as.list(df[2,]))
+
+  expect_equal(as.list(x[2:10,]), as.list(df[2:10,]))
+
+  expect_equal(x[2, drop = FALSE], df[2])
+
+  expect_equal(as.list(x[2, 1:3]), as.list(df[2, 1:3]))
+
+  # '[' generic with 4 arguments
+
+  expect_equal(x[,, drop = FALSE], df[])
+
+  expect_equal(x[,,], df[])
+
+  expect_equal(x[j = 2, drop = FALSE], df[2])
+})
+
+
+test_that("fst_table throws errors on incorrect use of interface", {
+  expect_error(x[[c("X", 3)]], "Subscript out of bounds")
+
+  expect_error(x[[c("X", 3)]], "Subscript out of bounds")
+
+  expect_error(x[4], "Subscript out of bounds")
+
+  expect_error(x[5.3], "Subscript out of bounds")
+
+  expect_error(x[c(1, NA, 2)], "Subscript out of bounds")
+
+  expect_error(x[c(1.1, NA, 2)], "Subscript out of bounds")
+
+  expect_error(x[c(TRUE, NA)], "Subscript out of bounds")
 
   expect_error(x[[as.integer(NULL)]], "Please use a length one integer or")
 

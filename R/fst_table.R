@@ -119,7 +119,7 @@ print.fst_table <- function(x, ...) {
     }
 
     if (is.character(j)) {
-      stop("subscript out of bounds.", call. = FALSE)
+      stop("Subscript out of bounds.", call. = FALSE)
     }
 
     # check row number
@@ -195,11 +195,131 @@ print.fst_table <- function(x, ...) {
 #' @export
 as.data.frame.fst_table <- function(x, row.names = NULL, optional = FALSE, ...) {
   meta_info <- .subset2(x, "meta")
-  as.data.frame(read_fst(meta_info$path), row.names, optional, ...)
+  as.data.frame(read_fst(meta_info$path, old_format = .subset2(x, "old_format")), row.names, optional, ...)
 }
-
 
 #' @export
 as.list.fst_table <- function(x, ...) {
   as.list(as.data.frame(x))
+}
+
+
+.column_indexes_fst <- function(meta_info, j) {
+
+  # test correct column names
+  if (is.character(j) ) {
+    wrong <- !(j %in% meta_info$columnNames)
+
+    if (any(wrong)) {
+      names <- j[wrong]
+      stop(sprintf("Undefined columns: %s", paste(names, collapse = ", ")))
+    }
+  } else if (is.logical(j)) {
+
+    if (any(is.na(j))) {
+      stop("Subscript out of bounds.", call. = FALSE)
+    }
+
+    j <- meta_info$columnNames[j]
+  } else if (is.numeric(j)) {
+    if (any(is.na(j))) {
+      stop("Subscript out of bounds.", call. = FALSE)
+    }
+
+    if (any(j <= 0)) {
+      stop("Only positive column indexes supported.", call. = FALSE)
+    }
+
+    if (any(j > length(meta_info$columnBaseTypes))) {
+      stop("Subscript out of bounds.", call. = FALSE)
+    }
+
+    j <- meta_info$columnNames[j]
+  }
+
+  j
+}
+
+
+#' @export
+`[.fst_table` <- function(x, i, j, drop = FALSE) {
+  if (drop) {
+    warning("drop ignored", call. = FALSE)
+  }
+
+  meta_info <- .subset2(x, "meta")
+
+  # when only i is present, we do a column subsetting
+
+  if (missing(i) && missing(j)) {
+    return(read_fst(meta_info$path, old_format = .subset2(x, "old_format")))
+  }
+
+  if (nargs() <= 2) {
+
+    # return full table
+    if (missing(i)) {
+      # we have a j
+      j <- .column_indexes_fst(meta_info, j)
+      return(read_fst(meta_info$path, j, old_format = .subset2(x, "old_format")))
+    }
+
+    # i is interpreted as j
+    j <- .column_indexes_fst(meta_info, i)
+    return(read_fst(meta_info$path, j, old_format = .subset2(x, "old_format")))
+  }
+
+  # return all rows
+
+  # special case where i is interpreted as j: select all rows
+  if (nargs() == 3 && !missing(drop) && !missing(i)) {
+    j <- .column_indexes_fst(meta_info, i)
+    return(read_fst(meta_info$path, j, old_format = .subset2(x, "old_format")))
+  }
+
+  # i and j not reversed
+
+  # full columns
+  if (missing(i)) {
+    j <- .column_indexes_fst(meta_info, j)
+    return(read_fst(meta_info$path, j, old_format = .subset2(x, "old_format")))
+  }
+
+
+  # determine integer vector from i
+  if (!(is.numeric(i) || is.logical(i))) {
+    stop("Row selection should be done using a numeric or logical vector", call. = FALSE)
+  }
+
+  if (is.logical(i)) {
+    i <- which(i)
+  }
+
+  # cast to integer and determine row range
+  i <- as.integer(i)
+  min_row <- min(i)
+  max_row <- max(i)
+
+  # boundary check
+  if (min_row < 0) {
+    stop("Row selection out of range")
+  }
+
+  if (max_row > meta_info$nrOfRows) {
+    stop("Row selection out of range")
+  }
+
+  # column subset
+
+  # select all columns
+  if (missing(j)) {
+    fst_data <- read_fst(meta_info$path, from = min_row, to = max_row, old_format = .subset2(x, "old_format"))
+
+    return(fst_data[1 + i - min_row, ])
+  }
+
+  j <- .column_indexes_fst(meta_info, j)
+  fst_data <- read_fst(meta_info$path, j, from = min_row, to = max_row, old_format = .subset2(x, "old_format"))
+
+  fst_data[1 + i - min_row, ]
 }
