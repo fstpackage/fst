@@ -86,7 +86,7 @@ test_that("preserves dates", {
 
 # ITime
 test_that("preserves time of day", {
-  x <- as.ITime(1:10, NA)
+  x <- as.ITime(c(1:10, NA), origin = "1970-01-01")
   res <- roundtrip_vector(x)
   expect_identical(res, x)
 
