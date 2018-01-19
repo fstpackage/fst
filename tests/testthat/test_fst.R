@@ -58,8 +58,8 @@ datatable <- data.frame(
   Integer64 = as.integer64(sample(c(2345612345679, 10, 8714567890), nrofrows, replace = TRUE)),
   Nanotime = nanotime(sample(1000000:2000000, nrofrows, replace = TRUE)),
   Raw = as.raw(sample(0:255, nrofrows, replace = TRUE)),
-  Difftime = difftime_vec(nrOfrows),
-  DiffTime_int = difftime_vec(nrOfrows, "integer"),
+  Difftime = difftime_vec(nrofrows),
+  DiffTime_int = difftime_vec(nrofrows, "integer"),
   stringsAsFactors = FALSE)
 
 # A write / read cylce for a range of columns and rows
