@@ -47,7 +47,7 @@ int setnrofthreads(SEXP nrOfThreads)
             Default 0 is recommended to use all CPU.");
     }
 
-    return SetFstThreads(*INTEGER(intVal));
+    return ThreadsFst(*INTEGER(intVal));
 }
 
 
@@ -56,7 +56,8 @@ int setnrofthreads(SEXP nrOfThreads)
 
 void when_fork()
 {
-    SetFstThreads(1);
+  // use call to fstlib that does not call any OpenMP library functions internally
+  SetThreads(1);
 }
 
 

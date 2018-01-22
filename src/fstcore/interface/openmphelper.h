@@ -31,10 +31,33 @@
 #endif
 
 
+/**
+ * \brief Get the number of threads used in parallel computations.
+ * \return number of threads used.
+ */
 int GetFstThreads();
 
-int SetFstThreads(int nrOfThreads);
 
+/**
+ * \brief Set the number of threads and query the current number of threads used.
+ * \param nrOfThreads 
+ * \return number of threads to use for parallel computation.
+ */
+int ThreadsFst(int nrOfThreads);
+
+
+/**
+ * \brief Set the number of threads without querying the current number of threads used.
+ * Use this method instead of ThreadsFst when calling from a fork.
+ * \param nrOfThreads number of threads to use for parallel computation.
+ */
+void SetThreads(int nrOfThreads);
+
+
+/**
+ * \brief Check if the library is compiled with OpenMP
+ * \return Returns true if OpenMP is anabled, false otherwise.
+ */
 bool HasOpenMP();
 
 #endif  // OPEN_MP_HELPER_H
