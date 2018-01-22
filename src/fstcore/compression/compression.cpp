@@ -807,7 +807,7 @@ void DecompactShortToInt(const char* compressedVec, char* intVec, unsigned int n
   // Process last integers
   int remain = nrOfInts - nrOfLongs * 4;
 
-  unsigned long long intBuf[2];
+  unsigned long long intBuf[2] {0, 0};
 
   unsigned long long val = vecCompress[nrOfLongs];
   intBuf[0] = ((val >> 16) & byte0) | ( val        & byteNA);
@@ -840,13 +840,6 @@ void CompactIntToShort(char* outVec, const char* intVec, unsigned int nrOfInts)
   int blockIndex = 0;
   for (int i = 0; i != nrOfLongs; ++i)
   {
-    // vecOut[++offset] =
-    // (((vecIn[blockIndex + 3] >> 24) |  vecIn[blockIndex + 3]       ) & byte0) |
-    // (((vecIn[blockIndex + 2] >> 16) | (vecIn[blockIndex + 2] << 8 )) & byte1) |
-    // (((vecIn[blockIndex + 1] >> 8 ) | (vecIn[blockIndex + 1] << 16)) & byte2) |
-    // (((vecIn[blockIndex    ]      ) | (vecIn[blockIndex    ] << 24)) & byte3);
-
-
     vecOut[++offset] =
       (((vecIn[blockIndex + 1]  >> 16) | vecIn[blockIndex + 1]      ) & byte0) |
       (( vecIn[blockIndex    ]         | vecIn[blockIndex    ] << 16) & byte1);
@@ -858,7 +851,7 @@ void CompactIntToShort(char* outVec, const char* intVec, unsigned int nrOfInts)
 
   int remain = nrOfInts - nrOfLongs * 4;
 
-  unsigned long long intBuf[2];
+  unsigned long long intBuf[2] {0, 0};
   memcpy(intBuf, &vecIn[blockIndex], remain * 4);
 
   vecOut[++offset] =
@@ -1044,7 +1037,7 @@ unsigned int ZSTD_INT_TO_SHORT_SHUF2_D(char* dst, unsigned int dstCapacity, cons
   char buf[MAX_SIZE_COMPRESS_BLOCK_HALF];
 
   // Decompress
-  unsigned int errorCode = static_cast<unsigned int>(ZSTD_decompress(static_cast<char*>(buf), 8 * nrOfLongs, src, 8 * nrOfLongs) != compressedSize);
+  unsigned int errorCode = static_cast<unsigned int>(ZSTD_decompress(static_cast<char*>(buf), 8 * nrOfLongs, src, compressedSize) != 8 * nrOfLongs);
 
   DecompactShortToInt(buf, dst, nrOfDstInts);  // one integer per byte
 

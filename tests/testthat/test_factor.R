@@ -67,7 +67,7 @@ test_write_read <- function(dt, offset = 3, cap = 3) {
 }
 
 
-test_that("Multiple sizes of 1-byte factor columns  are stored correctly", {
+test_that("Multiple sizes of 1-byte factor columns are stored correctly", {
   dt <- sample_data(30, 10)
   test_write_read(dt)
   test_write_read(dt[1:8, ])
@@ -76,12 +76,23 @@ test_that("Multiple sizes of 1-byte factor columns  are stored correctly", {
 })
 
 
-test_that("Multiple sizes of 2-byte factor columns  are stored correctly", {
+test_that("Multiple sizes of 2-byte factor columns are stored correctly", {
   dt <- sample_data(30, 257)
   test_write_read(dt)
   test_write_read(dt[1:4, ], 2, 2)
   test_write_read(dt[1:3, ], 1, 1)
   # test large size here ?
+})
+
+
+# with thanks to @martinblostein for tracking the corresponding bug
+# see: https://github.com/fstpackage/fst/issues/128
+test_that("length 1 factor column with 2 byte level vector is stored correctly", {
+  df <- data.frame(a = factor("X1", levels = paste0("X", 1:128)))
+  write_fst(df, "FactorStore/one_row.fst")
+  x <- read_fst("FactorStore/one_row.fst")
+
+  expect_equal(df, x)
 })
 
 
