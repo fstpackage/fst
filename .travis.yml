@@ -15,8 +15,6 @@ matrix:
   exclude:
   - r: release
     os: osx
-  - r: oldrel
-    os: linux
   - r: devel
     os: osx
 

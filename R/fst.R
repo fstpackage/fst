@@ -32,13 +32,14 @@
 #' @param x a data frame to write to disk
 #' @param path path to fst file
 #' @param compress value in the range 0 to 100, indicating the amount of compression to use.
+#'   Lower values mean larger file sizes.
 #' @param uniform_encoding If TRUE, all character vectors will be assumed to have elements with equal encoding.
 #' The encoding (latin1, UTF8 or native) of the first non-NA element will used as encoding for the whole column.
 #' This will be a correct assumption for most use cases.
 #' If \code{uniform.encoding} is set to FALSE, no such assumption will be made and all elements will be converted
 #' to the same encoding. The latter is a relatively expensive operation and will reduce write performance for
 #' character columns.
-#' @return \code{read_fst} returns a data frame with the selected columns and rows. \code{read_fst})
+#' @return \code{read_fst} returns a data frame with the selected columns and rows. \code{read_fst}
 #' invisibly returns \code{x} (so you can use this function in a pipeline).
 #' @examples
 #' # Sample dataset
@@ -97,13 +98,15 @@ metadata_fst <- function(path, old_format = FALSE) {
     stop("A logical value is expected for parameter 'old_format'.")
   }
 
-  metadata <- fstmetadata(normalizePath(path, mustWork = TRUE), old_format)
+  full_path <- normalizePath(path, mustWork = TRUE)
+
+  metadata <- fstmetadata(full_path, old_format)
 
   if (inherits(metadata, "fst_error")) {
     stop(metadata)
   }
 
-  colInfo <- list(path = path, nrOfRows = metadata$nrOfRows,
+  colInfo <- list(path = full_path, nrOfRows = metadata$nrOfRows,
     keys = metadata$keyNames, columnNames = metadata$colNames,
     columnBaseTypes = metadata$colBaseType, keyColIndex = metadata$keyColIndex,
     columnTypes = metadata$colType)
@@ -116,7 +119,7 @@ metadata_fst <- function(path, old_format = FALSE) {
 #' @export
 print.fstmetadata <- function(x, ...) {
   cat("<fst file>\n")
-  cat(x$nrOfRows, " rows, ", length(x$columnNames), " columns (", x$path,
+  cat(x$nrOfRows, " rows, ", length(x$columnNames), " columns (", basename(x$path),
     ")\n\n", sep = "")
 
   types <- c("unknown", "character", "factor", "ordered factor", "integer", "POSIXct", "difftime",

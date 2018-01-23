@@ -279,7 +279,7 @@ List fdsReadCharVec_v1(ifstream &myfile, SEXP &strVec, unsigned long long blockP
   myfile.seekg(blockPos);
 
   // Read algorithm type and block size
-  unsigned int meta[2];
+  unsigned int meta[3];
   myfile.read((char*) meta, CHAR_HEADER_SIZE);
 
   unsigned int blockSizeChar = meta[1];

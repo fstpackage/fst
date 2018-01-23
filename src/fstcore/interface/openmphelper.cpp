@@ -42,12 +42,20 @@ int GetFstThreads()
 #endif
 }
 
-int SetFstThreads(int nrOfThreads)
+
+int ThreadsFst(int nrOfThreads)
 {
 	int oldNrOfThreads = GetFstThreads();
 	FstThreads = nrOfThreads;
 	return oldNrOfThreads;
 }
+
+
+void SetThreads(int nrOfThreads)
+{
+  FstThreads = nrOfThreads;
+}
+
 
 bool HasOpenMP()
 {

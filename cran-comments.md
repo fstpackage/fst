@@ -1,30 +1,14 @@
 
-## Resubmission
+## Submission
 
-This is a resubmission. In this version the following changes have been made:
+In this submission of fst, the advance warning from Prof. Ripley is addressed where fst fails to install with the Clang 6.0.0 trunk (caused by the 'deprecated' keyword). The issue has been addressed at the LZ4 source repository and a new version of LZ4 has been released in which the problem is addressed. That version is now included in fst.
 
-* The authors of LZ4 and ZSTD and their copyright holders were added to the authors field in file DESCRIPTION.
-
-* The Description field in file DESCRIPTION was changed to comply with CRAN policy to add clear and unambiguous
-the ownership of copyright and intellectual property rights of all components of the package.
-
-* The package now meets the 'Redistributions in binary form' condition of the licence for ZSTD and LZ4. A copy
-of both licenses is now included in the package documentation. Man file 'fst-package.Rd' now lists both licenses.
-
-* the xxHash code from LZ4 was used instead of the xxHash code from ZSTD. The LZ4 version does not use the restrict keyword in the C++ source file (which causes the  gcc 5.2 build on Solaris to fail)
-
-* The CRAN valgrind build results contain the warning:
-    'Subdirectory 'fst/src' contains apparent object files/libraries'.
-With this resubmission I have made sure no object files are present in the library before calling devtools::release()
-
-* The CRAN valgrind build results contain multiple occurences of the following warnings:
+The CRAN valgrind build results contain multiple occurences of the following warnings:
     - 'Syscall param write(buf) points to uninitialised byte(s)'
     - 'Conditional jump or move depends on uninitialised value(s)'
-  These messages are due to writing uninitialised header blocks to file. This is done intentionally (for speed) and the header is later overwritten with correct values.
-    
-* The CRAN valgrind build contains in the HEAP summary:
-    - '24 bytes in 1 blocks are definitely lost in loss record 17 of 1,764'
-    The source of this leak has been located and fixed (missing delete).
+These messages are due to writing uninitialised header blocks to file. This is done intentionally (for speed) and the header is later overwritten with correct values.
+
+The CRAN r-patched-solaris-x86 build shows errors in the unit tests. These errors are due to the endianness of the Solaris platform and the main reason why 'SystemRequirements: little-endian platform' is added to the DESCRIPTION file.
 
 ## Test environments
 

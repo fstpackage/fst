@@ -6,6 +6,13 @@
 * Update README.Rmd and verify generated README.md on Github (release)
 * Update NEWS.md and make sure to remove '(in development)' in version title
 * Credit all GitHub contributions in NEWS.md
+* Build and test package on:
+    - Clang 6.0.0 (on Ubuntu)
+    - R-hub infrastructure (all available platforms)
+    - docker with the rocker/r-devel-ubsan-clang instrumented image
+    - docker with the rocker/r-devel-san instrumented image
+    - Travis Linux and macOS
+    - AppVeyor (Windows Server)
 * Submit to CRAN
 
 # After releasing to CRAN

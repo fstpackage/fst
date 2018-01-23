@@ -84,6 +84,18 @@ test_that("preserves dates", {
 })
 
 
+# ITime
+test_that("preserves time of day", {
+  x <- as.ITime(c(1:10, NA), origin = "1970-01-01")
+  res <- roundtrip_vector(x)
+  expect_identical(res, x)
+
+  mode(x) <- "double"
+  res <- roundtrip_vector(x)
+  expect_identical(res, x)
+})
+
+
 # POSIXct
 test_that("preserves times", {
   x1 <- ISOdate(2001, 10, 10, tz = "US/Pacific") + c(0, NA)
@@ -101,6 +113,7 @@ test_that("preserves times", {
   expect_identical(unclass(x1), unclass(x2))
 
 })
+
 
 test_that("throws error on POSIXlt", {
   df <- data.frame(x = Sys.time())
