@@ -767,7 +767,7 @@ void CompactIntToByte(char* outVec, const char* intVec, unsigned int nrOfInts)
 
   int remain = nrOfInts - nrOfLongs * 8;
 
-  unsigned long long intBuf[4];
+  unsigned long long intBuf[4] {0, 0, 0, 0};
   memcpy(intBuf, &vecIn[blockIndex], remain * 4);
 
   vecOut[++offset] =
@@ -889,7 +889,7 @@ void DecompactByteToInt(const char* compressedVec, char* intVec, unsigned int nr
   // Process last integers
   int remain = nrOfInts - nrOfLongs * 8;
 
-  unsigned long long intBuf[4];
+  unsigned long long intBuf[4] {0, 0, 0, 0};
 
   unsigned long long val = vecCompress[nrOfLongs];
     intBuf[0] = ((val >> 24) & byte0) | ( val       & byteNA);
@@ -1037,7 +1037,7 @@ unsigned int ZSTD_INT_TO_SHORT_SHUF2_D(char* dst, unsigned int dstCapacity, cons
   char buf[MAX_SIZE_COMPRESS_BLOCK_HALF];
 
   // Decompress
-  unsigned int errorCode = static_cast<unsigned int>(ZSTD_decompress(static_cast<char*>(buf), 8 * nrOfLongs, src, compressedSize) != 8 * nrOfLongs);
+  unsigned int errorCode = ZSTD_decompress(static_cast<char*>(buf), 8 * nrOfLongs, src, compressedSize) != 8 * nrOfLongs;
 
   DecompactShortToInt(buf, dst, nrOfDstInts);  // one integer per byte
 
