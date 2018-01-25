@@ -7,7 +7,7 @@ The v0.8.4 release brings a `data.frame` interface to the `fst` package. Column 
 
 #### New features
 
-* A `data.frame` interface was added to the package. The user can create a reference obkect to a `fst` file with method `fst`. That reference can be used like a `data.frame` and will automatically make column- and row- selections in the referenced `fst` file.
+* A `data.frame` interface was added to the package. The user can create a reference object to a `fst` file with method `fst`. That reference can be used like a `data.frame` and will automatically make column- and row- selections in the referenced `fst` file.
 
 #### Bugs solved
 
