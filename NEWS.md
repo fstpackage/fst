@@ -1,6 +1,15 @@
 
 **If you are viewing this file on CRAN, please check latest news on GitHub [here](https://github.com/fstpackage/fst/blob/develop/NEWS.md).**
 
+### Changes in v0.8.5 (in development)
+
+#### New features
+
+#### Bugs solved
+
+#### Documentation
+
+
 ### Changes in v0.8.4
 
 The v0.8.4 release brings a `data.frame` interface to the `fst` package. Column and row selection can now be done directly from the `[` operator. In addition, it fixes some issues and prepares the package for the next build toolchain of CRAN.
