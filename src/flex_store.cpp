@@ -37,7 +37,6 @@
 #include <interface/fststore.h>
 
 #include <fst_error.h>
-#include <fst_blockrunner_char.h>
 #include <fst_table.h>
 #include <fst_column.h>
 #include <fst_column_factory.h>

@@ -65,7 +65,8 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
 	  myfile.write(meta, HEADER_SIZE_FACTOR);  // number of levels
 	  *nrOfLevels = nrOfFactorLevels;
 	  fdsWriteCharVec_v6(myfile, blockRunner, compression, stringEncoding);   // factor levels
-															  // Rewrite meta-data
+
+	  // Rewrite meta-data
 	  *versionNr = VERSION_NUMBER_FACTOR;
 	  *levelVecPos = myfile.tellp();  // offset for level vector
 
@@ -120,7 +121,7 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
   //  return;
   //}
 
-  int blockSize = 4 * BLOCKSIZE_INT;  // block size in bytes
+  const int blockSize = 4 * BLOCKSIZE_INT;  // block size in bytes
 
   if (*nrOfLevels < 128)  // use 1 byte per int (Na encoding takes 1 bit)
   {

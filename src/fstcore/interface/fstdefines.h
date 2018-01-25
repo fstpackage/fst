@@ -27,7 +27,14 @@
 
 
 // Format related defines
-#define FST_VERSION          1                  // version of fst codebase
+
+// version of fst format
+#define FST_VERSION_MAJOR    0                  // for breaking interface changes
+#define FST_VERSION_MINOR    0                  // for new (non-breaking) interface capabilities
+#define FST_VERSION_RELEASE  1                  // for tweaks, bug-fixes, or development 
+
+#define FST_VERSION          (FST_VERSION_MAJOR * 64 * 64 + FST_VERSION_MINOR * 64 + FST_VERSION_RELEASE)
+
 #define FST_MAGIC_NUMBER     0x50414150         // magic number and signature of the fst format
 #define TABLE_META_SIZE      48                 // size of table meta-data block
 #define FST_FILE_ID          0xa91c12f8b245a71d // identifies a fst file or memory block

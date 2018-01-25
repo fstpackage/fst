@@ -28,6 +28,7 @@
 #include <compression/compressor.h>
 #include <compression/compression.h>
 
+#define LZ4_DISABLE_DEPRECATE_WARNINGS  // required for Clang++6.0 compiler error
 #include <lz4.h>
 #include <zstd.h>
 

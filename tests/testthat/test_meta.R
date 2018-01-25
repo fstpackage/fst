@@ -46,7 +46,10 @@ x <- data.table(
 
 test_that("v0.7.2 interface still works", {
   fstwriteproxy(x, "testdata/meta.fst")
-  fst.metadata("testdata/meta.fst")
+
+  x <- fst.metadata("testdata/meta.fst")
+
+  expect_true(!is.null(x))
 })
 
 
@@ -55,7 +58,7 @@ test_that("format contains fst magic value", {
   header_hash <- readBin(zz, integer(), 12)
   close(zz)
 
-  expect_equal(header_hash[3], 1)  # fst format version
+  expect_equal(header_hash[3], 1)  # fst format version (even numbers are dev versions)
   expect_equal(header_hash[12], 1346453840)  # fst magic number
   expect_equal(header_hash[5], 0)  # free bytes
   expect_equal(header_hash[6], 0)  # free bytes
@@ -66,7 +69,7 @@ test_that("Read meta of uncompressed file", {
   fstwriteproxy(x, "testdata/meta.fst")
   y <- fstmetaproxy("testdata/meta.fst")
 
-  expect_equal(y$path, "testdata/meta.fst")
+  expect_equal(basename(y$path), basename("meta.fst"))
   expect_equal(y$nrOfRows, 10)
   expect_equal(y$keys, NULL)
   expect_equal(y$columnNames, LETTERS[1:16])
@@ -79,7 +82,7 @@ test_that("Read meta of compressed file", {
   fstwriteproxy(x, "testdata/meta.fst", compress = 100)
   y <- fstmetaproxy("testdata/meta.fst")
 
-  expect_equal(y$path, "testdata/meta.fst")
+  expect_equal(basename(y$path), "meta.fst")
   expect_equal(y$nrOfRows, 10)
   expect_equal(y$keys, NULL)
   expect_equal(y$columnNames, LETTERS[1:16])
@@ -94,7 +97,7 @@ test_that("Read meta of sorted file", {
   fstwriteproxy(z, "testdata/meta.fst")
   y <- fstmetaproxy("testdata/meta.fst")
 
-  expect_equal(y$path, "testdata/meta.fst")
+  expect_equal(basename(y$path), "meta.fst")
   expect_equal(y$nrOfRows, 10)
   expect_equal(y$keys, c("B", "C"))
   expect_equal(y$columnNames, LETTERS[c(1:11, 13:16)])
@@ -109,7 +112,7 @@ test_that("Print meta data without keys", {
   res <- capture_output(print(fstmetaproxy("testdata/meta.fst")))
 
   expect_equal(res, paste(
-    "<fst file>\n10 rows, 16 columns (testdata/meta.fst)\n",
+    "<fst file>\n10 rows, 16 columns (meta.fst)\n",
     "* 'A': integer",
     "* 'B': logical",
     "* 'C': double",
@@ -138,7 +141,7 @@ test_that("Print meta data without keys", {
   res <- capture_output(print(fstmetaproxy("testdata/meta.fst")))
 
   expect_equal(res, paste(
-    "<fst file>\n10 rows, 15 columns (testdata/meta.fst)\n",
+    "<fst file>\n10 rows, 15 columns (meta.fst)\n",
     "* 'A': integer",
     "* 'B': logical (key 3)",
     "* 'C': double",

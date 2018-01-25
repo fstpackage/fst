@@ -239,6 +239,20 @@ class DoubleColumn : public IDoubleColumn
         return;
       }
 
+      // ITime type
+      if (columnAttribute == FstColumnAttribute::DOUBLE_64_TIME_OF_DAY_SECONDS)
+      {
+        Rf_classgets(colVec, Rf_mkString("ITime"));
+
+        if (scale != FstTimeScale::SECONDS)
+        {
+          throw(std::runtime_error("ITime column with unknown scale detected"));
+        }
+
+        return;
+      }
+
+
       // POSIXct type
       if (columnAttribute == FstColumnAttribute::DOUBLE_64_TIMESTAMP_SECONDS)
       {
@@ -352,6 +366,19 @@ public:
       Rf_classgets(colVec, classes);
       return;
     }
+
+    if (columnAttribute == FstColumnAttribute::INT_32_TIME_OF_DAY_SECONDS)
+    {
+      Rf_classgets(colVec, Rf_mkString("ITime"));
+
+      if (scale != FstTimeScale::SECONDS)
+      {
+        throw(std::runtime_error("ITime column with unknown scale detected"));
+      }
+
+      return;
+    }
+
   }
 
   ~IntegerColumn()

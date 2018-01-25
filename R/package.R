@@ -23,6 +23,7 @@
 #' @useDynLib fst, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
 #' @importFrom utils packageVersion
+#' @importFrom utils str
 #' @importFrom parallel detectCores
 NULL
 
@@ -107,7 +108,10 @@ NULL
 #' SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #'
 #' @md
-"_PACKAGE"
+#' @docType package
+#' @name fst-package
+#' @aliases fst-package
+NULL
 
 
 .onUnload <- function (libpath) {
