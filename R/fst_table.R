@@ -206,6 +206,15 @@ require_bit64 <- function() {
 }
 
 
+require_data_table <- function() {
+  # called in print when they see ITime columns are present
+  if (!requireNamespace("data.table", quietly = TRUE))
+    warning(paste0("Some columns are type 'ITime' but package data.table is not installed. ",
+                   "Those columns will print incorrectly. There is no need to ",
+                   "reload the data. Simply install.packages('data.table') to obtain the data.table print ",
+                   "method and print the data again."))
+}
+
 require_nanotime <- function() {
   # called in print when they see nanotime columns are present
   if (!requireNamespace("nanotime", quietly = TRUE))
@@ -240,8 +249,9 @@ print.fst_table <- function(x, number_of_rows = 50, ...) {
   }
 
   # use bit64 package if available for corrent printing
-  if ( (!"bit64"    %chin% loadedNamespaces()) && any(sapply(sample_data, inherits, "integer64"))) require_bit64()
-  if ( (!"nanotime" %chin% loadedNamespaces()) && any(sapply(sample_data, inherits, "nanotime" ))) require_nanotime()
+  if ( (!"bit64"      %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "integer64" ))) require_bit64()
+  if ( (!"nanotime"   %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "nanotime"  ))) require_nanotime()
+  if ( (!"data.table" %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "data.table"))) require_data_table()
 
   types <- c("unknown", "character", "factor", "ordered factor", "integer", "POSIXct", "difftime",
     "IDate", "ITime", "double", "Date", "POSIXct", "difftime", "ITime", "logical", "integer64",
