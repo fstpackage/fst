@@ -5,6 +5,7 @@
 \.a$
 \.Rmd$
 \.md$
+^docs$
 \.png$
 \.yml$
 dataset\.fst$
