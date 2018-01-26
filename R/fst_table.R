@@ -101,12 +101,6 @@ names.fst_table <- function(x) {
 }
 
 
-#' @export
-print.fst_table <- function(x, ...) {
-  print(.subset2(x, "meta"))
-}
-
-
 # Subsetting implementation for x[i, j] syntax
 .subset_table <- function(x, i, j) {
 
@@ -202,22 +196,83 @@ str.fst_table <- function(object, ...) {
 }
 
 
+require_bit64 <- function() {
+  # called in print when they see integer64 columns are present
+  if (!requireNamespace("bit64", quietly = TRUE))
+    warning(paste0("Some columns are type 'integer64' but package bit64 is not installed. ",
+      "Those columns will print as strange looking floating point data. ",
+      "There is no need to reload the data. Simply install.packages('bit64') to obtain ",
+      "the integer64 print method and print the data again."))
+}
+
+
+require_nanotime <- function() {
+  # called in print when they see nanotime columns are present
+  if (!requireNamespace("nanotime", quietly = TRUE))
+    warning(paste0("Some columns are type 'nanotime' but package nanotime is not installed. ",
+      "Those columns will print as strange looking floating point data. There is no need to ",
+      "reload the data. Simply install.packages('nanotime') to obtain the nanotime print ",
+      "method and print the data again."))
+}
+
 #' @export
-print.fst_table <- function(x, ...) {
+print.fst_table <- function(x, number_of_rows = 50, ...) {
   meta_info <- .subset2(x, "meta")
+
   cat("<fst file>\n")
   cat(meta_info$nrOfRows, " rows, ", length(meta_info$columnNames),
       " columns (", basename(meta_info$path), ")\n\n", sep = "")
 
-  sample_data_head <- read_fst(meta_info$path, from = 1, to = 5, old_format = .subset2(x, "old_format"))
-  sample_data_tail <- read_fst(meta_info$path, from = meta_info$nrOfRows - 4, to = meta_info$nrOfRows,
-    old_format = .subset2(x, "old_format"))
+  if (!is.numeric(number_of_rows)) number_of_rows <- 100L
+  if (!is.infinite(number_of_rows)) number_of_rows <- as.integer(number_of_rows)
+  if (number_of_rows <= 0L) return(invisible())   # ability to turn off printing
 
-  colnames(sample_data_tail) <- rep("", length(meta_info$columnNames))
+  table_splitted <- (meta_info$nrOfRows > number_of_rows) && (meta_info$nrOfRows > 10)
 
-  print(sample_data_head, row.names = FALSE)
-  cat("---")
-  print(sample_data_tail, row.names = FALSE)
+  if (table_splitted) {
+    sample_data_head <- read_fst(meta_info$path, from = 1, to = 5, old_format = .subset2(x, "old_format"))
+    sample_data_tail <- read_fst(meta_info$path, from = meta_info$nrOfRows - 4, to = meta_info$nrOfRows,
+      old_format = .subset2(x, "old_format"))
+
+    sample_data <- rbind.data.frame(sample_data_head, sample_data_tail)
+  } else {
+    sample_data <- read_fst(meta_info$path, old_format = .subset2(x, "old_format"))
+  }
+
+  # use bit64 package if available for corrent printing
+  if ( (!"bit64"    %chin% loadedNamespaces()) && any(sapply(sample_data, inherits, "integer64"))) require_bit64()
+  if ( (!"nanotime" %chin% loadedNamespaces()) && any(sapply(sample_data, inherits, "nanotime" ))) require_nanotime()
+
+  types <- c("unknown", "character", "factor", "ordered factor", "integer", "POSIXct", "difftime",
+    "IDate", "ITime", "double", "Date", "POSIXct", "difftime", "ITime", "logical", "integer64",
+    "nanotime", "raw")
+
+  type_row <- matrix(paste("<", types[meta_info$columnTypes], ">", sep = ""), nrow = 1)
+  colnames(type_row) <- meta_info$columnNames
+
+  # convert to aligned character columns
+  sample_data_print <- format(sample_data)
+
+  if (table_splitted) {
+    dot_row <- matrix(c("---", rep("", length(meta_info$columnNames) - 1)), nrow = 1)
+    colnames(dot_row) <- meta_info$columnNames
+
+    sample_data_print <- rbind(
+      type_row,
+      sample_data_print[1:5, , drop = FALSE],
+      dot_row,
+      sample_data_print[6:10, , drop = FALSE])
+
+    rownames(sample_data_print) <- c(" ", 1:5, "", (meta_info$nrOfRows - 4):meta_info$nrOfRows)
+
+    print(sample_data_print)
+    return(invisible(x))
+  }
+
+  sample_data_print <- rbind(type_row, sample_data_print)
+  rownames(sample_data_print) <- c("", 1:meta_info$nrOfRows)
+
+  print(sample_data_print)
 
   invisible(x)
 }
