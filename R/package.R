@@ -23,6 +23,8 @@
 #' @useDynLib fst, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
 #' @importFrom utils packageVersion
+#' @importFrom utils capture.output
+#' @importFrom utils tail
 #' @importFrom utils str
 #' @importFrom parallel detectCores
 NULL

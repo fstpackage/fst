@@ -149,24 +149,15 @@ test_that("fst_table has correct printing for small single column table", {
   x <- fst(test_file)
 
   res <- capture_output(print(x))
+  res <- crayon::strip_style(res)
 
-  if (crayon::has_color()) {
-    expect_equal(res, paste(
-      "<fst file>",
-      "1 rows, 1 columns (fst_table.fst)\n",
-      "\033[38;5;248m \033[39m        X",
-      "\033[3m\033[38;5;248m  <double>\033[39m\033[23m",
-      "\033[38;5;248m1\033[39m        1",
-      sep = "\n"))
-  } else {
-    expect_equal(res, paste(
-      "<fst file>",
-      "1 rows, 1 columns (fst_table.fst)\n",
-      "         X",
-      "  <double>",
-      "1        1",
-      sep = "\n"))
-  }
+  expect_equal(res, paste(
+    "<fst file>",
+    "1 rows, 1 columns (fst_table.fst)\n",
+    "         X",
+    "  <double>",
+    "1        1",
+    sep = "\n"))
 })
 
 
@@ -176,46 +167,25 @@ test_that("fst_table has correct printing for big single column table", {
   x <- fst(test_file)
 
   res <- capture_output(print(x))
+  res <- crayon::strip_style(res)
 
-  strsplit(res, "\n")
-
-  if (crayon::has_color()) {
-    expect_equal(res, paste(
-      "<fst file>",
-      "100 rows, 1 columns (fst_table.fst)\n",
-      "\033[38;5;248m   \033[39m         X",
-      "\033[3m\033[38;5;248m    <integer>\033[39m\033[23m",
-      "\033[38;5;248m1  \033[39m         1",
-      "\033[38;5;248m2  \033[39m         2",
-      "\033[38;5;248m3  \033[39m         3",
-      "\033[38;5;248m4  \033[39m         4",
-      "\033[38;5;248m5  \033[39m         5",
-      "\033[38;5;248m--         --\033[39m",
-      "\033[38;5;248m96 \033[39m        96",
-      "\033[38;5;248m97 \033[39m        97",
-      "\033[38;5;248m98 \033[39m        98",
-      "\033[38;5;248m99 \033[39m        99",
-      "\033[38;5;248m100\033[39m       100",
-      sep = "\n"))
-  } else {
-    expect_equal(res, paste(
-      "<fst file>",
-      "100 rows, 1 columns (fst_table.fst)\n",
-      "            X",
-      "    <integer>",
-      "1           1",
-      "2           2",
-      "3           3",
-      "4           4",
-      "5           5",
-      "          ---",
-      "96         96",
-      "97         97",
-      "98         98",
-      "99         99",
-      "100       100",
-      sep = "\n"))
-  }
+  expect_equal(res, paste(
+    "<fst file>",
+    "100 rows, 1 columns (fst_table.fst)\n",
+    "            X",
+    "    <integer>",
+    "1           1",
+    "2           2",
+    "3           3",
+    "4           4",
+    "5           5",
+    "--         --",
+    "96         96",
+    "97         97",
+    "98         98",
+    "99         99",
+    "100       100",
+    sep = "\n"))
 })
 
 
@@ -225,44 +195,25 @@ test_that("fst_table has correct printing for big multi column table", {
   x <- fst(test_file)
 
   res <- capture_output(print(x))
+  res <- crayon::strip_style(res)
 
-  if (crayon::has_color()) {
-    expect_equal(res, paste(
-      "<fst file>",
-      "104 rows, 2 columns (fst_table.fst)\n",
-      "\033[38;5;248m   \033[39m         X        Y",
-      "\033[3m\033[38;5;248m    <integer> <factor>\033[39m\033[23m",
-      "\033[38;5;248m1  \033[39m         1        A",
-      "\033[38;5;248m2  \033[39m         2        B",
-      "\033[38;5;248m3  \033[39m         3        C",
-      "\033[38;5;248m4  \033[39m         4        D",
-      "\033[38;5;248m5  \033[39m         5        E",
-      "\033[38;5;248m--         --       --\033[39m",
-      "\033[38;5;248m100\033[39m       100        V",
-      "\033[38;5;248m101\033[39m       101        W",
-      "\033[38;5;248m102\033[39m       102        X",
-      "\033[38;5;248m103\033[39m       103        Y",
-      "\033[38;5;248m104\033[39m       104        Z",
-      sep = "\n"))
-  } else {
-    expect_equal(res, paste(
-      "<fst file>",
-      "104 rows, 2 columns (fst_table.fst)\n",
-      "            X        Y",
-      "    <integer> <factor>",
-      "1           1        A",
-      "2           2        B",
-      "3           3        C",
-      "4           4        D",
-      "5           5        E",
-      "          ---         ",
-      "100       100        V",
-      "101       101        W",
-      "102       102        X",
-      "103       103        Y",
-      "104       104        Z",
-      sep = "\n"))
-  }
+  expect_equal(res, paste(
+    "<fst file>",
+    "104 rows, 2 columns (fst_table.fst)\n",
+    "            X        Y",
+    "    <integer> <factor>",
+    "1           1        A",
+    "2           2        B",
+    "3           3        C",
+    "4           4        D",
+    "5           5        E",
+    "--         --       --",
+    "100       100        V",
+    "101       101        W",
+    "102       102        X",
+    "103       103        Y",
+    "104       104        Z",
+    sep = "\n"))
 })
 
 
@@ -272,38 +223,21 @@ test_that("fst_table has correct printing for small multi column table", {
   x <- fst(test_file)
 
   res <- capture_output(print(x))
+  res <- crayon::strip_style(res)
 
-  if (crayon::has_color()) {
-    expect_equal(res, paste(
-      "<fst file>",
-      "9 rows, 2 columns (fst_table.fst)\n",
-      "\033[38;5;248m \033[39m         X        Y",
-      "\033[3m\033[38;5;248m  <integer> <factor>\033[39m\033[23m",
-      "\033[38;5;248m1\033[39m         1        J",
-      "\033[38;5;248m2\033[39m         2        K",
-      "\033[38;5;248m3\033[39m         3        L",
-      "\033[38;5;248m4\033[39m         4        M",
-      "\033[38;5;248m5\033[39m         5        N",
-      "\033[38;5;248m6\033[39m         6        O",
-      "\033[38;5;248m7\033[39m         7        P",
-      "\033[38;5;248m8\033[39m         8        Q",
-      "\033[38;5;248m9\033[39m         9        R",
-      sep = "\n"))
-  } else {
-    expect_equal(res, paste(
-      "<fst file>",
-      "9 rows, 2 columns (fst_table.fst)\n",
-      "          X        Y",
-      "  <integer> <factor>",
-      "1         1        J",
-      "2         2        K",
-      "3         3        L",
-      "4         4        M",
-      "5         5        N",
-      "6         6        O",
-      "7         7        P",
-      "8         8        Q",
-      "9         9        R",
-      sep = "\n"))
-  }
+  expect_equal(res, paste(
+    "<fst file>",
+    "9 rows, 2 columns (fst_table.fst)\n",
+    "          X        Y",
+    "  <integer> <factor>",
+    "1         1        J",
+    "2         2        K",
+    "3         3        L",
+    "4         4        M",
+    "5         5        N",
+    "6         6        O",
+    "7         7        P",
+    "8         8        Q",
+    "9         9        R",
+    sep = "\n"))
 })
