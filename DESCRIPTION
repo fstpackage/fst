@@ -25,7 +25,8 @@ Suggests:
     bit64,
     data.table,
     lintr,
-    nanotime
+    nanotime,
+    crayon
 License: AGPL-3 | file LICENSE
 Copyright: This package includes sources from the LZ4 library written
     by Yann Collet, sources of the ZSTD library owned by Facebook, Inc.

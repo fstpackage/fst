@@ -5,6 +5,8 @@
 
 #### New features
 
+* More advanced printing generic of the `fst_table` reference object, showing column types, (possible) keys and table header and footer data (issue #131).
+
 #### Bugs solved
 
 #### Documentation

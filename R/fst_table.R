@@ -248,14 +248,27 @@ print.fst_table <- function(x, number_of_rows = 50, ...) {
     sample_data <- read_fst(meta_info$path, old_format = .subset2(x, "old_format"))
   }
 
-  # use bit64 package if available for corrent printing
+  # use bit64 package if available for correct printing
   if ( (!"bit64"      %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "integer64" ))) require_bit64()
   if ( (!"nanotime"   %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "nanotime"  ))) require_nanotime()
-  if ( (!"data.table" %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "data.table"))) require_data_table()
+  if ( (!"data.table" %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "ITime"))) require_data_table()
 
   types <- c("unknown", "character", "factor", "ordered factor", "integer", "POSIXct", "difftime",
     "IDate", "ITime", "double", "Date", "POSIXct", "difftime", "ITime", "logical", "integer64",
     "nanotime", "raw")
+
+  # use color in terminal output
+  color_on <- TRUE
+
+  if (!"crayon" %in% loadedNamespaces()) {
+    if (!requireNamespace("crayon", quietly = TRUE)) {
+      color_on <- FALSE
+    } else {
+      if (!crayon::has_color()) {
+        color_on <- FALSE
+      }
+    }
+  }
 
   type_row <- matrix(paste("<", types[meta_info$columnTypes], ">", sep = ""), nrow = 1)
   colnames(type_row) <- meta_info$columnNames
@@ -264,7 +277,7 @@ print.fst_table <- function(x, number_of_rows = 50, ...) {
   sample_data_print <- format(sample_data)
 
   if (table_splitted) {
-    dot_row <- matrix(c("---", rep("", length(meta_info$columnNames) - 1)), nrow = 1)
+    dot_row <- matrix(rep("--", length(meta_info$columnNames)), nrow = 1)
     colnames(dot_row) <- meta_info$columnNames
 
     sample_data_print <- rbind(
@@ -273,18 +286,56 @@ print.fst_table <- function(x, number_of_rows = 50, ...) {
       dot_row,
       sample_data_print[6:10, , drop = FALSE])
 
-    rownames(sample_data_print) <- c(" ", 1:5, "", (meta_info$nrOfRows - 4):meta_info$nrOfRows)
+    rownames(sample_data_print) <- c(" ", 1:5, "--", (meta_info$nrOfRows - 4):meta_info$nrOfRows)
 
-    print(sample_data_print)
-    return(invisible(x))
+    y <- capture.output(print(sample_data_print))
+
+    # the length of y must be a multiple of 13 and color must be permitted
+    # if not, take defensive action; skip coloring and solve later
+    if (!color_on || (length(y) %% 13 != 0)) {
+      print(sample_data_print)
+      return(invisible(x))
+    }
+
+    type_rows <- seq(2, length(y), 13)
+    gray_rows <- seq(8, length(y), 13)
+
+    y[gray_rows] <- paste0("\033[38;5;248m", y[gray_rows], "\033[39m")
+
+    gray_rows <- c(type_rows, gray_rows)
+  } else {
+    # table is not splitted along the row axis
+    sample_data_print <- rbind(
+      type_row,
+      sample_data_print)
+
+    rownames(sample_data_print) <- c(" ", 1:meta_info$nrOfRows)
+
+    # no color terminal available
+    if (!color_on) {
+      print(sample_data_print)
+      return(invisible(x))
+    }
+
+    y <- capture.output(print(sample_data_print))
+
+    gray_rows <- type_rows <- seq(2, length(y), 2 + meta_info$nrOfRows)
   }
 
-  sample_data_print <- rbind(type_row, sample_data_print)
-  rownames(sample_data_print) <- c("", 1:meta_info$nrOfRows)
+  # type rows are set to italic light grey
+  y[type_rows] <- paste0("\033[3m\033[38;5;248m", y[type_rows], "\033[39m\033[23m")
 
-  print(sample_data_print)
+  # use light grey color up to width of row name column
+  row_text_size <- regexpr("^[0-9-]*", tail(y, 1))
+  row_text_size <- attr(row_text_size, "match.length")
 
-  invisible(x)
+  row_text <- substr(y[-gray_rows], 1, row_text_size)
+
+  y[-gray_rows] <- paste0("\033[38;5;248m", substr(y[-gray_rows], 1, row_text_size),
+    "\033[39m", substr(y[-gray_rows], row_text_size + 1, nchar(y[-gray_rows])))
+
+  cat(y, sep = "\n")
+  return(invisible(x))
 }
 
 
