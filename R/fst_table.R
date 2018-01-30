@@ -32,9 +32,10 @@
 #' @return An object of class \code{fst_table}
 #' @export
 #' @examples
+#' \dontrun{
 #' # generate a sample fst file
 #' path <- paste0(tempfile(), ".fst")
-#' fst::write_fst(iris, path)
+#' write_fst(iris, path)
 #'
 #' # create a fst_table object that can be used as a data frame
 #' ft <- fst(path)
@@ -59,6 +60,7 @@
 #' colnames(ft)
 #' rownames(ft)
 #' names(ft)
+#' }
 fst <- function(path, old_format = FALSE) {
 
   # wrap in a list so that additional elements can be added if required

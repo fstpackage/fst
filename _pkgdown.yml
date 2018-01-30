@@ -1,3 +1,5 @@
+url: http://www.fstpackage.org
+
 template:
   params:
-    bootswatch: flatly # https://bootswatch.com/flatly/
+    bootswatch: cerulean

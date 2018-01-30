@@ -22,9 +22,10 @@ because the fst file format allows full random access (in columns and rows) to t
 dataset.
 }
 \examples{
+\dontrun{
 # generate a sample fst file
 path <- paste0(tempfile(), ".fst")
-fst::write_fst(iris, path)
+write_fst(iris, path)
 
 # create a fst_table object that can be used as a data frame
 ft <- fst(path)
@@ -49,4 +50,5 @@ dimnames(ft)
 colnames(ft)
 rownames(ft)
 names(ft)
+}
 }
