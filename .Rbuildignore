@@ -10,3 +10,4 @@
 \.yml$
 dataset\.fst$
 res - readme\.fst$
+^_pkgdown\.yml$

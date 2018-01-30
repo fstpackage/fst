@@ -1,0 +1,3 @@
+template:
+  params:
+    bootswatch: flatly # https://bootswatch.com/flatly/
