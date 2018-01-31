@@ -30,6 +30,11 @@
 #' specific requirements. As a default, \code{fst} uses a number of threads equal to the number of
 #' logical cores in the system.
 #'
+#' The number of threads can also be set with \code{option(fst.threads = N)}.
+#' NOTE: This option is only read when the package's namespace is first loaded, with commands like
+#' \code{library}, \code{require}, or \code{::}. If you have already used one of these, you
+#' must use \code{threads_fst} to set the number of threads.
+#'
 #' @param nr_of_threads number of threads to use or \code{NULL} to get the current number of threads used in
 #' multithreaded operations.
 #'
