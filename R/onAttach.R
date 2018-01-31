@@ -48,13 +48,16 @@
     # Check for OpenMP support
     if (!hasopenmp()) {
       packageStartupMessage("(OpenMP was not detected, using single threaded mode)")
+    } else if (!is.null(getOption("fst.threads"))) {
+      packageStartupMessage("(OpenMP detected, setting to ", threads_fst(),
+        " cores from option fst.threads)")
     } else {
       physical_cores <- parallel::detectCores(logical = FALSE)
-      logical_cores <- parallel::detectCores(logical = TRUE)
+      physical_cores <- ifelse(is.na(physical_cores), 1L, physical_cores)
 
-      # The default number of cores is set to the number of logical cores available on the system.
-      # Benchmarks show that hyperthreading increases the read- and write performance of fst.
-      threads_fst(logical_cores)
+      logical_cores <- parallel::detectCores(logical = TRUE)
+      logical_cores <- ifelse(is.na(logical_cores), 1L, logical_cores)
+
 
       packageStartupMessage("(OpenMP detected, using ", threads_fst(),
         if (physical_cores != logical_cores) " logical", " cores)")

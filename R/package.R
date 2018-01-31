@@ -115,6 +115,23 @@ NULL
 #' @aliases fst-package
 NULL
 
+.onLoad <- function(libname, pkgname) {
+  # Set the number of threads here. .onAttach will read threads_fst() and display a
+  # useful startup message.
+  if (is.null(getOption("fst.threads"))) {
+    logical_cores <- parallel::detectCores(logical = TRUE)
+    # If R can't figure out how many logical cores, ask OpenMP to use all
+    logical_cores <- ifelse(is.na(logical_cores), 0L, logical_cores)
+
+    # The default number of cores is set to the number of logical cores available on the system.
+    # Benchmarks show that hyperthreading increases the read- and write performance of fst.
+    threads_fst(logical_cores)
+  } else {
+    # Don't need to validate here; threads_fst checks its input
+    threads_fst(getOption("fst.threads"))
+  }
+}
+
 
 .onUnload <- function (libpath) {
   library.dynam.unload("fst", libpath)
