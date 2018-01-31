@@ -29,7 +29,13 @@ test_that("threads_fst(0) use all logical cores", {
   threads_fst(0)
   nrOfThreads <- threads_fst()
   logical_cores <- parallel::detectCores(logical = TRUE)
-  expect_equal(nrOfThreads, logical_cores)
+
+  # Systems with OpenMP activated should have more than a single thread
+  if (fst:::hasopenmp()) {
+    expect_equal(nrOfThreads, logical_cores)
+  } else {
+    expect_equal(nrOfThreads, 1)
+  }
 })
 
 test_that("Loading fst works with options", {
