@@ -32,7 +32,7 @@ test_that("threads_fst(0) use all logical cores", {
 
   # Systems with OpenMP activated should have more than a single thread
   if (fst:::hasopenmp()) {
-    expect_equal(nrOfThreads, logical_cores)
+    expect_gt(nrOfThreads, 1)
   } else {
     expect_equal(nrOfThreads, 1)
   }

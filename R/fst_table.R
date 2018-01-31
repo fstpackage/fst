@@ -103,27 +103,6 @@ names.fst_table <- function(x) {
 }
 
 
-# Subsetting implementation for x[i, j] syntax
-.subset_table <- function(x, i, j) {
-
-
-  # no column selection done yet
-  if (is.null(x$col_selection)) {
-
-    # check for existing column name
-    if (!(j %in% x$meta$columnNames)) {
-      stop("Unknown column '", j, "'", call. = FALSE)
-    }
-
-    x$col_selection <- j
-
-    return(x)
-  }
-
-  # there is a selection already
-}
-
-
 #' @export
 `[[.fst_table` <- function(x, j, exact = TRUE) {
   if (!exact) {
