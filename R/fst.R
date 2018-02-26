@@ -156,7 +156,7 @@ print.fstmetadata <- function(x, ...) {
 #'
 #' @export
 read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE, old_format = FALSE) {
-  fileName <- normalizePath(path, mustWork = TRUE)
+  fileName <- normalizePath(path, mustWork = FALSE)
 
   if (!is.null(columns)) {
     if (!is.character(columns)) {
