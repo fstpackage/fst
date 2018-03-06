@@ -41,16 +41,16 @@
 
     packageStartupMessage("fst package v", v, if (dev) paste0(" IN DEVELOPMENT built ", d))
 
-    # Check for old version
+    # check for old version
     if (dev && (Sys.Date() - as.Date(d)) > 28)
-        packageStartupMessage("\n!!! This development version of the package is rather old, please update !!!")
+      packageStartupMessage("\n!!! This development version of the package is rather old, please update !!!")
 
-    # Check for OpenMP support
+    # check for OpenMP support
     if (!hasopenmp()) {
       packageStartupMessage("(OpenMP was not detected, using single threaded mode)")
-    } else if (!is.null(getOption("fst.threads"))) {
+    } else if (!is.null(getOption("fst_threads"))) {
       packageStartupMessage("(OpenMP detected, setting to ", threads_fst(),
-        " cores from option fst.threads)")
+                            " cores from option fst.threads)")
     } else {
       physical_cores <- parallel::detectCores(logical = FALSE)
       physical_cores <- ifelse(is.na(physical_cores), 1L, physical_cores)
@@ -58,9 +58,8 @@
       logical_cores <- parallel::detectCores(logical = TRUE)
       logical_cores <- ifelse(is.na(logical_cores), 1L, logical_cores)
 
-
       packageStartupMessage("(OpenMP detected, using ", threads_fst(),
-        if (physical_cores != logical_cores) " logical", " cores)")
+                            if (physical_cores != logical_cores) " logical", " cores)")
     }
   }
 }
