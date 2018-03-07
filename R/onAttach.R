@@ -52,14 +52,8 @@
       packageStartupMessage("(OpenMP detected, setting to ", threads_fst(),
                             " cores from option fst_threads)")
     } else {
-      physical_cores <- parallel::detectCores(logical = FALSE)
-      physical_cores <- ifelse(is.na(physical_cores), 1L, physical_cores)
-
-      logical_cores <- parallel::detectCores(logical = TRUE)
-      logical_cores <- ifelse(is.na(logical_cores), 1L, logical_cores)
-
-      packageStartupMessage("(OpenMP detected, using ", threads_fst(),
-                            if (physical_cores != logical_cores) " logical", " cores)")
+      # number of threads set in .onLoad or by user selection
+      packageStartupMessage("(OpenMP detected, using ", threads_fst(), " threads)")
     }
   }
 }
