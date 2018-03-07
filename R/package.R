@@ -123,7 +123,7 @@ NULL
 
   if (!is.null(option_restore)) {
     if (is.logical(option_restore) && !is.na(option_restore)) {
-      fst:::restore_after_fork(option_restore)
+      restore_after_fork(option_restore)
     }
   }
 
