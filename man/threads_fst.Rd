@@ -4,7 +4,7 @@
 \alias{threads_fst}
 \title{Get or set the number of threads used in parallel operations}
 \usage{
-threads_fst(nr_of_threads = NULL, reset_after_fork = TRUE)
+threads_fst(nr_of_threads = NULL, reset_after_fork = NULL)
 }
 \arguments{
 \item{nr_of_threads}{number of threads to use or \code{NULL} to get the current number of threads used in
@@ -16,7 +16,7 @@ After the fork, the number of threads is reset to it's initial setting. However,
 (e.g. Intel), switching back to multi-threaded mode can lead to issues. When \code{reset_after_fork}
 is set to \code{FALSE}, \code{fst} is left in single-threaded mode after the fork ends. After the fork,
 multithreading can be activated again manually by calling \code{threads_fst} with an appropriate value
-for \code{nr_of_threads}.}
+for \code{nr_of_threads}. The default (\code{reset_after_fork = NULL}) leaves the fork behavior unchanged.}
 }
 \value{
 the number of threads (previously) used

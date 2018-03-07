@@ -67,8 +67,6 @@ void restore_after_fork(bool restore)
 void when_fork()
 {
   // use call to fstlib that does not call any OpenMP library functions internally
-  Rcpp::Rcout << "process is forked!";
-
   FstThreadsAtFork = GetThreads();
 
   SetThreads(1);
@@ -78,8 +76,6 @@ void when_fork()
 void when_unfork()
 {
   // use call to fstlib that does not call any OpenMP library functions internally
-  Rcpp::Rcout << "process is unforked!";
-
   if (RestoreAfterFork)
   {
     SetThreads(FstThreadsAtFork);

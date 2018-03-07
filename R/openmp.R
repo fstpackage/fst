@@ -43,17 +43,20 @@
 #' (e.g. Intel), switching back to multi-threaded mode can lead to issues. When \code{reset_after_fork}
 #' is set to \code{FALSE}, \code{fst} is left in single-threaded mode after the fork ends. After the fork,
 #' multithreading can be activated again manually by calling \code{threads_fst} with an appropriate value
-#' for \code{nr_of_threads}.
+#' for \code{nr_of_threads}. The default (\code{reset_after_fork = NULL}) leaves the fork behavior unchanged.
 #'
 #' @return the number of threads (previously) used
 #' @export
-threads_fst <- function(nr_of_threads = NULL, reset_after_fork = TRUE) {
+threads_fst <- function(nr_of_threads = NULL, reset_after_fork = NULL) {
 
-  if (!is.logical(reset_after_fork) || length(reset_after_fork) != 1 || is.na(reset_after_fork)) {
-    stop("Parameter reset_after_fork should be set to TRUE or FALSE")
+  if (!is.null(reset_after_fork)) {
+    if (!is.logical(reset_after_fork) || length(reset_after_fork) != 1 || is.na(reset_after_fork)) {
+      stop("Parameter reset_after_fork should be set to TRUE or FALSE")
+    }
+
+    # change unfork behavior
+    restore_after_fork(reset_after_fork)
   }
-
-  restore_after_fork(reset_after_fork)
 
   if (is.null(nr_of_threads)) {
     return(getnrofthreads())
