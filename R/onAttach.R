@@ -50,7 +50,7 @@
       packageStartupMessage("(OpenMP was not detected, using single threaded mode)")
     } else if (!is.null(getOption("fst_threads"))) {
       packageStartupMessage("(OpenMP detected, setting to ", threads_fst(),
-                            " cores from option fst.threads)")
+                            " cores from option fst_threads)")
     } else {
       physical_cores <- parallel::detectCores(logical = FALSE)
       physical_cores <- ifelse(is.na(physical_cores), 1L, physical_cores)
