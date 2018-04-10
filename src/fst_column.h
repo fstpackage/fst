@@ -32,6 +32,7 @@
 class StringArray : public IStringArray
 {
   SEXP strVec;
+  cetype_t strEncoding = cetype_t::CE_NATIVE;
   bool isProtected;
 
 public:
@@ -50,19 +51,39 @@ public:
     this->strVec = strVec;
   }
 
+  // set the string encoding to a new value
+  void SetEncoding(StringEncoding string_encoding)
+  {
+    switch (string_encoding)
+    {
+      case StringEncoding::LATIN1:
+      {
+        this->strEncoding = cetype_t::CE_LATIN1;
+        break;
+      }
+
+      case StringEncoding::UTF8:
+      {
+        this->strEncoding = cetype_t::CE_UTF8;
+        break;
+      }
+
+      default:  // native or unknown encoding
+        this->strEncoding = cetype_t::CE_NATIVE;
+        break;
+    }
+  }
+
   void SetElement(unsigned int elementNr, const char* str)
   {
-    SET_STRING_ELT(strVec, elementNr, Rf_mkChar(str));
+    // use current string encoding
+    SEXP str_elem = Rf_mkCharLenCE(str, strlen(str), strEncoding);
+    SET_STRING_ELT(strVec, elementNr, str_elem);
   }
 
   const char* GetElement(unsigned int elementNr)
   {
     return CHAR(STRING_ELT(strVec, elementNr));
-  }
-
-  void SetElement(unsigned int elementNr, const char* str, unsigned int strLen)
-  {
-    SET_STRING_ELT(strVec, elementNr, Rf_mkCharLen(str, strLen));
   }
 
   unsigned int Length()

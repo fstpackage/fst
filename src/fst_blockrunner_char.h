@@ -107,6 +107,7 @@ class BlockReaderChar : public IStringColumn
   SEXP strVec;
   bool isProtected;
   cetype_t strEncoding;
+  StringEncoding string_encoding = StringEncoding::NATIVE;
 
 public:
   BlockReaderChar()
@@ -118,9 +119,16 @@ public:
 
   void AllocateVec(unsigned long long vecLength);
 
-  void SetEncoding(StringEncoding stringEncoding)
+  StringEncoding GetEncoding()
   {
-    switch (stringEncoding)
+    return string_encoding;
+  }
+
+  void SetEncoding(StringEncoding fst_string_encoding)
+  {
+    string_encoding = fst_string_encoding;
+
+    switch (fst_string_encoding)
     {
       case StringEncoding::LATIN1:
       {

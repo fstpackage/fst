@@ -200,8 +200,21 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
     return(res)
   }
 
-  as.data.frame(res$resTable, row.names = NULL, stringsAsFactors = FALSE,
-    optional = TRUE)
+  if (requireNamespace("data.table")) {
+
+    # use faster setattr method
+    data.table::setattr(res$resTable, "class", "data.frame")
+    data.table::setattr(res$resTable, "row.names", 1:length(res$resTable[[1]]))
+
+    return(res$resTable)
+  }
+
+  res_table <- res$resTable
+
+  class(res_table) <- "data.frame"
+  attr(res_table, "row.names") <- 1:length(res$resTable[[1]])
+
+  res_table
 }
 
 

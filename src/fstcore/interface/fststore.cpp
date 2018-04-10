@@ -369,7 +369,7 @@ void FstStore::fstWrite(IFstTable &fstTable, const int compress) const
   {
     std::unique_ptr<IStringWriter> blockRunnerP(fstTable.GetColNameWriter());
     IStringWriter* blockRunner = blockRunnerP.get();
-    fdsWriteCharVec_v6(myfile, blockRunner, 0, StringEncoding::NATIVE);   // column names
+    fdsWriteCharVec_v6(myfile, blockRunner, 0, blockRunner->Encoding());   // column names
   }
 
   // Size of chunkset index header plus data chunk header
@@ -983,6 +983,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
   SetKeyIndex(keyIndex, keyLength, nrOfSelect, keyColPos, colIndex);
 
   selectedCols->AllocateArray(nrOfSelect);
+  selectedCols->SetEncoding(blockReader->GetEncoding());
 
   // Only when keys are present in result set, TODO: compute using C++ only !!!
   for (int i = 0; i < nrOfSelect; ++i)
