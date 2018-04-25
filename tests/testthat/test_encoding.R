@@ -67,3 +67,16 @@ test_that("Mixed encodings", {
 
   expect_equal(Encoding(y$Mixed), c("UTF-8", "unknown", "UTF-8"))  # recoded to UTF-8
 })
+
+
+test_that("Column name encoding", {
+  x <- read.csv2("datasets/utf8.csv", encoding = "UTF-8", stringsAsFactors = FALSE)[2, 2]
+
+  df <- data.frame(X = 1:10)
+  colnames(df) <- x
+
+  fstwriteproxy(df, "testdata/enc_cols.fst")
+  y <- fstreadproxy("testdata/enc_cols.fst")
+
+  expect_equal(Encoding(colnames(y)), "UTF-8")
+})

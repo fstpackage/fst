@@ -16,6 +16,7 @@ char_vec <- function(nrofrows) {
   }
   ) }
 
+
 factor_vec <- function(nrofrows, nroflevels) {
   levels <- NULL
   while (length(levels) < nroflevels) {

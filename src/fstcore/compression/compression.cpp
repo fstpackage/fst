@@ -1030,8 +1030,8 @@ unsigned int ZSTD_INT_TO_SHORT_SHUF2_C(char* dst, unsigned int dstCapacity, cons
 
 unsigned int ZSTD_INT_TO_SHORT_SHUF2_D(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize)
 {
-  unsigned int nrOfLongs = 1 + (dstCapacity - 1) / 16;  // srcSize is processed in blocks of 32 bytes
-  unsigned int nrOfDstInts = dstCapacity / 4;
+  int nrOfLongs = 1 + (dstCapacity - 1) / 16;  // srcSize is processed in blocks of 32 bytes
+  int nrOfDstInts = dstCapacity / 4;
 
   // Compress buffer
   char buf[MAX_SIZE_COMPRESS_BLOCK_HALF];
