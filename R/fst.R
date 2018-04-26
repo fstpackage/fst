@@ -57,7 +57,11 @@
 #' y <- read_fst("dataset.fst", "B") # read selection of columns
 #' y <- read_fst("dataset.fst", "A", 100, 200) # read selection of columns and rows
 #' @export
-write_fst <- function(x, path, compress = 50, uniform_encoding = TRUE) {
+
+write_fst <- function(x, ...) UseMethod('write_fst')
+
+#' @export
+write_fst.data.frame <- function(x, path, compress = 50, uniform_encoding = TRUE) {
   if (!is.character(path)) stop("Please specify a correct path.")
 
   if (!is.data.frame(x)) stop("Please make sure 'x' is a data frame.")
@@ -155,7 +159,10 @@ print.fstmetadata <- function(x, ...) {
 #' @param old_format use TRUE to read fst files generated with a fst package version lower than v0.8.0
 #'
 #' @export
-read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE, old_format = FALSE) {
+read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE, as.sparseMatrix = FALSE, old_format = FALSE) {
+
+  if(as.data.table & as.sparseMatrix) stop('Return can not be both data.table and sparseMatrix.')
+
   fileName <- normalizePath(path, mustWork = FALSE)
 
   if (!is.null(columns)) {
@@ -198,6 +205,16 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
     res <- data.table::setDT(res$resTable)  # nolint
     if (length(keyNames) > 0 ) data.table::setattr(res, "sorted", keyNames)
     return(res)
+
+  } else if (as.sparseMatrix) {
+    if (!requireNamespace("Matrix")) {
+      stop("Please install package Matrix when using as.sparseMatrix = TRUE")
+    }
+
+    return(do.call(Matrix::'sparseMatrix',
+                   c(as.list(res$resTable),
+                     index1 = FALSE)))
+
   }
 
   if (requireNamespace("data.table")) {
