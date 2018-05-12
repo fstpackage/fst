@@ -985,7 +985,6 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
   selectedCols->AllocateArray(nrOfSelect);
   selectedCols->SetEncoding(blockReader->GetEncoding());
 
-  // Only when keys are present in result set, TODO: compute using C++ only !!!
   for (int i = 0; i < nrOfSelect; ++i)
   {
     selectedCols->SetElement(i, blockReader->GetElement(colIndex[i]));

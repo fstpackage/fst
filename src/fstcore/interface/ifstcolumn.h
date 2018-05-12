@@ -122,8 +122,6 @@ public:
 
   virtual void SetElement(unsigned int elementNr, const char* str) = 0;
 
-  // virtual void SetElement(unsigned int elementNr, const char* str, unsigned int strLen) = 0;
-
   virtual const char* GetElement(unsigned int elementNr) = 0;
 
   virtual unsigned int Length() = 0;

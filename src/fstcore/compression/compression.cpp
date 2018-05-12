@@ -1018,30 +1018,30 @@ unsigned int LZ4_INT_TO_SHORT_SHUF2_D(char* dst, unsigned int dstCapacity, const
 
 unsigned int ZSTD_INT_TO_SHORT_SHUF2_C(char* dst, unsigned int dstCapacity, const char* src, unsigned int srcSize, int compressionLevel)
 {
-  int nrOfLongs = 1 + (srcSize - 1) / 16;  // srcSize is processed in blocks of 16 bytes
+  const unsigned int nr_of_longs = 1 + (srcSize - 1) / 16;  // srcSize is processed in blocks of 16 bytes
 
   // Compress buffer
   char buf[MAX_SIZE_COMPRESS_BLOCK_HALF];
 
   CompactIntToShort(buf, src, srcSize / 4);  // expecting a integer vector here
 
-  return ZSTD_compress(dst, dstCapacity, static_cast<char*>(buf), nrOfLongs * 8, (compressionLevel * ZSTD_maxCLevel()) / 100);
+  return ZSTD_compress(dst, dstCapacity, static_cast<char*>(buf), nr_of_longs * 8, (compressionLevel * ZSTD_maxCLevel()) / 100);
 }
 
 unsigned int ZSTD_INT_TO_SHORT_SHUF2_D(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize)
 {
-  int nrOfLongs = 1 + (dstCapacity - 1) / 16;  // srcSize is processed in blocks of 32 bytes
-  int nrOfDstInts = dstCapacity / 4;
+  const unsigned int nr_of_longs = 1 + (dstCapacity - 1) / 16;  // srcSize is processed in blocks of 32 bytes
+  const unsigned int nr_of_dst_ints = dstCapacity / 4;
 
   // Compress buffer
   char buf[MAX_SIZE_COMPRESS_BLOCK_HALF];
 
   // Decompress
-  unsigned int errorCode = ZSTD_decompress(static_cast<char*>(buf), 8 * nrOfLongs, src, compressedSize) != 8 * nrOfLongs;
+  const unsigned int error_code = ZSTD_decompress(static_cast<char*>(buf), 8 * nr_of_longs, src, compressedSize) != 8 * nr_of_longs;
 
-  DecompactShortToInt(buf, dst, nrOfDstInts);  // one integer per byte
+  DecompactShortToInt(buf, dst, nr_of_dst_ints);  // one integer per byte
 
-  return errorCode;
+  return error_code;
 }
 
 
@@ -1049,11 +1049,11 @@ unsigned int ZSTD_INT_TO_SHORT_SHUF2_D(char* dst, unsigned int dstCapacity, cons
 
 unsigned int INT_TO_BYTE_C(char* dst, unsigned int dstCapacity, const char* src,  unsigned int srcSize, int compressionLevel)
 {
-  unsigned int nrOfLongs = 1 + (srcSize - 1) / 32;  // srcSize is processed in blocks of 32 bytes
+  const unsigned int nr_of_longs = 1 + (srcSize - 1) / 32;  // srcSize is processed in blocks of 32 bytes
 
   CompactIntToByte(dst, src, srcSize / 4);
 
-  return 8 * nrOfLongs;
+  return 8 * nr_of_longs;
 }
 
 unsigned int INT_TO_BYTE_D(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize)
@@ -1065,11 +1065,11 @@ unsigned int INT_TO_BYTE_D(char* dst, unsigned int dstCapacity, const char* src,
 
 unsigned int INT_TO_SHORT_C(char* dst, unsigned int dstCapacity, const char* src,  unsigned int srcSize, int compressionLevel)
 {
-  int nrOfLongs = 1 + (srcSize - 1) / 16;  // srcSize is processed in blocks of 32 bytes
+  const unsigned int nr_of_longs = 1 + (srcSize - 1) / 16;  // srcSize is processed in blocks of 32 bytes
 
   CompactIntToShort(dst, src, srcSize / 4);
 
-  return 8 * nrOfLongs;
+  return 8 * nr_of_longs;
 }
 
 unsigned int INT_TO_SHORT_D(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize)
@@ -1083,16 +1083,16 @@ unsigned int INT_TO_SHORT_D(char* dst, unsigned int dstCapacity, const char* src
 
 unsigned int LOGIC64_C(char* dst, unsigned int dstCapacity, const char* src,  unsigned int srcSize, int compressionLevel)
 {
-  int nrOfLogicals = srcSize / 4;  // srcSize must be a multiple of 4
-  int nrOfLongs = 1 + (nrOfLogicals - 1) / 32;
+  const int nr_of_logicals = srcSize / 4;  // srcSize must be a multiple of 4
+  const int nrOfLongs = 1 + (nr_of_logicals - 1) / 32;
 
-  LogicCompr64(src, (unsigned long long*) dst, nrOfLogicals);
+  LogicCompr64(src, reinterpret_cast<unsigned long long*>(dst), nr_of_logicals);
   return 8 * nrOfLongs;
 }
 
 unsigned int LOGIC64_D(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize)
 {
-  int nrOfLogicals = dstCapacity / 4;  // dstCapacity must be a multiple of 4
+  const int nrOfLogicals = dstCapacity / 4;  // dstCapacity must be a multiple of 4
 
   LogicDecompr64(dst, (unsigned long long*) src, nrOfLogicals, 0);
 
