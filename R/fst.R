@@ -200,9 +200,9 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
     return(res)
   }
 
+  # use setters from data.table to improve performance
   if (requireNamespace("data.table")) {
 
-    # use faster setattr method
     data.table::setattr(res$resTable, "class", "data.frame")
     data.table::setattr(res$resTable, "row.names", 1:length(res$resTable[[1]]))
 

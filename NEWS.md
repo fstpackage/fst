@@ -5,8 +5,15 @@
 
 #### New features
 
-* More advanced printing generic of the `fst_table` reference object, showing column types, (possible) keys and table header and footer data (issue #131).
+* More advanced printing generic of the `fst_table` reference object, showing column types, (possible) keys, and the table header and footer data (issue #131).
 
+* Character encoding of column names correctly stored in the `fst` format (issue #144).
+
+* User has more control over the number of threads used by fst. Option 'fst_threads' can now be used to initialize the number of threads when the package is first loaded.
+
+* Option 'fst_restore_after_fork' can be used to select the threading behaviour after a fork has ended. Like the `data.table` package, `fst` switches back to a single thread when a fork is detected (using OpenMP in a fork can lead to problems). Unlike `data.table`, the `fst` package restores the number of threads to it's previous setting when the fork ends. If this leads to unexpected problems, the user can set the 'fst_restore_after_fork' option to FALSE to disable that.
+    
+    
 #### Bugs solved
 
 #### Documentation

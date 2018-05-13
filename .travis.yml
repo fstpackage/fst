@@ -19,6 +19,10 @@ r_packages:
   - testthat
   - data.table
 
+addons:
+  apt:
+    update: true
+
 after_success:
   - Rscript -e 'library(covr); codecov(quiet = FALSE)'
 
