@@ -17,9 +17,9 @@ An object of class \code{fst_table}
 \description{
 Create a fst_table object that can be accessed like a regular data frame. This object
 is just a reference to the actual data and requires only a small amount of memory.
-When data is accessed, only the requested subset is read from file. This is possible
-because the fst file format allows full random access (in columns and rows) to the stored
-dataset.
+When data is accessed, only a subset is read from file, depending on the minimum and
+maximum requested row number. This is possible because the fst file format allows full
+random access (in columns and rows) to the stored dataset.
 }
 \examples{
 \dontrun{

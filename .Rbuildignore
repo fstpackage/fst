@@ -10,5 +10,5 @@ LZ4/LICENSE$
 \.png$
 \.yml$
 dataset\.fst$
-res - readme\.fst$
+^res - readme\.fst$
 ^_pkgdown\.yml$
