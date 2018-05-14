@@ -23,12 +23,12 @@ read.fst(path, columns = NULL, from = 1, to = NULL,
 \item{path}{path to fst file}
 
 \item{compress}{value in the range 0 to 100, indicating the amount of compression to use.
-Lower values mean larger file sizes.}
+Lower values mean larger file sizes. The default compression is set to 50.}
 
-\item{uniform_encoding}{If TRUE, all character vectors will be assumed to have elements with equal encoding.
+\item{uniform_encoding}{If \code{TRUE}, all character vectors will be assumed to have elements with equal encoding.
 The encoding (latin1, UTF8 or native) of the first non-NA element will used as encoding for the whole column.
 This will be a correct assumption for most use cases.
-If \code{uniform.encoding} is set to FALSE, no such assumption will be made and all elements will be converted
+If \code{uniform.encoding} is set to \code{FALSE}, no such assumption will be made and all elements will be converted
 to the same encoding. The latter is a relatively expensive operation and will reduce write performance for
 character columns.}
 
@@ -48,8 +48,10 @@ dataset \code{x} before writing will be retained. This allows for storage of sor
 invisibly returns \code{x} (so you can use this function in a pipeline).
 }
 \description{
-Read and write data frames from and to a fast-storage (fst) file.
+Read and write data frames from and to a fast-storage (\code{fst}) file.
 Allows for compression and (file level) random access of stored data, even for compressed datasets.
+Multiple threads are used to obtain high (de-)serialization speeds but all background threads are
+re-joined before \code{write_fst} and \code{read_fst} return (reads and writes are stable).
 When using a \code{data.table} object for \code{x}, the key (if any) is preserved,
 allowing storage of sorted data.
 Methods \code{read_fst} and \code{write_fst} are equivalent to \code{read.fst} and \code{write.fst} (but the
@@ -59,13 +61,13 @@ former syntax is preferred).
 # Sample dataset
 x <- data.frame(A = 1:10000, B = sample(c(TRUE, FALSE, NA), 10000, replace = TRUE))
 
-# Uncompressed
-write_fst(x, "dataset.fst")  # filesize: 41 KB
-y <- read_fst("dataset.fst") # read uncompressed data
+# Default compression
+write_fst(x, "dataset.fst")  # filesize: 17 KB
+y <- read_fst("dataset.fst") # read fst file
 
-# Compressed
+# Maximum compression
 write_fst(x, "dataset.fst", 100)  # fileSize: 4 KB
-y <- read_fst("dataset.fst") # read compressed data
+y <- read_fst("dataset.fst") # read fst file
 
 # Random access
 y <- read_fst("dataset.fst", "B") # read selection of columns

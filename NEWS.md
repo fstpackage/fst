@@ -18,6 +18,9 @@ Version 0.8.6 of the `fst` package brings nicer printing of `fst_table` objects.
 
 ## Documentation
 
+* Improved accuracy of fst_table documentation regarding random row access (issue #143, thanks @martinblostein for pointed out the unclarity)
+
+* Improved documentation on background threads during `write_fst()` of `read_fst()` (issue #121, thanks @krlmlr for the suggestion and discussion)
 
 # fst 0.8.4
 
