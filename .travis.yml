@@ -19,6 +19,13 @@ r_packages:
   - testthat
   - data.table
 
+matrix:
+  exclude:
+  - r: release
+    os: osx
+  - r: devel
+    os: osx
+
 addons:
   apt:
     update: true

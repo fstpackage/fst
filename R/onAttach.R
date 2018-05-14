@@ -49,6 +49,11 @@
     fst_threads_option <- getOption("fst_threads")
     nr_of_threads <- threads_fst()
 
+    if (!is.null(fst_threads_option) && (!is.numeric(fst_threads_option) || is.na(fst_threads_option))) {
+      # report incorrect thread option
+      packageStartupMessage("Incorrect option 'fst_threads' found and ignored.")
+    }
+
     # check for OpenMP support
     if (!hasopenmp()) {
       packageStartupMessage("(OpenMP was not detected, using single threaded mode)")

@@ -135,7 +135,6 @@ NULL
     if (!is.numeric(option_threads) || is.na(option_threads)) {
       # don't use option if improperly set
       option_threads <- NULL
-      message("Incorrect option 'fst_threads' found and ignored.")
     }
   }
 
