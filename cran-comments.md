@@ -21,7 +21,7 @@ There were no ERRORs or WARNINGs.
 
 On some platforms a note is generated with R CMD check:
    'installed size is 7.0Mb'.
-The install size on different platforms varies significantly; from 1.42 MB (windows 10) to more than 7 MB on fedora.
+The install size on different platforms varies significantly, from 1.42 MB (windows 10) to more than 7 MB on fedora.
 
 ## Downstream dependencies
 

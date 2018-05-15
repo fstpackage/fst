@@ -1,7 +1,7 @@
 
 # fst 0.8.6
 
-Version 0.8.6 of the `fst` package brings nicer printing of `fst_table` objects. It also includes optimizations for controlling the number of threads used by the package during reads and writes and after a fork has ended. The `LZ4` and `ZSTD` compression libraries used internally are updated to their latest (and fastest) releases. UTF-8 encoded column names are now correctly stored in the `fst` format.
+Version 0.8.6 of the `fst` package brings clearer printing of `fst_table` objects. It also includes optimizations for controlling the number of threads used by the package during reads and writes and after a fork has ended. The `LZ4` and `ZSTD` compression libraries are updated to their latest (and fastest) releases. UTF-8 encoded column names are now correctly stored in the `fst` format.
 
 ## New features
 
@@ -15,12 +15,11 @@ Version 0.8.6 of the `fst` package brings nicer printing of `fst_table` objects.
 
 * Character encoding of column names correctly stored in the `fst` format (issue #144, thanks @shrektan for reporting and discussions).
 
-
 ## Documentation
 
 * Improved accuracy of fst_table documentation regarding random row access (issue #143, thanks @martinblostein for pointed out the unclarity)
 
-* Improved documentation on background threads during `write_fst()` of `read_fst()` (issue #121, thanks @krlmlr for the suggestion and discussion)
+* Improved documentation on background threads during `write_fst()` and `read_fst()` (issue #121, thanks @krlmlr for suggestions and discussion)
 
 # fst 0.8.4
 
