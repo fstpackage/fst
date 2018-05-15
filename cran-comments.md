@@ -20,8 +20,18 @@ In this submission of fst, build errors reported in the CRAN check results for v
 There were no ERRORs or WARNINGs.
 
 On some platforms a note is generated with R CMD check:
-   'installed size is 7.0Mb'.
+   installed size is 7.0Mb
 The install size on different platforms varies significantly, from 1.42 MB (windows 10) to more than 7 MB on fedora.
+
+## Valgrind
+
+The following warnings are generated with valgrind when tests are run:
+
+* Syscall param write(buf) points to uninitialised byte(s)
+* Conditional jump or move depends on uninitialised value(s)
+* Syscall param writev(vector[...]) points to uninitialised byte(s)
+
+Like in previous fst versions, all warnings are generated in source file 'src/fstcore/interface/fststore.cpp' and are caused by writing uninitialised data to file. This is done intentionally (to increase performance) and the specific on-disk data is overwritten at a later point with initialised values.
 
 ## Downstream dependencies
 
