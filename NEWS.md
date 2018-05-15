@@ -7,14 +7,17 @@ Version 0.8.6 of the `fst` package brings nicer printing of `fst_table` objects.
 
 * More advanced printing generic of the `fst_table` reference object, showing column types, (possible) keys, and the table header and footer data (issue #131, thanks @renkun-ken for reporting and discussions).
 
-* User has more control over the number of threads used by fst. Option 'fst_threads' can now be used to initialize the number of threads when the package is first loaded (issue #132, thanks to @karldw for the pull request).
+* User has more control over the number of threads used by fst. Option 'fst_threads' can now be used to initialize the number of threads when the package is first loaded (issue #132, thanks to @karldw for the pull request). Additionaly, the user can specify the required number of threads with a _nr_of_threads_ argument in `threads_fst()` (issue #132, thanks @karldw for discussions and contribution)
 
-* Option 'fst_restore_after_fork' can be used to select the threading behaviour after a fork has ended. Like the `data.table` package, `fst` switches back to a single thread when a fork is detected (using OpenMP in a fork can lead to problems). Unlike `data.table`, the `fst` package restores the number of threads to it's previous setting when the fork ends. If this leads to unexpected problems, the user can set the 'fst_restore_after_fork' option to FALSE to disable that.
+* Option 'fst_restore_after_fork' can be used to select the threading behaviour after a fork has ended. Like the `data.table` package, `fst` switches back to a single thread when a fork is detected (using OpenMP in a fork can lead to problems). Unlike `data.table`, the `fst` package restores the number of threads to it's previous setting when the fork ends. If this leads to unexpected problems (some have been reported with the Intel compiler), the user can set the 'fst_restore_after_fork' option to FALSE to disable that. Additionaly, the user can select the desired behavior with a _reset_after_fork _ argument in `threads_fst()` (issue #110, #112, #137, thanks @renkun-ken and @rexdouglass for reporting, testing and discussions).
+
+* The `LZ4` compressor was updated to version 1.8.2. This version brings speed enhancements, especially for smaller inputs as used in `fst` (see [here](https://github.com/lz4/lz4/releases/tag/v1.8.2)).
+
+* The `ZSTD` compressor was updated to version 1.3.4. Like `LZ4` 1.8.2, this release focusses on performance and offers higher speeds for most scenario's (see [here](https://github.com/facebook/zstd/releases/tag/v1.3.4))
     
 ## Bugs solved
 
 * Character encoding of column names correctly stored in the `fst` format (issue #144, thanks @shrektan for reporting and discussions).
-
 
 ## Documentation
 
