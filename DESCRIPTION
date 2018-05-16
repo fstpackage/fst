@@ -5,8 +5,8 @@ Description: Multithreaded serialization of compressed data frames using the
     'fst' format. The 'fst' format allows for random access of stored data and
     compression with the LZ4 and ZSTD compressors created by Yann Collet. The ZSTD
     compression library is owned by Facebook Inc.
-Version: 0.8.5
-Date: 2018-01-25
+Version: 0.8.7
+Date: 2018-05-15
 Authors@R: c(
     person("Mark", "Klik", email = "markklik@gmail.com", role = c("aut", "cre", "cph")),
     person("Yann", "Collet", role = c("ctb", "cph"),
