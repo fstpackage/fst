@@ -1,0 +1,5 @@
+url: http://www.fstpackage.org
+
+template:
+  params:
+    bootswatch: cerulean

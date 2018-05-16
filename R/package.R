@@ -23,6 +23,8 @@
 #' @useDynLib fst, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
 #' @importFrom utils packageVersion
+#' @importFrom utils capture.output
+#' @importFrom utils tail
 #' @importFrom utils str
 #' @importFrom parallel detectCores
 NULL
@@ -112,6 +114,44 @@ NULL
 #' @name fst-package
 #' @aliases fst-package
 NULL
+
+
+.onLoad <- function(libname, pkgname) {
+
+  # check option for restoring threads after forking
+  option_restore <- getOption("fst_restore_after_fork")
+
+  if (!is.null(option_restore)) {
+    if (is.logical(option_restore) && !is.na(option_restore)) {
+      restore_after_fork(option_restore)
+    }
+  }
+
+  # set the number of threads here. .onAttach will read threads_fst() and display a
+  # useful startup message.
+  option_threads <- getOption("fst_threads")
+
+  if (!is.null(option_threads)) {
+    if (!is.numeric(option_threads) || is.na(option_threads)) {
+      # don't use option if improperly set
+      option_threads <- NULL
+    }
+  }
+
+  if (is.null(option_threads)) {
+    logical_cores <- parallel::detectCores(logical = TRUE)
+
+    # if R can't figure out how many logical cores, ask OpenMP to use all
+    logical_cores <- ifelse(is.na(logical_cores), 0L, logical_cores)
+
+    # The default number of cores is set to the number of logical cores available on the system.
+    # Benchmarks show that hyperthreading increases the read- and write performance of fst.
+    threads_fst(logical_cores)
+  } else {
+    # don't need to validate here; threads_fst checks its input
+    threads_fst(option_threads[1])
+  }
+}
 
 
 .onUnload <- function (libpath) {

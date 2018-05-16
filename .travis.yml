@@ -11,13 +11,6 @@ os:
   - linux
   - osx
 
-matrix:
-  exclude:
-  - r: release
-    os: osx
-  - r: devel
-    os: osx
-
 r_packages:
   - covr
   - lintr
@@ -25,6 +18,17 @@ r_packages:
   - nanotime
   - testthat
   - data.table
+
+matrix:
+  exclude:
+  - r: release
+    os: osx
+  - r: devel
+    os: osx
+
+addons:
+  apt:
+    update: true
 
 after_success:
   - Rscript -e 'library(covr); codecov(quiet = FALSE)'

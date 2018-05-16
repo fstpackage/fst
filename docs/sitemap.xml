@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>http://www.fstpackage.org/index.html</loc>
+  </url>
+  <url>
+    <loc>http://www.fstpackage.org/reference/compress_fst.html</loc>
+  </url>
+  <url>
+    <loc>http://www.fstpackage.org/reference/decompress_fst.html</loc>
+  </url>
+  <url>
+    <loc>http://www.fstpackage.org/reference/fst-package.html</loc>
+  </url>
+  <url>
+    <loc>http://www.fstpackage.org/reference/fst.html</loc>
+  </url>
+  <url>
+    <loc>http://www.fstpackage.org/reference/hash_fst.html</loc>
+  </url>
+  <url>
+    <loc>http://www.fstpackage.org/reference/metadata_fst.html</loc>
+  </url>
+  <url>
+    <loc>http://www.fstpackage.org/reference/threads_fst.html</loc>
+  </url>
+  <url>
+    <loc>http://www.fstpackage.org/reference/write_fst.html</loc>
+  </url>
+</urlset>

@@ -8,6 +8,12 @@ roundtrip_vector <- function(x) {
 }
 
 
+roundtrip_vector_dt <- function(x) {
+  dt <- data.table(x = x, stringsAsFactors = FALSE)
+  roundtrip(dt)$x
+}
+
+
 roundtrip <- function(df) {
   temp <- tempfile()
   fstwriteproxy(df, temp)
@@ -87,11 +93,11 @@ test_that("preserves dates", {
 # ITime
 test_that("preserves time of day", {
   x <- as.ITime(c(1:10, NA), origin = "1970-01-01")
-  res <- roundtrip_vector(x)
+  res <- roundtrip_vector_dt(x)
   expect_identical(res, x)
 
   mode(x) <- "double"
-  res <- roundtrip_vector(x)
+  res <- roundtrip_vector_dt(x)
   expect_identical(res, x)
 })
 

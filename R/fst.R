@@ -22,41 +22,44 @@
 
 #' Read and write fst files.
 #'
-#' Read and write data frames from and to a fast-storage (fst) file.
+#' Read and write data frames from and to a fast-storage (`fst`) file.
 #' Allows for compression and (file level) random access of stored data, even for compressed datasets.
-#' When using a \code{data.table} object for \code{x}, the key (if any) is preserved,
+#' Multiple threads are used to obtain high (de-)serialization speeds but all background threads are
+#' re-joined before `write_fst` and `read_fst` return (reads and writes are stable).
+#' When using a `data.table` object for `x`, the key (if any) is preserved,
 #' allowing storage of sorted data.
-#' Methods \code{read_fst} and \code{write_fst} are equivalent to \code{read.fst} and \code{write.fst} (but the
+#' Methods `read_fst` and `write_fst` are equivalent to `read.fst` and `write.fst` (but the
 #' former syntax is preferred).
 #'
 #' @param x a data frame to write to disk
 #' @param path path to fst file
 #' @param compress value in the range 0 to 100, indicating the amount of compression to use.
-#'   Lower values mean larger file sizes.
-#' @param uniform_encoding If TRUE, all character vectors will be assumed to have elements with equal encoding.
+#' Lower values mean larger file sizes. The default compression is set to 50.
+#' @param uniform_encoding If `TRUE`, all character vectors will be assumed to have elements with equal encoding.
 #' The encoding (latin1, UTF8 or native) of the first non-NA element will used as encoding for the whole column.
 #' This will be a correct assumption for most use cases.
-#' If \code{uniform.encoding} is set to FALSE, no such assumption will be made and all elements will be converted
+#' If `uniform.encoding` is set to `FALSE`, no such assumption will be made and all elements will be converted
 #' to the same encoding. The latter is a relatively expensive operation and will reduce write performance for
 #' character columns.
-#' @return \code{read_fst} returns a data frame with the selected columns and rows. \code{read_fst}
-#' invisibly returns \code{x} (so you can use this function in a pipeline).
+#' @return `read_fst` returns a data frame with the selected columns and rows. `read_fst`
+#' invisibly returns `x` (so you can use this function in a pipeline).
 #' @examples
 #' # Sample dataset
 #' x <- data.frame(A = 1:10000, B = sample(c(TRUE, FALSE, NA), 10000, replace = TRUE))
 #'
-#' # Uncompressed
-#' write_fst(x, "dataset.fst")  # filesize: 41 KB
-#' y <- read_fst("dataset.fst") # read uncompressed data
+#' # Default compression
+#' write_fst(x, "dataset.fst")  # filesize: 17 KB
+#' y <- read_fst("dataset.fst") # read fst file
 #'
-#' # Compressed
+#' # Maximum compression
 #' write_fst(x, "dataset.fst", 100)  # fileSize: 4 KB
-#' y <- read_fst("dataset.fst") # read compressed data
+#' y <- read_fst("dataset.fst") # read fst file
 #'
 #' # Random access
 #' y <- read_fst("dataset.fst", "B") # read selection of columns
 #' y <- read_fst("dataset.fst", "A", 100, 200) # read selection of columns and rows
 #' @export
+#' @md
 write_fst <- function(x, path, compress = 50, uniform_encoding = TRUE) {
   if (!is.character(path)) stop("Please specify a correct path.")
 
@@ -156,7 +159,7 @@ print.fstmetadata <- function(x, ...) {
 #'
 #' @export
 read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE, old_format = FALSE) {
-  fileName <- normalizePath(path, mustWork = TRUE)
+  fileName <- normalizePath(path, mustWork = FALSE)
 
   if (!is.null(columns)) {
     if (!is.character(columns)) {
@@ -200,8 +203,21 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
     return(res)
   }
 
-  as.data.frame(res$resTable, row.names = NULL, stringsAsFactors = FALSE,
-    optional = TRUE)
+  # use setters from data.table to improve performance
+  if (requireNamespace("data.table")) {
+
+    data.table::setattr(res$resTable, "class", "data.frame")
+    data.table::setattr(res$resTable, "row.names", 1:length(res$resTable[[1]]))
+
+    return(res$resTable)
+  }
+
+  res_table <- res$resTable
+
+  class(res_table) <- "data.frame"
+  attr(res_table, "row.names") <- 1:length(res$resTable[[1]])
+
+  res_table
 }
 
 

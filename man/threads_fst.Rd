@@ -4,11 +4,19 @@
 \alias{threads_fst}
 \title{Get or set the number of threads used in parallel operations}
 \usage{
-threads_fst(nr_of_threads = NULL)
+threads_fst(nr_of_threads = NULL, reset_after_fork = NULL)
 }
 \arguments{
 \item{nr_of_threads}{number of threads to use or \code{NULL} to get the current number of threads used in
 multithreaded operations.}
+
+\item{reset_after_fork}{when \code{fst} is running in a forked process, the usage of OpenMP can
+create problems. To prevent these, \code{fst} switches back to single core usage when it detects a fork.
+After the fork, the number of threads is reset to it's initial setting. However, on some compilers
+(e.g. Intel), switching back to multi-threaded mode can lead to issues. When \code{reset_after_fork}
+is set to \code{FALSE}, \code{fst} is left in single-threaded mode after the fork ends. After the fork,
+multithreading can be activated again manually by calling \code{threads_fst} with an appropriate value
+for \code{nr_of_threads}. The default (\code{reset_after_fork = NULL}) leaves the fork behavior unchanged.}
 }
 \value{
 the number of threads (previously) used
@@ -21,4 +29,10 @@ number of threads used. Therefore, using the maximum number of available threads
 fastest solution. With \code{threads_fst} the number of threads can be adjusted to the users
 specific requirements. As a default, \code{fst} uses a number of threads equal to the number of
 logical cores in the system.
+}
+\details{
+The number of threads can also be set with \code{option(fst_threads = N)}.
+NOTE: This option is only read when the package's namespace is first loaded, with commands like
+\code{library}, \code{require}, or \code{::}. If you have already used one of these, you
+must use \code{threads_fst} to set the number of threads.
 }

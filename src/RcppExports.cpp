@@ -115,3 +115,13 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// restore_after_fork
+void restore_after_fork(bool restore);
+RcppExport SEXP _fst_restore_after_fork(SEXP restoreSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< bool >::type restore(restoreSEXP);
+    restore_after_fork(restore);
+    return R_NilValue;
+END_RCPP
+}

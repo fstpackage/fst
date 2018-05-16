@@ -37,3 +37,7 @@ hasopenmp <- function() {
     .Call(`_fst_hasopenmp`)
 }
 
+restore_after_fork <- function(restore) {
+    invisible(.Call(`_fst_restore_after_fork`, restore))
+}
+

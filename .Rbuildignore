@@ -4,8 +4,11 @@
 \.dll$
 \.a$
 \.Rmd$
+LZ4/LICENSE$
 \.md$
+^docs$
 \.png$
 \.yml$
 dataset\.fst$
-res - readme\.fst$
+^res - readme\.fst$
+^_pkgdown\.yml$

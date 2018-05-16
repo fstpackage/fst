@@ -141,3 +141,103 @@ test_that("fst_table throws errors on incorrect use of interface", {
 
   expect_error(x[[-3]], "Invalid column index -3")
 })
+
+
+test_that("fst_table has correct printing for small single column table", {
+  df <- data.frame(X = 1)
+  write_fst(df, test_file)
+  x <- fst(test_file)
+
+  res <- capture_output(print(x))
+  res <- crayon::strip_style(res)
+
+  expect_equal(res, paste(
+    "<fst file>",
+    "1 rows, 1 columns (fst_table.fst)\n",
+    "         X",
+    "  <double>",
+    "1        1",
+    sep = "\n"))
+})
+
+
+test_that("fst_table has correct printing for big single column table", {
+  df <- data.frame(X = 1:100)
+  write_fst(df, test_file)
+  x <- fst(test_file)
+
+  res <- capture_output(print(x))
+  res <- crayon::strip_style(res)
+
+  expect_equal(res, paste(
+    "<fst file>",
+    "100 rows, 1 columns (fst_table.fst)\n",
+    "            X",
+    "    <integer>",
+    "1           1",
+    "2           2",
+    "3           3",
+    "4           4",
+    "5           5",
+    "--         --",
+    "96         96",
+    "97         97",
+    "98         98",
+    "99         99",
+    "100       100",
+    sep = "\n"))
+})
+
+
+test_that("fst_table has correct printing for big multi column table", {
+  df <- data.frame(X = 1:104, Y = c(LETTERS, LETTERS, LETTERS, LETTERS))
+  write_fst(df, test_file)
+  x <- fst(test_file)
+
+  res <- capture_output(print(x))
+  res <- crayon::strip_style(res)
+
+  expect_equal(res, paste(
+    "<fst file>",
+    "104 rows, 2 columns (fst_table.fst)\n",
+    "            X        Y",
+    "    <integer> <factor>",
+    "1           1        A",
+    "2           2        B",
+    "3           3        C",
+    "4           4        D",
+    "5           5        E",
+    "--         --       --",
+    "100       100        V",
+    "101       101        W",
+    "102       102        X",
+    "103       103        Y",
+    "104       104        Z",
+    sep = "\n"))
+})
+
+
+test_that("fst_table has correct printing for small multi column table", {
+  df <- data.frame(X = 1:9, Y = LETTERS[10:18])
+  write_fst(df, test_file)
+  x <- fst(test_file)
+
+  res <- capture_output(print(x))
+  res <- crayon::strip_style(res)
+
+  expect_equal(res, paste(
+    "<fst file>",
+    "9 rows, 2 columns (fst_table.fst)\n",
+    "          X        Y",
+    "  <integer> <factor>",
+    "1         1        J",
+    "2         2        K",
+    "3         3        L",
+    "4         4        M",
+    "5         5        N",
+    "6         6        O",
+    "7         7        P",
+    "8         8        Q",
+    "9         9        R",
+    sep = "\n"))
+})

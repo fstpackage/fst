@@ -118,9 +118,9 @@ public:
 
   virtual void AllocateArray(unsigned int vecLength) = 0;
 
-  virtual void SetElement(unsigned int elementNr, const char* str) = 0;
+  virtual void SetEncoding(StringEncoding string_encoding) = 0;
 
-  virtual void SetElement(unsigned int elementNr, const char* str, unsigned int strLen) = 0;
+  virtual void SetElement(unsigned int elementNr, const char* str) = 0;
 
   virtual const char* GetElement(unsigned int elementNr) = 0;
 
@@ -137,6 +137,8 @@ public:
   virtual void AllocateVec(unsigned long long vecLength) = 0;
 
   virtual void SetEncoding(StringEncoding stringEncoding) = 0;
+
+  virtual StringEncoding GetEncoding() = 0;
 
   virtual void BufferToVec(unsigned long long nrOfElements, unsigned long long startElem, unsigned long long endElem,
     unsigned long long vecOffset, unsigned int* sizeMeta, char* buf) = 0;

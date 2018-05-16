@@ -1,7 +1,6 @@
 ---
 output:
-  md_document:
-    variant: markdown_github
+  github_document
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -22,7 +21,7 @@ knitr::opts_chunk$set(
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/fst)](https://cran.r-project.org/package=fst)
 [![codecov](https://codecov.io/gh/fstpackage/fst/branch/develop/graph/badge.svg)](https://codecov.io/gh/fstpackage/fst)
-
+[![downloads](http://cranlogs.r-pkg.org/badges/fst)](http://cran.rstudio.com/web/packages/fst/index.html)
 
 ## Overview
 
