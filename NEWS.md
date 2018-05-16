@@ -1,4 +1,12 @@
 
+# fst 0.8.7 (in development)
+
+## New features
+
+## Bugs solved
+
+## Documentation
+
 # fst 0.8.6
 
 Version 0.8.6 of the `fst` package brings clearer printing of `fst_table` objects. It also includes optimizations for controlling the number of threads used by the package during reads and writes and after a fork has ended. The `LZ4` and `ZSTD` compression libraries are updated to their latest (and fastest) releases. UTF-8 encoded column names are now correctly stored in the `fst` format.
