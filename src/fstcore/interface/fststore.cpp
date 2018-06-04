@@ -236,6 +236,10 @@ void FstStore::fstWrite(IFstTable &fstTable, const int compress) const
   // size of fst file header
   const unsigned long long metaDataSize   = tableHeaderSize + keyIndexHeaderSize + chunksetHeaderSize + colNamesHeaderSize;
   char * metaDataWriteBlock               = new char[metaDataSize];  // fst metadata
+
+  // clear memory for safety (avoids valgrind warnings)
+  memset(metaDataWriteBlock, 0, metaDataSize);
+
   std::unique_ptr<char[]> metaDataPtr     = std::unique_ptr<char[]>(metaDataWriteBlock);
 
 
@@ -375,6 +379,10 @@ void FstStore::fstWrite(IFstTable &fstTable, const int compress) const
   // Size of chunkset index header plus data chunk header
   const unsigned long long chunkIndexSize = CHUNK_INDEX_SIZE + DATA_INDEX_SIZE + 8 * nrOfCols;
   char* chunkIndex = new char[chunkIndexSize];
+
+  // clear memory for safety
+  memset(chunkIndex, 0, chunkIndexSize);
+
   std::unique_ptr<char[]> chunkIndexPtr = std::unique_ptr<char[]>(chunkIndex);
 
   // Chunkset data index [node D, leaf of C] [size: 96]

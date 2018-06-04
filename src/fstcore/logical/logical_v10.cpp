@@ -36,19 +36,7 @@ using namespace std;
 void fdsWriteLogicalVec_v10(ofstream &myfile, int* boolVector, unsigned long long nrOfLogicals, int compression,
   std::string annotation, bool hasAnnotation)
 {
-  // TODO: create multi-threaded code for a fixed ratio compressor
-
-  //if (compression == 0)
-  //{
-  //  FixedRatioCompressor* compressor = new FixedRatioCompressor(CompAlgo::LOGIC64);  // compression level not relevant here
-  //  fdsStreamUncompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, BLOCKSIZE_LOGICAL, compressor, annotation, hasAnnotation);
-
-  //  delete compressor;
-
-  //  return;
-  //}
-
-  int blockSize = 4 * BLOCKSIZE_LOGICAL;  // block size in bytes
+  const int blockSize = 4 * BLOCKSIZE_LOGICAL;  // block size in bytes
 
   if (compression <= 50)  // compress 1 - 50
   {
@@ -57,7 +45,7 @@ void fdsWriteLogicalVec_v10(ofstream &myfile, int* boolVector, unsigned long lon
     StreamCompressor* streamCompressor = new StreamCompositeCompressor(defaultCompress, compress2, 2 * compression);
     streamCompressor->CompressBufferSize(blockSize);
 
-    fdsStreamcompressed_v2(myfile, (char*) boolVector, nrOfLogicals, 4, streamCompressor, BLOCKSIZE_LOGICAL, annotation, hasAnnotation);
+    fdsStreamcompressed_v2(myfile, reinterpret_cast<char*>(boolVector), nrOfLogicals, 4, streamCompressor, BLOCKSIZE_LOGICAL, annotation, hasAnnotation);
 
     delete defaultCompress;
     delete compress2;

@@ -196,6 +196,12 @@ void fdsStreamUncompressed_v2(ofstream& myfile, char* vec, unsigned long long ve
 }
 
 
+// header structure
+//
+//  4                      | unsigned int | maximum compressed size of block 
+//  4                      | unsigned int | number of elements in block
+
+
 // Method for writing column data of any type to a stream.
 void fdsStreamcompressed_v2(ofstream& myfile, char* colVec, unsigned long long nrOfRows, int elementSize,
   StreamCompressor* streamCompressor, int blockSizeElems, std::string annotation, bool hasAnnotation)
@@ -225,8 +231,11 @@ void fdsStreamcompressed_v2(ofstream& myfile, char* colVec, unsigned long long n
 
   // Blocks meta information
   // Aligned at 8 byte boundary
-  std::unique_ptr<char[]> blockIndexP(new char[(2 + nrOfBlocks) * 8]);
+  unsigned int block_index_size = (2 + nrOfBlocks) * 8;
+  std::unique_ptr<char[]> blockIndexP(new char[block_index_size]);
   char* blockIndex = blockIndexP.get(); // 1 long file pointer with 2 highest bytes indicating algorithmID
+
+  memset(blockIndex, 0, block_index_size);
 
   unsigned int* maxCompSize = reinterpret_cast<unsigned int*>(&blockIndex[0]); // maximum uncompressed block length
   unsigned int* blockSizeElements = reinterpret_cast<unsigned int*>(&blockIndex[4]); // number of elements per block
@@ -258,6 +267,8 @@ void fdsStreamcompressed_v2(ofstream& myfile, char* colVec, unsigned long long n
 
   std::unique_ptr<char[]> threadBufferP(new char[nrOfThreads * MAX_COMPRESSBOUND * batchSize]);
   char* threadBuffer = threadBufferP.get();
+
+  // TODO: possibly memset to zero to avoid valgrind warnings
 
   int nrOfBatches = nrOfBlocks / batchSize; // number of complete batches with complete blocks
 
@@ -352,7 +363,7 @@ void fdsStreamcompressed_v2(ofstream& myfile, char* colVec, unsigned long long n
   // Might be usefull in future implementation
   *maxCompSize = maxCompressionSize;
 
-  // Write last block position
+  // Write last block position, note that nrOfBlocks is previously decreased by 1
   blockPosition = reinterpret_cast<unsigned long long*>(&blockIndex[COL_META_SIZE + 8 + nrOfBlocks * 8]);
   *blockPosition = blockIndexPos;
 
