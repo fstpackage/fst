@@ -1,5 +1,9 @@
 
-# fst 0.8.6
+# fst 0.8.8 (June 6, 2018)
+
+Version 0.8.8 of the `fst` package is an intermediate release designed to fix valgrind warnings reported on CRAN builds (per request of CRAN maintainers). These warnings were due to `fst` writing uninitialized data buffers to file, which was done to maximize speed. To fix these warnings (and for safety), all memory blocks are now initialized to zero before being written to disk.
+
+# fst 0.8.6 (May 15, 2018)
 
 Version 0.8.6 of the `fst` package brings clearer printing of `fst_table` objects. It also includes optimizations for controlling the number of threads used by the package during reads and writes and after a fork has ended. The `LZ4` and `ZSTD` compression libraries are updated to their latest (and fastest) releases. UTF-8 encoded column names are now correctly stored in the `fst` format.
 

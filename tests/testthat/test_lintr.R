@@ -8,6 +8,10 @@ library(lintr)
 #   * RcppExports not excluded
 
 test_that("Package Style", {
+
+  # lintr throws a lot of valgrind warnings, so skip on CRAN for now
+  skip_on_cran()
+
   lints <- with_defaults(line_length_linter = line_length_linter(120))
   lints <- lints[!(names(lints) %in%
     c("object_usage_linter", "camel_case_linter", "commas_linter", "multiple_dots_linter"))]

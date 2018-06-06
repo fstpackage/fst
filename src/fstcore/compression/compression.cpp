@@ -657,13 +657,14 @@ void LogicDecompr64(char* logicalVec, const unsigned long long* compBuf, int nrO
 }
 
 
-// Compression buffer should be at least 1 + (nrOfLogicals - 1) / 256 elements in length (factor 32)
+// Compression buffer should be at least 1 + (nrOfLogicals - 1) / 256 elements (long ints) in length (factor 32)
 void LogicCompr64(const char* logicalVec, unsigned long long* compress, int nrOfLogicals)
 {
   const unsigned long long* logicals = (const unsigned long long*) logicalVec;
-  int nrOfLongs = nrOfLogicals / 32;
+  int nrOfLongs = nrOfLogicals / 32;  // number of full longs
 
   // Define filters
+  // TODO: define these as constants
   unsigned long long BIT = (1LL << 32) | 1LL;
   unsigned long long BIT0  = (BIT << 16) | (BIT << 15);
   unsigned long long BIT1  = (BIT << 17) | (BIT << 14);
@@ -710,15 +711,20 @@ void LogicCompr64(const char* logicalVec, unsigned long long* compress, int nrOf
 
 
   // Process remainder
-  int remain = nrOfLogicals % 32;
+  int remain = nrOfLogicals % 32;  // nr of logicals remaining
   if (remain == 0) return;
 
+  unsigned long long remainLongs[16];  // at maximum nrOfRemainLongs equals 16
+  int* remain_ints = reinterpret_cast<int*>(remainLongs);
+                                       
   // Compress the remainder in identical manner as the blocks here (for random access) !!!!!!
   logics = &logicals[16 * nrOfLongs];
 
-  int nrOfRemainLongs = 1 + (remain - 1) / 2;  // per 2 logicals
-  unsigned long long remainLongs[16];  // at maximum nrOfRemainLongs equals 16
+  const int nrOfRemainLongs = 1 + (remain - 1) / 2;  // per 2 logicals
+
+  // please valgrind: only use initialized bytes for calculations
   memcpy(remainLongs, logics, remain * sizeof(int));
+  memset(&remain_ints[remain], 0, (32 - remain) * 4);  // clear remaining ints
 
   unsigned long long compRes = 0;
   for (int remainNr = 0; remainNr < nrOfRemainLongs; ++remainNr)
@@ -1030,8 +1036,8 @@ unsigned int ZSTD_INT_TO_SHORT_SHUF2_C(char* dst, unsigned int dstCapacity, cons
 
 unsigned int ZSTD_INT_TO_SHORT_SHUF2_D(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize)
 {
-  int nrOfLongs = 1 + (dstCapacity - 1) / 16;  // srcSize is processed in blocks of 32 bytes
-  int nrOfDstInts = dstCapacity / 4;
+  unsigned int nrOfLongs = 1 + (dstCapacity - 1) / 16;  // srcSize is processed in blocks of 32 bytes
+  unsigned int nrOfDstInts = dstCapacity / 4;
 
   // Compress buffer
   char buf[MAX_SIZE_COMPRESS_BLOCK_HALF];
