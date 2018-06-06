@@ -1,7 +1,7 @@
 
 ## Submission
 
-In this submission of fst, build errors reported in the CRAN check results for version 0.8.4 are addressed (thanks Kurt Hornik for the warning). These errors were due to failing unit tests and have been traced back to changes in the data.table code base (for the ITime type) between version 1.10.4-3 and 1.11.0. All issues have been resolved in this release.
+This submission of fst adresses valgrind warnings that are reported on the v0.8.6 package build on CRAN. These warnings are caused by writing uninitialized (meta-data) buffers to file (to increase write performance). With this submission, all allocated memory is initialized before writing.
 
 ## Test environments
 
@@ -25,13 +25,7 @@ The install size on different platforms varies significantly, from 1.42 MB (wind
 
 ## Valgrind
 
-The following warnings are generated with valgrind when tests are run:
-
-* Syscall param write(buf) points to uninitialised byte(s)
-* Conditional jump or move depends on uninitialised value(s)
-* Syscall param writev(vector[...]) points to uninitialised byte(s)
-
-Like in previous fst versions, all warnings are generated in source file 'src/fstcore/interface/fststore.cpp' and are caused by writing uninitialised data to file. This is done intentionally (to increase performance) and the specific on-disk data is overwritten at a later point with initialised values.
+To reproduce the CRAN valgrind report, an instrumented (level 2) build of R was constructed on a fresh Ubuntu 16.04 image using config.site and configure parameters as specified in the memtests README file on CRAN. That build shows no valgrind warnings using the current submision.
 
 ## Downstream dependencies
 
@@ -39,3 +33,4 @@ I have run R CMD check on downstream dependencies and found no issues:
 
 * heims: runs without warnings or errors.
 * rio: runs without warnings or errors.
+* grattan: runs without warnings or errors.
