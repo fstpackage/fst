@@ -1,4 +1,13 @@
 
+# fst 0.8.9 (in development)
+
+## New features
+
+## Bugs solved
+
+## Documentation
+
+
 # fst 0.8.8 (June 6, 2018)
 
 Version 0.8.8 of the `fst` package is an intermediate release designed to fix valgrind warnings reported on CRAN builds (per request of CRAN maintainers). These warnings were due to `fst` writing uninitialized data buffers to file, which was done to maximize speed. To fix these warnings (and for safety), all memory blocks are now initialized to zero before being written to disk.
@@ -24,6 +33,7 @@ Version 0.8.6 of the `fst` package brings clearer printing of `fst_table` object
 * Improved accuracy of fst_table documentation regarding random row access (issue #143, thanks @martinblostein for pointed out the unclarity)
 
 * Improved documentation on background threads during `write_fst()` and `read_fst()` (issue #121, thanks @krlmlr for suggestions and discussion)
+
 
 # fst 0.8.4
 
