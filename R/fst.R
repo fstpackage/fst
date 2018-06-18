@@ -41,7 +41,8 @@
 #' If `uniform.encoding` is set to `FALSE`, no such assumption will be made and all elements will be converted
 #' to the same encoding. The latter is a relatively expensive operation and will reduce write performance for
 #' character columns.
-#' @return `read_fst` returns a data frame with the selected columns and rows. `read_fst`
+#' @return `read_fst` returns a data frame with the selected columns and rows. `write_fst`
+#' writes `x` to an `fst` file as a side-effect but also
 #' invisibly returns `x` (so you can use this function in a pipeline).
 #' @examples
 #' # Sample dataset
