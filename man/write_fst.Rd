@@ -45,8 +45,7 @@ dataset \code{x} before writing will be retained. This allows for storage of sor
 }
 \value{
 \code{read_fst} returns a data frame with the selected columns and rows. \code{write_fst}
-writes `x` to an `fst` file as a side-effect but also
-invisibly returns \code{x} (so you can use this function in a pipeline).
+writes \code{x} to a \code{fst} file and invisibly returns \code{x} (so you can use this function in a pipeline).
 }
 \description{
 Read and write data frames from and to a fast-storage (\code{fst}) file.
