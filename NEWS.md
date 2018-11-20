@@ -5,6 +5,8 @@
 
 ## Bugs solved
 
+* Method `compress_fst()` can now handle vectors with sizes larger than 4 GB (issue #176, thanks @bwlewis for reporting)
+
 ## Documentation
 
 

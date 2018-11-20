@@ -10,7 +10,6 @@ r:
 os:
   - linux
   - osx
-  - windows
 
 r_packages:
   - covr
@@ -19,13 +18,6 @@ r_packages:
   - nanotime
   - testthat
   - data.table
-
-matrix:
-  exclude:
-  - r: release
-    os: osx
-  - r: devel
-    os: osx
 
 addons:
   apt:
