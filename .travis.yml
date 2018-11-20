@@ -10,6 +10,7 @@ r:
 os:
   - linux
   - osx
+  - windows
 
 r_packages:
   - covr

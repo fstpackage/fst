@@ -30,12 +30,13 @@
 #include <algorithm>
 #include <cstring>
 #include <stdexcept>
+#include <climits>
 
 #include "interface/fstdefines.h"
 #include "interface/itypefactory.h"
 #include "interface/openmphelper.h"
 
-#include "LZ4/xxhash.h"
+#include "xxhash.h"
 
 
 class FstHasher

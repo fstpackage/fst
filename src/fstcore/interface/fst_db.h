@@ -25,13 +25,14 @@
 #ifndef FST_DB_H
 #define FST_DB_H
 
-// std inlcudes
+// std includes
 #include <vector>
-#include <memory>
 
 // fst includes
 #include "ifsttable.h"
 
+
+class FstDb;
 
 class FstTableProxy
 {
@@ -94,8 +95,6 @@ class FstDb
     void remove_table(std::string table_name) const;
 
     std::vector<table_info> table_index(std::string path) const;
-
-    IFstTable
 };
 
 
