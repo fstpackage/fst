@@ -67,6 +67,12 @@ inline int FindKey(StringVector colNameList, String item)
 }
 
 
+int fstlib_version()
+{
+  return FST_VERSION_MAJOR * 64 * 64 + FST_VERSION_MINOR * 64 + FST_VERSION_RELEASE;
+}
+
+
 SEXP fststore(String fileName, SEXP table, SEXP compression, SEXP uniformEncoding)
 {
   if (!Rf_isLogical(uniformEncoding))

@@ -5,6 +5,16 @@
 
 using namespace Rcpp;
 
+// fstlib_version
+int fstlib_version();
+RcppExport SEXP _fst_fstlib_version() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(fstlib_version());
+    return rcpp_result_gen;
+END_RCPP
+}
 // fststore
 SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression, SEXP uniformEncoding);
 RcppExport SEXP _fst_fststore(SEXP fileNameSEXP, SEXP tableSEXP, SEXP compressionSEXP, SEXP uniformEncodingSEXP) {
