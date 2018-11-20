@@ -1,5 +1,6 @@
 
-PKG_CPPFLAGS = $(SHLIB_OPENMP_CXXFLAGS) -I. -Ifstcore -Ifstcore_v1 -Ifstcore/LZ4 -Ifstcore/ZSTD -Ifstcore/ZSTD/common \
+PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
+PKG_CPPFLAGS = -I. -Ifstcore -Ifstcore_v1 -Ifstcore/LZ4 -Ifstcore/ZSTD -Ifstcore/ZSTD/common \
 	-Ifstcore/ZSTD/decompress -Ifstcore/ZSTD/compress
 CXX_STD      = CXX11
 PKG_LIBS     = $(SHLIB_OPENMP_CXXFLAGS) -L. -lFRAME -lCOMPRESSION -lLZ4 -lZSTD
