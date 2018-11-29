@@ -1,13 +1,26 @@
 
 # fst 0.8.9 (in development)
 
-## New features
+Version 0.8.10 of the `fst` package is an intermediate release designed to update the incorporated C++ libraries
+to their latest versions and to fix reported issues. Also, per request of CRAN maintainers, the OpenMP build option was moved to the correct flag in the Makevars file, resolving a warning in the package check.
+
+## Library updates
+
+* Library `fstlib` updated to version 0.1.0
+
+* Library `ZSTD` updated to version 1.3.7
+
+* Library `LZ4` updated to version 1.8.3
 
 ## Bugs solved
 
-* Method `compress_fst()` can now handle vectors with sizes larger than 4 GB (issue #176, thanks @bwlewis for reporting)
+* Method `compress_fst()` can handle vectors with sizes larger than 4 GB (issue #176, thanks @bwlewis for reporting)
+
+* A _fst_ file is correctly read from a subfolder on a network drive where the user does not have access to the top-level folder (issues #136 and #175, thanks @xiaodaigh for reporting).
 
 ## Documentation
+
+* Documentation updates (issue #158, thanks @HughParsonage for submitting)
 
 
 # fst 0.8.8 (June 6, 2018)

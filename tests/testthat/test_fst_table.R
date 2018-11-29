@@ -17,6 +17,14 @@ write_fst(df, test_file)
 x <- fst(test_file)
 
 
+# see issues #175 and #136
+test_that("fst_table does throw normalizePath error on non-existing file", {
+
+  expect_error(fst("testdata/non_existing.fst"), "Error opening fst file for reading")
+
+})
+
+
 test_that("fst_table returns a fst_table class object", {
   expect_equal(class(x) , "fst_table")
 

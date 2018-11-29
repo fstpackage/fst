@@ -101,7 +101,7 @@ metadata_fst <- function(path, old_format = FALSE) {
     stop("A logical value is expected for parameter 'old_format'.")
   }
 
-  full_path <- normalizePath(path, mustWork = TRUE)
+  full_path <- normalizePath(path, mustWork = FALSE)
 
   metadata <- fstmetadata(full_path, old_format)
 
