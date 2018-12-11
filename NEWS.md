@@ -18,6 +18,8 @@ to their latest versions and to fix reported issues. Also, per request of CRAN m
 
 * A _fst_ file is correctly read from a subfolder on a network drive where the user does not have access to the top-level folder (issues #136 and #175, thanks @xiaodaigh for reporting).
 
+* The suggested data.table dependency is now properly escaped (issue #181, thanks @jangorecki for the pull request)
+
 ## Documentation
 
 * Documentation updates (issue #158, thanks @HughParsonage for submitting)

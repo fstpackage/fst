@@ -194,7 +194,7 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
 
 
   if (as.data.table) {
-    if (!requireNamespace("data.table", quietly=TRUE)) {
+    if (!requireNamespace("data.table", quietly = TRUE)) {
       stop("Please install package data.table when using as.data.table = TRUE")
     }
 
@@ -205,16 +205,16 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
   }
 
   res_table <- res$resTable
-  
+
   # use setters from data.table to improve performance
-  if (requireNamespace("data.table", quietly=TRUE)) {
+  if (requireNamespace("data.table", quietly = TRUE)) {
     data.table::setattr(res_table, "class", "data.frame")
     data.table::setattr(res_table, "row.names", 1:length(res_table[[1L]]))
   } else {
     class(res_table) <- "data.frame"
     attr(res_table, "row.names") <- 1:length(res_table[[1L]])
   }
-  
+
   res_table
 }
 
