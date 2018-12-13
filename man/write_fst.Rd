@@ -44,8 +44,8 @@ dataset \code{x} before writing will be retained. This allows for storage of sor
 \item{old_format}{use TRUE to read fst files generated with a fst package version lower than v0.8.0}
 }
 \value{
-\code{read_fst} returns a data frame with the selected columns and rows. \code{read_fst}
-invisibly returns \code{x} (so you can use this function in a pipeline).
+\code{read_fst} returns a data frame with the selected columns and rows. \code{write_fst}
+writes \code{x} to a \code{fst} file and invisibly returns \code{x} (so you can use this function in a pipeline).
 }
 \description{
 Read and write data frames from and to a fast-storage (\code{fst}) file.

@@ -41,8 +41,8 @@
 #' If `uniform.encoding` is set to `FALSE`, no such assumption will be made and all elements will be converted
 #' to the same encoding. The latter is a relatively expensive operation and will reduce write performance for
 #' character columns.
-#' @return `read_fst` returns a data frame with the selected columns and rows. `read_fst`
-#' invisibly returns `x` (so you can use this function in a pipeline).
+#' @return `read_fst` returns a data frame with the selected columns and rows. `write_fst`
+#' writes `x` to a `fst` file and invisibly returns `x` (so you can use this function in a pipeline).
 #' @examples
 #' # Sample dataset
 #' x <- data.frame(A = 1:10000, B = sample(c(TRUE, FALSE, NA), 10000, replace = TRUE))
@@ -101,7 +101,7 @@ metadata_fst <- function(path, old_format = FALSE) {
     stop("A logical value is expected for parameter 'old_format'.")
   }
 
-  full_path <- normalizePath(path, mustWork = TRUE)
+  full_path <- normalizePath(path, mustWork = FALSE)
 
   metadata <- fstmetadata(full_path, old_format)
 
@@ -154,7 +154,8 @@ print.fstmetadata <- function(x, ...) {
 #' @param from Read data starting from this row number.
 #' @param to Read data up until this row number. The default is to read to the last row of the stored dataset.
 #' @param as.data.table If TRUE, the result will be returned as a \code{data.table} object. Any keys set on
-#' dataset \code{x} before writing will be retained. This allows for storage of sorted datasets.
+#' dataset \code{x} before writing will be retained. This allows for storage of sorted datasets. This option
+#' requires \code{data.table} package to be installed.
 #' @param old_format use TRUE to read fst files generated with a fst package version lower than v0.8.0
 #'
 #' @export
@@ -193,29 +194,26 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
 
 
   if (as.data.table) {
-    if (!requireNamespace("data.table")) {
+    if (!requireNamespace("data.table", quietly = TRUE)) {
       stop("Please install package data.table when using as.data.table = TRUE")
     }
 
     keyNames <- res$keyNames
     res <- data.table::setDT(res$resTable)  # nolint
-    if (length(keyNames) > 0 ) data.table::setattr(res, "sorted", keyNames)
+    if (length(keyNames) > 0) data.table::setattr(res, "sorted", keyNames)
     return(res)
-  }
-
-  # use setters from data.table to improve performance
-  if (requireNamespace("data.table")) {
-
-    data.table::setattr(res$resTable, "class", "data.frame")
-    data.table::setattr(res$resTable, "row.names", 1:length(res$resTable[[1]]))
-
-    return(res$resTable)
   }
 
   res_table <- res$resTable
 
-  class(res_table) <- "data.frame"
-  attr(res_table, "row.names") <- 1:length(res$resTable[[1]])
+  # use setters from data.table to improve performance
+  if (requireNamespace("data.table", quietly = TRUE)) {
+    data.table::setattr(res_table, "class", "data.frame")
+    data.table::setattr(res_table, "row.names", 1:length(res_table[[1L]]))
+  } else {
+    class(res_table) <- "data.frame"
+    attr(res_table, "row.names") <- 1:length(res_table[[1L]])
+  }
 
   res_table
 }

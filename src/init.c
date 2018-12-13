@@ -17,6 +17,7 @@ extern SEXP _fst_fstretrieve(SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _fst_fststore(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _fst_getnrofthreads();
 extern SEXP _fst_hasopenmp();
+extern SEXP _fst_fstlib_version();
 extern SEXP _fst_setnrofthreads(SEXP);
 extern SEXP _fst_restore_after_fork(SEXP);
 extern int avoid_openmp_hang_within_fork();
@@ -31,6 +32,7 @@ static const R_CallMethodDef CallEntries[] = {
   {"_fst_fststore",           (DL_FUNC) &_fst_fststore,           4},
   {"_fst_getnrofthreads",     (DL_FUNC) &_fst_getnrofthreads,     0},
   {"_fst_hasopenmp",          (DL_FUNC) &_fst_hasopenmp,          0},
+  {"_fst_fstlib_version",     (DL_FUNC) &_fst_fstlib_version,     0},
   {"_fst_restore_after_fork", (DL_FUNC) &_fst_restore_after_fork, 1},
   {"_fst_setnrofthreads",     (DL_FUNC) &_fst_setnrofthreads,     1},
   {NULL, NULL, 0}

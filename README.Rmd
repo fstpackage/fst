@@ -138,7 +138,7 @@ The _fst_ file format provides full random access to stored datasets. You can re
   df_subset <- read.fst("dataset.fst", c("Logical", "Factor"), from = 2000, to = 5000)
 ```
 
-This reads rows 1000 to 5000 from columns _Logical_ and _Factor_ without actually touching any other data in the stored file. That means that a subset can be read from file **without reading the complete file first**. This is different from, say, _readRDS_ or _read\_feather_ where you have to read the complete file or column before you can make a subset.
+This reads rows 2000 to 5000 from columns _Logical_ and _Factor_ without actually touching any other data in the stored file. That means that a subset can be read from file **without reading the complete file first**. This is different from, say, _readRDS_ or _read\_feather_ where you have to read the complete file or column before you can make a subset.
 
 ## Compression
 

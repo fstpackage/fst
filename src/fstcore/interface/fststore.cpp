@@ -43,7 +43,7 @@
 #include <integer64/integer64_v11.h>
 #include <byte/byte_v12.h>
 
-#include <LZ4/xxhash.h>
+#include <xxhash.h>
 
 using namespace std;
 

@@ -11,6 +11,18 @@ os:
   - linux
   - osx
 
+matrix:
+  exclude:
+  - r: devel
+    os: osx
+
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install llvm &&
+    export PATH="/usr/local/opt/llvm/bin:$PATH" &&
+    export LDFLAGS="-L/usr/local/opt/llvm/lib" &&
+    export CPPFLAGS="-I/usr/local/opt/llvm/include" &&
+    export PKG_CXXFLAGS="-O3 -Wall -pedantic"; fi
+
 r_packages:
   - covr
   - lintr
@@ -18,13 +30,6 @@ r_packages:
   - nanotime
   - testthat
   - data.table
-
-matrix:
-  exclude:
-  - r: release
-    os: osx
-  - r: devel
-    os: osx
 
 addons:
   apt:
@@ -35,4 +40,4 @@ after_success:
 
 env:
   global:
-    - PKG_CFLAGS="-O3 -Wall -pedantic"
+    - PKG_CXXFLAGS="-O3 -Wall -pedantic"

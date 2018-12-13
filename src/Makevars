@@ -1,5 +1,6 @@
 
-PKG_CPPFLAGS = $(SHLIB_OPENMP_CXXFLAGS) -I. -Ifstcore -Ifstcore_v1 -Ifstcore/LZ4 -Ifstcore/ZSTD -Ifstcore/ZSTD/common \
+PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
+PKG_CPPFLAGS = -I. -Ifstcore -Ifstcore_v1 -Ifstcore/LZ4 -Ifstcore/ZSTD -Ifstcore/ZSTD/common \
 	-Ifstcore/ZSTD/decompress -Ifstcore/ZSTD/compress
 CXX_STD      = CXX11
 PKG_LIBS     = $(SHLIB_OPENMP_CXXFLAGS) -L. -lFRAME -lCOMPRESSION -lLZ4 -lZSTD
@@ -8,11 +9,11 @@ PKG_LIBS     = $(SHLIB_OPENMP_CXXFLAGS) -L. -lFRAME -lCOMPRESSION -lLZ4 -lZSTD
 LIBLZ4  = fstcore/LZ4/lz4.o fstcore/LZ4/xxhash.o
 LIBZSTD = fstcore/ZSTD/common/entropy_common.o fstcore/ZSTD/common/error_private.o fstcore/ZSTD/common/fse_decompress.o \
 	fstcore/ZSTD/compress/fse_compress.o fstcore/ZSTD/decompress/huf_decompress.o fstcore/ZSTD/compress/huf_compress.o \
-	fstcore/ZSTD/decompress/zstd_decompress.o fstcore/ZSTD/common/zstd_common.o \
+	fstcore/ZSTD/decompress/zstd_decompress.o fstcore/ZSTD/common/zstd_common.o fstcore/ZSTD/common/debug.o \
 	fstcore/ZSTD/compress/zstd_compress.o fstcore/ZSTD/dictBuilder/cover.o fstcore/ZSTD/dictBuilder/divsufsort.o \
 	fstcore/ZSTD/compress/zstd_fast.o fstcore/ZSTD/compress/zstd_lazy.o fstcore/ZSTD/compress/zstd_ldm.o \
 	fstcore/ZSTD/common/pool.o fstcore/ZSTD/compress/zstd_opt.o fstcore/ZSTD/dictBuilder/zdict.o \
-	fstcore/ZSTD/compress/zstd_double_fast.o
+	fstcore/ZSTD/compress/zstd_double_fast.o fstcore/ZSTD/compress/hist.o fstcore/ZSTD/dictBuilder/fastcover.o
 LIBCOMPRESSION  = fstcore/compression/compression.o fstcore/compression/compressor.o
 LIBFRAME = fstcore/interface/openmphelper.o fstcore/interface/fststore.o fstcore_v1/logical/logical_v4.o \
   fstcore/logical/logical_v10.o fstcore_v1/integer/integer_v2.o fstcore/integer/integer_v8.o fstcore/byte/byte_v12.o \
