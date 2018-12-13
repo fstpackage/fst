@@ -16,7 +16,7 @@ libraries on which fst depends (fstlib, LZ4 and ZSTD) are updated to their lates
 * Windows 10 local R 3.5.1
 * Windows 10 local R-dev 3.6.0 pre-release
 * Windows Server 2012 R2 x64 (build 9600) on AppVeyor R 3.5.1
-* instrumented level 2 build with valgrind (with the memtest configure parameters) 
+* R-Devel 3.6.0 build on Windows 10
 
 ## R CMD check results
 

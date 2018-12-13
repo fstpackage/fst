@@ -2,12 +2,14 @@
 # Checks before releasing to CRAN
 
 * Build and test package on:
-    - Clang 6.0.0 (on Ubuntu)
+    - Clang 6.0.0 (on latest Ubuntu)
     - R-hub infrastructure (all available platforms)
     - docker with the rocker/r-devel-ubsan-clang instrumented image
     - docker with the rocker/r-devel-san instrumented image
-    - Travis Linux and macOS
+    - Travis Linux and OSX
     - AppVeyor (Windows Server)
+    - latest R dev version on Windows
+* Build packages with dependencies on fst
 * Start release branch from develop
 * Bump version to even value in DESCRIPTION and check package startup message
 * Update README.Rmd and verify generated README.md on Github (release)
