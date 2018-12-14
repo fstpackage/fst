@@ -28,12 +28,14 @@
 
 // Format related defines
 
-// version of fst format
+// Version of fst format
 #define FST_VERSION_MAJOR    0                  // for breaking interface changes
-#define FST_VERSION_MINOR    0                  // for new (non-breaking) interface capabilities
-#define FST_VERSION_RELEASE  1                  // for tweaks, bug-fixes, or development 
+#define FST_VERSION_MINOR    1                  // for new (non-breaking) interface capabilities
+#define FST_VERSION_RELEASE  0                  // for tweaks, bug-fixes, or development 
 
-#define FST_VERSION          (FST_VERSION_MAJOR * 64 * 64 + FST_VERSION_MINOR * 64 + FST_VERSION_RELEASE)
+// Note that the release version number can change without affecting read/write cycles
+#define FST_VERSION          (FST_VERSION_MAJOR * 256 + FST_VERSION_MINOR)
+#define FST_COMPRESS_VERSION 1
 
 #define FST_MAGIC_NUMBER     0x50414150         // magic number and signature of the fst format
 #define TABLE_META_SIZE      48                 // size of table meta-data block
@@ -59,23 +61,24 @@
 
 // Cache-size related defines
 #define CACHEFACTOR						1
-#define PREV_NR_OF_BLOCKS               48                          // default number of blocks for in-memory compression
-#define BLOCKSIZE						            16384 * CACHEFACTOR			    // number of bytes in default compression block
-#define HASH_SIZE						            4096            			      // number of bytes in default compression block
-#define MAX_CHAR_STACK_SIZE				      32768						            // number of characters in default compression block
-#define BLOCKSIZE_CHAR					        2047						            // number of characters in default compression block
-#define PREF_BLOCK_SIZE					        16384 * CACHEFACTOR			    // BlockStreamer
-#define MAX_SIZE_COMPRESS_BLOCK			    16384 * CACHEFACTOR			    // Compression
-#define MAX_SIZE_COMPRESS_BLOCK_HALF	  8192 * CACHEFACTOR			    // Compression
-#define MAX_SIZE_COMPRESS_BLOCK_QUARTER 4096 * CACHEFACTOR			    // Compression
-#define MAX_SIZE_COMPRESS_BLOCK_8		    2048 * CACHEFACTOR			    // Compression
-#define MAX_SIZE_COMPRESS_BLOCK_128		  128 * CACHEFACTOR			      // Compression
-#define MAX_COMPRESSBOUND				        17040						            // maximum compression buffer at source size of MAX_SIZE_COMPRESS_BLOCK
-#define MAX_TARGET_BUFFER				        BLOCKSIZE * CACHEFACTOR / 2 // 16384  / 2  (Compressor)
-#define BLOCKSIZE_REAL					        2048 * CACHEFACTOR			    // number of doubles in default compression block
-#define BLOCKSIZE_INT64					        2048 * CACHEFACTOR			    // number of long long in default compression block
-#define BLOCKSIZE_INT					          4096 * CACHEFACTOR			    // number of integers in default compression block
-#define BLOCKSIZE_BYTE					        16384 * CACHEFACTOR			    // number of bytes in default compression block
+#define DOUBLE_DELTA                    0.000001                      // value to use as delta (very small)
+#define PREV_NR_OF_BLOCKS               48                            // default number of blocks for in-memory compression
+#define BLOCKSIZE						(16384 * CACHEFACTOR)		  // number of bytes in default compression block
+#define HASH_SIZE						4096            			  // number of bytes in default compression block
+#define MAX_CHAR_STACK_SIZE				32768						  // number of characters in default compression block
+#define BLOCKSIZE_CHAR					2047						  // number of characters in default compression block
+#define PREF_BLOCK_SIZE					(16384 * CACHEFACTOR)		  // BlockStreamer
+#define MAX_SIZE_COMPRESS_BLOCK			(16384 * CACHEFACTOR)		  // Compression
+#define MAX_SIZE_COMPRESS_BLOCK_HALF	(8192 * CACHEFACTOR)		  // Compression
+#define MAX_SIZE_COMPRESS_BLOCK_QUARTER (4096 * CACHEFACTOR)		  // Compression
+#define MAX_SIZE_COMPRESS_BLOCK_8		(2048 * CACHEFACTOR)		  // Compression
+#define MAX_SIZE_COMPRESS_BLOCK_128		(128 * CACHEFACTOR)			  // Compression
+#define MAX_COMPRESSBOUND				17040						  // maximum compression buffer at source size of MAX_SIZE_COMPRESS_BLOCK
+#define MAX_TARGET_BUFFER				(BLOCKSIZE * CACHEFACTOR / 2) // 16384  / 2  (Compressor)
+#define BLOCKSIZE_REAL					(2048 * CACHEFACTOR)          // number of doubles in default compression block
+#define BLOCKSIZE_INT64					(2048 * CACHEFACTOR)          // number of long long in default compression block
+#define BLOCKSIZE_INT					(4096 * CACHEFACTOR)		  // number of integers in default compression block
+#define BLOCKSIZE_BYTE					(16384 * CACHEFACTOR)		  // number of bytes in default compression block
 
 // fst specific errors
 #define FSTERROR_NOT_IMPLEMENTED     "Feature not implemented yet"
@@ -95,6 +98,7 @@
 #define FSTERROR_COMP_SIZE           "Compressed data vector has incorrect size."
 #define FSTERROR_COMP_HEADER         "Incorrect header information found in raw vector."
 #define FSTERROR_COMP_NO_DATA        "Source contains no data."
+#define FSTERROR_COMP_FUTURE_VERSION "Data has been compressed with a newer version than the current."
 
 #define FST_NA_INT					         0x80000000
 

@@ -17,3 +17,4 @@
 *.zip
 .Rproj.user
 *.TMP
+/revdep/*

@@ -1,19 +1,22 @@
 
 ## Submission
 
-This submission of fst adresses valgrind warnings that are reported on the v0.8.6 package build on CRAN. These warnings are caused by writing uninitialized (meta-data) buffers to file (to increase write performance). With this submission, all allocated memory is initialized before writing.
+This submission of fst adresses Prof. Ripley's request to move the OpenMP flag to PKG_CXXFLAGS.
+In addition several minor issues have been resolved to increase package stability and the
+libraries on which fst depends (fstlib, LZ4 and ZSTD) are updated to their latest version.
 
 ## Test environments
 
-* OS X on travis-ci
+* OSX on travis-ci
 * Ubuntu 14.04 on travis-ci
-* Ubuntu 16.04 locally
-* Ubuntu 17.04 locally using clang-6.0
+* Ubuntu 18.10 locally
+* Ubuntu 18.10 locally using clang-6.0
 * docker with the rocker/r-devel-ubsan-clang instrumented image
 * docker with the rocker/r-devel-san instrumented image
-* Windows 10 local R 3.5.0
-* Windows 10 local R-dev
-* Windows Server 2012 R2 x64 (build 9600) on AppVeyor R 3.5.0
+* Windows 10 local R 3.5.1
+* Windows 10 local R-dev 3.6.0 pre-release
+* Windows Server 2012 R2 x64 (build 9600) on AppVeyor R 3.5.1
+* R-Devel 3.6.0 build on Windows 10
 
 ## R CMD check results
 

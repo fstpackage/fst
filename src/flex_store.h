@@ -29,6 +29,9 @@
 
 
 // [[Rcpp::export]]
+int fstlib_version();
+
+// [[Rcpp::export]]
 SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression, SEXP uniformEncoding);
 
 // [[Rcpp::export]]

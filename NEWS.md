@@ -1,4 +1,30 @@
 
+# fst 0.8.9 (in development)
+
+Version 0.8.10 of the `fst` package is an intermediate release designed to update the incorporated C++ libraries
+to their latest versions and to fix reported issues. Also, per request of CRAN maintainers, the OpenMP build option was moved to the correct flag in the Makevars file, resolving a warning in the package check.
+
+## Library updates
+
+* Library `fstlib` updated to version 0.1.0
+
+* Library `ZSTD` updated to version 1.3.7
+
+* Library `LZ4` updated to version 1.8.3
+
+## Bugs solved
+
+* Method `compress_fst()` can handle vectors with sizes larger than 4 GB (issue #176, thanks @bwlewis for reporting)
+
+* A _fst_ file is correctly read from a subfolder on a network drive where the user does not have access to the top-level folder (issues #136 and #175, thanks @xiaodaigh for reporting).
+
+* The suggested data.table dependency is now properly escaped (issue #181, thanks @jangorecki for the pull request)
+
+## Documentation
+
+* Documentation updates (issue #158, thanks @HughParsonage for submitting)
+
+
 # fst 0.8.8 (June 6, 2018)
 
 Version 0.8.8 of the `fst` package is an intermediate release designed to fix valgrind warnings reported on CRAN builds (per request of CRAN maintainers). These warnings were due to `fst` writing uninitialized data buffers to file, which was done to maximize speed. To fix these warnings (and for safety), all memory blocks are now initialized to zero before being written to disk.
@@ -24,6 +50,7 @@ Version 0.8.6 of the `fst` package brings clearer printing of `fst_table` object
 * Improved accuracy of fst_table documentation regarding random row access (issue #143, thanks @martinblostein for pointed out the unclarity)
 
 * Improved documentation on background threads during `write_fst()` and `read_fst()` (issue #121, thanks @krlmlr for suggestions and discussion)
+
 
 # fst 0.8.4
 
