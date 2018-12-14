@@ -17,7 +17,9 @@
   and update the version number
 * Credit all GitHub contributions in NEWS.md
 * Build docs folder using pkgdown::build_site()
+* Merge branch release into master
 * Submit to CRAN
+
 
 # After releasing to CRAN
 
