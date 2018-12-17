@@ -19,7 +19,7 @@
 * Build docs folder using pkgdown::build_site()
 * Merge branch release into master
 * Submit to CRAN
-
+* Commit the fstpackage.github.io repositry with the latest docs
 
 # After releasing to CRAN
 
@@ -27,5 +27,5 @@
 * Go to the repository release page and create a new release with tag version vx.y.z.
   Copy and paste the contents of the relevant NEWS.md section into the release notes.
 * Add '(in development)' to version title in NEWS.md and update to odd version number
-* Bump version to odd value and check package startup message
+* Check package startup message
 * Merge release branch into develop
