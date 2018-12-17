@@ -1,4 +1,14 @@
 
+# fst 0.8.11 (in development)
+
+## Library updates
+
+## New features
+
+## Bugs solved
+
+## Documentation
+
 # fst 0.8.10 (December 14, 2018)
 
 Version 0.8.10 of the `fst` package is an intermediate release designed to update the incorporated C++ libraries
