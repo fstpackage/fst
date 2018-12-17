@@ -1,5 +1,5 @@
 
-# fst 0.8.9 (in development)
+# fst 0.8.10 (December 14, 2018)
 
 Version 0.8.10 of the `fst` package is an intermediate release designed to update the incorporated C++ libraries
 to their latest versions and to fix reported issues. Also, per request of CRAN maintainers, the OpenMP build option was moved to the correct flag in the Makevars file, resolving a warning in the package check.
