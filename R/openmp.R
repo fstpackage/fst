@@ -62,5 +62,5 @@ threads_fst <- function(nr_of_threads = NULL, reset_after_fork = NULL) {
     return(getnrofthreads())
   }
 
-  setnrofthreads(nr_of_threads)
+  invisible(setnrofthreads(nr_of_threads))
 }
