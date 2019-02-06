@@ -36,7 +36,8 @@ addons:
     update: true
 
 after_success:
-  - Rscript -e 'library(covr); codecov(quiet = FALSE)'
+  - test $TRAVIS_OS_NAME == "linux" &&
+    travis_wait Rscript -e 'library(covr); codecov(quiet = FALSE)'
 
 env:
   global:
