@@ -30,10 +30,6 @@ r_packages:
   - testthat
   - data.table
 
-addons:
-  apt:
-    update: true
-
 after_success:
   - test $TRAVIS_OS_NAME == "linux" &&
     travis_wait Rscript -e 'library(covr); codecov(quiet = FALSE)'
