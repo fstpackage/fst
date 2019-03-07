@@ -305,8 +305,9 @@ class DoubleColumn : public IDoubleColumn
       {
         if (annotation.length() > 0)
         {
-          SEXP timeZone = Rf_ScalarString(Rf_mkCharLen(annotation.c_str(), annotation.length()));
+          SEXP timeZone = PROTECT(Rf_ScalarString(Rf_mkCharLen(annotation.c_str(), annotation.length())));
           Rf_setAttrib(colVec, Rf_install("tzone"), timeZone);
+          UNPROTECT(1);
           return;
         }
 
@@ -326,8 +327,7 @@ public:
 
   IntegerColumn(int nrOfRows, FstColumnAttribute columnAttribute, short int scale)
   {
-    colVec = Rf_allocVector(INTSXP, nrOfRows);
-    PROTECT(colVec);
+    colVec = PROTECT(Rf_allocVector(INTSXP, nrOfRows));
 
     // store for later reference
     this->columnAttribute = columnAttribute;
