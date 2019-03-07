@@ -350,19 +350,25 @@ unsigned int FstTable::NrOfKeys()
 
 void FstTable::GetKeyColumns(int* keyColPos)
 {
-  SEXP keyNames = Rf_getAttrib(*rTable, Rf_mkString("sorted"));
-  if (Rf_isNull(keyNames)) return;
+  SEXP keyNames = PROTECT(Rf_getAttrib(*rTable, Rf_mkString("sorted")));
+
+  if (Rf_isNull(keyNames)) {
+    UNPROTECT(1);
+    return;
+  }
 
   int keyLength = LENGTH(keyNames);
 
   // Find key column index numbers, if any
   StringVector keyList(keyNames);
-  SEXP colNames = Rf_getAttrib(*rTable, R_NamesSymbol);
+  SEXP colNames = PROTECT(Rf_getAttrib(*rTable, R_NamesSymbol));
 
   for (int colSel = 0; colSel < keyLength; ++colSel)
   {
     keyColPos[colSel] = FindKey(colNames, keyList[colSel]);
   }
+
+  UNPROTECT(2);  // keyNames
 }
 
 
