@@ -306,9 +306,17 @@ IStringWriter* FstTable::GetStringWriter(unsigned int colNr)
 IStringWriter* FstTable::GetLevelWriter(unsigned int colNr)
 {
   cols = VECTOR_ELT(*rTable, colNr);  // retrieve column vector
-  cols = Rf_getAttrib(cols, Rf_mkString("levels"));
+
+  SEXP levels_str = PROTECT(Rf_mkString("levels"));
+  cols = PROTECT(Rf_getAttrib(cols, levels_str));
   unsigned int nrOfFactorLevels = LENGTH(cols);
-  return new BlockWriterChar(cols, nrOfFactorLevels, MAX_CHAR_STACK_SIZE, uniformEncoding);
+
+  IStringWriter* str_writer = new BlockWriterChar(cols, nrOfFactorLevels,
+    MAX_CHAR_STACK_SIZE, uniformEncoding);
+
+  UNPROTECT(2);
+
+  return str_writer;
 }
 
 
@@ -341,19 +349,29 @@ inline unsigned int FindKey(StringVector colNameList, String item)
 
 unsigned int FstTable::NrOfKeys()
 {
-  SEXP keyNames = Rf_getAttrib(*rTable, Rf_mkString("sorted"));
-  if (Rf_isNull(keyNames)) return 0;
+  SEXP sorted_str = PROTECT(Rf_mkString("sorted"));
+  SEXP keyNames = PROTECT(Rf_getAttrib(*rTable, sorted_str));
 
-  return LENGTH(keyNames);
+  if (Rf_isNull(keyNames)) {
+    UNPROTECT(2);
+    return 0;
+  }
+
+  unsigned int length = LENGTH(keyNames);
+
+  UNPROTECT(2);
+
+  return length;
 }
 
 
 void FstTable::GetKeyColumns(int* keyColPos)
 {
-  SEXP keyNames = PROTECT(Rf_getAttrib(*rTable, Rf_mkString("sorted")));
+  SEXP sorted_str = PROTECT(Rf_mkString("sorted"));
+  SEXP keyNames = PROTECT(Rf_getAttrib(*rTable, sorted_str));
 
   if (Rf_isNull(keyNames)) {
-    UNPROTECT(1);
+    UNPROTECT(2);
     return;
   }
 
@@ -368,7 +386,7 @@ void FstTable::GetKeyColumns(int* keyColPos)
     keyColPos[colSel] = FindKey(colNames, keyList[colSel]);
   }
 
-  UNPROTECT(2);  // keyNames
+  UNPROTECT(3);  // keyNames
 }
 
 
