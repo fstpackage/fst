@@ -89,16 +89,22 @@ SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash)
     Rf_error("Please specify true of false for parameter hash.");
   }
 
-  if (Rf_NonNullStringMatch(STRING_ELT(compressor, 0), Rf_mkChar("LZ4")))
+  SEXP lz4_str  = PROTECT(Rf_mkChar("LZ4"));
+  SEXP zstd_str = PROTECT(Rf_mkChar("ZSTD"));
+
+  if (Rf_NonNullStringMatch(STRING_ELT(compressor, 0), lz4_str))
   {
     algo = COMPRESSION_ALGORITHM::ALGORITHM_LZ4;
-  } else if (Rf_NonNullStringMatch(STRING_ELT(compressor, 0), Rf_mkChar("ZSTD")))
+  } else if (Rf_NonNullStringMatch(STRING_ELT(compressor, 0), zstd_str))
   {
     algo = COMPRESSION_ALGORITHM::ALGORITHM_ZSTD;
   } else
   {
+    UNPROTECT(2);  // lz4_str and zstd_str
     return fst_error("Unknown compression algorithm selected");
   }
+
+  UNPROTECT(2);  // lz4_str and zstd_str
 
   FstCompressor fstcompressor(algo, *INTEGER(compression), (ITypeFactory*) typeFactoryP.get());
 
