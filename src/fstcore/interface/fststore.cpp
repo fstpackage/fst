@@ -927,15 +927,16 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
 
         std::string annotation = "";
         bool hasAnnotation;
+
+        tableReader.SetDoubleColumn(doubleColumn, colSel);
+
         fdsReadRealVec_v9(myfile, doubleColumn->Data(), pos, firstRow, length, nrOfRows, annotation, hasAnnotation);
 
         if (hasAnnotation)
         {
-          tableReader.SetDoubleColumn(doubleColumn, colSel, annotation);
-          break;
+          doubleColumn->Annotate(annotation);
         }
 
-        tableReader.SetDoubleColumn(doubleColumn, colSel);
         break;
       }
 
