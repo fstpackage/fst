@@ -115,6 +115,7 @@ SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash)
 
   try
   {
+    // Creates an UNPROTECTED SEXP vector which needs to be protected before calling an allocating R API method
     blobContainerP = std::unique_ptr<IBlobContainer>(fstcompressor.CompressBlob(data, vecLength, *LOGICAL(hash)));
   }
   catch(const std::runtime_error& e)
@@ -128,6 +129,7 @@ SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash)
 
   SEXP resVec = ((BlobContainer*)(blobContainerP.get()))->RVector();
 
+  // IBlobContainer will be desctructed upon exiting function
   return resVec;
 }
 
