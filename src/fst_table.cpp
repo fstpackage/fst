@@ -477,7 +477,9 @@ void FstTable::SetFactorColumn(IFactorColumn* factorColumn, int colNr)
   }
   else  // unordered factor
   {
-    Rf_setAttrib(factColumn->intVec, Rf_mkString("class"), Rf_mkString("factor"));
+    SEXP factor_str = PROTECT(Rf_mkString("factor"));
+    Rf_setAttrib(factColumn->intVec, Rf_mkString("class"), factor_str);
+    UNPROTECT(1);
   }
 
   SET_VECTOR_ELT(resTable, colNr, factColumn->intVec);

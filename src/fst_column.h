@@ -311,7 +311,9 @@ class DoubleColumn : public IDoubleColumn
           return;
         }
 
-        Rf_setAttrib(colVec, Rf_install("tzone"), Rf_mkString(""));
+        SEXP empty_str = PROTECT(Rf_mkString(""));
+        Rf_setAttrib(colVec, Rf_install("tzone"), empty_str);
+        UNPROTECT(1);
         return;
       }
     }

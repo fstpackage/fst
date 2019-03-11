@@ -54,16 +54,19 @@ SEXP fdsReadFactorVec_v5(ifstream &myfile, SEXP &intVec, unsigned long long bloc
   unsigned long long* levelVecPos = (unsigned long long*) &meta[4];
 
   // Read level strings
-  SEXP strVec;
-  PROTECT(strVec = Rf_allocVector(STRSXP, *nrOfLevels));
+  SEXP strVec = PROTECT(Rf_allocVector(STRSXP, *nrOfLevels));
   SEXP singleColInfo = fdsReadCharVec_v1(myfile, strVec, blockPos + 12, 0, *nrOfLevels, *nrOfLevels);  // get level strings
 
   // Read level values
   char* values = (char*) INTEGER(intVec);  // output vector
   SEXP intVecInfo = fdsReadColumn_v1(myfile, values, *levelVecPos, startRow, length, size, 4);
 
-  Rf_setAttrib(intVec, Rf_mkString("levels"), strVec);
-  Rf_setAttrib(intVec, Rf_mkString("class"), Rf_mkString("factor"));
+  SEXP levels_str = PROTECT(Rf_mkString("levels"));
+  SEXP class_str = PROTECT(Rf_mkString("class"));
+  SEXP factor_str = PROTECT(Rf_mkString("factor"));
+  Rf_setAttrib(intVec, levels_str, strVec);
+  Rf_setAttrib(intVec, class_str, factor_str);
+  UNPROTECT(3);
 
   return List::create(
     _["singleColInfo"] = singleColInfo,
