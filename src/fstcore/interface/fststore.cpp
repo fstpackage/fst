@@ -136,7 +136,7 @@ FstStore::FstStore(std::string fstFile)
  * \param myfile a stream to a fst file
  * \param keyLength the number of key columns (output)
  * \param nrOfColsFirstChunk the number of columns in the first chunkset (output)
- * \return 
+ * \return
  */
 inline unsigned int ReadHeader(ifstream &myfile, int &keyLength, int &nrOfColsFirstChunk)
 {
@@ -207,7 +207,7 @@ inline void SetKeyIndex(vector<int> &keyIndex, const int keyLength, const int nr
 /**
  * \brief Write a dataset to a fst file
  * \param fstTable interface to a dataset
- * \param compress compression factor in the range 0 - 100 
+ * \param compress compression factor in the range 0 - 100
  */
 void FstStore::fstWrite(IFstTable &fstTable, const int compress) const
 {
@@ -296,7 +296,7 @@ void FstStore::fstWrite(IFstTable &fstTable, const int compress) const
   const bool isLittleEndian = (*reinterpret_cast<uint8_t*>(&endianTest)) == 0x67;
 
   // Set table header parameters
-  
+
   *p_tableFlags = 0;
   *p_tableVersion                   = FST_VERSION;
 
@@ -689,7 +689,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
   }
 
   // Chunkset header [node C, free leaf of A or other chunkset header] [size: 80 + 8 * nrOfCols]
-  
+
   unsigned long long* p_chunksetHash      = reinterpret_cast<unsigned long long*>(&metaDataBlock[keyIndexHeaderSize]);
   //unsigned int* p_chunksetHeaderVersion   = reinterpret_cast<unsigned int*>(&metaDataBlock[keyIndexHeaderSize + 8]);
   //int* p_chunksetFlags                    = reinterpret_cast<int*>(&metaDataBlock[keyIndexHeaderSize + 12]);
@@ -944,8 +944,8 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
       {
         std::unique_ptr<ILogicalColumn> logicalColumnP(columnFactory->CreateLogicalColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr])));
         ILogicalColumn* logicalColumn = logicalColumnP.get();
-        fdsReadLogicalVec_v10(myfile, logicalColumn->Data(), pos, firstRow, length, nrOfRows);
         tableReader.SetLogicalColumn(logicalColumn, colSel);
+        fdsReadLogicalVec_v10(myfile, logicalColumn->Data(), pos, firstRow, length, nrOfRows);
         break;
       }
 
@@ -964,8 +964,8 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
 	  {
       std::unique_ptr<IInt64Column> int64ColumP(columnFactory->CreateInt64Column(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]), scale));
 	    IInt64Column* int64Column = int64ColumP.get();
-      fdsReadInt64Vec_v11(myfile, int64Column->Data(), pos, firstRow, length, nrOfRows);
 	    tableReader.SetInt64Column(int64Column, colSel);
+	    fdsReadInt64Vec_v11(myfile, int64Column->Data(), pos, firstRow, length, nrOfRows);
 	    break;
 	  }
 
@@ -974,8 +974,8 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
 	  {
       std::unique_ptr<IByteColumn> byteColumnP(columnFactory->CreateByteColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr])));
       IByteColumn* byteColumn = byteColumnP.get();
-		  fdsReadByteVec_v12(myfile, byteColumn->Data(), pos, firstRow, length, nrOfRows);
 		  tableReader.SetByteColumn(byteColumn, colSel);
+		  fdsReadByteVec_v12(myfile, byteColumn->Data(), pos, firstRow, length, nrOfRows);
 		  break;
 	  }
 
