@@ -318,7 +318,9 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
   SEXP colNameVec = colNames->StrVector();
 
   // Generalize to full atributes
-  Rf_setAttrib(tableReader.resTable, R_NamesSymbol, colNameVec);
+  SEXP resTable = PROTECT(tableReader.ResTable());
+  Rf_setAttrib(resTable, R_NamesSymbol, colNameVec);
+  UNPROTECT(1);
 
   // Convert keyIndex to keyNames
   SEXP keyNames;
@@ -336,5 +338,5 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
   return List::create(
     _["keyNames"]   = keyNames,
     _["keyIndex"]   = keyIndex,
-    _["resTable"]   = tableReader.resTable);
+    _["resTable"]   = tableReader.ResTable());
 }

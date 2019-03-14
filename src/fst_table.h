@@ -51,22 +51,23 @@ class FstTable : public IFstTable
   // Table metadata
   unsigned int nrOfCols;
   unsigned long long nrOfRows;
-  bool isProtected;
   int uniformEncoding;
 
 
   public:
-    SEXP resTable;
+    // use r_container for res_table
+    // SEXP resTable;
 
     FstTable(SEXP r_container)
     {
       this->r_container = r_container;
-      isProtected = false; nrOfCols = 0;
     }
 
     FstTable(SEXP &table, int uniformEncoding, SEXP r_container);
 
-    ~FstTable() { if (isProtected) UNPROTECT(1); }
+    ~FstTable() {}
+
+    SEXP ResTable() { return VECTOR_ELT(r_container, 0); }
 
     void InitTable(unsigned int nrOfCols, unsigned long long nrOfRows);
 

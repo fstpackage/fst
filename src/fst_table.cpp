@@ -40,7 +40,6 @@ FstTable::FstTable(SEXP &table, int uniformEncoding, SEXP r_container)
   this->r_container = r_container;
   this->rTable = &table;
   this->nrOfCols = 0;
-  this->isProtected = false;
   this->uniformEncoding = uniformEncoding;
 }
 
@@ -398,19 +397,19 @@ void FstTable::InitTable(unsigned int nrOfCols, unsigned long long nrOfRows)
   this->nrOfCols = nrOfCols;
   this->nrOfRows = nrOfRows;
 
-  this->resTable = Rf_allocVector(VECSXP, nrOfCols);
+  SEXP resTable = Rf_allocVector(VECSXP, nrOfCols);
 
   // this PROTECT's the new vector
-  SET_VECTOR_ELT(this->r_container, 0, this->resTable);
-
-  PROTECT(resTable);
-  isProtected = true;
+  SET_VECTOR_ELT(this->r_container, 0, resTable);
 }
 
 
 void FstTable::SetStringColumn(IStringColumn* stringColumn, int colNr)
 {
   BlockReaderChar* sColumn = (BlockReaderChar*) stringColumn;
+
+  // retrieve from memory-safe r container
+  SEXP resTable = VECTOR_ELT(this->r_container, 0);
   SET_VECTOR_ELT(resTable, colNr, sColumn->StrVector());
 }
 
@@ -418,6 +417,9 @@ void FstTable::SetStringColumn(IStringColumn* stringColumn, int colNr)
 void FstTable::SetLogicalColumn(ILogicalColumn* logicalColumn, int colNr)
 {
   LogicalColumn* lColumn = (LogicalColumn*) logicalColumn;
+
+  // retrieve from memory-safe r container
+  SEXP resTable = VECTOR_ELT(this->r_container, 0);
   SET_VECTOR_ELT(resTable, colNr, lColumn->boolVec);
 }
 
@@ -425,6 +427,9 @@ void FstTable::SetLogicalColumn(ILogicalColumn* logicalColumn, int colNr)
 void FstTable::SetInt64Column(IInt64Column* int64Column, int colNr)
 {
   Int64Column* i64Column = (Int64Column*) int64Column;
+
+  // retrieve from memory-safe r container
+  SEXP resTable = VECTOR_ELT(this->r_container, 0);
   SET_VECTOR_ELT(resTable, colNr, i64Column->int64Vec);
 }
 
@@ -432,6 +437,9 @@ void FstTable::SetInt64Column(IInt64Column* int64Column, int colNr)
 void FstTable::SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr)
 {
   DoubleColumn* dColumn = (DoubleColumn*) doubleColumn;
+
+  // retrieve from memory-safe r container
+  SEXP resTable = VECTOR_ELT(this->r_container, 0);
   SET_VECTOR_ELT(resTable, colNr, dColumn->colVec);
 }
 
@@ -439,6 +447,9 @@ void FstTable::SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr)
 void FstTable::SetIntegerColumn(IIntegerColumn* integerColumn, int colNr)
 {
   IntegerColumn* iColumn = (IntegerColumn*) integerColumn;
+
+  // retrieve from memory-safe r container
+  SEXP resTable = VECTOR_ELT(this->r_container, 0);
   SET_VECTOR_ELT(resTable, colNr, iColumn->colVec);
 }
 
@@ -446,6 +457,9 @@ void FstTable::SetIntegerColumn(IIntegerColumn* integerColumn, int colNr)
 void FstTable::SetByteColumn(IByteColumn* byteColumn, int colNr)
 {
   ByteColumn* bColumn = (ByteColumn*) byteColumn;
+
+  // retrieve from memory-safe r container
+  SEXP resTable = VECTOR_ELT(this->r_container, 0);
   SET_VECTOR_ELT(resTable, colNr, bColumn->colVec);
 }
 
@@ -471,6 +485,8 @@ void FstTable::SetFactorColumn(IFactorColumn* factorColumn, int colNr)
     UNPROTECT(1);
   }
 
+  // retrieve from memory-safe r container
+  SEXP resTable = VECTOR_ELT(this->r_container, 0);
   SET_VECTOR_ELT(resTable, colNr, factColumn->intVec);
 }
 
@@ -485,4 +501,3 @@ void FstTable::SetKeyColumns(int* keyColPos, unsigned int nrOfKeys)
 {
 
 }
-
