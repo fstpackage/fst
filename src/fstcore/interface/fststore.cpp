@@ -927,10 +927,10 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
         std::unique_ptr<IDoubleColumn> doubleColumnP(columnFactory->CreateDoubleColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]), scale));
         IDoubleColumn* doubleColumn = doubleColumnP.get();
 
+        tableReader.SetDoubleColumn(doubleColumn, colSel);
+
         std::string annotation = "";
         bool hasAnnotation;
-
-        tableReader.SetDoubleColumn(doubleColumn, colSel);
 
         fdsReadRealVec_v9(myfile, doubleColumn->Data(), pos, firstRow, length, nrOfRows, annotation, hasAnnotation);
 

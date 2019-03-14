@@ -248,6 +248,7 @@ class DoubleColumn : public IDoubleColumn
           Rf_setAttrib(colVec, Rf_mkString("units"), Rf_mkString("secs"));
         }
 
+        UNPROTECT(1); // colVec
         return;
       }
 
@@ -255,6 +256,7 @@ class DoubleColumn : public IDoubleColumn
       if (columnAttribute == FstColumnAttribute::DOUBLE_64_DATE_DAYS)
       {
         Rf_classgets(colVec, Rf_mkString("Date"));
+        UNPROTECT(1); // colVec
         return;
       }
 
@@ -265,9 +267,11 @@ class DoubleColumn : public IDoubleColumn
 
         if (scale != FstTimeScale::SECONDS)
         {
+          UNPROTECT(1); // colVec
           throw(std::runtime_error("ITime column with unknown scale detected"));
         }
 
+        UNPROTECT(1); // colVec
         return;
       }
 
@@ -275,20 +279,23 @@ class DoubleColumn : public IDoubleColumn
       // POSIXct type
       if (columnAttribute == FstColumnAttribute::DOUBLE_64_TIMESTAMP_SECONDS)
       {
-        SEXP classes;
-        PROTECT(classes = Rf_allocVector(STRSXP, 2));
+        SEXP classes = PROTECT(Rf_allocVector(STRSXP, 2));
+
         SET_STRING_ELT(classes, 0, Rf_mkChar("POSIXct"));
         SET_STRING_ELT(classes, 1, Rf_mkChar("POSIXt"));
-        UNPROTECT(1);
 
         Rf_classgets(colVec, classes);
+
+        UNPROTECT(2); // classes, colVec
+
         return;
       }
+
+      UNPROTECT(1); // colVec
     }
 
     ~DoubleColumn()
     {
-      UNPROTECT(1);
     }
 
     double* Data()
