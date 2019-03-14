@@ -141,12 +141,10 @@ public:
   LogicalColumn(int nrOfRows)
   {
     boolVec = Rf_allocVector(LGLSXP, nrOfRows);
-    PROTECT(boolVec);
   }
 
   ~LogicalColumn()
   {
-    UNPROTECT(1);
   }
 
   int* Data()
@@ -440,13 +438,12 @@ public:
 
   ByteColumn(int nrOfRows)
   {
+    // Note that this SEXP needs to be protected after creation
     colVec = Rf_allocVector(RAWSXP, nrOfRows);
-    PROTECT(colVec);
   }
 
   ~ByteColumn()
   {
-    UNPROTECT(1);
   }
 
   char* Data()
