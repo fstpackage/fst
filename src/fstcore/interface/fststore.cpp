@@ -993,7 +993,9 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
   // Key index
   SetKeyIndex(keyIndex, keyLength, nrOfSelect, keyColPos, colIndex);
 
-  selectedCols->AllocateArray(nrOfSelect);
+  selectedCols->AllocateArray(nrOfSelect);  // allocate column names
+  tableReader.SetColNames(&*selectedCols);  // set on result table
+
   selectedCols->SetEncoding(blockReader->GetEncoding());
 
   for (int i = 0; i < nrOfSelect; ++i)

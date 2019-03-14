@@ -263,15 +263,6 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
 
   vector<int> keyIndex;
 
-  std::unique_ptr<StringArray> colNames(new StringArray());
-  std::unique_ptr<StringArray> colSelection;
-
-  if (!Rf_isNull(columnSelection))
-  {
-    colSelection = std::unique_ptr<StringArray>(new StringArray());
-    colSelection->SetArray(columnSelection);
-  }
-
   // use fst format v0.7.2
   if (*LOGICAL(oldFormat) != 0)
   {
@@ -289,7 +280,17 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
     }
   }
 
+
   // use fst format >= v0.8.0
+  std::unique_ptr<StringArray> colSelection;
+  std::unique_ptr<StringArray> colNames(new StringArray());
+
+  if (!Rf_isNull(columnSelection))
+  {
+    colSelection = std::unique_ptr<StringArray>(new StringArray());
+    colSelection->SetArray(columnSelection);
+  }
+
   try
   {
     fstStore.fstRead(tableReader, colSelection.get(), sRow, eRow, columnFactory.get(), keyIndex, &*colNames);
@@ -315,7 +316,9 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
     return fst_error("An unknown C++ error occured in the fstlib library");
   }
 
-  SEXP colNameVec = colNames->StrVector();
+  SEXP colNameVec = tableReader.GetColNames();
+
+  // SEXP colNameVec = colNames->StrVector();
 
   // Generalize to full atributes
   SEXP resTable = PROTECT(tableReader.ResTable());
@@ -323,8 +326,7 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
   UNPROTECT(1);
 
   // Convert keyIndex to keyNames
-  SEXP keyNames;
-  PROTECT(keyNames = Rf_allocVector(STRSXP, keyIndex.size()));
+  SEXP keyNames = PROTECT(Rf_allocVector(STRSXP, keyIndex.size()));
 
   int count = 0;
 

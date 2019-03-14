@@ -83,7 +83,8 @@ class IFstTable
 
   	virtual void SetByteColumn(IByteColumn* byteColumn, int colNr) = 0;
 
-//  	virtual void SetColNames() = 0;
+  	// use more efficient string container here (e.g. std::vector<string>)
+  	virtual void SetColNames(IStringArray* col_names) = 0;
 
   	virtual void SetKeyColumns(int* keyColPos, unsigned int nrOfKeys) = 0;
 };

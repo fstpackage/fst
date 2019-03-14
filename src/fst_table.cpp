@@ -491,11 +491,26 @@ void FstTable::SetFactorColumn(IFactorColumn* factorColumn, int colNr)
 }
 
 
-void FstTable::SetColNames()
+void FstTable::SetColNames(IStringArray* col_names)
 {
-  // BlockReaderChar* blockReader = new BlockReaderChar();
-  // return blockReader;
+  StringArray* colNames = (StringArray*) col_names;  // upcast
+  SEXP colNameVec = PROTECT(colNames->StrVector());
+
+  // retrieve from memory-safe r container
+  SEXP resTable = VECTOR_ELT(this->r_container, 0);
+  Rf_setAttrib(resTable, R_NamesSymbol, colNameVec);
+  UNPROTECT(1);  // colNameVec
 }
+
+
+SEXP FstTable::GetColNames()
+{
+  // retrieve from memory-safe r container
+  SEXP resTable = VECTOR_ELT(this->r_container, 0);
+
+  return Rf_getAttrib(resTable, R_NamesSymbol);
+}
+
 
 void FstTable::SetKeyColumns(int* keyColPos, unsigned int nrOfKeys)
 {

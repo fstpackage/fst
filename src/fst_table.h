@@ -116,6 +116,10 @@ class FstTable : public IFstTable
 
     unsigned int NrOfColumns();
 
+    void SetColNames(IStringArray* col_names);
+
+    SEXP GetColNames();
+
     unsigned long long NrOfRows();
 };
 
