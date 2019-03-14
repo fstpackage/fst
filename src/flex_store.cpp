@@ -42,7 +42,6 @@
 #include <fst_column_factory.h>
 
 #include <flex_store.h>
-#include <flex_store_v1.h>
 
 
 using namespace std;
