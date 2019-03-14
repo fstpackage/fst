@@ -91,7 +91,11 @@ SEXP fststore(String fileName, SEXP table, SEXP compression, SEXP uniformEncodin
     return fst_error("Parameter compression should be an integer value between 0 and 100");
   }
 
-  FstTable fstTable(table, *LOGICAL(uniformEncoding));
+  // avoid using PROTECT statements in C++ classes (which generate rchk errors)
+  // this PROTECTED container can be used to hold any R object safely
+  SEXP r_container = PROTECT(Rf_allocVector(VECSXP, 1));
+
+  FstTable fstTable(table, *LOGICAL(uniformEncoding), r_container);
   FstStore fstStore(fileName.get_cstring());
 
   try
@@ -100,9 +104,11 @@ SEXP fststore(String fileName, SEXP table, SEXP compression, SEXP uniformEncodin
   }
   catch (const std::runtime_error& e)
   {
+    UNPROTECT(1);
     return fst_error(e.what());
   }
 
+  UNPROTECT(1);
   return R_NilValue;
 }
 
@@ -236,7 +242,12 @@ SEXP fstmetadata(String fileName, SEXP oldFormat)
 
 SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow, SEXP oldFormat)
 {
-  FstTable tableReader;
+  // avoid using PROTECT statements in C++ classes (which generate rchk errors)
+  // this PROTECTED container can be used to hold any R object safely
+  SEXP r_container = PROTECT(Rf_allocVector(VECSXP, 1));
+
+  FstTable tableReader(r_container);
+
   std::unique_ptr<IColumnFactory> columnFactory(new ColumnFactory());
   FstStore fstStore(fileName.get_cstring());
 
@@ -267,11 +278,12 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
     try
     {
       SEXP res = fstRead_v1(fileName, columnSelection, startRow, endRow);
-
+      UNPROTECT(1);  // r_container
       return res;
     }
     catch(...)
     {
+      UNPROTECT(1);  // r_container
       return fst_error("An unknown C++ error occured in the legacy fstlib library. "
         "Please rewrite your fst files using the latest version of the fst package.");
     }
@@ -287,16 +299,19 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
     // We may be looking at a fst v0.7.2 file format, this unsafe code will be removed later
     if (std::strcmp(e.what(), FSTERROR_NON_FST_FILE) == 0)
     {
+      UNPROTECT(1);  // r_container
       return fst_error("File header information does not contain the fst format marker. "
         "If this is a fst file generated with package version older than v0.8.0, "
         "you can read your file by using 'old_format = TRUE'.");
     }
 
     // re-throw uncatched errors
+    UNPROTECT(1);  // r_container
     return fst_error(e.what());
   }
   catch(...)
   {
+    UNPROTECT(1);  // r_container
     return fst_error("An unknown C++ error occured in the fstlib library");
   }
 
@@ -316,7 +331,7 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
     SET_STRING_ELT(keyNames, count++, STRING_ELT(colNameVec, *keyIt));
   }
 
-  UNPROTECT(1);
+  UNPROTECT(2);  // r_container, keyNames
 
   return List::create(
     _["keyNames"]   = keyNames,

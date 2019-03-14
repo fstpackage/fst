@@ -43,7 +43,10 @@ class FstTable : public IFstTable
 {
   // References to R objects
   SEXP* rTable;  // reference to R table structure (e.g. data.frame or data.table)
-  SEXP  cols;  // reference to working column
+  SEXP cols;  // reference to working column
+
+  // container for r objects, must be a VECSXP of length >= 1
+  SEXP r_container;
 
   // Table metadata
   unsigned int nrOfCols;
@@ -55,9 +58,13 @@ class FstTable : public IFstTable
   public:
     SEXP resTable;
 
-    FstTable() { isProtected = false; nrOfCols = 0; }
+    FstTable(SEXP r_container)
+    {
+      this->r_container = r_container;
+      isProtected = false; nrOfCols = 0;
+    }
 
-    FstTable(SEXP &table, int uniformEncoding);
+    FstTable(SEXP &table, int uniformEncoding, SEXP r_container);
 
     ~FstTable() { if (isProtected) UNPROTECT(1); }
 
@@ -69,15 +76,13 @@ class FstTable : public IFstTable
 
     void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr);
 
-    void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr, std::string &annotation);
+    // void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr, std::string &annotation);
 
     void SetByteColumn(IByteColumn* byteColumn, int colNr);
 
     void SetInt64Column(IInt64Column* int64Column, int colNr);
 
   	void SetDoubleColumn(IDoubleColumn * doubleColumn, int colNr);
-
-  	void SetDoubleColumn(IDoubleColumn * doubleColumn, int colNr, std::string &annotation);
 
   	void SetFactorColumn(IFactorColumn* factorColumn, int colNr);
 

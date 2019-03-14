@@ -35,8 +35,9 @@
 using namespace Rcpp;
 
 
-FstTable::FstTable(SEXP &table, int uniformEncoding)
+FstTable::FstTable(SEXP &table, int uniformEncoding, SEXP r_container)
 {
+  this->r_container = r_container;
   this->rTable = &table;
   this->nrOfCols = 0;
   this->isProtected = false;
@@ -398,6 +399,10 @@ void FstTable::InitTable(unsigned int nrOfCols, unsigned long long nrOfRows)
   this->nrOfRows = nrOfRows;
 
   this->resTable = Rf_allocVector(VECSXP, nrOfCols);
+
+  // this PROTECT's the new vector
+  SET_VECTOR_ELT(this->r_container, 0, this->resTable);
+
   PROTECT(resTable);
   isProtected = true;
 }
@@ -431,25 +436,9 @@ void FstTable::SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr)
 }
 
 
-void FstTable::SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr, std::string &annotation)
-{
-  DoubleColumn* dColumn = (DoubleColumn*) doubleColumn;
-  dColumn->Annotate(annotation);
-  SET_VECTOR_ELT(resTable, colNr, dColumn->colVec);
-}
-
-
 void FstTable::SetIntegerColumn(IIntegerColumn* integerColumn, int colNr)
 {
   IntegerColumn* iColumn = (IntegerColumn*) integerColumn;
-  SET_VECTOR_ELT(resTable, colNr, iColumn->colVec);
-}
-
-
-void FstTable::SetIntegerColumn(IIntegerColumn* integerColumn, int colNr, std::string &annotation)
-{
-  IntegerColumn* iColumn = (IntegerColumn*) integerColumn;
-  iColumn->Annotate(annotation);
   SET_VECTOR_ELT(resTable, colNr, iColumn->colVec);
 }
 
