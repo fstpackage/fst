@@ -12,7 +12,8 @@ fst.metadata(path, old_format = FALSE)
 \arguments{
 \item{path}{path to fst file}
 
-\item{old_format}{use TRUE to read fst files generated with a fst package version lower than v0.8.0}
+\item{old_format}{must be FALSE, the old fst file format is deprecated and can only be read and
+converted with fst package versions 0.8.0 to 0.8.10.}
 }
 \value{
 Returns a list with meta information on the stored dataset in \code{path}.
