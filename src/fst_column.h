@@ -359,32 +359,34 @@ public:
         Rf_setAttrib(colVec, Rf_mkString("units"), Rf_mkString("secs"));
       }
 
+      UNPROTECT(1); // colVec
       return;
     }
 
     if (columnAttribute == FstColumnAttribute::INT_32_DATE_DAYS)
     {
-      SEXP classAttr;
+      SEXP classAttr = PROTECT(Rf_allocVector(STRSXP, 2));
 
-      PROTECT(classAttr = Rf_allocVector(STRSXP, 2));
       SET_STRING_ELT(classAttr, 0, Rf_mkChar("IDate"));
       SET_STRING_ELT(classAttr, 1, Rf_mkChar("Date"));
 
-      UNPROTECT(1);
       Rf_classgets(colVec, classAttr);
+
+      UNPROTECT(2); // classAttr, colVec
 
       return;
     }
 
     if (columnAttribute == FstColumnAttribute::INT_32_TIMESTAMP_SECONDS)
     {
-      SEXP classes;
-      PROTECT(classes = Rf_allocVector(STRSXP, 2));
+      SEXP classes = PROTECT(Rf_allocVector(STRSXP, 2));
       SET_STRING_ELT(classes, 0, Rf_mkChar("POSIXct"));
       SET_STRING_ELT(classes, 1, Rf_mkChar("POSIXt"));
-      UNPROTECT(1);
 
       Rf_classgets(colVec, classes);
+
+      UNPROTECT(2); // classAttr, colVec
+
       return;
     }
 
@@ -394,17 +396,19 @@ public:
 
       if (scale != FstTimeScale::SECONDS)
       {
+        UNPROTECT(1); // colVec
         throw(std::runtime_error("ITime column with unknown scale detected"));
       }
 
+      UNPROTECT(1); // colVec
       return;
     }
 
+    UNPROTECT(1); // colVec
   }
 
   ~IntegerColumn()
   {
-    UNPROTECT(1);
   }
 
   int* Data()

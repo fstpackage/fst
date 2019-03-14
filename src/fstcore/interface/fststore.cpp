@@ -905,10 +905,10 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
         std::unique_ptr<IIntegerColumn> integerColumnP(columnFactory->CreateIntegerColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]), scale));
         IIntegerColumn* integerColumn = integerColumnP.get();
 
+        tableReader.SetIntegerColumn(integerColumn, colSel);
+
         std::string annotation = "";
         bool hasAnnotation;
-
-        tableReader.SetIntegerColumn(integerColumn, colSel);
 
         fdsReadIntVec_v8(myfile, integerColumn->Data(), pos, firstRow, length, nrOfRows, annotation, hasAnnotation);
 
