@@ -169,6 +169,7 @@ class IIntegerColumn
 public:
   virtual ~IIntegerColumn() {};
   virtual int* Data() = 0;
+  virtual void Annotate(std::string annotation) = 0;
 };
 
 

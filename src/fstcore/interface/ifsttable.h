@@ -73,13 +73,9 @@ class IFstTable
 
   	virtual void SetLogicalColumn(ILogicalColumn* logicalColumn, int colNr) = 0;
 
-  	virtual void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr, std::string &annotation) = 0;
-
     virtual void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr) = 0;
 
   	virtual void SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr) = 0;
-
-    virtual void SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr, std::string &annotation) = 0;
 
   	virtual void SetFactorColumn(IFactorColumn* factorColumn, int colNr) = 0;
 
