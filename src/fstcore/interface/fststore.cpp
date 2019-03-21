@@ -633,6 +633,7 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
   blockReaderP = std::unique_ptr<IStringColumn>(columnFactory->CreateStringColumn(nrOfCols, FstColumnAttribute::NONE));
   blockReader = blockReaderP.get();
 
+  blockReader->AllocateVec(static_cast<unsigned int>(nrOfCols));
   fdsReadCharVec_v6(myfile, blockReader, colNamesOffset, 0, static_cast<unsigned int>(nrOfCols), static_cast<unsigned int>(nrOfCols));
 
   // cleanup
@@ -739,6 +740,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
   blockReaderP = std::unique_ptr<IStringColumn>(columnFactory->CreateStringColumn(nrOfCols, FstColumnAttribute::NONE));
   blockReader = blockReaderP.get();
 
+  blockReader->AllocateVec(static_cast<unsigned int>(nrOfCols));
   fdsReadCharVec_v6(myfile, blockReader, colNamesOffset, 0, static_cast<unsigned int>(nrOfCols), static_cast<unsigned int>(nrOfCols));
 
   // Size of chunkset index header plus data chunk header
@@ -894,7 +896,11 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
       {
         std::unique_ptr<IStringColumn> stringColumnP(columnFactory->CreateStringColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr])));
         IStringColumn* stringColumn = stringColumnP.get();
+
+        stringColumn->AllocateVec(static_cast<unsigned int>(length));
+
         fdsReadCharVec_v6(myfile, stringColumn, pos, firstRow, length, nrOfRows);
+
         tableReader.SetStringColumn(stringColumn, colSel);
         break;
       }

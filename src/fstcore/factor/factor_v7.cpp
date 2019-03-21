@@ -245,6 +245,8 @@ void fdsReadFactorVec_v7(istream &myfile, IStringColumn* blockReader, int* intP,
 
   if (*nrOfLevels > 0)
   {
+    // Create result vector
+    blockReader->AllocateVec(*nrOfLevels);
     fdsReadCharVec_v6(myfile, blockReader, blockPos + HEADER_SIZE_FACTOR, 0, *nrOfLevels, *nrOfLevels);  // get level strings
   }
   else
