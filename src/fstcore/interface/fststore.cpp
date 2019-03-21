@@ -898,10 +898,10 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
         IStringColumn* stringColumn = stringColumnP.get();
 
         stringColumn->AllocateVec(static_cast<unsigned int>(length));
+        tableReader.SetStringColumn(stringColumn, colSel);
 
         fdsReadCharVec_v6(myfile, stringColumn, pos, firstRow, length, nrOfRows);
 
-        tableReader.SetStringColumn(stringColumn, colSel);
         break;
       }
 
@@ -963,7 +963,9 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
       {
         std::unique_ptr<IFactorColumn> factorColumnP(columnFactory->CreateFactorColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr])));
         IFactorColumn* factorColumn = factorColumnP.get();
+
         fdsReadFactorVec_v7(myfile, factorColumn->Levels(), factorColumn->LevelData(), pos, firstRow, length, nrOfRows);
+
         tableReader.SetFactorColumn(factorColumn, colSel);
         break;
       }

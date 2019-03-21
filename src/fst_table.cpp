@@ -467,7 +467,10 @@ void FstTable::SetByteColumn(IByteColumn* byteColumn, int colNr)
 void FstTable::SetFactorColumn(IFactorColumn* factorColumn, int colNr)
 {
   FactorColumn* factColumn = (FactorColumn*) factorColumn;
-  Rf_setAttrib(factColumn->intVec, Rf_mkString("levels"), factColumn->blockReaderStrVecP->StrVector());
+
+  SEXP level_str = PROTECT(Rf_mkString("levels"));
+  Rf_setAttrib(factColumn->intVec, level_str, factColumn->blockReaderStrVecP->StrVector());
+  UNPROTECT(1); // level_str
 
   if (factColumn->Attribute() == FstColumnAttribute::FACTOR_ORDERED)  // ordered factor
   {
