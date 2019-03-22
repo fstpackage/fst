@@ -397,16 +397,24 @@ as.list.fst_table <- function(x, ...) {
 
   # cast to integer and determine row range
   i <- as.integer(i)
-  min_row <- min(i)
-  max_row <- max(i)
 
-  # boundary check
-  if (min_row < 0) {
-    stop("Row selection out of range")
-  }
+  # empty row selection
+  if (length(i) == 0) {
+    min_row <- 1
+    max_row <- 1
+  } else
+  {
+    min_row <- min(i)
+    max_row <- max(i)
 
-  if (max_row > meta_info$nrOfRows) {
-    stop("Row selection out of range")
+    # boundary check
+    if (min_row < 0) {
+      stop("Row selection out of range")
+    }
+
+    if (max_row > meta_info$nrOfRows) {
+      stop("Row selection out of range")
+    }
   }
 
   # column subset
