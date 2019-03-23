@@ -32,7 +32,7 @@ If \code{uniform.encoding} is set to \code{FALSE}, no such assumption will be ma
 to the same encoding. The latter is a relatively expensive operation and will reduce write performance for
 character columns.}
 
-\item{columns}{Column names to read. The default is to read all all columns.}
+\item{columns}{Column names to read. The default is to read all columns.}
 
 \item{from}{Read data starting from this row number.}
 
