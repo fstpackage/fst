@@ -33,6 +33,8 @@
 #include <interface/fstdefines.h>
 
 
+// Class is meant for smaller character vectors that need protection from garbage collection
+
 class StringVectorContainer : public IStringColumn
 {
   SEXP container;  // make sure the contained object is PROTECTED
@@ -46,7 +48,7 @@ public:
   {
     container = container_list;
 
-    str_vector_p = std::unique_ptr<BlockReaderChar>(new BlockReaderChar());
+    str_vector_p = std::unique_ptr<BlockReaderChar>(new BlockReaderChar());  // unprotected SEXP
   }
 
   ~StringVectorContainer(){}

@@ -40,6 +40,7 @@
 #include <fst_table.h>
 #include <fst_column.h>
 #include <fst_column_factory.h>
+#include <fst_string_vector_container.h>
 
 #include <flex_store.h>
 
@@ -117,19 +118,20 @@ SEXP fstmetadata(String fileName)
   FstStore fstStore(fileName.get_cstring());
   std::unique_ptr<IColumnFactory> columnFactory(new ColumnFactory());
 
-  // Character vector case 1:   2 2
-  // Integer vector case 2:     4 5
-  // Real vector case 3:        5 10
-  // Logical vector case 4:     6 15
-  // Factor vector case 5:      3 3
+  // to hold the column names
+  SEXP list_container = PROTECT(Rf_allocVector(VECSXP, 1));
+  StringVectorContainer* str_container = new StringVectorContainer(list_container);
+  std::unique_ptr<IStringColumn> col_names(str_container);
 
   // use fst format >= v0.8.0
   try
   {
-    fstStore.fstMeta(columnFactory.get());
+    fstStore.fstMeta(columnFactory.get(), col_names.get());
   }
   catch (const std::runtime_error& e)
   {
+    UNPROTECT(1); // list_container
+
     // We may be looking at a fst v0.7.2 file format, this unsafe code will be removed later
     if (std::strcmp(e.what(), FSTERROR_NON_FST_FILE) == 0)
     {
@@ -142,11 +144,14 @@ SEXP fstmetadata(String fileName)
   }
   catch(...)
   {
+    UNPROTECT(1); // list_container
+
     return fst_error("An unknown C++ error occured in the fstlib library.");
   }
 
   // R internals part TODO: speed up this code
-  SEXP colNames = ((BlockReaderChar*) fstStore.blockReader)->StrVector();
+  // SEXP colNames = ((BlockReaderChar*) fstStore.blockReader)->StrVector();
+  SEXP colNames = str_container->StrVector();
 
   // Convert column info to integer vector
   // IntegerVector colTypeVec(fstStore.nrOfCols);
@@ -177,7 +182,7 @@ SEXP fstmetadata(String fileName)
       keyColIndex[col] = fstStore.keyColPos[col];
     }
 
-    UNPROTECT(1);  // keyNames
+    UNPROTECT(2);  // keyNames, list_container
 
     retList = List::create(
       _["nNofCols"]         = fstStore.nrOfCols,
@@ -192,6 +197,8 @@ SEXP fstmetadata(String fileName)
   }
   else
   {
+    UNPROTECT(1); // list_container
+
     retList = List::create(
       _["nrOfCols"]        = fstStore.nrOfCols,
       _["nrOfRows"]        = *fstStore.p_nrOfRows,

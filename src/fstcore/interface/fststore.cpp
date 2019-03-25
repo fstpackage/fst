@@ -537,7 +537,7 @@ void FstStore::fstWrite(IFstTable &fstTable, const int compress) const
 }
 
 
-void FstStore::fstMeta(IColumnFactory* columnFactory)
+void FstStore::fstMeta(IColumnFactory* columnFactory, IStringColumn* col_names)
 {
   // fst file stream using a stack buffer
   ifstream myfile;
@@ -630,11 +630,11 @@ void FstStore::fstMeta(IColumnFactory* columnFactory)
   // Read column names
   const unsigned long long colNamesOffset = metaSize + TABLE_META_SIZE;
 
-  blockReaderP = std::unique_ptr<IStringColumn>(columnFactory->CreateStringColumn(nrOfCols, FstColumnAttribute::NONE));
-  blockReader = blockReaderP.get();
+  // blockReaderP = std::unique_ptr<IStringColumn>(columnFactory->CreateStringColumn(nrOfCols, FstColumnAttribute::NONE));
+  // blockReader = blockReaderP.get();
 
-  blockReader->AllocateVec(static_cast<unsigned int>(nrOfCols));
-  fdsReadCharVec_v6(myfile, blockReader, colNamesOffset, 0, static_cast<unsigned int>(nrOfCols), static_cast<unsigned int>(nrOfCols));
+  col_names->AllocateVec(static_cast<unsigned int>(nrOfCols));
+  fdsReadCharVec_v6(myfile, col_names, colNamesOffset, 0, static_cast<unsigned int>(nrOfCols), static_cast<unsigned int>(nrOfCols));
 
   // cleanup
   myfile.close();

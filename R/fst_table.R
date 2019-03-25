@@ -402,8 +402,7 @@ as.list.fst_table <- function(x, ...) {
   if (length(i) == 0) {
     min_row <- 1
     max_row <- 1
-  } else
-  {
+  } else {
     min_row <- min(i)
     max_row <- max(i)
 
