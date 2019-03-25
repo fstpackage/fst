@@ -47,14 +47,13 @@ public:
   StringVectorContainer(SEXP container_list)
   {
     container = container_list;
-
-    str_vector_p = std::unique_ptr<BlockReaderChar>(new BlockReaderChar());  // unprotected SEXP
   }
 
   ~StringVectorContainer(){}
 
   void AllocateVec(unsigned long long vecLength)
   {
+    str_vector_p = std::unique_ptr<BlockReaderChar>(new BlockReaderChar());  // unprotected SEXP
     BlockReaderChar* block_reader = str_vector_p.get();
 
     // allocate

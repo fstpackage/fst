@@ -219,6 +219,11 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
   // this PROTECTED container can be used to hold any R object safely
   SEXP r_container = PROTECT(Rf_allocVector(VECSXP, 1));
 
+  // to hold the column names
+  SEXP list_container = PROTECT(Rf_allocVector(VECSXP, 1));
+  StringVectorContainer* str_container = new StringVectorContainer(list_container);
+  std::unique_ptr<IStringColumn> col_names(str_container);
+
   FstTable tableReader(r_container);
 
   std::unique_ptr<IColumnFactory> columnFactory(new ColumnFactory());
@@ -248,26 +253,26 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
 
   try
   {
-    fstStore.fstRead(tableReader, colSelection.get(), sRow, eRow, columnFactory.get(), keyIndex, &*colNames);
+    fstStore.fstRead(tableReader, colSelection.get(), sRow, eRow, columnFactory.get(), keyIndex, &*colNames, col_names.get());
   }
   catch (const std::runtime_error& e)
   {
     // We may be looking at a fst v0.7.2 file format, this unsafe code will be removed later
     if (std::strcmp(e.what(), FSTERROR_NON_FST_FILE) == 0)
     {
-      UNPROTECT(1);  // r_container
+      UNPROTECT(2);  // r_container, list_container
       return fst_error("File header information does not contain the fst format marker. "
         "If this is a fst file generated with package version older than v0.8.0, "
         "please read (and re-write) your file using fst package versions 0.8.0 to 0.8.10.");
     }
 
     // re-throw uncatched errors
-    UNPROTECT(1);  // r_container
+    UNPROTECT(2);  // r_container, list_container
     return fst_error(e.what());
   }
   catch(...)
   {
-    UNPROTECT(1);  // r_container
+    UNPROTECT(2);  // r_container, list_container
     return fst_error("An unknown C++ error occured in the fstlib library");
   }
 
@@ -290,7 +295,7 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
     SET_STRING_ELT(keyNames, count++, STRING_ELT(colNameVec, *keyIt));
   }
 
-  UNPROTECT(2);  // r_container, keyNames
+  UNPROTECT(3);  // r_container, keyNames, list_container
 
   return List::create(
     _["keyNames"]   = keyNames,
