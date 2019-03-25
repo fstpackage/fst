@@ -153,7 +153,7 @@ print.fstmetadata <- function(x, ...) {
 
 #' @rdname write_fst
 #'
-#' @param columns Column names to read. The default is to read all all columns.
+#' @param columns Column names to read. The default is to read all columns.
 #' @param from Read data starting from this row number.
 #' @param to Read data up until this row number. The default is to read to the last row of the stored dataset.
 #' @param as.data.table If TRUE, the result will be returned as a \code{data.table} object. Any keys set on
