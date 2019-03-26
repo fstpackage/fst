@@ -102,13 +102,16 @@ public:
   std::unique_ptr<BlockReaderChar> blockReaderStrVecP;
   FstColumnAttribute columnAttribute;
 
-  FactorColumn(int nrOfRows, FstColumnAttribute columnAttribute)
+  FactorColumn(int nrOfRows, int nrOfLevels, FstColumnAttribute columnAttribute)
   {
     intVec = Rf_allocVector(INTSXP, nrOfRows);
     PROTECT(intVec);
 
     this->columnAttribute = columnAttribute;  // e.g. for 'FACTOR_ORDERED' specification
     blockReaderStrVecP = std::unique_ptr<BlockReaderChar>(new BlockReaderChar());
+
+    BlockReaderChar* block_reader = blockReaderStrVecP.get();
+    block_reader->AllocateVec(nrOfLevels);
   }
 
   ~FactorColumn()

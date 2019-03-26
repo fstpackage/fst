@@ -226,12 +226,6 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
 void fdsReadFactorVec_v7(IFstTable &tableReader, istream &myfile, unsigned long long blockPos, unsigned long long startRow,
   unsigned long long length, unsigned long long size, FstColumnAttribute col_attribute, IColumnFactory* columnFactory, int colSel)
 {
-  std::unique_ptr<IFactorColumn> factorColumnP(columnFactory->CreateFactorColumn(length, col_attribute));
-  IFactorColumn* factorColumn = factorColumnP.get();
-
-  IStringColumn* blockReader = factorColumn->Levels();
-  int* intP = factorColumn->LevelData();
-
   // Jump to factor level
   myfile.seekg(blockPos);
 
@@ -250,16 +244,22 @@ void fdsReadFactorVec_v7(IFstTable &tableReader, istream &myfile, unsigned long 
 
   // Read level strings
 
+  std::unique_ptr<IFactorColumn> factorColumnP(columnFactory->CreateFactorColumn(length, *nrOfLevels, col_attribute));
+  IFactorColumn* factorColumn = factorColumnP.get();
+
+  IStringColumn* blockReader = factorColumn->Levels();
+  int* intP = factorColumn->LevelData();
+
   if (*nrOfLevels > 0)
   {
     // Create result vector
-    blockReader->AllocateVec(*nrOfLevels);
+    // blockReader->AllocateVec(*nrOfLevels);
     fdsReadCharVec_v6(myfile, blockReader, blockPos + HEADER_SIZE_FACTOR, 0, *nrOfLevels, *nrOfLevels);  // get level strings
   }
   else
   {
 	  // Create empty level vector
-	  blockReader->AllocateVec(0);
+	  // blockReader->AllocateVec(0);
 
 	  // All level values must be NA, so we need only the number of levels
 	  for (unsigned int pos = 0; pos < length; pos++)

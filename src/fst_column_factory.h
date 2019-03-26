@@ -43,9 +43,9 @@ class ColumnFactory : public IColumnFactory
 public:
   ~ColumnFactory() {};
 
-  IFactorColumn* CreateFactorColumn(int nrOfRows, FstColumnAttribute columnAttribute)
+  IFactorColumn* CreateFactorColumn(int nrOfRows, int nrOfLevels, FstColumnAttribute columnAttribute)
   {
-    return new FactorColumn(nrOfRows, columnAttribute);
+    return new FactorColumn(nrOfRows, nrOfLevels, columnAttribute);
   }
 
   ILogicalColumn* CreateLogicalColumn(int nrOfRows, FstColumnAttribute columnAttribute)
