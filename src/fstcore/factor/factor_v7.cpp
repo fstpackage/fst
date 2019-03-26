@@ -247,6 +247,8 @@ void fdsReadFactorVec_v7(IFstTable &tableReader, istream &myfile, unsigned long 
   std::unique_ptr<IFactorColumn> factorColumnP(columnFactory->CreateFactorColumn(length, *nrOfLevels, col_attribute));
   IFactorColumn* factorColumn = factorColumnP.get();
 
+  tableReader.SetFactorColumn(factorColumn, colSel);
+
   IStringColumn* blockReader = factorColumn->Levels();
   int* intP = factorColumn->LevelData();
 
@@ -271,8 +273,6 @@ void fdsReadFactorVec_v7(IFstTable &tableReader, istream &myfile, unsigned long 
 
     fdsReadColumn_v2(myfile, reinterpret_cast<char*>(intP), *levelVecPos, startRow, length, size, 4, annotation, BATCH_SIZE_READ_FACTOR, hasAnnotation);
   }
-
-  tableReader.SetFactorColumn(factorColumn, colSel);
 
   return;
 }
