@@ -104,8 +104,7 @@ public:
 
   FactorColumn(int nrOfRows, int nrOfLevels, FstColumnAttribute columnAttribute)
   {
-    intVec = Rf_allocVector(INTSXP, nrOfRows);
-    PROTECT(intVec);
+    intVec = PROTECT(Rf_allocVector(INTSXP, nrOfRows));
 
     // this->columnAttribute = columnAttribute;  // e.g. for 'FACTOR_ORDERED' specification
     blockReaderStrVecP = std::unique_ptr<BlockReaderChar>(new BlockReaderChar());
@@ -139,11 +138,12 @@ public:
 
       UNPROTECT(2);  // factor_str, class_str
     }
+
+    UNPROTECT(1);  // intVec
   }
 
   ~FactorColumn()
   {
-    UNPROTECT(1);
   };
 
   int* LevelData()
