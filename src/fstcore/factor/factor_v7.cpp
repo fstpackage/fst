@@ -250,33 +250,27 @@ void fdsReadFactorVec_v7(IFstTable &tableReader, istream &myfile, unsigned long 
   IStringColumn* blockReader = factorColumn->Levels();
   int* intP = factorColumn->LevelData();
 
-  if (*nrOfLevels > 0)
+  if (*nrOfLevels == 0)
   {
-    // Create result vector
-    // blockReader->AllocateVec(*nrOfLevels);
-    fdsReadCharVec_v6(myfile, blockReader, blockPos + HEADER_SIZE_FACTOR, 0, *nrOfLevels, *nrOfLevels);  // get level strings
+    // Create empty level vector
+
+    // All level values must be NA, so we need only the number of levels
+    for (unsigned int pos = 0; pos < length; pos++)
+    {
+      intP[pos] = FST_NA_INT;
+    }
   }
   else
   {
-	  // Create empty level vector
-	  // blockReader->AllocateVec(0);
+    // non-empty level vector
+    fdsReadCharVec_v6(myfile, blockReader, blockPos + HEADER_SIZE_FACTOR, 0, *nrOfLevels, *nrOfLevels);  // get level strings
 
-	  // All level values must be NA, so we need only the number of levels
-	  for (unsigned int pos = 0; pos < length; pos++)
-	  {
-		  intP[pos] = FST_NA_INT;
-	  }
+    // Read level values
+    std::string annotation;
+    bool hasAnnotation;
 
-	  tableReader.SetFactorColumn(factorColumn, colSel);
-
-	  return;
+    fdsReadColumn_v2(myfile, reinterpret_cast<char*>(intP), *levelVecPos, startRow, length, size, 4, annotation, BATCH_SIZE_READ_FACTOR, hasAnnotation);
   }
-
-  // Read level values
-  std::string annotation;
-  bool hasAnnotation;
-
-  fdsReadColumn_v2(myfile, reinterpret_cast<char*>(intP), *levelVecPos, startRow, length, size, 4, annotation, BATCH_SIZE_READ_FACTOR, hasAnnotation);
 
   tableReader.SetFactorColumn(factorColumn, colSel);
 

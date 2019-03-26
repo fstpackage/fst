@@ -100,18 +100,45 @@ class FactorColumn : public IFactorColumn
 public:
   SEXP intVec;
   std::unique_ptr<BlockReaderChar> blockReaderStrVecP;
-  FstColumnAttribute columnAttribute;
+  // FstColumnAttribute columnAttribute;
 
   FactorColumn(int nrOfRows, int nrOfLevels, FstColumnAttribute columnAttribute)
   {
     intVec = Rf_allocVector(INTSXP, nrOfRows);
     PROTECT(intVec);
 
-    this->columnAttribute = columnAttribute;  // e.g. for 'FACTOR_ORDERED' specification
+    // this->columnAttribute = columnAttribute;  // e.g. for 'FACTOR_ORDERED' specification
     blockReaderStrVecP = std::unique_ptr<BlockReaderChar>(new BlockReaderChar());
 
     BlockReaderChar* block_reader = blockReaderStrVecP.get();
     block_reader->AllocateVec(nrOfLevels);
+    SEXP str_vector = PROTECT(block_reader->StrVector());
+
+    // set and PROTECT the levels attribute
+    SEXP level_str = PROTECT(Rf_mkString("levels"));
+    Rf_setAttrib(intVec, level_str, str_vector);
+    UNPROTECT(2); // level_str, str_vector
+
+    if (columnAttribute == FstColumnAttribute::FACTOR_ORDERED)  // ordered factor
+    {
+      SEXP class_str = PROTECT(Rf_mkString("class"));
+      SEXP classes = PROTECT(Rf_allocVector(STRSXP, 2));
+
+      SET_STRING_ELT(classes, 0, Rf_mkChar("ordered"));
+      SET_STRING_ELT(classes, 1, Rf_mkChar("factor"));
+      Rf_setAttrib(intVec, class_str, classes);
+
+      UNPROTECT(2);  // classes, class_str
+    }
+    else  // unordered factor
+    {
+      SEXP class_str = PROTECT(Rf_mkString("class"));
+      SEXP factor_str = PROTECT(Rf_mkString("factor"));
+
+      Rf_setAttrib(intVec, class_str, factor_str);
+
+      UNPROTECT(2);  // factor_str, class_str
+    }
   }
 
   ~FactorColumn()
@@ -129,10 +156,10 @@ public:
     return blockReaderStrVecP.get();
   }
 
-  FstColumnAttribute Attribute()
-  {
-    return columnAttribute;
-  }
+  // FstColumnAttribute Attribute()
+  // {
+  //   return columnAttribute;
+  // }
 };
 
 

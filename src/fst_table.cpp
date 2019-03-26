@@ -467,26 +467,26 @@ void FstTable::SetByteColumn(IByteColumn* byteColumn, int colNr)
 void FstTable::SetFactorColumn(IFactorColumn* factorColumn, int colNr)
 {
   FactorColumn* factColumn = (FactorColumn*) factorColumn;
-
-  SEXP level_str = PROTECT(Rf_mkString("levels"));
-  Rf_setAttrib(factColumn->intVec, level_str, factColumn->blockReaderStrVecP->StrVector());
-  UNPROTECT(1); // level_str
-
-  if (factColumn->Attribute() == FstColumnAttribute::FACTOR_ORDERED)  // ordered factor
-  {
-    SEXP classes;
-    PROTECT(classes = Rf_allocVector(STRSXP, 2));
-    SET_STRING_ELT(classes, 0, Rf_mkChar("ordered"));
-    SET_STRING_ELT(classes, 1, Rf_mkChar("factor"));
-    Rf_setAttrib(factColumn->intVec, Rf_mkString("class"), classes);
-    UNPROTECT(1);
-  }
-  else  // unordered factor
-  {
-    SEXP factor_str = PROTECT(Rf_mkString("factor"));
-    Rf_setAttrib(factColumn->intVec, Rf_mkString("class"), factor_str);
-    UNPROTECT(1);
-  }
+  //
+  // SEXP level_str = PROTECT(Rf_mkString("levels"));
+  // Rf_setAttrib(factColumn->intVec, level_str, factColumn->blockReaderStrVecP->StrVector());
+  // UNPROTECT(1); // level_str
+  //
+  // if (factColumn->Attribute() == FstColumnAttribute::FACTOR_ORDERED)  // ordered factor
+  // {
+  //   SEXP classes;
+  //   PROTECT(classes = Rf_allocVector(STRSXP, 2));
+  //   SET_STRING_ELT(classes, 0, Rf_mkChar("ordered"));
+  //   SET_STRING_ELT(classes, 1, Rf_mkChar("factor"));
+  //   Rf_setAttrib(factColumn->intVec, Rf_mkString("class"), classes);
+  //   UNPROTECT(1);
+  // }
+  // else  // unordered factor
+  // {
+  //   SEXP factor_str = PROTECT(Rf_mkString("factor"));
+  //   Rf_setAttrib(factColumn->intVec, Rf_mkString("class"), factor_str);
+  //   UNPROTECT(1);
+  // }
 
   // retrieve from memory-safe r container
   SEXP resTable = VECTOR_ELT(this->r_container, 0);
