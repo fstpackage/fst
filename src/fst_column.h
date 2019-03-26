@@ -33,16 +33,15 @@ class StringArray : public IStringArray
 {
   SEXP strVec;
   cetype_t strEncoding = cetype_t::CE_NATIVE;
-  bool isProtected;
 
 public:
 
-  ~StringArray() { if (isProtected) UNPROTECT(1); }
+  ~StringArray() { }
 
+  // strVec should be PROTECTED after calling this method
   void AllocateArray(unsigned int length)
   {
-    PROTECT(this->strVec = Rf_allocVector(STRSXP, length));
-    isProtected = true;
+    this->strVec = Rf_allocVector(STRSXP, length);
   }
 
   // Use an existing SEXP
