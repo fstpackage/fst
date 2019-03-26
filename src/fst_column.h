@@ -191,8 +191,7 @@ public:
 
   Int64Column(int nrOfRows, FstColumnAttribute columnAttribute, short int scale)
   {
-    int64Vec = Rf_allocVector(REALSXP, nrOfRows);
-    PROTECT(int64Vec);
+    int64Vec = PROTECT(Rf_allocVector(REALSXP, nrOfRows));
 
     // test for nanotime type
     if (columnAttribute == FstColumnAttribute::INT_64_TIME_SECONDS)
@@ -207,22 +206,25 @@ public:
       PROTECT(classAttr = Rf_mkString("nanotime"));
       Rf_setAttrib(classAttr, Rf_mkString("package"), Rf_mkString("nanotime"));
 
-      UNPROTECT(1);  // necessary?
       Rf_classgets(int64Vec, classAttr);
 
       Rf_setAttrib(int64Vec, Rf_mkString(".S3Class"), Rf_mkString("integer64"));
       SET_S4_OBJECT(int64Vec);
 
+      UNPROTECT(2);  // int64Vec, classAttr
       return;
     }
 
     // default int64 column type
-    Rf_setAttrib(int64Vec, Rf_mkString("class"), Rf_mkString("integer64"));
+    SEXP int64_str = PROTECT(Rf_mkString("integer64"));
+
+    Rf_classgets(int64Vec, int64_str);
+
+    UNPROTECT(2);  // int64_str, int64Vec
   }
 
   ~Int64Column()
   {
-    UNPROTECT(1);
   }
 
   long long* Data()

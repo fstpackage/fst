@@ -255,8 +255,6 @@ void fdsReadFactorVec_v7(IFstTable &tableReader, istream &myfile, unsigned long 
 
   if (*nrOfLevels == 0)
   {
-    // Create empty level vector
-
     // All level values must be NA, so we need only the number of levels
     for (unsigned int pos = 0; pos < length; pos++)
     {
