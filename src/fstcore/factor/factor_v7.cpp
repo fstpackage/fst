@@ -25,6 +25,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
+#include <memory>
 
 // Framework headers
 #include <interface/istringwriter.h>
@@ -222,9 +223,15 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
 
 // Parameter 'startRow' is zero based
 // Data vector intP is expected to point to a memory block 4 * size bytes long
-void fdsReadFactorVec_v7(istream &myfile, IStringColumn* blockReader, int* intP, unsigned long long blockPos, unsigned long long startRow,
-  unsigned long long length, unsigned long long size)
+void fdsReadFactorVec_v7(IFstTable &tableReader, istream &myfile, unsigned long long blockPos, unsigned long long startRow,
+  unsigned long long length, unsigned long long size, FstColumnAttribute col_attribute, IColumnFactory* columnFactory, int colSel)
 {
+  std::unique_ptr<IFactorColumn> factorColumnP(columnFactory->CreateFactorColumn(length, col_attribute));
+  IFactorColumn* factorColumn = factorColumnP.get();
+
+  IStringColumn* blockReader = factorColumn->Levels();
+  int* intP = factorColumn->LevelData();
+
   // Jump to factor level
   myfile.seekg(blockPos);
 
@@ -260,6 +267,8 @@ void fdsReadFactorVec_v7(istream &myfile, IStringColumn* blockReader, int* intP,
 		  intP[pos] = FST_NA_INT;
 	  }
 
+	  tableReader.SetFactorColumn(factorColumn, colSel);
+
 	  return;
   }
 
@@ -268,6 +277,8 @@ void fdsReadFactorVec_v7(istream &myfile, IStringColumn* blockReader, int* intP,
   bool hasAnnotation;
 
   fdsReadColumn_v2(myfile, reinterpret_cast<char*>(intP), *levelVecPos, startRow, length, size, 4, annotation, BATCH_SIZE_READ_FACTOR, hasAnnotation);
+
+  tableReader.SetFactorColumn(factorColumn, colSel);
 
   return;
 }
