@@ -31,15 +31,13 @@
 
 class BlobContainer : public IBlobContainer
 {
-  SEXP container;
+  SEXP rawVec;
 
 public:
-  BlobContainer(unsigned long long size, SEXP list_container)
+  BlobContainer(unsigned long long size)
   {
-    SEXP rawVec = Rf_allocVector(RAWSXP, size);
-
-    container = list_container;
-    SET_VECTOR_ELT(container, 0, rawVec);  // this PROTECTS rawVec
+    // code was carefully examined to assert that no PROTECT is needed here
+    rawVec = Rf_allocVector(RAWSXP, size);
   }
 
   ~BlobContainer()
@@ -48,18 +46,16 @@ public:
 
   unsigned char* Data()
   {
-    SEXP rawVec = VECTOR_ELT(container, 0);
     return RAW(rawVec);
   }
 
   SEXP RVector()
   {
-    return VECTOR_ELT(container, 0);
+    return rawVec;
   }
 
   unsigned long long Size()
   {
-    SEXP rawVec = VECTOR_ELT(container, 0);
     return Rf_xlength(rawVec);
   }
 };
@@ -67,14 +63,7 @@ public:
 
 class TypeFactory : public ITypeFactory
 {
-  SEXP container;  // use it to temporarily store the vector
-
 public:
-  TypeFactory(SEXP list_container)
-  {
-    container = list_container;
-  }
-
   ~TypeFactory() { }
 
   /**
@@ -84,7 +73,7 @@ public:
    */
   IBlobContainer* CreateBlobContainer(unsigned long long size)
   {
-    return new BlobContainer(size, container);
+    return new BlobContainer(size);
   }
 };
 
