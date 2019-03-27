@@ -174,4 +174,3 @@ SEXP fstdecomp(SEXP rawVec)
 
   return resVec;
 }
-

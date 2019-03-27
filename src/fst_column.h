@@ -461,12 +461,18 @@ public:
     {
       if (annotation.length() > 0)
       {
-        Rf_setAttrib(colVec, Rf_install("tzone"),
-          Rf_ScalarString(Rf_mkCharLen(annotation.c_str(), annotation.length())));
+        SEXP annotation_str = PROTECT(Rf_ScalarString(Rf_mkCharLen(annotation.c_str(), annotation.length())));
+
+        Rf_setAttrib(colVec, Rf_install("tzone"), annotation_str);
+
+        UNPROTECT(1);  // annotation_str
         return;
       }
 
-      Rf_setAttrib(colVec, Rf_install("tzone"), Rf_mkString(""));
+      SEXP empty_str = PROTECT(Rf_mkString(""));
+      Rf_setAttrib(colVec, Rf_install("tzone"), empty_str);
+
+      UNPROTECT(1);  // empty_str
       return;
     }
   }
