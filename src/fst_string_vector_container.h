@@ -38,9 +38,6 @@
 class StringVectorContainer : public IStringColumn
 {
   SEXP container;  // make sure the contained object is PROTECTED
-  cetype_t strEncoding;
-  StringEncoding string_encoding = StringEncoding::NATIVE;
-
   std::unique_ptr<BlockReaderChar> str_vector_p;
 
 public:

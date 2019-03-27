@@ -81,7 +81,9 @@ SEXP fsthasher(SEXP rawVec, SEXP seed, SEXP blockHash)
 
 SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash)
 {
-  std::unique_ptr<TypeFactory> typeFactoryP(new TypeFactory());
+  SEXP list_container = PROTECT(Rf_allocVector(VECSXP, 1));
+
+  std::unique_ptr<TypeFactory> typeFactoryP(new TypeFactory(list_container));
   COMPRESSION_ALGORITHM algo;
 
   if (!Rf_isLogical(hash))
@@ -100,7 +102,7 @@ SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash)
     algo = COMPRESSION_ALGORITHM::ALGORITHM_ZSTD;
   } else
   {
-    UNPROTECT(2);  // lz4_str and zstd_str
+    UNPROTECT(3);  // lz4_str and zstd_str, list_container
     return fst_error("Unknown compression algorithm selected");
   }
 
@@ -120,14 +122,18 @@ SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash)
   }
   catch(const std::runtime_error& e)
   {
+    UNPROTECT(1);  // list_container
     return fst_error(e.what());
   }
   catch ( ... )
   {
+    UNPROTECT(1);  // list_container
     return fst_error("Unexpected error detected while compressing data.");
   }
 
   SEXP resVec = ((BlobContainer*)(blobContainerP.get()))->RVector();
+
+  UNPROTECT(1);  // list_container
 
   // IBlobContainer will be desctructed upon exiting function
   return resVec;
@@ -136,7 +142,9 @@ SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash)
 
 SEXP fstdecomp(SEXP rawVec)
 {
-  std::unique_ptr<ITypeFactory> typeFactoryP(new TypeFactory());
+  SEXP list_container = PROTECT(Rf_allocVector(VECSXP, 1));
+
+  std::unique_ptr<ITypeFactory> typeFactoryP(new TypeFactory(list_container));
 
   FstCompressor fstcompressor((ITypeFactory*) typeFactoryP.get());
 
@@ -151,14 +159,18 @@ SEXP fstdecomp(SEXP rawVec)
   }
   catch(const std::runtime_error& e)
   {
+    UNPROTECT(1);  // list_container
     return fst_error(e.what());
   }
   catch ( ... )
   {
+    UNPROTECT(1);  // list_container
     return fst_error("Error detected while decompressing data.");
   }
 
   SEXP resVec = resultContainerP->RVector();
+
+  UNPROTECT(1);  // list_container
 
   return resVec;
 }
