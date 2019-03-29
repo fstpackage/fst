@@ -10,7 +10,7 @@
     - AppVeyor (Windows Server)
     - latest R dev version on Windows
 * Build packages with dependencies on fst
-* Start release branch from develop
+* Merge develop branch into release branch
 * Bump version to even value in DESCRIPTION and check package startup message
 * Update README.Rmd and verify generated README.md on Github (release)
 * Update NEWS.md and make sure to remove '(in development)' in the version title

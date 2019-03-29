@@ -1,5 +1,9 @@
 
-# fst 0.8.11 (in development)
+# fst 0.9.0 (March 29, 2019)
+
+Version 0.9.0 of the `fst` package addresses the request from CRAN maintainers to fix issues identified by rchk. These issues result from PROTECT / UNPROTECT pairs called in the constructor / destructor pairs of C++ classes. rchk (rightfully) warns about those because it can't determine from the code if pairs are properly matched. With this submission the relevant SEXP classes are protected by containing them in SEXP classes that are already PROTECTED, which allows for removal of the PROTECT / UNPROTECT pairs in question.
+
+Support for fst files generated with `fst` package versions lower than 0.8.0 has been deprecated. This significantly reduces the (C++) code base and prepares `fst` for future code changes.
 
 ## Library updates
 
@@ -8,6 +12,8 @@
 ## Bugs solved
 
 ## Documentation
+
+Various documentation issues have been fixed (thanks @ginberg and @renkun-ken for the pull requests).
 
 # fst 0.8.10 (December 14, 2018)
 
