@@ -39,8 +39,6 @@ class FstStore
   std::unique_ptr<char[]> metaDataBlockP;
 
   public:
-    // IStringColumn* blockReader;
-
     unsigned long long* p_nrOfRows;
     int* keyColPos;
 

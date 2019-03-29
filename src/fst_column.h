@@ -154,11 +154,6 @@ public:
   {
     return blockReaderStrVecP.get();
   }
-
-  // FstColumnAttribute Attribute()
-  // {
-  //   return columnAttribute;
-  // }
 };
 
 
