@@ -73,13 +73,9 @@ class IFstTable
 
   	virtual void SetLogicalColumn(ILogicalColumn* logicalColumn, int colNr) = 0;
 
-  	virtual void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr, std::string &annotation) = 0;
-
     virtual void SetIntegerColumn(IIntegerColumn* integerColumn, int colNr) = 0;
 
   	virtual void SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr) = 0;
-
-    virtual void SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr, std::string &annotation) = 0;
 
   	virtual void SetFactorColumn(IFactorColumn* factorColumn, int colNr) = 0;
 
@@ -87,7 +83,8 @@ class IFstTable
 
   	virtual void SetByteColumn(IByteColumn* byteColumn, int colNr) = 0;
 
-//  	virtual void SetColNames() = 0;
+  	// use more efficient string container here (e.g. std::vector<string>)
+  	virtual void SetColNames(IStringArray* col_names) = 0;
 
   	virtual void SetKeyColumns(int* keyColPos, unsigned int nrOfKeys) = 0;
 };

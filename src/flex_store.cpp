@@ -40,9 +40,9 @@
 #include <fst_table.h>
 #include <fst_column.h>
 #include <fst_column_factory.h>
+#include <fst_string_vector_container.h>
 
 #include <flex_store.h>
-#include <flex_store_v1.h>
 
 
 using namespace std;
@@ -91,7 +91,11 @@ SEXP fststore(String fileName, SEXP table, SEXP compression, SEXP uniformEncodin
     return fst_error("Parameter compression should be an integer value between 0 and 100");
   }
 
-  FstTable fstTable(table, *LOGICAL(uniformEncoding));
+  // avoid using PROTECT statements in C++ classes (which generate rchk errors)
+  // this PROTECTED container can be used to hold any R object safely
+  SEXP r_container = PROTECT(Rf_allocVector(VECSXP, 1));
+
+  FstTable fstTable(table, *LOGICAL(uniformEncoding), r_container);
   FstStore fstStore(fileName.get_cstring());
 
   try
@@ -100,81 +104,54 @@ SEXP fststore(String fileName, SEXP table, SEXP compression, SEXP uniformEncodin
   }
   catch (const std::runtime_error& e)
   {
+    UNPROTECT(1);
     return fst_error(e.what());
   }
 
+  UNPROTECT(1);
   return R_NilValue;
 }
 
 
-SEXP fstmetadata(String fileName, SEXP oldFormat)
+SEXP fstmetadata(String fileName)
 {
   FstStore fstStore(fileName.get_cstring());
   std::unique_ptr<IColumnFactory> columnFactory(new ColumnFactory());
 
-  // Character vector case 1:   2 2
-  // Integer vector case 2:     4 5
-  // Real vector case 3:        5 10
-  // Logical vector case 4:     6 15
-  // Factor vector case 5:      3 3
-
-  // use fst format v0.7.2
-  if (*LOGICAL(oldFormat) != 0)
-  {
-    try
-    {
-      List resOld = fstMeta_v1(fileName);  // scans further for safety
-
-      IntegerVector typeVec = resOld[4];
-      IntegerVector attributeVec(typeVec.size());
-
-      // change type ordering
-      int types[6] { 0, 2, 4, 5, 6, 3};
-      int attributeTypes[6] { 0, 2, 5, 10, 15, 3};
-
-      for (int pos = 0; pos < typeVec.size(); pos++)
-      {
-        int oldType = typeVec[pos];
-        typeVec[pos] = types[oldType];
-        attributeVec[pos] = attributeTypes[oldType];
-      }
-
-      resOld[4] = typeVec;
-      resOld.push_back(attributeVec, "colType");
-
-      return resOld;  // scans further for safety
-    }
-    catch(...)
-    {
-      return fst_error("An unknown C++ error occured in the legacy fstlib library. Please rewrite your fst files using the latest version of the fst package.");
-    }
-  }
+  // to hold the column names
+  SEXP list_container = PROTECT(Rf_allocVector(VECSXP, 1));
+  StringVectorContainer* str_container = new StringVectorContainer(list_container);
+  std::unique_ptr<IStringColumn> col_names(str_container);
 
   // use fst format >= v0.8.0
   try
   {
-    fstStore.fstMeta(columnFactory.get());
-
+    fstStore.fstMeta(columnFactory.get(), col_names.get());
   }
   catch (const std::runtime_error& e)
   {
+    UNPROTECT(1); // list_container
+
     // We may be looking at a fst v0.7.2 file format, this unsafe code will be removed later
     if (std::strcmp(e.what(), FSTERROR_NON_FST_FILE) == 0)
     {
       return fst_error("File header information does not contain the fst format marker. "
         "If this is a fst file generated with package version older than v0.8.0, "
-        "you can read your file by using 'old_format = TRUE'.");
+        "please read (and re-write) your file using fst package versions 0.8.0 to 0.8.10.");
     }
 
     return fst_error(e.what());
   }
   catch(...)
   {
+    UNPROTECT(1); // list_container
+
     return fst_error("An unknown C++ error occured in the fstlib library.");
   }
 
   // R internals part TODO: speed up this code
-  SEXP colNames = ((BlockReaderChar*) fstStore.blockReader)->StrVector();
+  // SEXP colNames = ((BlockReaderChar*) fstStore.blockReader)->StrVector();
+  SEXP colNames = str_container->StrVector();
 
   // Convert column info to integer vector
   // IntegerVector colTypeVec(fstStore.nrOfCols);
@@ -205,7 +182,7 @@ SEXP fstmetadata(String fileName, SEXP oldFormat)
       keyColIndex[col] = fstStore.keyColPos[col];
     }
 
-    UNPROTECT(1);  // keyNames
+    UNPROTECT(2);  // keyNames, list_container
 
     retList = List::create(
       _["nNofCols"]         = fstStore.nrOfCols,
@@ -220,6 +197,8 @@ SEXP fstmetadata(String fileName, SEXP oldFormat)
   }
   else
   {
+    UNPROTECT(1); // list_container
+
     retList = List::create(
       _["nrOfCols"]        = fstStore.nrOfCols,
       _["nrOfRows"]        = *fstStore.p_nrOfRows,
@@ -234,9 +213,19 @@ SEXP fstmetadata(String fileName, SEXP oldFormat)
 }
 
 
-SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow, SEXP oldFormat)
+SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow)
 {
-  FstTable tableReader;
+  // avoid using PROTECT statements in C++ classes (which generate rchk errors)
+  // this PROTECTED container can be used to hold any R object safely
+  SEXP r_container = PROTECT(Rf_allocVector(VECSXP, 1));
+
+  // to hold the column names
+  SEXP list_container = PROTECT(Rf_allocVector(VECSXP, 1));
+  StringVectorContainer* str_container = new StringVectorContainer(list_container);
+  std::unique_ptr<IStringColumn> col_names(str_container);
+
+  FstTable tableReader(r_container);
+
   std::unique_ptr<IColumnFactory> columnFactory(new ColumnFactory());
   FstStore fstStore(fileName.get_cstring());
 
@@ -252,8 +241,9 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
 
   vector<int> keyIndex;
 
-  std::unique_ptr<StringArray> colNames(new StringArray());
+  // use fst format >= v0.8.0
   std::unique_ptr<StringArray> colSelection;
+  std::unique_ptr<StringArray> colNames(new StringArray());
 
   if (!Rf_isNull(columnSelection))
   {
@@ -261,53 +251,42 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
     colSelection->SetArray(columnSelection);
   }
 
-  // use fst format v0.7.2
-  if (*LOGICAL(oldFormat) != 0)
-  {
-    try
-    {
-      SEXP res = fstRead_v1(fileName, columnSelection, startRow, endRow);
-
-      return res;
-    }
-    catch(...)
-    {
-      return fst_error("An unknown C++ error occured in the legacy fstlib library. "
-        "Please rewrite your fst files using the latest version of the fst package.");
-    }
-  }
-
-  // use fst format >= v0.8.0
   try
   {
-    fstStore.fstRead(tableReader, colSelection.get(), sRow, eRow, columnFactory.get(), keyIndex, &*colNames);
+    fstStore.fstRead(tableReader, colSelection.get(), sRow, eRow, columnFactory.get(), keyIndex, &*colNames, col_names.get());
   }
   catch (const std::runtime_error& e)
   {
     // We may be looking at a fst v0.7.2 file format, this unsafe code will be removed later
     if (std::strcmp(e.what(), FSTERROR_NON_FST_FILE) == 0)
     {
+      UNPROTECT(2);  // r_container, list_container
       return fst_error("File header information does not contain the fst format marker. "
         "If this is a fst file generated with package version older than v0.8.0, "
-        "you can read your file by using 'old_format = TRUE'.");
+        "please read (and re-write) your file using fst package versions 0.8.0 to 0.8.10.");
     }
 
     // re-throw uncatched errors
+    UNPROTECT(2);  // r_container, list_container
     return fst_error(e.what());
   }
   catch(...)
   {
+    UNPROTECT(2);  // r_container, list_container
     return fst_error("An unknown C++ error occured in the fstlib library");
   }
 
-  SEXP colNameVec = colNames->StrVector();
+  SEXP colNameVec = tableReader.GetColNames();
+
+  // SEXP colNameVec = colNames->StrVector();
 
   // Generalize to full atributes
-  Rf_setAttrib(tableReader.resTable, R_NamesSymbol, colNameVec);
+  SEXP resTable = PROTECT(tableReader.ResTable());
+  Rf_setAttrib(resTable, R_NamesSymbol, colNameVec);
+  UNPROTECT(1);
 
   // Convert keyIndex to keyNames
-  SEXP keyNames;
-  PROTECT(keyNames = Rf_allocVector(STRSXP, keyIndex.size()));
+  SEXP keyNames = PROTECT(Rf_allocVector(STRSXP, keyIndex.size()));
 
   int count = 0;
 
@@ -316,10 +295,10 @@ SEXP fstretrieve(String fileName, SEXP columnSelection, SEXP startRow, SEXP endR
     SET_STRING_ELT(keyNames, count++, STRING_ELT(colNameVec, *keyIt));
   }
 
-  UNPROTECT(1);
+  UNPROTECT(3);  // r_container, keyNames, list_container
 
   return List::create(
     _["keyNames"]   = keyNames,
     _["keyIndex"]   = keyIndex,
-    _["resTable"]   = tableReader.resTable);
+    _["resTable"]   = tableReader.ResTable());
 }

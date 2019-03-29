@@ -30,6 +30,8 @@
 
 #include <interface/istringwriter.h>
 #include <interface/ifstcolumn.h>
+#include <interface/icolumnfactory.h>
+#include <interface/ifsttable.h>
 
 
 void fdsWriteFactorVec_v7(std::ofstream &myfile, int* intP, IStringWriter* blockRunner, unsigned long long size, unsigned int compression,
@@ -37,8 +39,8 @@ void fdsWriteFactorVec_v7(std::ofstream &myfile, int* intP, IStringWriter* block
 
 
 // Parameter 'startRow' is zero based.
-void fdsReadFactorVec_v7(std::istream &myfile, IStringColumn* blockReader, int* intP, unsigned long long blockPos, unsigned long long startRow,
-  unsigned long long length, unsigned long long size);
+void fdsReadFactorVec_v7(IFstTable &tableReader, std::istream &myfile, unsigned long long blockPos, unsigned long long startRow,
+  unsigned long long length, unsigned long long size, FstColumnAttribute col_attribute, IColumnFactory* columnFactory, int colSel);
 
 
 #endif  // FACTOR_v7_H

@@ -37,11 +37,8 @@ class FstStore
 {
   std::string fstFile;
   std::unique_ptr<char[]> metaDataBlockP;
-  std::unique_ptr<IStringColumn> blockReaderP;
 
   public:
-    IStringColumn* blockReader;
-
     unsigned long long* p_nrOfRows;
     int* keyColPos;
 
@@ -67,10 +64,10 @@ class FstStore
      */
     void fstWrite(IFstTable &fstTable, int compress) const;
 
-    void fstMeta(IColumnFactory* columnFactory);
+    void fstMeta(IColumnFactory* columnFactory, IStringColumn* col_names);
 
     void fstRead(IFstTable &tableReader, IStringArray* columnSelection, long long startRow, long long endRow,
-      IColumnFactory* columnFactory, std::vector<int> &keyIndex, IStringArray* selectedCols);
+      IColumnFactory* columnFactory, std::vector<int> &keyIndex, IStringArray* selectedCols, IStringColumn* col_names);
 };
 
 

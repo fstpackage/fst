@@ -30,20 +30,19 @@ BEGIN_RCPP
 END_RCPP
 }
 // fstmetadata
-SEXP fstmetadata(Rcpp::String fileName, SEXP oldFormat);
-RcppExport SEXP _fst_fstmetadata(SEXP fileNameSEXP, SEXP oldFormatSEXP) {
+SEXP fstmetadata(Rcpp::String fileName);
+RcppExport SEXP _fst_fstmetadata(SEXP fileNameSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::String >::type fileName(fileNameSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type oldFormat(oldFormatSEXP);
-    rcpp_result_gen = Rcpp::wrap(fstmetadata(fileName, oldFormat));
+    rcpp_result_gen = Rcpp::wrap(fstmetadata(fileName));
     return rcpp_result_gen;
 END_RCPP
 }
 // fstretrieve
-SEXP fstretrieve(Rcpp::String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow, SEXP oldFormat);
-RcppExport SEXP _fst_fstretrieve(SEXP fileNameSEXP, SEXP columnSelectionSEXP, SEXP startRowSEXP, SEXP endRowSEXP, SEXP oldFormatSEXP) {
+SEXP fstretrieve(Rcpp::String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
+RcppExport SEXP _fst_fstretrieve(SEXP fileNameSEXP, SEXP columnSelectionSEXP, SEXP startRowSEXP, SEXP endRowSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -51,8 +50,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< SEXP >::type columnSelection(columnSelectionSEXP);
     Rcpp::traits::input_parameter< SEXP >::type startRow(startRowSEXP);
     Rcpp::traits::input_parameter< SEXP >::type endRow(endRowSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type oldFormat(oldFormatSEXP);
-    rcpp_result_gen = Rcpp::wrap(fstretrieve(fileName, columnSelection, startRow, endRow, oldFormat));
+    rcpp_result_gen = Rcpp::wrap(fstretrieve(fileName, columnSelection, startRow, endRow));
     return rcpp_result_gen;
 END_RCPP
 }

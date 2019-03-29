@@ -105,18 +105,19 @@ class BlockWriterChar : public IStringWriter
 class BlockReaderChar : public IStringColumn
 {
   SEXP strVec;
-  bool isProtected;
+  // bool isProtected;
   cetype_t strEncoding;
   StringEncoding string_encoding = StringEncoding::NATIVE;
 
 public:
   BlockReaderChar()
   {
-    isProtected = false;
+    // isProtected = false;
   }
 
-  ~BlockReaderChar(){ if (isProtected) UNPROTECT(1); }
+  ~BlockReaderChar(){}
 
+  // make sure strVec is PROTECTED after creation
   void AllocateVec(unsigned long long vecLength);
 
   StringEncoding GetEncoding()

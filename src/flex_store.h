@@ -35,10 +35,10 @@ int fstlib_version();
 SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression, SEXP uniformEncoding);
 
 // [[Rcpp::export]]
-SEXP fstmetadata(Rcpp::String fileName, SEXP oldFormat);
+SEXP fstmetadata(Rcpp::String fileName);
 
 // [[Rcpp::export]]
-SEXP fstretrieve(Rcpp::String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow, SEXP oldFormat);
+SEXP fstretrieve(Rcpp::String fileName, SEXP columnSelection, SEXP startRow, SEXP endRow);
 
 
 #endif  // FASTSTORE_H

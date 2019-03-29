@@ -32,7 +32,7 @@ If \code{uniform.encoding} is set to \code{FALSE}, no such assumption will be ma
 to the same encoding. The latter is a relatively expensive operation and will reduce write performance for
 character columns.}
 
-\item{columns}{Column names to read. The default is to read all all columns.}
+\item{columns}{Column names to read. The default is to read all columns.}
 
 \item{from}{Read data starting from this row number.}
 
@@ -42,7 +42,8 @@ character columns.}
 dataset \code{x} before writing will be retained. This allows for storage of sorted datasets. This option
 requires \code{data.table} package to be installed.}
 
-\item{old_format}{use TRUE to read fst files generated with a fst package version lower than v0.8.0}
+\item{old_format}{must be FALSE, the old fst file format is deprecated and can only be read and
+converted with fst package versions 0.8.0 to 0.8.10.}
 }
 \value{
 \code{read_fst} returns a data frame with the selected columns and rows. \code{write_fst}

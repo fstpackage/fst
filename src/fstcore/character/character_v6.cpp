@@ -321,7 +321,7 @@ inline void ReadDataBlockCompressed_v6(istream& myfile, IStringColumn* blockRead
 
 
 void fdsReadCharVec_v6(istream& myfile, IStringColumn* blockReader, unsigned long long blockPos, unsigned long long startRow,
-                       unsigned long long vecLength, unsigned long long size)
+  unsigned long long vecLength, unsigned long long size)
 {
   // Jump to startRow size
   myfile.seekg(blockPos);
@@ -342,7 +342,7 @@ void fdsReadCharVec_v6(istream& myfile, IStringColumn* blockReader, unsigned lon
   unsigned long long nrOfBlocks = 1 + endBlock - startBlock; // total number of blocks to read
 
   // Create result vector
-  blockReader->AllocateVec(vecLength);
+  // blockReader->AllocateVec(vecLength);
   blockReader->SetEncoding(stringEncoding);
 
   // Vector data is uncompressed

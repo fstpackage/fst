@@ -25,6 +25,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
+#include <memory>
 
 // Framework headers
 #include <interface/istringwriter.h>
@@ -34,8 +35,6 @@
 #include <character/character_v6.h>
 
 #include <compression/compressor.h>
-
-// #include <boost/unordered_map.hpp>
 
 using namespace std;
 
@@ -222,8 +221,8 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
 
 // Parameter 'startRow' is zero based
 // Data vector intP is expected to point to a memory block 4 * size bytes long
-void fdsReadFactorVec_v7(istream &myfile, IStringColumn* blockReader, int* intP, unsigned long long blockPos, unsigned long long startRow,
-  unsigned long long length, unsigned long long size)
+void fdsReadFactorVec_v7(IFstTable &tableReader, istream &myfile, unsigned long long blockPos, unsigned long long startRow,
+  unsigned long long length, unsigned long long size, FstColumnAttribute col_attribute, IColumnFactory* columnFactory, int colSel)
 {
   // Jump to factor level
   myfile.seekg(blockPos);
@@ -243,29 +242,34 @@ void fdsReadFactorVec_v7(istream &myfile, IStringColumn* blockReader, int* intP,
 
   // Read level strings
 
-  if (*nrOfLevels > 0)
+  std::unique_ptr<IFactorColumn> factorColumnP(columnFactory->CreateFactorColumn(length, *nrOfLevels, col_attribute));
+  IFactorColumn* factorColumn = factorColumnP.get();
+
+  // add to table
+  tableReader.SetFactorColumn(factorColumn, colSel);
+
+  IStringColumn* blockReader = factorColumn->Levels();
+  int* intP = factorColumn->LevelData();
+
+  if (*nrOfLevels == 0)
   {
-    fdsReadCharVec_v6(myfile, blockReader, blockPos + HEADER_SIZE_FACTOR, 0, *nrOfLevels, *nrOfLevels);  // get level strings
+    // All level values must be NA, so we need only the number of levels
+    for (unsigned int pos = 0; pos < length; pos++)
+    {
+      intP[pos] = FST_NA_INT;
+    }
   }
   else
   {
-	  // Create empty level vector
-	  blockReader->AllocateVec(0);
+    // non-empty level vector
+    fdsReadCharVec_v6(myfile, blockReader, blockPos + HEADER_SIZE_FACTOR, 0, *nrOfLevels, *nrOfLevels);  // get level strings
 
-	  // All level values must be NA, so we need only the number of levels
-	  for (unsigned int pos = 0; pos < length; pos++)
-	  {
-		  intP[pos] = FST_NA_INT;
-	  }
+    // Read level values
+    std::string annotation;
+    bool hasAnnotation;
 
-	  return;
+    fdsReadColumn_v2(myfile, reinterpret_cast<char*>(intP), *levelVecPos, startRow, length, size, 4, annotation, BATCH_SIZE_READ_FACTOR, hasAnnotation);
   }
-
-  // Read level values
-  std::string annotation;
-  bool hasAnnotation;
-
-  fdsReadColumn_v2(myfile, reinterpret_cast<char*>(intP), *levelVecPos, startRow, length, size, 4, annotation, BATCH_SIZE_READ_FACTOR, hasAnnotation);
 
   return;
 }
