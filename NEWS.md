@@ -1,15 +1,21 @@
 
-# fst 0.9.0 (March 29, 2019)
+# fst 0.9.0 (April 2, 2019)
 
 Version 0.9.0 of the `fst` package addresses the request from CRAN maintainers to fix issues identified by rchk. These issues result from PROTECT / UNPROTECT pairs called in the constructor / destructor pairs of C++ classes. rchk (rightfully) warns about those because it can't determine from the code if pairs are properly matched. With this submission the relevant SEXP classes are protected by containing them in SEXP classes that are already PROTECTED, which allows for removal of the PROTECT / UNPROTECT pairs in question.
 
-Support for fst files generated with `fst` package versions lower than 0.8.0 has been deprecated. This significantly reduces the (C++) code base and prepares `fst` for future code changes.
+As of `fst` version 0.9.0, support for fst files generated with `fst` package versions lower than 0.8.0 has been deprecated. This significantly reduces the (C++) code base and prepares `fst` for future code changes.
 
 ## Library updates
 
-## New features
+* Library `fstlib` updated to version 0.1.1
+
+## Enhancements
+
+* Method `setnrofthreads` returns invisible result to avoid printing unwanted output (thanks @renkun-ken for the pull request)
 
 ## Bugs solved
+
+* Empty subsets can be selected using `fst::fst` (thanks @renkun-ken for reporting)
 
 ## Documentation
 
