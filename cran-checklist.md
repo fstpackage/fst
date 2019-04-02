@@ -13,6 +13,7 @@
 * Merge develop branch into release branch
 * Bump version to even value in DESCRIPTION and check package startup message
 * Update README.Rmd and verify generated README.md on Github (release)
+* Update cran_comments.md
 * Update NEWS.md and make sure to remove '(in development)' in the version title
   and update the version number
 * Credit all GitHub contributions in NEWS.md
