@@ -61,7 +61,7 @@ Version 0.8.6 of the `fst` package brings clearer printing of `fst_table` object
 
 * User has more control over the number of threads used by fst. Option 'fst_threads' can now be used to initialize the number of threads when the package is first loaded (issue #132, thanks to @karldw for the pull request).
 
-* Option 'fst_restore_after_fork' can be used to select the threading behaviour after a fork has ended. Like the `data.table` package, `fst` switches back to a single thread when a fork is detected (using OpenMP in a fork can lead to problems). Unlike `data.table`, the `fst` package restores the number of threads to it's previous setting when the fork ends. If this leads to unexpected problems, the user can set the 'fst_restore_after_fork' option to FALSE to disable that.
+* Option 'fst_restore_after_fork' can be used to select the threading behavior after a fork has ended. Like the `data.table` package, `fst` switches back to a single thread when a fork is detected (using OpenMP in a fork can lead to problems). Unlike `data.table`, the `fst` package restores the number of threads to it's previous setting when the fork ends. If this leads to unexpected problems, the user can set the 'fst_restore_after_fork' option to FALSE to disable that.
     
 ## Bugs solved
 
