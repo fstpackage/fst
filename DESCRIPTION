@@ -6,7 +6,7 @@ Description: Multithreaded serialization of compressed data frames using the
     compression with the LZ4 and ZSTD compressors created by Yann Collet. The ZSTD
     compression library is owned by Facebook Inc.
 Version: 0.9.0
-Date: 2019-03-29
+Date: 2019-04-02
 Authors@R: c(
     person("Mark", "Klik", email = "markklik@gmail.com", role = c("aut", "cre", "cph")),
     person("Yann", "Collet", role = c("ctb", "cph"),
