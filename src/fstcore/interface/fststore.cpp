@@ -959,7 +959,6 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
       case 7:
       {
         FstColumnAttribute col_attribute = static_cast<FstColumnAttribute>(colAttributeTypes[colNr]);
-
         fdsReadFactorVec_v7(tableReader, myfile, pos, firstRow, length, nrOfRows, col_attribute, columnFactory, colSel);
 
         break;
