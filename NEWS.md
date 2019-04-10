@@ -1,13 +1,35 @@
 
-# fst 0.8.11 (in development)
+# fst 0.9.1
 
 ## Library updates
 
-## New features
+## Enhancements
 
 ## Bugs solved
 
 ## Documentation
+
+# fst 0.9.0 (April 2, 2019)
+
+Version 0.9.0 of the `fst` package addresses the request from CRAN maintainers to fix issues identified by rchk. These issues result from PROTECT / UNPROTECT pairs called in the constructor / destructor pairs of C++ classes. rchk (rightfully) warns about those because it can't determine from the code if pairs are properly matched. With this submission the relevant SEXP classes are protected by containing them in SEXP classes that are already PROTECTED, which allows for removal of the PROTECT / UNPROTECT pairs in question.
+
+As of `fst` version 0.9.0, support for fst files generated with `fst` package versions lower than 0.8.0 has been deprecated. This significantly reduces the (C++) code base and prepares `fst` for future code changes.
+
+## Library updates
+
+* Library `fstlib` updated to version 0.1.1
+
+## Enhancements
+
+* Method `setnrofthreads` returns invisible result to avoid printing unwanted output (thanks @renkun-ken for the pull request)
+
+## Bugs solved
+
+* Empty subsets can be selected using `fst::fst` (thanks @renkun-ken for reporting)
+
+## Documentation
+
+Various documentation issues have been fixed (thanks @ginberg and @renkun-ken for the pull requests).
 
 # fst 0.8.10 (December 14, 2018)
 
@@ -49,7 +71,7 @@ Version 0.8.6 of the `fst` package brings clearer printing of `fst_table` object
 
 * User has more control over the number of threads used by fst. Option 'fst_threads' can now be used to initialize the number of threads when the package is first loaded (issue #132, thanks to @karldw for the pull request).
 
-* Option 'fst_restore_after_fork' can be used to select the threading behaviour after a fork has ended. Like the `data.table` package, `fst` switches back to a single thread when a fork is detected (using OpenMP in a fork can lead to problems). Unlike `data.table`, the `fst` package restores the number of threads to it's previous setting when the fork ends. If this leads to unexpected problems, the user can set the 'fst_restore_after_fork' option to FALSE to disable that.
+* Option 'fst_restore_after_fork' can be used to select the threading behavior after a fork has ended. Like the `data.table` package, `fst` switches back to a single thread when a fork is detected (using OpenMP in a fork can lead to problems). Unlike `data.table`, the `fst` package restores the number of threads to it's previous setting when the fork ends. If this leads to unexpected problems, the user can set the 'fst_restore_after_fork' option to FALSE to disable that.
     
 ## Bugs solved
 
