@@ -36,12 +36,12 @@ class BlobContainer : public IBlobContainer
 public:
   BlobContainer(unsigned long long size)
   {
-    PROTECT(rawVec = Rf_allocVector(RAWSXP, size));
+    // code was carefully examined to assert that no PROTECT is needed here
+    rawVec = Rf_allocVector(RAWSXP, size);
   }
 
   ~BlobContainer()
   {
-    UNPROTECT(1);
   }
 
   unsigned char* Data()
@@ -79,4 +79,3 @@ public:
 
 
 #endif  // TYPE_FACTORY_H
-

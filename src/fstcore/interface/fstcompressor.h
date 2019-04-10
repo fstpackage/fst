@@ -325,7 +325,8 @@ public:
   }
 
 
-  IBlobContainer* DecompressBlob(unsigned char* blobSource, const unsigned long long blobLength, const bool checkHashes = true) const
+  IBlobContainer* DecompressBlob(unsigned char* blobSource, const unsigned long long blobLength,
+    const bool checkHashes = true) const
   {
     Decompressor decompressor;
     int nrOfThreads = GetFstThreads(); // available threads
@@ -352,8 +353,8 @@ public:
     unsigned int* headerHash = reinterpret_cast<unsigned int*>(blobSource);
     unsigned int* blockSize = reinterpret_cast<unsigned int*>(blobSource + 4);
 
-	unsigned int* version = reinterpret_cast<unsigned int*>(blobSource + 8);
-	
+    unsigned int* version = reinterpret_cast<unsigned int*>(blobSource + 8);
+
     unsigned int* algo = reinterpret_cast<unsigned int*>(blobSource + 12);
     unsigned long long* vecLength = reinterpret_cast<unsigned long long*>(blobSource + 16);
     unsigned long long* hashResult = reinterpret_cast<unsigned long long*>(blobSource + 24);
@@ -375,26 +376,26 @@ public:
 
     const unsigned int headHash = XXH32(&blobSource[4], headerSize - 4, FST_HASH_SEED); // header hash
 
-	// header hash check
+  	// header hash check
     if (*headerHash != headHash)
     {
       throw(std::runtime_error(FSTERROR_COMP_HEADER));
     }
 
     // version check
-	if (*version > FST_COMPRESS_VERSION)
-	{
-		throw(std::runtime_error(FSTERROR_COMP_FUTURE_VERSION));
-	}
+  	if (*version > FST_COMPRESS_VERSION)
+  	{
+  		throw(std::runtime_error(FSTERROR_COMP_FUTURE_VERSION));
+  	}
 
-	// Source vector has correct length
-	if (blockOffsets[nrOfBlocks] != blobLength)
-	{
-		throw(std::runtime_error(FSTERROR_COMP_SIZE));
-	}
+  	// Source vector has correct length
+  	if (blockOffsets[nrOfBlocks] != blobLength)
+  	{
+  		throw(std::runtime_error(FSTERROR_COMP_SIZE));
+  	}
 
     // Create result blob
-	IBlobContainer* blob_container = typeFactory->CreateBlobContainer(*vecLength);
+  	IBlobContainer* blob_container = typeFactory->CreateBlobContainer(*vecLength);
     unsigned char* blob_data = blob_container->Data();
 
     // Determine required number of threads
@@ -519,8 +520,8 @@ public:
 
     if (error)
     {
-		delete blob_container;
-		throw(std::runtime_error(FSTERROR_COMP_STREAM));
+  	  delete blob_container;
+	    throw(std::runtime_error(FSTERROR_COMP_STREAM));
     }
 
     return blob_container;

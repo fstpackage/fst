@@ -33,16 +33,15 @@ class StringArray : public IStringArray
 {
   SEXP strVec;
   cetype_t strEncoding = cetype_t::CE_NATIVE;
-  bool isProtected;
 
 public:
 
-  ~StringArray() { if (isProtected) UNPROTECT(1); }
+  ~StringArray() { }
 
+  // strVec should be PROTECTED after calling this method
   void AllocateArray(unsigned int length)
   {
-    PROTECT(this->strVec = Rf_allocVector(STRSXP, length));
-    isProtected = true;
+    this->strVec = Rf_allocVector(STRSXP, length);
   }
 
   // Use an existing SEXP
@@ -100,20 +99,50 @@ class FactorColumn : public IFactorColumn
 public:
   SEXP intVec;
   std::unique_ptr<BlockReaderChar> blockReaderStrVecP;
-  FstColumnAttribute columnAttribute;
+  // FstColumnAttribute columnAttribute;
 
-  FactorColumn(int nrOfRows, FstColumnAttribute columnAttribute)
+  FactorColumn(int nrOfRows, int nrOfLevels, FstColumnAttribute columnAttribute)
   {
-    intVec = Rf_allocVector(INTSXP, nrOfRows);
-    PROTECT(intVec);
+    intVec = PROTECT(Rf_allocVector(INTSXP, nrOfRows));
 
-    this->columnAttribute = columnAttribute;  // e.g. for 'FACTOR_ORDERED' specification
+    // this->columnAttribute = columnAttribute;  // e.g. for 'FACTOR_ORDERED' specification
     blockReaderStrVecP = std::unique_ptr<BlockReaderChar>(new BlockReaderChar());
+
+    BlockReaderChar* block_reader = blockReaderStrVecP.get();
+    block_reader->AllocateVec(nrOfLevels);
+    SEXP str_vector = PROTECT(block_reader->StrVector());
+
+    // set and PROTECT the levels attribute
+    SEXP level_str = PROTECT(Rf_mkString("levels"));
+    Rf_setAttrib(intVec, level_str, str_vector);
+    UNPROTECT(2); // level_str, str_vector
+
+    if (columnAttribute == FstColumnAttribute::FACTOR_ORDERED)  // ordered factor
+    {
+      SEXP class_str = PROTECT(Rf_mkString("class"));
+      SEXP classes = PROTECT(Rf_allocVector(STRSXP, 2));
+
+      SET_STRING_ELT(classes, 0, Rf_mkChar("ordered"));
+      SET_STRING_ELT(classes, 1, Rf_mkChar("factor"));
+      Rf_setAttrib(intVec, class_str, classes);
+
+      UNPROTECT(2);  // classes, class_str
+    }
+    else  // unordered factor
+    {
+      SEXP class_str = PROTECT(Rf_mkString("class"));
+      SEXP factor_str = PROTECT(Rf_mkString("factor"));
+
+      Rf_setAttrib(intVec, class_str, factor_str);
+
+      UNPROTECT(2);  // factor_str, class_str
+    }
+
+    UNPROTECT(1);  // intVec
   }
 
   ~FactorColumn()
   {
-    UNPROTECT(1);
   };
 
   int* LevelData()
@@ -124,11 +153,6 @@ public:
   IStringColumn* Levels()
   {
     return blockReaderStrVecP.get();
-  }
-
-  FstColumnAttribute Attribute()
-  {
-    return columnAttribute;
   }
 };
 
@@ -141,12 +165,10 @@ public:
   LogicalColumn(int nrOfRows)
   {
     boolVec = Rf_allocVector(LGLSXP, nrOfRows);
-    PROTECT(boolVec);
   }
 
   ~LogicalColumn()
   {
-    UNPROTECT(1);
   }
 
   int* Data()
@@ -163,8 +185,7 @@ public:
 
   Int64Column(int nrOfRows, FstColumnAttribute columnAttribute, short int scale)
   {
-    int64Vec = Rf_allocVector(REALSXP, nrOfRows);
-    PROTECT(int64Vec);
+    int64Vec = PROTECT(Rf_allocVector(REALSXP, nrOfRows));
 
     // test for nanotime type
     if (columnAttribute == FstColumnAttribute::INT_64_TIME_SECONDS)
@@ -179,22 +200,25 @@ public:
       PROTECT(classAttr = Rf_mkString("nanotime"));
       Rf_setAttrib(classAttr, Rf_mkString("package"), Rf_mkString("nanotime"));
 
-      UNPROTECT(1);  // necessary?
       Rf_classgets(int64Vec, classAttr);
 
       Rf_setAttrib(int64Vec, Rf_mkString(".S3Class"), Rf_mkString("integer64"));
       SET_S4_OBJECT(int64Vec);
 
+      UNPROTECT(2);  // int64Vec, classAttr
       return;
     }
 
     // default int64 column type
-    Rf_setAttrib(int64Vec, Rf_mkString("class"), Rf_mkString("integer64"));
+    SEXP int64_str = PROTECT(Rf_mkString("integer64"));
+
+    Rf_classgets(int64Vec, int64_str);
+
+    UNPROTECT(2);  // int64_str, int64Vec
   }
 
   ~Int64Column()
   {
-    UNPROTECT(1);
   }
 
   long long* Data()
@@ -250,6 +274,7 @@ class DoubleColumn : public IDoubleColumn
           Rf_setAttrib(colVec, Rf_mkString("units"), Rf_mkString("secs"));
         }
 
+        UNPROTECT(1); // colVec
         return;
       }
 
@@ -257,6 +282,7 @@ class DoubleColumn : public IDoubleColumn
       if (columnAttribute == FstColumnAttribute::DOUBLE_64_DATE_DAYS)
       {
         Rf_classgets(colVec, Rf_mkString("Date"));
+        UNPROTECT(1); // colVec
         return;
       }
 
@@ -267,9 +293,11 @@ class DoubleColumn : public IDoubleColumn
 
         if (scale != FstTimeScale::SECONDS)
         {
+          UNPROTECT(1); // colVec
           throw(std::runtime_error("ITime column with unknown scale detected"));
         }
 
+        UNPROTECT(1); // colVec
         return;
       }
 
@@ -277,20 +305,23 @@ class DoubleColumn : public IDoubleColumn
       // POSIXct type
       if (columnAttribute == FstColumnAttribute::DOUBLE_64_TIMESTAMP_SECONDS)
       {
-        SEXP classes;
-        PROTECT(classes = Rf_allocVector(STRSXP, 2));
+        SEXP classes = PROTECT(Rf_allocVector(STRSXP, 2));
+
         SET_STRING_ELT(classes, 0, Rf_mkChar("POSIXct"));
         SET_STRING_ELT(classes, 1, Rf_mkChar("POSIXt"));
-        UNPROTECT(1);
 
         Rf_classgets(colVec, classes);
+
+        UNPROTECT(2); // classes, colVec
+
         return;
       }
+
+      UNPROTECT(1); // colVec
     }
 
     ~DoubleColumn()
     {
-      UNPROTECT(1);
     }
 
     double* Data()
@@ -305,12 +336,15 @@ class DoubleColumn : public IDoubleColumn
       {
         if (annotation.length() > 0)
         {
-          SEXP timeZone = Rf_ScalarString(Rf_mkCharLen(annotation.c_str(), annotation.length()));
+          SEXP timeZone = PROTECT(Rf_ScalarString(Rf_mkCharLen(annotation.c_str(), annotation.length())));
           Rf_setAttrib(colVec, Rf_install("tzone"), timeZone);
+          UNPROTECT(1);
           return;
         }
 
-        Rf_setAttrib(colVec, Rf_install("tzone"), Rf_mkString(""));
+        SEXP empty_str = PROTECT(Rf_mkString(""));
+        Rf_setAttrib(colVec, Rf_install("tzone"), empty_str);
+        UNPROTECT(1);
         return;
       }
     }
@@ -326,8 +360,7 @@ public:
 
   IntegerColumn(int nrOfRows, FstColumnAttribute columnAttribute, short int scale)
   {
-    colVec = Rf_allocVector(INTSXP, nrOfRows);
-    PROTECT(colVec);
+    colVec = PROTECT(Rf_allocVector(INTSXP, nrOfRows));
 
     // store for later reference
     this->columnAttribute = columnAttribute;
@@ -359,32 +392,34 @@ public:
         Rf_setAttrib(colVec, Rf_mkString("units"), Rf_mkString("secs"));
       }
 
+      UNPROTECT(1); // colVec
       return;
     }
 
     if (columnAttribute == FstColumnAttribute::INT_32_DATE_DAYS)
     {
-      SEXP classAttr;
+      SEXP classAttr = PROTECT(Rf_allocVector(STRSXP, 2));
 
-      PROTECT(classAttr = Rf_allocVector(STRSXP, 2));
       SET_STRING_ELT(classAttr, 0, Rf_mkChar("IDate"));
       SET_STRING_ELT(classAttr, 1, Rf_mkChar("Date"));
 
-      UNPROTECT(1);
       Rf_classgets(colVec, classAttr);
+
+      UNPROTECT(2); // classAttr, colVec
 
       return;
     }
 
     if (columnAttribute == FstColumnAttribute::INT_32_TIMESTAMP_SECONDS)
     {
-      SEXP classes;
-      PROTECT(classes = Rf_allocVector(STRSXP, 2));
+      SEXP classes = PROTECT(Rf_allocVector(STRSXP, 2));
       SET_STRING_ELT(classes, 0, Rf_mkChar("POSIXct"));
       SET_STRING_ELT(classes, 1, Rf_mkChar("POSIXt"));
-      UNPROTECT(1);
 
       Rf_classgets(colVec, classes);
+
+      UNPROTECT(2); // classAttr, colVec
+
       return;
     }
 
@@ -394,17 +429,19 @@ public:
 
       if (scale != FstTimeScale::SECONDS)
       {
+        UNPROTECT(1); // colVec
         throw(std::runtime_error("ITime column with unknown scale detected"));
       }
 
+      UNPROTECT(1); // colVec
       return;
     }
 
+    UNPROTECT(1); // colVec
   }
 
   ~IntegerColumn()
   {
-    UNPROTECT(1);
   }
 
   int* Data()
@@ -419,12 +456,18 @@ public:
     {
       if (annotation.length() > 0)
       {
-        Rf_setAttrib(colVec, Rf_install("tzone"),
-          Rf_ScalarString(Rf_mkCharLen(annotation.c_str(), annotation.length())));
+        SEXP annotation_str = PROTECT(Rf_ScalarString(Rf_mkCharLen(annotation.c_str(), annotation.length())));
+
+        Rf_setAttrib(colVec, Rf_install("tzone"), annotation_str);
+
+        UNPROTECT(1);  // annotation_str
         return;
       }
 
-      Rf_setAttrib(colVec, Rf_install("tzone"), Rf_mkString(""));
+      SEXP empty_str = PROTECT(Rf_mkString(""));
+      Rf_setAttrib(colVec, Rf_install("tzone"), empty_str);
+
+      UNPROTECT(1);  // empty_str
       return;
     }
   }
@@ -438,13 +481,12 @@ public:
 
   ByteColumn(int nrOfRows)
   {
+    // Note that this SEXP needs to be protected after creation
     colVec = Rf_allocVector(RAWSXP, nrOfRows);
-    PROTECT(colVec);
   }
 
   ~ByteColumn()
   {
-    UNPROTECT(1);
   }
 
   char* Data()

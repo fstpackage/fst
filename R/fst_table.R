@@ -63,6 +63,12 @@
 #' }
 fst <- function(path, old_format = FALSE) {
 
+  # old format is deprecated as of v0.9.0
+  if (old_format != FALSE) {
+    stop("Parameter old_format is depricated, fst files written with fst package version",
+      " lower than 0.8.0 should be read (and rewritten) using fst package versions <= 0.8.10.")
+  }
+
   # wrap in a list so that additional elements can be added if required
   ft <- list(
     meta = metadata_fst(path, old_format),
@@ -341,40 +347,65 @@ as.list.fst_table <- function(x, ...) {
 }
 
 
+# drop to lower dimension when drop = TRUE
+return_drop <- function(x, drop) {
+
+  if (!drop | ncol(x) > 1) return(x)
+
+  x[[1]]
+}
+
+
 #' @export
-`[.fst_table` <- function(x, i, j, drop = FALSE) {
-  if (drop) {
-    warning("drop ignored", call. = FALSE)
+`[.fst_table` <- function(x, i, j, drop) {
+
+  # check for old_format in case an 'old' fst_table object was deserialized
+  if (.subset2(x, "old_format") != FALSE) {
+    stop("fst files written with fst package version",
+      " lower than 0.8.0 should be read (and rewritten) using fst package versions <= 0.8.10.")
   }
 
   meta_info <- .subset2(x, "meta")
 
-  # when only i is present, we do a column subsetting
+  # no additional arguments provided
 
   if (missing(i) && missing(j)) {
-    return(read_fst(meta_info$path, old_format = .subset2(x, "old_format")))
+
+    # never drop as with data.frame
+    return(read_fst(meta_info$path))
   }
+
 
   if (nargs() <= 2) {
 
-    # return full table
+    # result is never dropped with 2 arguments
+
     if (missing(i)) {
-      # we have a j
+      # we have a named argument j
       j <- .column_indexes_fst(meta_info, j)
-      return(read_fst(meta_info$path, j, old_format = .subset2(x, "old_format")))
+      return(read_fst(meta_info$path, j))
     }
 
     # i is interpreted as j
     j <- .column_indexes_fst(meta_info, i)
-    return(read_fst(meta_info$path, j, old_format = .subset2(x, "old_format")))
+    return(read_fst(meta_info$path, j))
   }
 
-  # return all rows
+  # drop dimension if single column selected and drop != FALSE
+  drop_dim <- FALSE
 
-  # special case where i is interpreted as j: select all rows
+  if (!missing(j) && length(j) == 1) {
+
+    if (!(!missing(drop) && drop == FALSE)) {
+      drop_dim <- TRUE
+    }
+  }
+
+  # special case where i is interpreted as j: select all rows, never drop
+
   if (nargs() == 3 && !missing(drop) && !missing(i)) {
     j <- .column_indexes_fst(meta_info, i)
-    return(read_fst(meta_info$path, j, old_format = .subset2(x, "old_format")))
+    return(read_fst(meta_info$path, j))
   }
 
   # i and j not reversed
@@ -382,7 +413,10 @@ as.list.fst_table <- function(x, ...) {
   # full columns
   if (missing(i)) {
     j <- .column_indexes_fst(meta_info, j)
-    return(read_fst(meta_info$path, j, old_format = .subset2(x, "old_format")))
+    x <- read_fst(meta_info$path, j)
+
+    if (!drop_dim) return(x)
+    return(x[[1]])
   }
 
 
@@ -397,29 +431,37 @@ as.list.fst_table <- function(x, ...) {
 
   # cast to integer and determine row range
   i <- as.integer(i)
-  min_row <- min(i)
-  max_row <- max(i)
 
-  # boundary check
-  if (min_row < 0) {
-    stop("Row selection out of range")
-  }
+  # empty row selection
+  if (length(i) == 0) {
+    min_row <- 1
+    max_row <- 1
+  } else {
+    min_row <- min(i)
+    max_row <- max(i)
 
-  if (max_row > meta_info$nrOfRows) {
-    stop("Row selection out of range")
+    # boundary check
+    if (min_row < 0) {
+      stop("Row selection out of range")
+    }
+
+    if (max_row > meta_info$nrOfRows) {
+      stop("Row selection out of range")
+    }
   }
 
   # column subset
 
   # select all columns
   if (missing(j)) {
-    fst_data <- read_fst(meta_info$path, from = min_row, to = max_row, old_format = .subset2(x, "old_format"))
-
-    return(fst_data[1 + i - min_row, ])
+    fst_data <- read_fst(meta_info$path, from = min_row, to = max_row)
+    x <- fst_data[1 + i - min_row, ]  # row selection, no dropping
+  } else {
+    j <- .column_indexes_fst(meta_info, j)
+    fst_data <- read_fst(meta_info$path, j, from = min_row, to = max_row)
+    x <- fst_data[1 + i - min_row, , drop = FALSE]  # row selection, no dropping
   }
 
-  j <- .column_indexes_fst(meta_info, j)
-  fst_data <- read_fst(meta_info$path, j, from = min_row, to = max_row, old_format = .subset2(x, "old_format"))
-
-  fst_data[1 + i - min_row, ]
+  if (!drop_dim) return(x)
+  return(x[[1]])
 }

@@ -80,7 +80,8 @@ write_fst <- function(x, path, compress = 50, uniform_encoding = TRUE) {
 #' Method for checking basic properties of the dataset stored in \code{path}.
 #'
 #' @param path path to fst file
-#' @param old_format use TRUE to read fst files generated with a fst package version lower than v0.8.0
+#' @param old_format must be FALSE, the old fst file format is deprecated and can only be read and
+#' converted with fst package versions 0.8.0 to 0.8.10.
 #' @return Returns a list with meta information on the stored dataset in \code{path}.
 #' Has class \code{fstmetadata}.
 #' @examples
@@ -97,13 +98,15 @@ write_fst <- function(x, path, compress = 50, uniform_encoding = TRUE) {
 #' metadata_fst("dataset.fst")
 #' @export
 metadata_fst <- function(path, old_format = FALSE) {
-  if (!is.logical(old_format)) {
-    stop("A logical value is expected for parameter 'old_format'.")
+
+  if (old_format != FALSE) {
+    stop("Parameter old_format is depricated, fst files written with fst package version",
+      " lower than 0.8.0 should be read (and rewritten) using fst package versions <= 0.8.10.")
   }
 
   full_path <- normalizePath(path, mustWork = FALSE)
 
-  metadata <- fstmetadata(full_path, old_format)
+  metadata <- fstmetadata(full_path)
 
   if (inherits(metadata, "fst_error")) {
     stop(metadata)
@@ -150,13 +153,14 @@ print.fstmetadata <- function(x, ...) {
 
 #' @rdname write_fst
 #'
-#' @param columns Column names to read. The default is to read all all columns.
+#' @param columns Column names to read. The default is to read all columns.
 #' @param from Read data starting from this row number.
 #' @param to Read data up until this row number. The default is to read to the last row of the stored dataset.
 #' @param as.data.table If TRUE, the result will be returned as a \code{data.table} object. Any keys set on
 #' dataset \code{x} before writing will be retained. This allows for storage of sorted datasets. This option
 #' requires \code{data.table} package to be installed.
-#' @param old_format use TRUE to read fst files generated with a fst package version lower than v0.8.0
+#' @param old_format must be FALSE, the old fst file format is deprecated and can only be read and
+#' converted with fst package versions 0.8.0 to 0.8.10.
 #'
 #' @export
 read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE, old_format = FALSE) {
@@ -182,11 +186,12 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
     to <- as.integer(to)
   }
 
-  if (!is.logical(old_format)) {
-    stop("A logical value is expected for parameter 'old_format'.")
+  if (old_format != FALSE) {
+    stop("Parameter old_format is depricated, fst files written with fst package version",
+    " lower than 0.8.0 should be read (and rewritten) using fst package versions <= 0.8.10.")
   }
 
-  res <- fstretrieve(fileName, columns, from, to, old_format)
+  res <- fstretrieve(fileName, columns, from, to)
 
   if (inherits(res, "fst_error")) {
     stop(res)

@@ -30,7 +30,7 @@
 #' specific requirements. As a default, \code{fst} uses a number of threads equal to the number of
 #' logical cores in the system.
 #'
-#' The number of threads can also be set with \code{option(fst_threads = N)}.
+#' The number of threads can also be set with \code{options(fst_threads = N)}.
 #' NOTE: This option is only read when the package's namespace is first loaded, with commands like
 #' \code{library}, \code{require}, or \code{::}. If you have already used one of these, you
 #' must use \code{threads_fst} to set the number of threads.
@@ -62,5 +62,5 @@ threads_fst <- function(nr_of_threads = NULL, reset_after_fork = NULL) {
     return(getnrofthreads())
   }
 
-  setnrofthreads(nr_of_threads)
+  invisible(setnrofthreads(nr_of_threads))
 }

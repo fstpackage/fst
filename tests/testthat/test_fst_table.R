@@ -16,6 +16,12 @@ test_file <- "testdata/fst_table.fst"
 write_fst(df, test_file)
 x <- fst(test_file)
 
+# single column table
+df2 <- df["X"]
+test_file2 <- "testdata/fst_table2.fst"
+write_fst(df2, test_file2)
+y <- fst(test_file2)
+
 
 # see issues #175 and #136
 test_that("fst_table does throw normalizePath error on non-existing file", {
@@ -102,10 +108,6 @@ test_that("fst_table [ generic", {
 
   expect_equal(x[,2:3], df[, 2:3])
 
-  expect_equal(x[j = 2:3, drop = FALSE], df[, 2:3])
-
-  expect_equal(x[i = 2:1, drop = FALSE], df[, 2:1])
-
   expect_equal(as.list(x[2,]), as.list(df[2,]))
 
   expect_equal(as.list(x[2:10,]), as.list(df[2:10,]))
@@ -121,6 +123,29 @@ test_that("fst_table [ generic", {
   expect_equal(x[,,], df[])
 
   expect_equal(x[j = 2, drop = FALSE], df[2])
+})
+
+
+test_that("fst_table allows for drop argument", {
+
+  # fst drops dimensions in same cases as data.frame. Less warnings are given.
+
+  # 3 arguments:
+
+  expect_equal(df[, "X"], x[, "X"])
+  expect_equal(df[2, "X"], x[2, "X"])
+  expect_equal(df[2:4, "X"], x[2:4, "X"])
+
+  # 4 arguments:
+
+  expect_equal(df[, "X", drop = TRUE], x[, "X", drop = TRUE])
+  expect_equal(df[, "X",], x[, "X",])
+  expect_equal(df[2, "X", drop = TRUE], x[2, "X", drop = TRUE])
+  expect_equal(df[2, "X",], x[2, "X",])
+  expect_equal(df[2:4, "X", drop = TRUE], x[2:4, "X", drop = TRUE])
+  expect_equal(df[2:4, "X", ], x[2:4, "X", ])
+  expect_equal(df[2:4, 2, drop = TRUE], x[2:4, 2, drop = TRUE])
+  expect_equal(df[2:4, 2, ], x[2:4, 2, ])
 })
 
 

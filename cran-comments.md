@@ -1,34 +1,30 @@
 
 ## Submission
 
-This submission of fst adresses Prof. Ripley's request to move the OpenMP flag to PKG_CXXFLAGS.
-In addition several minor issues have been resolved to increase package stability and the
-libraries on which fst depends (fstlib, LZ4 and ZSTD) are updated to their latest version.
+This submission of fst (v0.9.0) addresses Dr. Kurt Hornik's request to fix issues identified by rchk. These issues result from PROTECT / UNPROTECT pairs called in the constructor / destructor pairs of C++ classes. rchk (rightfully) warns about those because it can't determine from the code if pairs are properly matched. With this submission the relevant SEXP classes are protected by containing them in SEXP classes that are already PROTECTED, which allows for removal of the PROTECT / UNPROTECT pairs in question.
 
-## Test environments
+Two false warnings remain, detected in fst_compress.cpp. The code was thoroughly checked to affirm the stability of the code.
+
+In addition, with this submission, support for fst files generated with package versions before 0.8.0 has been deprecated, significantly reducing the (C++) code base.
+
+## Test environments 
 
 * OSX on travis-ci
 * Ubuntu 14.04 on travis-ci
 * Ubuntu 18.10 locally
 * Ubuntu 18.10 locally using clang-6.0
-* docker with the rocker/r-devel-ubsan-clang instrumented image
-* docker with the rocker/r-devel-san instrumented image
-* Windows 10 local R 3.5.1
+* Docker with the rocker/r-devel-ubsan-clang instrumented image
+* Docker with the rocker/r-devel-san instrumented image
+* Windows 10 local R 3.5.3
 * Windows 10 local R-dev 3.6.0 pre-release
-* Windows Server 2012 R2 x64 (build 9600) on AppVeyor R 3.5.1
-* R-Devel 3.6.0 build on Windows 10
+* Windows Server 2012 R2 x64 (build 9600) on AppVeyor (R 3.5.3)
+* Singularity-container package for running rchk on Ubuntu 18.10
+* Valgrind on Ubuntu 18.10.
+* Rhub (only on systems that support OpenMP)
 
 ## R CMD check results
 
 There were no ERRORs or WARNINGs.
-
-On some platforms a note is generated with R CMD check:
-   installed size is 7.0Mb
-The install size on different platforms varies significantly, from 1.42 MB (windows 10) to more than 7 MB on fedora.
-
-## Valgrind
-
-To reproduce the CRAN valgrind report, an instrumented (level 2) build of R was constructed on a fresh Ubuntu 16.04 image using config.site and configure parameters as specified in the memtests README file on CRAN. That build shows no valgrind warnings using the current submision.
 
 ## Downstream dependencies
 

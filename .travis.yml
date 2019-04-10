@@ -20,8 +20,7 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install llvm &&
     export PATH="/usr/local/opt/llvm/bin:$PATH" &&
     export LDFLAGS="-L/usr/local/opt/llvm/lib" &&
-    export CPPFLAGS="-I/usr/local/opt/llvm/include" &&
-    export PKG_CXXFLAGS="-O3 -Wall -pedantic"; fi
+    export CPPFLAGS="-I/usr/local/opt/llvm/include"; fi
 
 r_packages:
   - covr
@@ -31,12 +30,9 @@ r_packages:
   - testthat
   - data.table
 
-addons:
-  apt:
-    update: true
-
 after_success:
-  - Rscript -e 'library(covr); codecov(quiet = FALSE)'
+  - test $TRAVIS_OS_NAME == "linux" &&
+    travis_wait Rscript -e 'library(covr); codecov(quiet = FALSE)'
 
 env:
   global:

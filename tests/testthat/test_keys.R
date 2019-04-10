@@ -37,7 +37,7 @@ test_that("Missing middle key", {
 
 test_that("Missing first key", {
   fstwriteproxy(x, "testdata/keys.fst")
-  res <- fst:::fstretrieve("testdata/keys.fst", c("B", "C", "D", "E"), 1L, NULL, FALSE)
+  res <- fst:::fstretrieve("testdata/keys.fst", c("B", "C", "D", "E"), 1L, NULL)
   y <- fstreadproxy("testdata/keys.fst", columns = c("B", "C", "D", "E"), as.data.table = TRUE)
   expect_null(key(y))
 })

@@ -9,12 +9,12 @@ fststore <- function(fileName, table, compression, uniformEncoding) {
     .Call(`_fst_fststore`, fileName, table, compression, uniformEncoding)
 }
 
-fstmetadata <- function(fileName, oldFormat) {
-    .Call(`_fst_fstmetadata`, fileName, oldFormat)
+fstmetadata <- function(fileName) {
+    .Call(`_fst_fstmetadata`, fileName)
 }
 
-fstretrieve <- function(fileName, columnSelection, startRow, endRow, oldFormat) {
-    .Call(`_fst_fstretrieve`, fileName, columnSelection, startRow, endRow, oldFormat)
+fstretrieve <- function(fileName, columnSelection, startRow, endRow) {
+    .Call(`_fst_fstretrieve`, fileName, columnSelection, startRow, endRow)
 }
 
 fsthasher <- function(rawVec, seed, blockHash) {
