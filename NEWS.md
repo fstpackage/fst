@@ -1,11 +1,13 @@
 
-# fst 0.9.1
+# fst 0.9.1 (in development)
 
 ## Library updates
 
 ## Enhancements
 
 ## Bugs solved
+
+* Coloring is turned off for terminals that don't support it or when package `crayon` is not installed (thanks @muschellij2 for reporting and the code fix) 
 
 ## Documentation
 

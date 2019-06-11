@@ -216,11 +216,11 @@ print.fst_table <- function(x, number_of_rows = 50, ...) {
     "IDate", "ITime", "double", "Date", "POSIXct", "difftime", "ITime", "logical", "integer64",
     "nanotime", "raw")
 
-  # use color in terminal output
+  # turn off colored output at default
   color_on <- FALSE
 
   if (requireNamespace("crayon", quietly = TRUE)) {
-    color_on <- crayon::has_color()
+    color_on <- crayon::has_color()  # terminal has color
   }
 
   type_row <- matrix(paste("<", types[meta_info$columnTypes], ">", sep = ""), nrow = 1)
