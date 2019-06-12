@@ -141,9 +141,9 @@ print.fstmetadata <- function(x, ...) {
   }
 
   # Table has key columns
-  keys <- data.frame(k = x$keys, count = 1:length(x$keys))
-  colTab <- data.frame(k = x$columnNames, o = 1:length(x$columnNames))
-  colTab <- merge(colTab, keys, "k", all.x = TRUE)
+  keys <- data.frame(k = x$keys, count = seq_along(x$keys))
+  colTab <- data.frame(k = x$columnNames, o = seq_along(x$columnNames))
+  colTab <- merge(colTab, keys, "k", all.x = TRUE, sort = FALSE)
   colTab$l <- paste0(" (key ", colTab$count, ")")
   colTab[is.na(colTab$count), "l"] <- ""
 
