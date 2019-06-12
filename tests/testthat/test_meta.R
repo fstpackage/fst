@@ -133,7 +133,7 @@ test_that("Print meta data without keys", {
 })
 
 
-test_that("Print meta data without keys", {
+test_that("Print meta data with keys", {
   x$L <- NULL  # remove raw column (can't be sorted)
   setkey(x, D, M, B)
   fstwriteproxy(x, "testdata/meta.fst", compress = 100)
@@ -142,10 +142,11 @@ test_that("Print meta data without keys", {
 
   expect_equal(res, paste(
     "<fst file>\n10 rows, 15 columns (meta.fst)\n",
-    "* 'A': integer",
-    "* 'B': logical (key 3)",
-    "* 'C': double",
     "* 'D': Date (key 1)",
+    "* 'M': ordered factor (key 2)",
+    "* 'B': logical (key 3)",
+    "* 'A': integer",
+    "* 'C': double",
     "* 'E': character",
     "* 'F': factor",
     "* 'G': integer64",
@@ -153,9 +154,40 @@ test_that("Print meta data without keys", {
     "* 'I': POSIXct",
     "* 'J': POSIXct",
     "* 'K': IDate",
-    "* 'M': ordered factor (key 2)",
     "* 'N': difftime",
     "* 'O': difftime",
     "* 'P': ITime",
+    sep = "\n"))
+})
+
+
+
+test_that("Print meta data with keys and unordered columns", {
+  x$L <- NULL  # remove raw column (can't be sorted)
+  colnames(x) <- LETTERS[ncol(x):1]
+
+  setkey(x, L, D, N)
+  fstwriteproxy(x, "testdata/meta.fst", compress = 100)
+  y <- fstmetaproxy("testdata/meta.fst")
+  res <- capture_output(print(fstmetaproxy("testdata/meta.fst")))
+
+  # note that columns are printed in original order (except keys)
+  expect_equal(res, paste(
+    "<fst file>\n10 rows, 15 columns (meta.fst)\n",
+    "* 'L': Date (key 1)",
+    "* 'D': ordered factor (key 2)",
+    "* 'N': logical (key 3)",
+    "* 'O': integer",
+    "* 'M': double",
+    "* 'K': character",
+    "* 'J': factor",
+    "* 'I': integer64",
+    "* 'H': nanotime",
+    "* 'G': POSIXct",
+    "* 'F': POSIXct",
+    "* 'E': IDate",
+    "* 'C': difftime",
+    "* 'B': difftime",
+    "* 'A': ITime",
     sep = "\n"))
 })

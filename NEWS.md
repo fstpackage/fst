@@ -7,7 +7,8 @@
 
 ## Bugs solved
 
-* Coloring is turned off for terminals that don't support it or when package `crayon` is not installed (thanks @muschellij2 for reporting and the code fix) 
+* Coloring is turned off for terminals that don't support it or when package `crayon` is not installed (issue #198, thanks @muschellij2 for reporting and the code fix).
+* Method metadata_fst() correctly displays the key of the data table if column names are not in alphabetical order (issue #199, thanks @renkun-ken for the pull request).
 
 ## Documentation
 

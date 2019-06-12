@@ -132,22 +132,35 @@ print.fstmetadata <- function(x, ...) {
     "IDate", "ITime", "double", "Date", "POSIXct", "difftime", "ITime", "logical", "integer64",
     "nanotime", "raw")
 
-  colNames <- format(encodeString(x$columnNames, quote = "'"))
-
-  # Table has no key columns
+  # table has no key columns
   if (is.null(x$keys)) {
-    cat(paste0("* ", colNames, ": ", types[x$columnTypes], "\n"), sep = "")
+    column_names <- format(encodeString(x$columnNames, quote = "'"))
+    cat(paste0("* ", column_names, ": ", types[x$columnTypes], "\n"), sep = "")
     return(invisible(NULL))
   }
 
-  # Table has key columns
-  keys <- data.frame(k = x$keys, count = seq_along(x$keys))
-  colTab <- data.frame(k = x$columnNames, o = seq_along(x$columnNames))
-  colTab <- merge(colTab, keys, "k", all.x = TRUE, sort = FALSE)
-  colTab$l <- paste0(" (key ", colTab$count, ")")
-  colTab[is.na(colTab$count), "l"] <- ""
+  # table has key columns
+  keys <- data.frame(
+    k = x$keys,
+    count = seq_along(x$keys),
+    stringsAsFactors = FALSE)
 
-  cat(paste0("* ", colNames, ": ", types[x$columnTypes], colTab$l, "\n"), sep = "")
+  col_info <- data.frame(
+    k = x$columnNames,
+    o = seq_along(x$columnNames),
+    t = types[x$columnTypes],
+    stringsAsFactors = FALSE)
+
+  # merge keys to correct column
+  col_info <- merge(col_info, keys, "k", all.x = TRUE, sort = FALSE)
+
+  col_info$k <- format(encodeString(col_info$k, quote = "'"))
+  col_info$l <- paste0(" (key ", col_info$count, ")")
+  col_info[is.na(col_info$count), "l"] <- ""
+
+  col_info <- col_info[order(col_info$count, col_info$o), ]  # key columns at the top
+
+  cat(paste0("* ", col_info$k, ": ", col_info$t, col_info$l, "\n"), sep = "")
 }
 
 
