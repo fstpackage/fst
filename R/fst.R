@@ -210,6 +210,12 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
     stop(res)
   }
 
+  # long vectors are not supported yet with data.table, tibble's or data.frame,
+  # so return a list instead
+  nr_of_rows <- length(res$resTable[[1]])
+  if (nr_of_rows >= 2 ^ 31) {
+    return(res$resTable)
+  }
 
   if (as.data.table) {
     if (!requireNamespace("data.table", quietly = TRUE)) {

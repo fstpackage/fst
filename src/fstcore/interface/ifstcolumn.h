@@ -116,15 +116,15 @@ public:
 
   virtual ~IStringArray() {};
 
-  virtual void AllocateArray(unsigned int vecLength) = 0;
+  virtual void AllocateArray(uint64_t vecLength) = 0;
 
   virtual void SetEncoding(StringEncoding string_encoding) = 0;
 
-  virtual void SetElement(unsigned int elementNr, const char* str) = 0;
+  virtual void SetElement(uint64_t elementNr, const char* str) = 0;
 
-  virtual const char* GetElement(unsigned int elementNr) = 0;
+  virtual const char* GetElement(uint64_t elementNr) = 0;
 
-  virtual unsigned int Length() = 0;
+  virtual uint64_t Length() = 0;
 };
 
 

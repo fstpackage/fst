@@ -31,7 +31,7 @@ using namespace std;
 
 
 void fdsWriteByteVec_v12(ofstream& myfile, char* byteVector, unsigned long long nrOfRows, unsigned int compression,
-                         std::string annotation, bool hasAnnotation)
+	std::string annotation, bool hasAnnotation)
 {
   int blockSize = BLOCKSIZE_BYTE; // block size in bytes
 
