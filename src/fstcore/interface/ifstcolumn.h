@@ -134,7 +134,7 @@ public:
 
   virtual ~IStringColumn() {}
 
-  virtual void AllocateVec(unsigned long long vecLength) = 0;
+  virtual void AllocateVec(uint64_t vecLength) = 0;
 
   virtual void SetEncoding(StringEncoding stringEncoding) = 0;
 
@@ -199,4 +199,3 @@ public:
 
 
 #endif // IFST_COLUMN_H
-

@@ -46,7 +46,7 @@ public:
 
   virtual StringEncoding Encoding() = 0;
 
-  virtual void SetBuffersFromVec(unsigned long long startCount, unsigned long long endCount) = 0;
+  virtual void SetBuffersFromVec(uint64_t startCount, uint64_t endCount) = 0;
 };
 
 
