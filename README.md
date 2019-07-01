@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-<img src="logo.png" align="right" />
+<img src="fst.png" align="right" height="196" width="196" />
 
 [![Linux/OSX Build
 Status](https://travis-ci.org/fstpackage/fst.svg?branch=develop)](https://travis-ci.org/fstpackage/fst)
