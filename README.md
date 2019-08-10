@@ -159,8 +159,8 @@ performance, it was included in the graph for comparison.
 ## Bindings in other languages
 
 **Julia**:
-[**`fstformat.jl`**](https://github.com/xiaodaigh/fstformat.jl) A naive
-Julia binding using RCall.jl
+[**`FstFileFormat.jl`**](https://github.com/xiaodaigh/FstFileFormat.jl)
+A naive Julia binding using RCall.jl
 
 > **Note to users**: From CRAN release v0.8.0, the *fst* format is
 > stable and backwards compatible. That means that all *fst* files

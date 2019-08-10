@@ -91,7 +91,7 @@ The _fst_ package relies heavily on multi-threading to boost the read- and write
 
 The easiest way to install the package is from CRAN:
 
-```{r, eval=FALSE}
+```{r, eval = FALSE}
 install.packages("fst")
 ```
 
