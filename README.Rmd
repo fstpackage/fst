@@ -172,7 +172,7 @@ The _csv_ format used by the _fread_ and _fwrite_ methods of package _data.table
 
 ## Bindings in other languages
 
-**Julia**: [**`fstformat.jl`**][fstformatRepo] A naive Julia binding using RCall.jl
+**Julia**: [**`FstFileFormat.jl`**][fstformatRepo] A naive Julia binding using RCall.jl
 
 > **Note to users**: From CRAN release v0.8.0, the _fst_ format is stable and backwards compatible. That means that all _fst_ files generated with package v0.8.0 or later can be read by future versions of the package.
 
@@ -180,4 +180,4 @@ The _csv_ format used by the _fread_ and _fwrite_ methods of package _data.table
 [fstRepo]: https://github.com/fstpackage/fst
 [lz4Repo]: https://github.com/lz4/lz4
 [zstdRepo]: https://github.com/facebook/zstd
-[fstformatRepo]: https://github.com/xiaodaigh/fstformat.jl
+[fstformatRepo]: https://github.com/xiaodaigh/FstFileFormat.jl
