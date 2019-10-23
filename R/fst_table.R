@@ -173,7 +173,7 @@ names.fst_table <- function(x) {
 
 #' @export
 str.fst_table <- function(object, ...) {
-  str(unclass(object))
+  str(unclass(object), ...)
 }
 
 
