@@ -49,7 +49,7 @@ test_that("Type integer64 with compression as data.table", {
   setDT(dtint64)
   fstwriteproxy(dtint64, "testdata/dt_int64.fst", 95)  # Write to fst
 
-  dtint64_read <- fstreadproxy("testdata/dt_int64.fst", as.data.table = TRUE)
+  dtint64_read <- fstreadproxy("testdata/dt_int64.fst", as_data_table = TRUE)
 
   # bit64::integer64 type preserved:
   expect_equal(class(dtint64_read$Int64), "integer64")

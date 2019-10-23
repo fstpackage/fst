@@ -116,7 +116,7 @@ NULL
 NULL
 
 
-.onLoad <- function(libname, pkgname) {
+.onLoad <- function(libname, pkgname) {  # nolint
 
   # check option for restoring threads after forking
   option_restore <- getOption("fst_restore_after_fork")
@@ -154,6 +154,6 @@ NULL
 }
 
 
-.onUnload <- function (libpath) {
+.onUnload <- function (libpath) {  # nolint
   library.dynam.unload("fst", libpath)
 }

@@ -14,15 +14,15 @@ if (!file.exists("testdata")) {
 }
 
 
-posixI <- as.integer(as.POSIXct("2001-02-03")) + 1L:5L
-class(posixI) <- c("POSIXct", "POSIXt")
+posix_i <- as.integer(as.POSIXct("2001-02-03")) + 1L:5L
+class(posix_i) <- c("POSIXct", "POSIXt")
 
-dateI <- as.integer(Sys.Date() + 1:10)
-class(dateI) <- "Date"
+date_i <- as.integer(Sys.Date() + 1:10)
+class(date_i) <- "Date"
 
 difftime <- (Sys.time() + 1:10) - Sys.time()
-difftimeInt <- difftime
-mode(difftimeInt) <- "integer"
+difftime_int <- difftime
+mode(difftime_int) <- "integer"
 
 # Sample data
 x <- data.table(
@@ -35,12 +35,12 @@ x <- data.table(
   G = as.integer64(101:110),
   H = nanotime(2:11),
   I = as.POSIXct("2001-02-03") + 1:10,
-  J = posixI,
-  K = dateI,
+  J = posix_i,
+  K = date_i,
   L = as.raw(sample(0:255, 10)),
   M = ordered(sample(LETTERS, 10)),
   N = difftime,
-  O = difftimeInt,
+  O = difftime_int,
   P = as.ITime(Sys.time() + 1:10))
 
 
@@ -134,7 +134,8 @@ test_that("Print meta data without keys", {
 
 
 test_that("Print meta data with keys", {
-  x$L <- NULL  # remove raw column (can't be sorted)
+  # remove raw column (can't be sorted)
+  x$L <- NULL  # nolint
   setkey(x, D, M, B)
   fstwriteproxy(x, "testdata/meta.fst", compress = 100)
   y <- fstmetaproxy("testdata/meta.fst")
@@ -163,8 +164,9 @@ test_that("Print meta data with keys", {
 
 
 test_that("Print meta data with keys and unordered columns", {
-  x$L <- NULL  # remove raw column (can't be sorted)
-  colnames(x) <- LETTERS[ncol(x):1]
+  # remove raw column (can't be sorted)
+  x$L <- NULL  # nolint
+  colnames(x) <- LETTERS[seq.int(ncol(x), 1)]
 
   setkey(x, L, D, N)
   fstwriteproxy(x, "testdata/meta.fst", compress = 100)

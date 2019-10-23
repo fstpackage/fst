@@ -112,13 +112,13 @@ metadata_fst <- function(path, old_format = FALSE) {
     stop(metadata)
   }
 
-  colInfo <- list(path = full_path, nrOfRows = metadata$nrOfRows,
+  col_info <- list(path = full_path, nrOfRows = metadata$nrOfRows,
     keys = metadata$keyNames, columnNames = metadata$colNames,
     columnBaseTypes = metadata$colBaseType, keyColIndex = metadata$keyColIndex,
     columnTypes = metadata$colType)
-  class(colInfo) <- "fstmetadata"
+  class(col_info) <- "fstmetadata"
 
-  colInfo
+  col_info
 }
 
 
@@ -176,8 +176,8 @@ print.fstmetadata <- function(x, ...) {
 #' converted with fst package versions 0.8.0 to 0.8.10.
 #'
 #' @export
-read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE, old_format = FALSE) {
-  fileName <- normalizePath(path, mustWork = FALSE)
+read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE, old_format = FALSE) {  # nolint
+  file_name <- normalizePath(path, mustWork = FALSE)
 
   if (!is.null(columns)) {
     if (!is.character(columns)) {
@@ -204,7 +204,7 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
     " lower than 0.8.0 should be read (and rewritten) using fst package versions <= 0.8.10.")
   }
 
-  res <- fstretrieve(fileName, columns, from, to)
+  res <- fstretrieve(file_name, columns, from, to)
 
   if (inherits(res, "fst_error")) {
     stop(res)
@@ -222,9 +222,9 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
       stop("Please install package data.table when using as.data.table = TRUE")
     }
 
-    keyNames <- res$keyNames
+    key_names <- res$keyNames
     res <- data.table::setDT(res$resTable)  # nolint
-    if (length(keyNames) > 0) data.table::setattr(res, "sorted", keyNames)
+    if (length(key_names) > 0) data.table::setattr(res, "sorted", key_names)
     return(res)
   }
 
@@ -233,10 +233,10 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
   # use setters from data.table to improve performance
   if (requireNamespace("data.table", quietly = TRUE)) {
     data.table::setattr(res_table, "class", "data.frame")
-    data.table::setattr(res_table, "row.names", 1:length(res_table[[1L]]))
+    data.table::setattr(res_table, "row.names", seq_len(length(res_table[[1L]])))
   } else {
     class(res_table) <- "data.frame"
-    attr(res_table, "row.names") <- 1:length(res_table[[1L]])
+    attr(res_table, "row.names") <- seq_len(length(res_table[[1L]]))
   }
 
   res_table
@@ -252,13 +252,13 @@ write.fst <- function(x, path, compress = 50, uniform_encoding = TRUE) {
 
 #' @rdname write_fst
 #' @export
-read.fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE, old_format = FALSE) {
+read.fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE, old_format = FALSE) {  # nolint
   read_fst(path, columns, from, to, as.data.table, old_format)
 }
 
 
 #' @rdname metadata_fst
 #' @export
-fst.metadata <- function(path, old_format = FALSE) {
+fst.metadata <- function(path, old_format = FALSE) {  # nolint
   metadata_fst(path, old_format)
 }

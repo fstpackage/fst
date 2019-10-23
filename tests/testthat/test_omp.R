@@ -11,31 +11,31 @@ if (!file.exists("testdata")) {
 
 
 test_that("Get number of threads", {
-  nrOfThreads <- threads_fst()
-  expect_gte(nrOfThreads, 1)  # expect at least a single thread
-  prevThreads <- threads_fst(2)  # Set number of OpenMP threads
-  expect_equal(nrOfThreads, prevThreads)
-  nrOfThreads <- threads_fst()
+  nr_of_threads <- threads_fst()
+  expect_gte(nr_of_threads, 1)  # expect at least a single thread
+  prev_threads <- threads_fst(2)  # Set number of OpenMP threads
+  expect_equal(nr_of_threads, prev_threads)
+  nr_of_threads <- threads_fst()
 
   # Systems with OpenMP activated should have more than a single thread
   if (fst:::hasopenmp()) {
-    expect_equal(nrOfThreads, 2)
+    expect_equal(nr_of_threads, 2)
   } else {
-    expect_equal(nrOfThreads, 1)
+    expect_equal(nr_of_threads, 1)
   }
 })
 
 
 test_that("threads_fst(0) use all logical cores", {
   threads_fst(0)
-  nrOfThreads <- threads_fst()
+  nr_of_threads <- threads_fst()
   logical_cores <- parallel::detectCores(logical = TRUE)
 
   # Systems with OpenMP activated should have more than a single thread
   if (fst:::hasopenmp()) {
-    expect_gt(nrOfThreads, 1)
+    expect_gt(nr_of_threads, 1)
   } else {
-    expect_equal(nrOfThreads, 1)
+    expect_equal(nr_of_threads, 1)
   }
 })
 
@@ -52,14 +52,14 @@ test_that("Loading fst works with options", {
   # First test that .onload, which happens when the namespace is loaded by ::,
   # reads from the fst.threads option.
   fst:::.onLoad()
-  nrOfThreads <- threads_fst()
-  expect_equal(nrOfThreads, 1)
+  nr_of_threads <- threads_fst()
+  expect_equal(nr_of_threads, 1)
 
   # Next, test that subsequently attaching the package doesn't change
   # the number of threads.
   fst:::.onAttach()
-  nrOfThreads <- threads_fst()
-  expect_equal(nrOfThreads, 1)
+  nr_of_threads <- threads_fst()
+  expect_equal(nr_of_threads, 1)
   options(fst.threads = orig_op)  # reset option
 })
 

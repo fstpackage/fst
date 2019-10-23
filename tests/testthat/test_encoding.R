@@ -10,11 +10,11 @@ if (!file.exists("testdata")) {
 }
 
 
-testwriteread <- function(x, encoding, uniform.encoding = TRUE) {
-  fstwriteproxy(x, "testdata/encoding.fst", uniform.encoding)
+testwriteread <- function(x, encoding, uniform_encoding = TRUE) {
+  fstwriteproxy(x, "testdata/encoding.fst", uniform_encoding)
   y <- fstreadproxy("testdata/encoding.fst")
 
-  for (col in 1:ncol(x)) {
+  for (col in seq_len(ncol(x))) {
     if (typeof(x[[col]]) == "character") {
       expect_equal(Encoding(y[[col]]), rep(encoding[col], nrow(x)))
     }
@@ -55,11 +55,11 @@ test_that("Mixed encodings", {
 
   expect_failure(expect_equal(x, y))  # mix of unknown, latin1 and UTF-8
 
-  expect_error(fstwriteproxy(x, "testdata/mixed.fst", uniform.encoding = FALSE),
+  expect_error(fstwriteproxy(x, "testdata/mixed.fst", uniform_encoding = FALSE),
     "Character vectors with mixed encodings are currently not supported")
 
   Encoding(x$Mixed[1]) <- "UTF-8"  # mix of unknown and UTF-8
-  expect_error(fstwriteproxy(x, "testdata/mixed.fst", uniform.encoding = FALSE),
+  expect_error(fstwriteproxy(x, "testdata/mixed.fst", uniform_encoding = FALSE),
     "Character vectors with mixed encodings are currently not supported")
 
   fstwriteproxy(x, "testdata/mixed.fst")

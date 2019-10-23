@@ -20,7 +20,7 @@
 #  - fst R package source repository : https://github.com/fstpackage/fst
 
 
-.onAttach <- function(libname, pkgname) {
+.onAttach <- function(libname, pkgname) {  # nolint
   # Runs when attached to search() path such as by library() or require()
   if (interactive()) {
     v <- packageVersion("fst")
