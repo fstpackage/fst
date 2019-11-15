@@ -5,6 +5,8 @@
 
 ## Enhancements
 
+* Incorrect column selection gets a more informative error message (issue #138, thanks Jean-Luc and @Moohan for reporting).
+
 ## Bugs solved
 
 * ellipsis is forwarded in method `str.fst_table()` (issue #219, thanks @nbenn for reporting).
