@@ -832,7 +832,10 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
       if (equal == -1)
       {
         myfile.close();
-        throw(runtime_error("Selected column not found."));
+        std::string error = "Column '";
+        error.append(str1);
+        error.append("' not found");
+        throw(runtime_error(error));
       }
 
       colIndex[colSel] = equal;
