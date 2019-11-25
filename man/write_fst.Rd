@@ -9,13 +9,25 @@
 \usage{
 write_fst(x, path, compress = 50, uniform_encoding = TRUE)
 
-read_fst(path, columns = NULL, from = 1, to = NULL,
-  as.data.table = FALSE, old_format = FALSE)
+read_fst(
+  path,
+  columns = NULL,
+  from = 1,
+  to = NULL,
+  as.data.table = FALSE,
+  old_format = FALSE
+)
 
 write.fst(x, path, compress = 50, uniform_encoding = TRUE)
 
-read.fst(path, columns = NULL, from = 1, to = NULL,
-  as.data.table = FALSE, old_format = FALSE)
+read.fst(
+  path,
+  columns = NULL,
+  from = 1,
+  to = NULL,
+  as.data.table = FALSE,
+  old_format = FALSE
+)
 }
 \arguments{
 \item{x}{a data frame to write to disk}

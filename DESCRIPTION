@@ -19,7 +19,7 @@ Imports:
     Rcpp
 LinkingTo: Rcpp
 SystemRequirements: little-endian platform
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.1
 Suggests:
     testthat,
     bit64,
