@@ -140,10 +140,10 @@ public:
 
   virtual StringEncoding GetEncoding() = 0;
 
-  virtual void BufferToVec(uint64_t nrOfElements, uint64_t startElem, uint64_t endElem,
-    uint64_t vecOffset, unsigned int* sizeMeta, char* buf) = 0;
+  virtual void BufferToVec(unsigned long long nrOfElements, unsigned long long startElem, unsigned long long endElem,
+    unsigned long long vecOffset, unsigned int* sizeMeta, char* buf) = 0;
 
-  virtual const char* GetElement(uint64_t elementNr) = 0;
+  virtual const char* GetElement(unsigned long long elementNr) = 0;
 };
 
 
