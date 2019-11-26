@@ -60,9 +60,9 @@ using namespace std;
 void fdsStreamUncompressed_v2(ofstream& myfile, char* vec, unsigned long long vecLength, int elementSize, int blockSizeElems,
   FixedRatioCompressor* fixedRatioCompressor, std::string annotation, bool hasAnnotation)
 {
-  unsigned int annotationLength = annotation.length();
+  const unsigned int annotationLength = annotation.length();
   int nrOfBlocks = 1 + (vecLength - 1) / blockSizeElems; // number of compressed / uncompressed blocks
-  int remain = 1 + (vecLength + blockSizeElems - 1) % blockSizeElems; // number of elements in last incomplete block
+  const int remain = 1 + (vecLength + blockSizeElems - 1) % blockSizeElems; // number of elements in last incomplete block
   int blockSize = blockSizeElems * elementSize;
 
 
@@ -673,7 +673,7 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
   // Calculations span at least two block
 
   // First block
-  int subBlockSize = blockSizeElements - startOffset;
+  unsigned int subBlockSize = blockSizeElements - startOffset;
 
   if (algo == 0) // no compression
   {
@@ -711,7 +711,7 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
 
   maxBlock--; // decrement to get number of full blocks
 
-  int nrOfThreads = max(1ULL, min(static_cast<unsigned long long>(GetFstThreads()), maxBlock));
+  const int nrOfThreads = max(1ULL, min(static_cast<unsigned long long>(GetFstThreads()), maxBlock));
   int batchSize = min(static_cast<unsigned long long>(maxbatchSize), maxBlock / nrOfThreads); // keep thread buffer small
   batchSize = max(1, batchSize);
 
