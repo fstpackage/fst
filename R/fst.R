@@ -59,7 +59,6 @@
 #' y <- read_fst("dataset.fst", "B") # read selection of columns
 #' y <- read_fst("dataset.fst", "A", 100, 200) # read selection of columns and rows
 #' @export
-#' @md
 write_fst <- function(x, path, compress = 50, uniform_encoding = TRUE) {
   if (!is.character(path)) stop("Please specify a correct path.")
 
@@ -165,6 +164,13 @@ print.fstmetadata <- function(x, ...) {
 
 
 #' @rdname write_fst
+#' @export
+write.fst <- function(x, path, compress = 50, uniform_encoding = TRUE) {
+  write_fst(x, path, compress, uniform_encoding)
+}
+
+
+#' @rdname write_fst
 #'
 #' @param columns Column names to read. The default is to read all columns.
 #' @param from Read data starting from this row number.
@@ -240,13 +246,6 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
   }
 
   res_table
-}
-
-
-#' @rdname write_fst
-#' @export
-write.fst <- function(x, path, compress = 50, uniform_encoding = TRUE) {
-  write_fst(x, path, compress, uniform_encoding)
 }
 
 
