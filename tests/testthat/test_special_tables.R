@@ -30,6 +30,7 @@ datatable <- data.frame(
   Difftime = difftime_vec(1)[0],
   DiffTime_int = difftime_vec(1, "integer")[0],
   WFact = factor(sample(LETTERS, 26, replace = TRUE))[0],
+  WFactNA = factor(NA)[0],
   stringsAsFactors = FALSE
 )
 
