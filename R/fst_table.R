@@ -208,9 +208,9 @@ print.fst_table <- function(x, number_of_rows = 50, ...) {
   }
 
   # use bit64 package if available for correct printing
-  if ( (!"bit64"      %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "integer64"))) require_bit64()
-  if ( (!"nanotime"   %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "nanotime"))) require_nanotime()
-  if ( (!"data.table" %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "ITime"))) require_data_table()
+  if ((!"bit64"      %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "integer64"))) require_bit64() # nolint
+  if ((!"nanotime"   %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "nanotime"))) require_nanotime() # nolint
+  if ((!"data.table" %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "ITime"))) require_data_table() # nolint
 
   types <- c("unknown", "character", "factor", "ordered factor", "integer", "POSIXct", "difftime",
     "IDate", "ITime", "double", "Date", "POSIXct", "difftime", "ITime", "logical", "integer64",

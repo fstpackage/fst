@@ -13,7 +13,7 @@ if (!file.exists("testdata")) {
 difftime_mode <- function(mode = "double") {
   vec <- (Sys.time() + 1) - Sys.time()
   mode(vec) <- mode
-  vec
+  vec[0]
 }
 
 
@@ -27,8 +27,8 @@ datatable <- data.frame(
   Integer64 = as.integer64(2345612345679)[0],
   Nanotime = nanotime(1000000)[0],
   Raw = as.raw(255)[0],
-  Difftime = difftime_vec(1)[0],
-  DiffTime_int = difftime_vec(1, "integer")[0],
+  Difftime = difftime_mode(),
+  DiffTime_int = difftime_mode("integer"),
   WFact = factor(sample(LETTERS, 26, replace = TRUE))[0],
   WFactNA = factor(NA)[0],
   stringsAsFactors = FALSE
