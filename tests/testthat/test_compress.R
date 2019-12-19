@@ -181,8 +181,8 @@ test_that("hash can use custom seed", {
   hash2 <- hash_fst(raw_vec, 345345)
 
   # alter vector in two places
-  raw_vec[100] <- as.raw((as.integer(raw_vec[100]) + 2) %% 256)
-  raw_vec[200] <- as.raw((as.integer(raw_vec[200]) + 2) %% 256)
+  raw_vec[100] <- as.raw( (as.integer(raw_vec[100]) + 2) %% 256)
+  raw_vec[200] <- as.raw( (as.integer(raw_vec[200]) + 2) %% 256)
   hash3 <- hash_fst(raw_vec)
 
   expect_true(sum(hash1 != hash2) == 2)

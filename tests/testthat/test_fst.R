@@ -178,7 +178,7 @@ blocktestsingletype <- function(type) {
   blocktests(type, 1, 1, 40L)  # algorithm 1
   blocktests(type, 1, 1, 80L)  # algorithm 2
 
-  last_block <- as.integer((nr_of_rows - 1) / block_size)
+  last_block <- as.integer( (nr_of_rows - 1) / block_size)
 
   # Single last block
   blocktests(type, last_block, last_block, 0L)  # uncompressed
