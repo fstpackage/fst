@@ -36,11 +36,11 @@ enum StringEncoding
 class IStringWriter
 {
 public:
-  unsigned int* strSizes;
-  unsigned int* naInts;
-  unsigned int bufSize;
-  char* activeBuf;
-  unsigned long long vecLength;
+  unsigned int* strSizes = nullptr;
+  unsigned int* naInts = nullptr;
+  unsigned int bufSize = 0;
+  char* activeBuf = nullptr;
+  unsigned long long vecLength = 0;
 
   virtual ~IStringWriter() {}
 

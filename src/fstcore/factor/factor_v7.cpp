@@ -90,9 +90,6 @@ void fdsWriteFactorVec_v7(ofstream &myfile, int* intP, IStringWriter* blockRunne
 
   unsigned int nrOfRows = size;  // vector length
 
-  // no values to write
-  if (nrOfRows == 0) return;
-
   // With zero compression only a fixed width compactor is used (int to byte or int to short)
 
   // TODO: create multi-threaded code for a fixed ratio compressor

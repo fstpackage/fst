@@ -854,7 +854,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
     throw(runtime_error("Row selection is out of range."));
   }
 
-  long long length = max(nrOfRows - firstRow, 0ULL);
+  long long length = max(static_cast<long long>(nrOfRows) - firstRow, 0LL);
 
   // Determine vector length
   if (endRow != -1)
@@ -891,7 +891,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
         std::unique_ptr<IStringColumn> stringColumnP(columnFactory->CreateStringColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr])));
         IStringColumn* stringColumn = stringColumnP.get();
 
-        stringColumn->AllocateVec(static_cast<unsigned int>(length));
+        stringColumn->AllocateVec(static_cast<uint64_t>(length));
         tableReader.SetStringColumn(stringColumn, colSel);
 
         fdsReadCharVec_v6(myfile, stringColumn, pos, firstRow, length, nrOfRows);
