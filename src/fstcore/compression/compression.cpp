@@ -977,7 +977,7 @@ unsigned int ZSTD_INT_TO_BYTE_C(char* dst, unsigned int dstCapacity, const char*
 
   CompactIntToByte(buf, src, srcSize / 4);
 
-  return ZSTD_compress(dst, dstCapacity, (char*) buf,  nrOfLongs * 8,  (compressionLevel * ZSTD_maxCLevel()) / 100);
+  return ZSTD_compress(dst, dstCapacity, static_cast<char*>(buf),  8 * nrOfLongs,  (compressionLevel * ZSTD_maxCLevel()) / 100);
 }
 
 unsigned int ZSTD_INT_TO_BYTE_D(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize)
@@ -1016,7 +1016,7 @@ unsigned int LZ4_INT_TO_SHORT_SHUF2_D(char* dst, unsigned int dstCapacity, const
   char buf[MAX_SIZE_COMPRESS_BLOCK_HALF];
 
   // Decompress
-  unsigned int errorCode = static_cast<unsigned int>(LZ4_decompress_fast(src, (char*) buf, nrOfLongs * 8)) != compressedSize;
+  const unsigned int errorCode = static_cast<unsigned int>(LZ4_decompress_fast(src, static_cast<char*>(buf), nrOfLongs * 8)) != compressedSize;
   DecompactShortToInt(buf, dst, nrOfDstInts);  // one integer per byte
 
   return errorCode;
@@ -1036,14 +1036,14 @@ unsigned int ZSTD_INT_TO_SHORT_SHUF2_C(char* dst, unsigned int dstCapacity, cons
 
 unsigned int ZSTD_INT_TO_SHORT_SHUF2_D(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize)
 {
-  unsigned int nrOfLongs = 1 + (dstCapacity - 1) / 16;  // srcSize is processed in blocks of 32 bytes
-  unsigned int nrOfDstInts = dstCapacity / 4;
+  const unsigned int nrOfLongs = 1 + (dstCapacity - 1) / 16;  // srcSize is processed in blocks of 32 bytes
+  const unsigned int nrOfDstInts = dstCapacity / 4;
 
   // Compress buffer
   char buf[MAX_SIZE_COMPRESS_BLOCK_HALF];
 
   // Decompress
-  unsigned int errorCode = ZSTD_decompress(static_cast<char*>(buf), 8 * nrOfLongs, src, compressedSize) != 8 * nrOfLongs;
+  const unsigned int errorCode = ZSTD_decompress(static_cast<char*>(buf), nrOfLongs * 8, src, compressedSize) != nrOfLongs * 8;
 
   DecompactShortToInt(buf, dst, nrOfDstInts);  // one integer per byte
 
@@ -1260,7 +1260,7 @@ unsigned int ZSTD_D_SHUF8(char* dst, unsigned int dstCapacity, const char* src, 
 }
 
 
-// ZSTD,
+// ZSTD
 
 unsigned int ZSTD_C(char* dst, unsigned int dstCapacity, const char* src,  unsigned int srcSize, int compressionLevel)
 {
@@ -1273,17 +1273,17 @@ unsigned int ZSTD_D(char* dst, unsigned int dstCapacity, const char* src, unsign
 }
 
 
-// ZSTD_SHUF4,
+// ZSTD_SHUF4
 
-unsigned int ZSTD_C_SHUF4(char* dst, unsigned int dstCapacity, const char* src,  unsigned int srcSize, int compressionLevel)
+unsigned int ZSTD_C_SHUF4(char* dst, unsigned int dstCapacity, const char* src,  unsigned int src_size, int compressionLevel)
 {
-  int intSize = srcSize / 4;
+  const int int_size = src_size / 4;
 
   unsigned long long shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_8];
   // int shuffleBuf[MAX_SIZE_COMPRESS_BLOCK_QUARTER];
 
-  ShuffleInt2((int*) src, (int*) shuffleBuf, intSize);
-  return ZSTD_compress(dst, dstCapacity, (char*) shuffleBuf, srcSize, (compressionLevel * ZSTD_maxCLevel()) / 100);
+  ShuffleInt2((int*) src, reinterpret_cast<int*>(shuffleBuf), int_size);
+  return ZSTD_compress(dst, dstCapacity, reinterpret_cast<char*>(shuffleBuf), src_size, (compressionLevel * ZSTD_maxCLevel()) / 100);
 }
 
 unsigned int ZSTD_D_SHUF4(char* dst, unsigned int dstCapacity, const char* src, unsigned int compressedSize)

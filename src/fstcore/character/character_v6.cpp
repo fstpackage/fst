@@ -104,6 +104,9 @@ void fdsWriteCharVec_v6(ofstream& myfile, IStringWriter* stringWriter, int compr
 {
   unsigned long long vecLength = stringWriter->vecLength; // expected to be larger than zero
 
+  // nothing to write
+  if (vecLength == 0) return;
+
   unsigned long long curPos = myfile.tellp();
   unsigned long long nrOfBlocks = (vecLength - 1) / BLOCKSIZE_CHAR; // number of blocks minus 1
 
@@ -323,6 +326,9 @@ inline void ReadDataBlockCompressed_v6(istream& myfile, IStringColumn* blockRead
 void fdsReadCharVec_v6(istream& myfile, IStringColumn* blockReader, unsigned long long blockPos, unsigned long long startRow,
   unsigned long long vecLength, unsigned long long size)
 {
+  // nothing to read
+  if (vecLength == 0) return;
+
   // Jump to startRow size
   myfile.seekg(blockPos);
 

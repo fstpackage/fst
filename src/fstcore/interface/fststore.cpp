@@ -340,11 +340,6 @@ void FstStore::fstWrite(IFstTable &fstTable, const int compress) const
   *p_colNamesFlags         = 0;
   *p_freeBytes5            = 0;
 
-  if (nrOfRows == 0)
-  {
-    throw(runtime_error(FSTERROR_NO_DATA));
-  }
-
   // Create file buffer
   //const size_t bufsize = 4096;
   //char buf[bufsize];
@@ -847,7 +842,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
   const long long firstRow = startRow - 1;
   const unsigned long long nrOfRows = *p_chunkRows;  // TODO: check for row numbers > INT_MAX !!!
 
-  if (firstRow >= static_cast<long long>(nrOfRows) || firstRow < 0)
+  if (nrOfRows != 0 && (firstRow >= static_cast<long long>(nrOfRows) || firstRow < 0))
   {
     myfile.close();
 
@@ -859,8 +854,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
     throw(runtime_error("Row selection is out of range."));
   }
 
-  long long length = nrOfRows - firstRow;
-
+  long long length = max(nrOfRows - firstRow, 0ULL);
 
   // Determine vector length
   if (endRow != -1)
@@ -871,7 +865,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
       throw(runtime_error("Incorrect row range specified."));
     }
 
-    length = min(endRow - firstRow, static_cast<long long>(nrOfRows) - firstRow);
+    length = max(min(endRow - firstRow, static_cast<long long>(nrOfRows) - firstRow), 0LL);
   }
 
   tableReader.InitTable(nrOfSelect, length);
@@ -970,7 +964,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
 	  // integer64 vector
 	  case 11:
 	  {
-      std::unique_ptr<IInt64Column> int64ColumP(columnFactory->CreateInt64Column(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]), scale));
+        std::unique_ptr<IInt64Column> int64ColumP(columnFactory->CreateInt64Column(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]), scale));
 	    IInt64Column* int64Column = int64ColumP.get();
 	    tableReader.SetInt64Column(int64Column, colSel);
 	    fdsReadInt64Vec_v11(myfile, int64Column->Data(), pos, firstRow, length, nrOfRows);
