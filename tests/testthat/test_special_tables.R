@@ -10,8 +10,8 @@ if (!file.exists("testdata")) {
 }
 
 
-difftime_vec <- function(nr_of_rows, mode = "double") {
-  vec <- (Sys.time() + 1:nr_of_rows) - Sys.time()
+difftime_mode <- function(mode = "double") {
+  vec <- (Sys.time() + 1) - Sys.time()
   mode(vec) <- mode
   vec
 }

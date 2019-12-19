@@ -229,6 +229,9 @@ void fdsStreamcompressed_v2(ofstream& myfile, char* colVec, unsigned long long n
     myfile.write(reinterpret_cast<char*>(&aLength), 4);
   }
 
+  // nothing to write
+  if (nrOfRows == 0) return;
+
   unsigned long long curPos = myfile.tellp();
 
   // Blocks meta information
