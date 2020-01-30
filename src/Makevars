@@ -19,9 +19,8 @@ LIBZSTD = fstcore/ZSTD/common/entropy_common.o fstcore/ZSTD/common/error_private
 LIBCOMPRESSION  = fstcore/compression/compression.o fstcore/compression/compressor.o
 LIBFRAME = fstcore/interface/openmphelper.o fstcore/interface/fststore.o fstcore/logical/logical_v10.o \
 	fstcore/integer/integer_v8.o fstcore/byte/byte_v12.o fstcore/double/double_v9.o fstcore/character/character_v6.o \
-	fstcore/factor/factor_v7.o fstcore/blockstreamer/blockstreamer_v2.o \
-	fstcore/integer64/integer64_v11.o
-
+	fstcore/factor/factor_v7.o fstcore/blockstreamer/blockstreamer_v2.o fstcore/integer64/integer64_v11.o \
+  fstcore/byteblock/byteblock_v13.o
 $(SHLIB): libLZ4.a libZSTD.a libCOMPRESSION.a libFRAME.a
 
 libLZ4.a: $(LIBLZ4)

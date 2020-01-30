@@ -33,19 +33,30 @@
 // Column scaling in power of 10
 // Applicable to INT_32, DOUBLE_64 and INT_64 type.
 // Only add to the end to support previous format versions
-#define SCALE_PICO    -12
-#define SCALE_NANO     -9
-#define SCALE_MICRO    -6
-#define SCALE_MILLI    -3
-#define SCALE_UNITY     0
-#define SCALE_KILO      3
-#define SCALE_MEGA      6
-#define SCALE_GIGA      9
-#define SCALE_TERA     12
+#define SCALE_PICO    (-12)
+#define SCALE_NANO     (-9)
+#define SCALE_MICRO    (-6)
+#define SCALE_MILLI    (-3)
+#define SCALE_UNITY       0
+#define SCALE_KILO        3
+#define SCALE_MEGA        6
+#define SCALE_GIGA        9
+#define SCALE_TERA       12
 
 
 // Column types available in fst
 // Only add to the end to support previous format versions
+// This type translates to a type number in the fst format:
+//
+// CHARACTER  | 6
+// FACTOR,    | 7
+// INT_32,    | 8
+// DOUBLE_64  | 9
+// BOOL_2     | 10
+// INT_64     | 11
+// BYTE       | 12
+// BYTE_BLOCK | 13
+//
 enum FstColumnType
 {
 	UNKNOWN = 1,
@@ -55,7 +66,8 @@ enum FstColumnType
 	DOUBLE_64,    // 64-bit double vector
 	BOOL_2,       // 2-bit boolean value (00 = false, 01 = true and 10 = NA)
 	INT_64,       // 64-bit signed integer vector
-	BYTE          // byte vector
+	BYTE,         // byte vector
+    BYTE_BLOCK    // vector of custom sized byte blocks
 };
 
 
@@ -108,7 +120,6 @@ enum FstTimeScale
 
 
 // The abstract column and array interfaces function as a bridge between the actual data and fst
-
 
 class IStringArray
 {
