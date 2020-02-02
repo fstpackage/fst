@@ -92,6 +92,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// fstsort
+SEXP fstsort(SEXP int_vec);
+RcppExport SEXP _fst_fstsort(SEXP int_vecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type int_vec(int_vecSEXP);
+    rcpp_result_gen = Rcpp::wrap(fstsort(int_vec));
+    return rcpp_result_gen;
+END_RCPP
+}
 // getnrofthreads
 SEXP getnrofthreads();
 RcppExport SEXP _fst_getnrofthreads() {

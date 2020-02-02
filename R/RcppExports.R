@@ -29,6 +29,10 @@ fstdecomp <- function(rawVec) {
     .Call(`_fst_fstdecomp`, rawVec)
 }
 
+fstsort <- function(int_vec) {
+    .Call(`_fst_fstsort`, int_vec)
+}
+
 getnrofthreads <- function() {
     .Call(`_fst_getnrofthreads`)
 }
