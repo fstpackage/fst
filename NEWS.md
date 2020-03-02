@@ -12,6 +12,7 @@
 * ellipsis is forwarded in method `str.fst_table()` (issue #219, thanks @nbenn for reporting).
 * Coloring is turned off for terminals that don't support it or when package `crayon` is not installed (issue #198, thanks @muschellij2 for reporting and the code fix).
 * Method `metadata_fst()` correctly displays the key of the data table if column names are not in alphabetical order (issue #199, thanks @renkun-ken for the pull request).
+* stringsAsFactors argument defaults to FALSE for upcoming R 4.0.0 (issue #234, thanks @CRAN for reporting)
 
 ## Documentation
 
