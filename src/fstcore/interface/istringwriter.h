@@ -36,17 +36,17 @@ enum StringEncoding
 class IStringWriter
 {
 public:
-  unsigned int* strSizes;
-  unsigned int* naInts;
-  unsigned int bufSize;
-  char* activeBuf;
-  unsigned long long vecLength;
+  unsigned int* strSizes = nullptr;
+  unsigned int* naInts = nullptr;
+  unsigned int bufSize = 0;
+  char* activeBuf = nullptr;
+  unsigned long long vecLength = 0;
 
   virtual ~IStringWriter() {}
 
   virtual StringEncoding Encoding() = 0;
 
-  virtual void SetBuffersFromVec(unsigned long long startCount, unsigned long long endCount) = 0;
+  virtual void SetBuffersFromVec(uint64_t startCount, uint64_t endCount) = 0;
 };
 
 

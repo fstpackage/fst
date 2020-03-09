@@ -33,19 +33,30 @@
 // Column scaling in power of 10
 // Applicable to INT_32, DOUBLE_64 and INT_64 type.
 // Only add to the end to support previous format versions
-#define SCALE_PICO    -12
-#define SCALE_NANO     -9
-#define SCALE_MICRO    -6
-#define SCALE_MILLI    -3
-#define SCALE_UNITY     0
-#define SCALE_KILO      3
-#define SCALE_MEGA      6
-#define SCALE_GIGA      9
-#define SCALE_TERA     12
+#define SCALE_PICO    (-12)
+#define SCALE_NANO     (-9)
+#define SCALE_MICRO    (-6)
+#define SCALE_MILLI    (-3)
+#define SCALE_UNITY       0
+#define SCALE_KILO        3
+#define SCALE_MEGA        6
+#define SCALE_GIGA        9
+#define SCALE_TERA       12
 
 
 // Column types available in fst
 // Only add to the end to support previous format versions
+// This type translates to a type number in the fst format:
+//
+// CHARACTER  | 6
+// FACTOR,    | 7
+// INT_32,    | 8
+// DOUBLE_64  | 9
+// BOOL_2     | 10
+// INT_64     | 11
+// BYTE       | 12
+// BYTE_BLOCK | 13
+//
 enum FstColumnType
 {
 	UNKNOWN = 1,
@@ -55,7 +66,8 @@ enum FstColumnType
 	DOUBLE_64,    // 64-bit double vector
 	BOOL_2,       // 2-bit boolean value (00 = false, 01 = true and 10 = NA)
 	INT_64,       // 64-bit signed integer vector
-	BYTE          // byte vector
+	BYTE,         // byte vector
+    BYTE_BLOCK    // vector of custom sized byte blocks
 };
 
 
@@ -109,22 +121,21 @@ enum FstTimeScale
 
 // The abstract column and array interfaces function as a bridge between the actual data and fst
 
-
 class IStringArray
 {
 public:
 
   virtual ~IStringArray() {};
 
-  virtual void AllocateArray(unsigned int vecLength) = 0;
+  virtual void AllocateArray(uint64_t vecLength) = 0;
 
   virtual void SetEncoding(StringEncoding string_encoding) = 0;
 
-  virtual void SetElement(unsigned int elementNr, const char* str) = 0;
+  virtual void SetElement(uint64_t elementNr, const char* str) = 0;
 
-  virtual const char* GetElement(unsigned int elementNr) = 0;
+  virtual const char* GetElement(uint64_t elementNr) = 0;
 
-  virtual unsigned int Length() = 0;
+  virtual uint64_t Length() = 0;
 };
 
 
@@ -134,16 +145,16 @@ public:
 
   virtual ~IStringColumn() {}
 
-  virtual void AllocateVec(unsigned long long vecLength) = 0;
+  virtual void AllocateVec(uint64_t vecLength) = 0;
 
   virtual void SetEncoding(StringEncoding stringEncoding) = 0;
 
   virtual StringEncoding GetEncoding() = 0;
 
-  virtual void BufferToVec(unsigned long long nrOfElements, unsigned long long startElem, unsigned long long endElem,
-    unsigned long long vecOffset, unsigned int* sizeMeta, char* buf) = 0;
+  virtual void BufferToVec(uint64_t nrOfElements, uint64_t startElem, uint64_t endElem,
+	  uint64_t vecOffset, unsigned int* sizeMeta, char* buf) = 0;
 
-  virtual const char* GetElement(unsigned long long elementNr) = 0;
+  virtual const char* GetElement(uint64_t elementNr) = 0;
 };
 
 
@@ -199,4 +210,3 @@ public:
 
 
 #endif // IFST_COLUMN_H
-

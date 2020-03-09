@@ -56,7 +56,8 @@ SEXP fsthasher(SEXP rawVec, SEXP seed, SEXP blockHash)
   // use default fst seed
   if (Rf_isNull(seed))
   {
-    hashResult = hasher.HashBlob((unsigned char*) RAW(rawVec), Rf_length(rawVec), bHash);
+    hashResult = hasher.HashBlob((unsigned char*) RAW(rawVec), Rf_xlength(rawVec), bHash);
+
     std::memcpy(uintP, &hashResult, 8);
 
     UNPROTECT(1);
@@ -70,7 +71,7 @@ SEXP fsthasher(SEXP rawVec, SEXP seed, SEXP blockHash)
   return res;
 
   // use custom seed
-  hashResult = hasher.HashBlobSeed((unsigned char*) RAW(rawVec), Rf_length(rawVec),
+  hashResult = hasher.HashBlobSeed((unsigned char*) RAW(rawVec), Rf_xlength(rawVec),
     *((unsigned int*) INTEGER(seed)), bHash);
   std::memcpy(uintP, &hashResult, 8);
 

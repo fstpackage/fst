@@ -39,9 +39,9 @@ public:
   ~StringArray() { }
 
   // strVec should be PROTECTED after calling this method
-  void AllocateArray(unsigned int length)
+  void AllocateArray(uint64_t length)
   {
-    this->strVec = Rf_allocVector(STRSXP, length);
+    this->strVec = Rf_allocVector(STRSXP, (R_xlen_t) length);
   }
 
   // Use an existing SEXP
@@ -73,19 +73,19 @@ public:
     }
   }
 
-  void SetElement(unsigned int elementNr, const char* str)
+  void SetElement(uint64_t elementNr, const char* str)
   {
     // use current string encoding
     SEXP str_elem = Rf_mkCharLenCE(str, strlen(str), strEncoding);
     SET_STRING_ELT(strVec, elementNr, str_elem);
   }
 
-  const char* GetElement(unsigned int elementNr)
+  const char* GetElement(uint64_t elementNr)
   {
     return CHAR(STRING_ELT(strVec, elementNr));
   }
 
-  unsigned int Length()
+  uint64_t Length()
   {
     return LENGTH(strVec);
   }
@@ -101,9 +101,9 @@ public:
   std::unique_ptr<BlockReaderChar> blockReaderStrVecP;
   // FstColumnAttribute columnAttribute;
 
-  FactorColumn(int nrOfRows, int nrOfLevels, FstColumnAttribute columnAttribute)
+  FactorColumn(uint64_t nrOfRows, uint64_t nrOfLevels, FstColumnAttribute columnAttribute)
   {
-    intVec = PROTECT(Rf_allocVector(INTSXP, nrOfRows));
+    intVec = PROTECT(Rf_allocVector(INTSXP, (R_xlen_t) nrOfRows));
 
     // this->columnAttribute = columnAttribute;  // e.g. for 'FACTOR_ORDERED' specification
     blockReaderStrVecP = std::unique_ptr<BlockReaderChar>(new BlockReaderChar());
@@ -162,9 +162,9 @@ class LogicalColumn : public ILogicalColumn
 public:
   SEXP boolVec;
 
-  LogicalColumn(int nrOfRows)
+  LogicalColumn(uint64_t nrOfRows)
   {
-    boolVec = Rf_allocVector(LGLSXP, nrOfRows);
+    boolVec = Rf_allocVector(LGLSXP, (R_xlen_t) nrOfRows);
   }
 
   ~LogicalColumn()
@@ -183,9 +183,9 @@ class Int64Column : public IInt64Column
 public:
   SEXP int64Vec;
 
-  Int64Column(int nrOfRows, FstColumnAttribute columnAttribute, short int scale)
+  Int64Column(uint64_t nrOfRows, FstColumnAttribute columnAttribute, short int scale)
   {
-    int64Vec = PROTECT(Rf_allocVector(REALSXP, nrOfRows));
+    int64Vec = PROTECT(Rf_allocVector(REALSXP, (R_xlen_t) nrOfRows));
 
     // test for nanotime type
     if (columnAttribute == FstColumnAttribute::INT_64_TIME_SECONDS)
@@ -240,9 +240,9 @@ class DoubleColumn : public IDoubleColumn
   public:
     SEXP colVec;
 
-    DoubleColumn(int nrOfRows, FstColumnAttribute columnAttribute, short int scale)
+    DoubleColumn(uint64_t nrOfRows, FstColumnAttribute columnAttribute, short int scale)
     {
-      PROTECT(colVec = Rf_allocVector(REALSXP, nrOfRows));
+      PROTECT(colVec = Rf_allocVector(REALSXP, (R_xlen_t) nrOfRows));
 
       // store for later reference
       this->columnAttribute = columnAttribute;
@@ -358,9 +358,9 @@ class IntegerColumn : public IIntegerColumn
 public:
   SEXP colVec;
 
-  IntegerColumn(int nrOfRows, FstColumnAttribute columnAttribute, short int scale)
+  IntegerColumn(uint64_t nrOfRows, FstColumnAttribute columnAttribute, short int scale)
   {
-    colVec = PROTECT(Rf_allocVector(INTSXP, nrOfRows));
+    colVec = PROTECT(Rf_allocVector(INTSXP, (R_xlen_t) nrOfRows));
 
     // store for later reference
     this->columnAttribute = columnAttribute;
@@ -479,10 +479,10 @@ class ByteColumn : public IByteColumn
 public:
   SEXP colVec;
 
-  ByteColumn(int nrOfRows)
+  ByteColumn(uint64_t nrOfRows)
   {
     // Note that this SEXP needs to be protected after creation
-    colVec = Rf_allocVector(RAWSXP, nrOfRows);
+    colVec = Rf_allocVector(RAWSXP, (R_xlen_t) nrOfRows);
   }
 
   ~ByteColumn()

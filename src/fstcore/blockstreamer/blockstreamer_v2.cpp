@@ -60,9 +60,9 @@ using namespace std;
 void fdsStreamUncompressed_v2(ofstream& myfile, char* vec, unsigned long long vecLength, int elementSize, int blockSizeElems,
   FixedRatioCompressor* fixedRatioCompressor, std::string annotation, bool hasAnnotation)
 {
-  unsigned int annotationLength = annotation.length();
+  const unsigned int annotationLength = annotation.length();
   int nrOfBlocks = 1 + (vecLength - 1) / blockSizeElems; // number of compressed / uncompressed blocks
-  int remain = 1 + (vecLength + blockSizeElems - 1) % blockSizeElems; // number of elements in last incomplete block
+  const int remain = 1 + (vecLength + blockSizeElems - 1) % blockSizeElems; // number of elements in last incomplete block
   int blockSize = blockSizeElems * elementSize;
 
 
@@ -82,6 +82,8 @@ void fdsStreamUncompressed_v2(ofstream& myfile, char* vec, unsigned long long ve
     myfile.write(reinterpret_cast<char*>(&aLength), 4);
   }
 
+  // nothing to write
+  if (vecLength == 0) return;
 
   // No fixed ratio compressor specified
   if (fixedRatioCompressor == nullptr)
@@ -226,6 +228,9 @@ void fdsStreamcompressed_v2(ofstream& myfile, char* colVec, unsigned long long n
     unsigned int aLength = 0;
     myfile.write(reinterpret_cast<char*>(&aLength), 4);
   }
+
+  // nothing to write
+  if (nrOfRows == 0) return;
 
   unsigned long long curPos = myfile.tellp();
 
@@ -554,6 +559,8 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
     }
   }
 
+  // there is no data to read
+  if (length == 0) return;
 
   blockPos += 4 + annotationLength;
 
@@ -673,7 +680,7 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
   // Calculations span at least two block
 
   // First block
-  int subBlockSize = blockSizeElements - startOffset;
+  unsigned int subBlockSize = blockSizeElements - startOffset;
 
   if (algo == 0) // no compression
   {
@@ -711,7 +718,7 @@ void fdsReadColumn_v2(istream& myfile, char* outVec, unsigned long long blockPos
 
   maxBlock--; // decrement to get number of full blocks
 
-  int nrOfThreads = max(1ULL, min(static_cast<unsigned long long>(GetFstThreads()), maxBlock));
+  const int nrOfThreads = max(1ULL, min(static_cast<unsigned long long>(GetFstThreads()), maxBlock));
   int batchSize = min(static_cast<unsigned long long>(maxbatchSize), maxBlock / nrOfThreads); // keep thread buffer small
   batchSize = max(1, batchSize);
 

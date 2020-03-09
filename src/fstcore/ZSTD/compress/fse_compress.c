@@ -115,7 +115,7 @@ size_t FSE_buildCTable_wksp(FSE_CTable* ct,
     /* symbol start positions */
     {   U32 u;
         cumul[0] = 0;
-        for (u=1; u<=maxSymbolValue+1; u++) {
+        for (u=1; u <= maxSymbolValue+1; u++) {
             if (normalizedCounter[u-1]==-1) {  /* Low proba symbol */
                 cumul[u] = cumul[u-1] + 1;
                 tableSymbol[highThreshold--] = (FSE_FUNCTION_TYPE)(u-1);
@@ -129,9 +129,9 @@ size_t FSE_buildCTable_wksp(FSE_CTable* ct,
     {   U32 position = 0;
         U32 symbol;
         for (symbol=0; symbol<=maxSymbolValue; symbol++) {
-            int nbOccurences;
+            int nbOccurrences;
             int const freq = normalizedCounter[symbol];
-            for (nbOccurences=0; nbOccurences<freq; nbOccurences++) {
+            for (nbOccurrences=0; nbOccurrences<freq; nbOccurrences++) {
                 tableSymbol[position] = (FSE_FUNCTION_TYPE)symbol;
                 position = (position + step) & tableMask;
                 while (position > highThreshold)
@@ -658,7 +658,7 @@ size_t FSE_compress_wksp (void* dst, size_t dstSize, const void* src, size_t src
     BYTE* op = ostart;
     BYTE* const oend = ostart + dstSize;
 
-    U32   count[FSE_MAX_SYMBOL_VALUE+1];
+    unsigned count[FSE_MAX_SYMBOL_VALUE+1];
     S16   norm[FSE_MAX_SYMBOL_VALUE+1];
     FSE_CTable* CTable = (FSE_CTable*)workSpace;
     size_t const CTableSize = FSE_CTABLE_SIZE_U32(tableLog, maxSymbolValue);
@@ -672,7 +672,7 @@ size_t FSE_compress_wksp (void* dst, size_t dstSize, const void* src, size_t src
     if (!tableLog) tableLog = FSE_DEFAULT_TABLELOG;
 
     /* Scan input and build symbol stats */
-    {   CHECK_V_F(maxCount, HIST_count_wksp(count, &maxSymbolValue, src, srcSize, (unsigned*)scratchBuffer) );
+    {   CHECK_V_F(maxCount, HIST_count_wksp(count, &maxSymbolValue, src, srcSize, scratchBuffer, scratchBufferSize) );
         if (maxCount == srcSize) return 1;   /* only a single symbol in src : rle */
         if (maxCount == 1) return 0;         /* each symbol present maximum once => not compressible */
         if (maxCount < (srcSize >> 7)) return 0;   /* Heuristic : not compressible enough */

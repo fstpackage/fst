@@ -34,7 +34,7 @@ test_that("Include NA dates", {
 
 test_that("Include NA dates on integer Date vector", {
   u1 <- data.frame(DT = as.Date("2010-01-01") + c(0L, 365L, NA))
-  u1$DT <- as.integer(u1$DT)
+  u1[, "DT"] <- as.integer(u1$DT)
   class(u1$DT) <- "Date"
 
   fstwriteproxy(u1, "testdata/u1.fst")

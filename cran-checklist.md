@@ -20,7 +20,7 @@
 * Build docs folder using pkgdown::build_site()
 * Merge branch release into master
 * Submit to CRAN
-* Commit the fstpackage.github.io repositry with the latest docs
+* Commit the fstpackage.github.io repository with the latest docs
 
 # After releasing to CRAN
 

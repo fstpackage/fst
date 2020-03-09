@@ -88,8 +88,8 @@ static void* POOL_thread(void* opaque) {
             ctx->numThreadsBusy++;
             ctx->queueEmpty = ctx->queueHead == ctx->queueTail;
             /* Unlock the mutex, signal a pusher, and run the job */
-            ZSTD_pthread_mutex_unlock(&ctx->queueMutex);
             ZSTD_pthread_cond_signal(&ctx->queuePushCond);
+            ZSTD_pthread_mutex_unlock(&ctx->queueMutex);
 
             job.function(job.opaque);
 
@@ -127,9 +127,13 @@ POOL_ctx* POOL_create_advanced(size_t numThreads, size_t queueSize,
     ctx->queueTail = 0;
     ctx->numThreadsBusy = 0;
     ctx->queueEmpty = 1;
-    (void)ZSTD_pthread_mutex_init(&ctx->queueMutex, NULL);
-    (void)ZSTD_pthread_cond_init(&ctx->queuePushCond, NULL);
-    (void)ZSTD_pthread_cond_init(&ctx->queuePopCond, NULL);
+    {
+        int error = 0;
+        error |= ZSTD_pthread_mutex_init(&ctx->queueMutex, NULL);
+        error |= ZSTD_pthread_cond_init(&ctx->queuePushCond, NULL);
+        error |= ZSTD_pthread_cond_init(&ctx->queuePopCond, NULL);
+        if (error) { POOL_free(ctx); return NULL; }
+    }
     ctx->shutdown = 0;
     /* Allocate space for the thread handles */
     ctx->threads = (ZSTD_pthread_t*)ZSTD_malloc(numThreads * sizeof(ZSTD_pthread_t), customMem);

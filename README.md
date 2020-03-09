@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-<img src="logo.png" align="right" />
+<img src="fst.png" align="right" height="196" width="196" />
 
 [![Linux/OSX Build
 Status](https://travis-ci.org/fstpackage/fst.svg?branch=develop)](https://travis-ci.org/fstpackage/fst)
@@ -12,6 +12,7 @@ v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.or
 [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/fst)](https://cran.r-project.org/package=fst)
 [![codecov](https://codecov.io/gh/fstpackage/fst/branch/develop/graph/badge.svg)](https://codecov.io/gh/fstpackage/fst)
 [![downloads](http://cranlogs.r-pkg.org/badges/fst)](http://cran.rstudio.com/web/packages/fst/index.html)
+[![total\_downloads](https://cranlogs.r-pkg.org/badges/grand-total/fst)](http://cran.rstudio.com/web/packages/fst/index.html)
 
 ## Overview
 
@@ -23,8 +24,7 @@ computers. Data frames stored in the *fst* format have full random
 access, both in column and rows.
 
 The figure below compares the read and write performance of the *fst*
-package to various
-alternatives.
+package to various alternatives.
 
 | Method         | Format  | Time (ms) | Size (MB) | Speed (MB/s) | N       |
 | :------------- | :------ | :-------- | :-------- | :----------- | :------ |
@@ -82,8 +82,7 @@ devtools::install_github("fstPackage/fst", ref = "develop")
 ## Basic usage
 
 Using *fst* is simple. Data can be stored and retrieved using methods
-*write\_fst* and
-*read\_fst*:
+*write\_fst* and *read\_fst*:
 
 ``` r
 # Generate some random data frame with 10 million rows and various column types
@@ -109,8 +108,7 @@ the benchmark results shown in the introduction.*
 ## Random access
 
 The *fst* file format provides full random access to stored datasets.
-You can retrieve a selection of columns and rows
-with:
+You can retrieve a selection of columns and rows with:
 
 ``` r
   df_subset <- read.fst("dataset.fst", c("Logical", "Factor"), from = 2000, to = 5000)
@@ -159,8 +157,8 @@ performance, it was included in the graph for comparison.
 ## Bindings in other languages
 
 **Julia**:
-[**`fstformat.jl`**](https://github.com/xiaodaigh/fstformat.jl) A naive
-Julia binding using RCall.jl
+[**`FstFileFormat.jl`**](https://github.com/xiaodaigh/FstFileFormat.jl)
+A naive Julia binding using RCall.jl
 
 > **Note to users**: From CRAN release v0.8.0, the *fst* format is
 > stable and backwards compatible. That means that all *fst* files

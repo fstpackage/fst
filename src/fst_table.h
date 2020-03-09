@@ -85,6 +85,8 @@ class FstTable : public IFstTable
 
   	void SetDoubleColumn(IDoubleColumn * doubleColumn, int colNr);
 
+  	IByteBlockColumn* add_byte_block_column(unsigned col_nr);
+
   	void SetFactorColumn(IFactorColumn* factorColumn, int colNr);
 
     void SetColNames();
@@ -105,6 +107,8 @@ class FstTable : public IFstTable
     long long* GetInt64Writer(unsigned int colNr);
 
     double* GetDoubleWriter(unsigned int colNr);
+
+    IByteBlockColumn* GetByteBlockWriter(unsigned int col_nr);
 
     IStringWriter* GetLevelWriter(unsigned int colNr);
 

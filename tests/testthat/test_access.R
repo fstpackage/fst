@@ -24,10 +24,6 @@ test_that("Dataset needs at least one column", {
 })
 
 
-test_that("Dataset needs at least one column", {
-  expect_error(fstwriteproxy(data.frame(A = integer(0)), "bla.fst"), "The dataset contains no data")
-})
-
 
 test_that("Columns need to be of type character", {
   fstwriteproxy(data.frame(A = 1:10), "testdata/bla.fst")

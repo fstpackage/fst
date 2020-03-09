@@ -18,7 +18,7 @@ test_that("From unkeyed data.table to data.table", {
   y <- fstreadproxy("testdata/nokey.fst")
   expect_false(is.data.table(y))
 
-  y <- fstreadproxy("testdata/nokey.fst", as.data.table = TRUE)
+  y <- fstreadproxy("testdata/nokey.fst", as_data_table = TRUE)
   expect_null(key(y))
   expect_true(is.data.table(y))
 
@@ -34,7 +34,7 @@ test_that("From keyed data.table to data.table", {
   y <- fstreadproxy("testdata/key.fst")
   expect_false(is.data.table(y))
 
-  y <- fstreadproxy("testdata/key.fst", as.data.table = TRUE)
+  y <- fstreadproxy("testdata/key.fst", as_data_table = TRUE)
   expect_true(is.data.table(y))
   expect_equal(key(y), "B")
   expect_equal(xkey, y)

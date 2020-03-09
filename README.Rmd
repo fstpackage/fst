@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 ```
 
 
-<img src="logo.png" align="right" />
+<img src="fst.png" align="right" height="196" width="196" />
 
 [![Linux/OSX Build Status](https://travis-ci.org/fstpackage/fst.svg?branch=develop)](https://travis-ci.org/fstpackage/fst)
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/6g6kp8onpb26jhnm/branch/develop?svg=true)](https://ci.appveyor.com/project/fstpackage/fst/branch/develop)
@@ -22,6 +22,7 @@ knitr::opts_chunk$set(
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/fst)](https://cran.r-project.org/package=fst)
 [![codecov](https://codecov.io/gh/fstpackage/fst/branch/develop/graph/badge.svg)](https://codecov.io/gh/fstpackage/fst)
 [![downloads](http://cranlogs.r-pkg.org/badges/fst)](http://cran.rstudio.com/web/packages/fst/index.html)
+[![total_downloads](https://cranlogs.r-pkg.org/badges/grand-total/fst)](http://cran.rstudio.com/web/packages/fst/index.html)
 
 ## Overview
 
@@ -91,7 +92,7 @@ The _fst_ package relies heavily on multi-threading to boost the read- and write
 
 The easiest way to install the package is from CRAN:
 
-```{r, eval=FALSE}
+```{r, eval = FALSE}
 install.packages("fst")
 ```
 
@@ -172,7 +173,7 @@ The _csv_ format used by the _fread_ and _fwrite_ methods of package _data.table
 
 ## Bindings in other languages
 
-**Julia**: [**`fstformat.jl`**][fstformatRepo] A naive Julia binding using RCall.jl
+**Julia**: [**`FstFileFormat.jl`**][fstformatRepo] A naive Julia binding using RCall.jl
 
 > **Note to users**: From CRAN release v0.8.0, the _fst_ format is stable and backwards compatible. That means that all _fst_ files generated with package v0.8.0 or later can be read by future versions of the package.
 
@@ -180,4 +181,4 @@ The _csv_ format used by the _fread_ and _fwrite_ methods of package _data.table
 [fstRepo]: https://github.com/fstpackage/fst
 [lz4Repo]: https://github.com/lz4/lz4
 [zstdRepo]: https://github.com/facebook/zstd
-[fstformatRepo]: https://github.com/xiaodaigh/fstformat.jl
+[fstformatRepo]: https://github.com/xiaodaigh/FstFileFormat.jl

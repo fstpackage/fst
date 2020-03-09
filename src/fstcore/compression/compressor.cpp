@@ -167,7 +167,7 @@ inline int MaxCompressSize(int blockSize, CompAlgoType algoType)
     case CompAlgoType::LZ4_LOGIC64_TYPE:
     {
       int nrOfLogics = (blockSize + 3) / 4;  // safely round upwards
-      int nrOfLongs = 1 + (nrOfLogics - 1) / 32;
+	  const size_t nrOfLongs = 1 + (nrOfLogics - 1) / 32;
       compBufSize = LZ4_COMPRESSBOUND(8 * nrOfLongs);  // 32 logicals are stored in a single 64 bit long
       break;
     }
@@ -175,7 +175,7 @@ inline int MaxCompressSize(int blockSize, CompAlgoType algoType)
     case CompAlgoType::ZSTD_LOGIC64_TYPE:
     {
       int nrOfLogics = (blockSize + 3) / 4;  // safely round upwards
-      int nrOfLongs = 1 + (nrOfLogics - 1) / 32;
+      const size_t nrOfLongs = 1 + (nrOfLogics - 1) / 32;
       compBufSize = ZSTD_compressBound(8 * nrOfLongs);  // 32 logicals are stored in a single 64 bit long
       break;
     }
@@ -183,7 +183,7 @@ inline int MaxCompressSize(int blockSize, CompAlgoType algoType)
     case CompAlgoType::ZSTD_INT_TO_BYTE_TYPE:
     {
       int nrOfInts = (blockSize + 3) / 4;  // safely round upwards
-      int nrOfLongs = 1 + (nrOfInts - 1) / 8;  // 8 integers per long
+	  const size_t nrOfLongs = 1 + (nrOfInts - 1) / 8;  // 8 integers per long
       compBufSize = ZSTD_compressBound(8 * nrOfLongs);  // 32 logicals are stored in a single 64 bit long
       break;
     }
@@ -207,7 +207,7 @@ inline int MaxCompressSize(int blockSize, CompAlgoType algoType)
     case CompAlgoType::ZSTD_INT_TO_SHORT_TYPE:
     {
       int nrOfInts = (blockSize + 3) / 4;  // safely round upwards
-      int nrOfLongs = 1 + (nrOfInts - 1) / 4;  // 4 integers per long
+      size_t nrOfLongs = 1 + (nrOfInts - 1) / 4;  // 4 integers per long
       compBufSize = ZSTD_compressBound(8 * nrOfLongs);  // 32 logicals are stored in a single 64 bit long
       break;
     }

@@ -32,7 +32,7 @@
 #' @export
 hash_fst <- function(x, seed = NULL, block_hash = TRUE) {
   if (!is.null(seed)) {
-    if ( ( (!is.numeric(seed)) | (length(seed) != 1))) {
+    if (((!is.numeric(seed)) | (length(seed) != 1))) {  # nolint
       stop("Please specify an integer value for the hash seed.");
     }
 

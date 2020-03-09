@@ -173,7 +173,7 @@ names.fst_table <- function(x) {
 
 #' @export
 str.fst_table <- function(object, ...) {
-  str(unclass(object))
+  str(unclass(object), ...)
 }
 
 
@@ -208,25 +208,19 @@ print.fst_table <- function(x, number_of_rows = 50, ...) {
   }
 
   # use bit64 package if available for correct printing
-  if ( (!"bit64"      %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "integer64" ))) require_bit64()
-  if ( (!"nanotime"   %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "nanotime"  ))) require_nanotime()
-  if ( (!"data.table" %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "ITime"))) require_data_table()
+  if ((!"bit64"      %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "integer64"))) require_bit64() # nolint
+  if ((!"nanotime"   %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "nanotime"))) require_nanotime() # nolint
+  if ((!"data.table" %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "ITime"))) require_data_table() # nolint
 
   types <- c("unknown", "character", "factor", "ordered factor", "integer", "POSIXct", "difftime",
     "IDate", "ITime", "double", "Date", "POSIXct", "difftime", "ITime", "logical", "integer64",
     "nanotime", "raw")
 
-  # use color in terminal output
-  color_on <- TRUE
+  # turn off colored output at default
+  color_on <- FALSE
 
-  if (!"crayon" %in% loadedNamespaces()) {
-    if (!requireNamespace("crayon", quietly = TRUE)) {
-      color_on <- FALSE
-    } else {
-      if (!crayon::has_color()) {
-        color_on <- FALSE
-      }
-    }
+  if (requireNamespace("crayon", quietly = TRUE)) {
+    color_on <- crayon::has_color()  # terminal has color
   }
 
   type_row <- matrix(paste("<", types[meta_info$columnTypes], ">", sep = ""), nrow = 1)
@@ -313,7 +307,7 @@ as.list.fst_table <- function(x, ...) {
 .column_indexes_fst <- function(meta_info, j) {
 
   # test correct column names
-  if (is.character(j) ) {
+  if (is.character(j)) {
     wrong <- !(j %in% meta_info$columnNames)
 
     if (any(wrong)) {

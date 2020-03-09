@@ -48,7 +48,7 @@ public:
 
   ~StringVectorContainer(){}
 
-  void AllocateVec(unsigned long long vecLength)
+  void AllocateVec(uint64_t vecLength)
   {
     str_vector_p = std::unique_ptr<BlockReaderChar>(new BlockReaderChar());  // unprotected SEXP
     BlockReaderChar* block_reader = str_vector_p.get();
@@ -71,13 +71,13 @@ public:
     str_vector_p.get()->SetEncoding(fst_string_encoding);
   }
 
-  void BufferToVec(unsigned long long nrOfElements, unsigned long long startElem, unsigned long long endElem,
-    unsigned long long vecOffset, unsigned int* sizeMeta, char* buf)
+  void BufferToVec(uint64_t nrOfElements, uint64_t startElem, uint64_t endElem,
+    uint64_t vecOffset, unsigned int* sizeMeta, char* buf)
   {
     str_vector_p.get()->BufferToVec(nrOfElements, startElem, endElem, vecOffset, sizeMeta, buf);
   }
 
-  const char* GetElement(unsigned long long elementNr)
+  const char* GetElement(uint64_t elementNr)
   {
     return str_vector_p.get()->GetElement(elementNr);
   }
