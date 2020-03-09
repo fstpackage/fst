@@ -1,5 +1,5 @@
 
-# fst 0.9.1 (in development)
+# fst 0.9.2
 
 ## Library updates
 

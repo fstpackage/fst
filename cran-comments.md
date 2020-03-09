@@ -1,11 +1,7 @@
 
 ## Submission
 
-This submission of fst (v0.9.0) addresses Dr. Kurt Hornik's request to fix issues identified by rchk. These issues result from PROTECT / UNPROTECT pairs called in the constructor / destructor pairs of C++ classes. rchk (rightfully) warns about those because it can't determine from the code if pairs are properly matched. With this submission the relevant SEXP classes are protected by containing them in SEXP classes that are already PROTECTED, which allows for removal of the PROTECT / UNPROTECT pairs in question.
-
-Two false warnings remain, detected in fst_compress.cpp. The code was thoroughly checked to affirm the stability of the code.
-
-In addition, with this submission, support for fst files generated with package versions before 0.8.0 has been deprecated, significantly reducing the (C++) code base.
+This submission of fst (v0.9.2) addresses Dr. Kurt Hornik's request to fix problems shown for the r-devel checks. These issues are related to the new stringsAsFactors = FALSE default, which is planned for R 4.0.0.
 
 ## Test environments 
 
