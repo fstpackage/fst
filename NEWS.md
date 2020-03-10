@@ -10,6 +10,8 @@
 ## Enhancements
 
 * Incorrect column selection gets a more informative error message (issue #138, thanks Jean-Luc and @Moohan for reporting).
+* Long raw vectors can be hashed with hash_fst (issue #202)
+* Empty tables are serialized correctly using `write_fst()` (issue #99)
 
 ## Bugs solved
 
