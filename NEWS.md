@@ -3,18 +3,21 @@
 
 ## Library updates
 
+* Library `fstlib` updated to version 0.1.6
+* Library LZ4 updated to version 1.9.2
+* library ZSTD updated to version 1.4.4
+
 ## Enhancements
 
 * Incorrect column selection gets a more informative error message (issue #138, thanks Jean-Luc and @Moohan for reporting).
 
 ## Bugs solved
 
-* ellipsis is forwarded in method `str.fst_table()` (issue #219, thanks @nbenn for reporting).
+* Ellipsis is forwarded in method `str.fst_table()` (issue #219, thanks @nbenn for reporting).
 * Coloring is turned off for terminals that don't support it or when package `crayon` is not installed (issue #198, thanks @muschellij2 for reporting and the code fix).
 * Method `metadata_fst()` correctly displays the key of the data table if column names are not in alphabetical order (issue #199, thanks @renkun-ken for the pull request).
 * stringsAsFactors argument defaults to FALSE for upcoming R 4.0.0 (issue #234, thanks @CRAN for reporting)
 
-## Documentation
 
 # fst 0.9.0 (April 2, 2019)
 

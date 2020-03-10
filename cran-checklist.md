@@ -24,6 +24,7 @@
 
 # After releasing to CRAN
 
+* Update NEWS.md with the release data
 * Merge branch master into release
 * Go to the repository release page and create a new release with tag version vx.y.z.
   Copy and paste the contents of the relevant NEWS.md section into the release notes.
