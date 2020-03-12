@@ -1,5 +1,5 @@
 
-# fst 0.9.2
+# fst 0.9.2 (March 12, 2019)
 
 ## Library updates
 
