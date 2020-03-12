@@ -24,14 +24,16 @@ There were no ERRORs or WARNINGs.
 
 ## Downstream dependencies
 
-I have run R CMD check on downstream dependencies and found no issues:
+I have run R CMD check on downstream dependencies and found no issues. The notes on the grattan
+and tidyfst packages are unrelated to fst.
 
-* heims:      runs without warnings or errors.
-* rio:        runs without warnings or errors.
-* grattan:    runs without warnings or errors.
-* disk.frame: runs without warnings or errors.
-* drake:      runs without warnings or errors.
-* expss:      runs without warnings or errors.
-* hdd:        runs without warnings or errors.
-* readabs:    runs without warnings or errors.
-* tidyfst:    runs without warnings or errors.
+-- CHECK --------------------------------------------------------- 9 packages --
+disk.frame 0.3.4                       -- E: 0     | W: 0     | N: 0
+drake 7.11.0                           -- E: 0     | W: 0     | N: 0
+expss 0.10.1                           -- E: 0     | W: 0     | N: 0
+grattan 1.8.0.0                        -- E: 0     | W: 0     | N: 1
+hdd 0.1.0                              -- E: 0     | W: 0     | N: 0
+heims 0.4.0                            -- E: 0     | W: 0     | N: 0
+readabs 0.4.3                          -- E: 0     | W: 0     | N: 0
+rio 0.5.16                             -- E: 0     | W: 0     | N: 0
+tidyfst 0.7.7                          -- E: 0     | W: 0     | N: 1
