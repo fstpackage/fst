@@ -169,7 +169,7 @@ The v0.8.4 release brings a `data.frame` interface to the `fst` package. Column 
 
 * A data.table warning message was given on modification of columns of a sorted table. _Thanks @martinblostein._
 
-* Stack imbalance warnings under centain conditions. _Thanks @ryankennedyio_
+* Stack imbalance warnings under certain conditions. _Thanks @ryankennedyio_
 
 ## Benchmarks
 
