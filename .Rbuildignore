@@ -13,3 +13,4 @@ LZ4/LICENSE$
 dataset\.fst$
 ^res - readme\.fst$
 ^_pkgdown\.yml$
+^CRAN-RELEASE$

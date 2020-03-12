@@ -1,8 +1,0 @@
-pandoc: 2.7.3
-pkgdown: 1.4.1
-pkgdown_sha: ~
-articles: []
-urls:
-  reference: http://www.fstpackage.org/reference
-  article: http://www.fstpackage.org/articles
-
