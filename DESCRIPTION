@@ -19,7 +19,7 @@ Imports:
     Rcpp
 LinkingTo: Rcpp
 SystemRequirements: little-endian platform
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 Suggests:
     testthat,
     bit64,
@@ -28,6 +28,7 @@ Suggests:
     nanotime,
     crayon
 License: AGPL-3 | file LICENSE
+Encoding: UTF-8
 Copyright: This package includes sources from the LZ4 library written
     by Yann Collet, sources of the ZSTD library owned by Facebook, Inc.
     and sources of the fstlib library owned by Mark Klik
