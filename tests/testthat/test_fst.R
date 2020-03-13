@@ -1,9 +1,6 @@
 
 context("subsetting and compression")
 
-suppressMessages(library(bit64))
-suppressMessages(library(nanotime))
-
 
 # Clean testdata directory
 if (!file.exists("FactorStore")) {
