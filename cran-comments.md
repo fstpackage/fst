@@ -20,7 +20,27 @@ This submission of fst (v0.9.2) addresses Dr. Kurt Hornik's request to fix probl
 
 ## R CMD check results
 
-There were no ERRORs or WARNINGs.
+On some platforms, the following warning is generated for the included ZSTD compressor component (from Facebook):
+
+"warning: ISO C99 requires rest arguments to be used"
+
+on files:
+
+* zstd_decompress.c
+* zstd_decompress_block.c
+* zstd_decompress.c
+* zstd_ddict.c
+* zstd_compress_sequences
+* zstd_compress_literals.c
+* zstd_cwksp.h
+
+The warnings are generated when compiler option '-pedantic' is used and are all due to macro's defined with
+ellipses that are left empty when called. I have raised an issue with the ZSTD team addressing this problem
+(see https://github.com/facebook/zstd/issues/2035).
+
+Currently, this warning makes fst fail the winbuilder pre-tests. However, because the ZSTD library is thoroughly
+tested on many platforms and configurations, locally patching the code responsible for the issue is probably less
+save than accepting these warnings until fixed. Please let me know if you feel differently.
 
 ## Downstream dependencies
 
