@@ -44,7 +44,8 @@ compress_fst <- function(x, compressor = "ZSTD", compression = 0, hash = FALSE) 
     stop("Parameter x is not set to a raw vector.")
   }
 
-  compressed_vec <- fstcomp(x, compressor, as.integer(compression), hash)
+  container <- as.list(1)
+  compressed_vec <- fstcomp(x, compressor, as.integer(compression), hash, container)
 
   if (inherits(compressed_vec, "fst_error")) {
     stop(compressed_vec)
@@ -66,7 +67,8 @@ decompress_fst <- function(x) {
     stop("Parameter x should be a raw vector with compressed data.")
   }
 
-  decompressed_vec <- fstdecomp(x)
+  container <- as.list(1)
+  decompressed_vec <- fstdecomp(x, container)
 
   if (inherits(decompressed_vec, "fst_error")) {
     stop(decompressed_vec)
