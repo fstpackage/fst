@@ -1,7 +1,10 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 \.o$
+^_pkgdown\.yml$
+^CONDUCT\.md$
 \.dll$
+^docs$
 \.a$
 \.Rmd$
 LZ4/LICENSE$
@@ -10,7 +13,7 @@ LZ4/LICENSE$
 \.TMP$
 \.png$
 \.yml$
-dataset\.fst$
+^dataset\.fst$
 ^res - readme\.fst$
 ^_pkgdown\.yml$
 ^CRAN-RELEASE$

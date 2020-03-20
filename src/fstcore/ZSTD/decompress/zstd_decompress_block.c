@@ -93,7 +93,7 @@ size_t ZSTD_decodeLiteralsBlock(ZSTD_DCtx* dctx,
             /* fall-through */
 
         case set_compressed:
-            RETURN_ERROR_IF(srcSize < 5, corruption_detected, "srcSize >= MIN_CBLOCK_SIZE == 3; here we need up to 5 for case 3");
+            RETURN_ERROR_IF(srcSize < 5, corruption_detected);
             {   size_t lhSize, litSize, litCSize;
                 U32 singleStream=0;
                 U32 const lhlCode = (istart[0] >> 2) & 3;
@@ -219,7 +219,7 @@ size_t ZSTD_decodeLiteralsBlock(ZSTD_DCtx* dctx,
                 case 3:
                     lhSize = 3;
                     litSize = MEM_readLE24(istart) >> 4;
-                    RETURN_ERROR_IF(srcSize<4, corruption_detected, "srcSize >= MIN_CBLOCK_SIZE == 3; here we need lhSize+1 = 4");
+                    RETURN_ERROR_IF(srcSize<4, corruption_detected);
                     break;
                 }
                 RETURN_ERROR_IF(litSize > ZSTD_BLOCKSIZE_MAX, corruption_detected);
@@ -229,7 +229,7 @@ size_t ZSTD_decodeLiteralsBlock(ZSTD_DCtx* dctx,
                 return lhSize+1;
             }
         default:
-            RETURN_ERROR(corruption_detected, "impossible");
+            RETURN_ERROR(corruption_detected, "corruption_detected");
         }
     }
 }
@@ -672,8 +672,8 @@ size_t ZSTD_execSequenceEnd(BYTE* op,
 
     /* bounds checks */
     assert(oLitEnd < oMatchEnd);
-    RETURN_ERROR_IF(oMatchEnd > oend, dstSize_tooSmall, "last match must fit within dstBuffer");
-    RETURN_ERROR_IF(iLitEnd > litLimit, corruption_detected, "try to read beyond literal buffer");
+    RETURN_ERROR_IF(oMatchEnd > oend, dstSize_tooSmall);
+    RETURN_ERROR_IF(iLitEnd > litLimit, corruption_detected);
 
     /* copy literals */
     ZSTD_safecopy(op, oend_w, *litPtr, sequence.litLength, ZSTD_no_overlap);

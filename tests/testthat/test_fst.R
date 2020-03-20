@@ -2,6 +2,10 @@
 context("subsetting and compression")
 
 
+require(bit64)
+require(nanotime)
+
+
 # Clean testdata directory
 if (!file.exists("FactorStore")) {
   dir.create("FactorStore")

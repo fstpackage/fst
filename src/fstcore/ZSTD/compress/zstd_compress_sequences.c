@@ -96,17 +96,14 @@ static size_t ZSTD_fseBitCost(
     unsigned s;
     FSE_CState_t cstate;
     FSE_initCState(&cstate, ctable);
-    RETURN_ERROR_IF(ZSTD_getFSEMaxSymbolValue(ctable) < max, GENERIC,
-                    "Repeat FSE_CTable has maxSymbolValue %u < %u",
-                    ZSTD_getFSEMaxSymbolValue(ctable), max);
+    RETURN_ERROR_IF(ZSTD_getFSEMaxSymbolValue(ctable) < max, GENERIC);
     for (s = 0; s <= max; ++s) {
         unsigned const tableLog = cstate.stateLog;
         unsigned const badCost = (tableLog + 1) << kAccuracyLog;
         unsigned const bitCost = FSE_bitCost(cstate.symbolTT, tableLog, s, kAccuracyLog);
         if (count[s] == 0)
             continue;
-        RETURN_ERROR_IF(bitCost >= badCost, GENERIC,
-                        "Repeat FSE_CTable has Prob[%u] == 0", s);
+        RETURN_ERROR_IF(bitCost >= badCost, GENERIC);
         cost += count[s] * bitCost;
     }
     return cost >> kAccuracyLog;
@@ -256,7 +253,7 @@ ZSTD_buildCTable(void* dst, size_t dstCapacity,
             return NCountSize;
         }
     }
-    default: assert(0); RETURN_ERROR(GENERIC);
+    default: assert(0); RETURN_ERROR(GENERIC, "error");
     }
 }
 
@@ -275,7 +272,7 @@ ZSTD_encodeSequences_body(
 
     RETURN_ERROR_IF(
         ERR_isError(BIT_initCStream(&blockStream, dst, dstCapacity)),
-        dstSize_tooSmall, "not enough space remaining");
+        dstSize_tooSmall);
     DEBUGLOG(6, "available space for bitstream : %i  (dstCapacity=%u)",
                 (int)(blockStream.endPtr - blockStream.startPtr),
                 (unsigned)dstCapacity);
@@ -349,7 +346,7 @@ ZSTD_encodeSequences_body(
     FSE_flushCState(&blockStream, &stateLitLength);
 
     {   size_t const streamSize = BIT_closeCStream(&blockStream);
-        RETURN_ERROR_IF(streamSize==0, dstSize_tooSmall, "not enough space");
+        RETURN_ERROR_IF(streamSize==0, dstSize_tooSmall);
         return streamSize;
     }
 }
