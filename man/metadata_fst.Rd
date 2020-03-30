@@ -30,8 +30,9 @@ x <- data.frame(
   Last = sample(LETTERS, 10))
 
 # Write to fst file
-write_fst(x, "dataset.fst")
+fst_file <- tempfile(fileext = ".fst")
+write_fst(x, fst_file)
 
 # Display meta information
-metadata_fst("dataset.fst")
+metadata_fst(fst_file)
 }
