@@ -128,10 +128,8 @@ SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash, SEXP r_c
     return fst_error("Unexpected error detected while compressing data.");
   }
 
-  SEXP resVec = ((BlobContainer*)(blobContainerP.get()))->RVector();
-
   // IBlobContainer will be destructed upon exiting function
-  return resVec;
+  return VECTOR_ELT(r_container, 0);;
 }
 
 
@@ -159,8 +157,6 @@ SEXP fstdecomp(SEXP rawVec, SEXP r_container)
     return fst_error("Error detected while decompressing data.");
   }
 
-  SEXP resVec = resultContainerP->RVector();
-
-  return resVec;
+  return VECTOR_ELT(r_container, 0);;
 }
 

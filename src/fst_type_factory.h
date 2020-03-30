@@ -31,14 +31,16 @@
 
 class BlobContainer : public IBlobContainer
 {
-  SEXP raw_vec;
+  SEXP *raw_vec_p;
 
 public:
   BlobContainer(unsigned long long size, SEXP r_container)
   {
     // PROTECT raw vector by containing it in a list object
-    raw_vec = Rf_allocVector(RAWSXP, size);
+    SEXP raw_vec = Rf_allocVector(RAWSXP, size);
     SET_VECTOR_ELT(r_container, 0, raw_vec);
+
+    raw_vec_p = &raw_vec;
   }
 
   ~BlobContainer()
@@ -47,31 +49,27 @@ public:
 
   unsigned char* Data()
   {
-    return RAW(raw_vec);
-  }
-
-  SEXP RVector()
-  {
-    return raw_vec;
+    return RAW(*raw_vec_p);
   }
 
   unsigned long long Size()
   {
-    return Rf_xlength(raw_vec);
+    return Rf_xlength(*raw_vec_p);
   }
 };
 
 
 class TypeFactory : public ITypeFactory
 {
-  SEXP r_container;
+  SEXP* r_container;
   bool has_blob = false;
 
 public:
 
   TypeFactory(SEXP r_container)
   {
-    this->r_container = r_container;
+    // make sure the container does no go out of scope
+    this->r_container = &r_container;
   }
 
   ~TypeFactory() { }
@@ -87,7 +85,7 @@ public:
       Rf_error("Blob container can be used only once");
     }
 
-    return new BlobContainer(size, r_container);
+    return new BlobContainer(size, *r_container);
   }
 };
 
