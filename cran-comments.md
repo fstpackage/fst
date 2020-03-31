@@ -1,7 +1,7 @@
 
 ## Resubmission 2
 
-Resubmission 1 failed on (new) clang-10 ubsan warnings (adding an offset to a null pointer). These warnings have been fixed locally and confirmed on a local instrumented build using clang-10 (Ubuntu 18.04.4).
+Resubmission 1 failed on clang-10 ubsan warnings ("adding offset to a null pointer"). These warnings have been fixed locally and checked on a local instrumented build using clang-10 on Ubuntu 18.04.4 (thanks Prof Hornik and Prof Ripley for the pointers).
 
 ## Resubmission 1
 
