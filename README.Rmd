@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 ```
 
 
-<img src="logo.png" align="right" />
+<img src="fst.png" align="right" height="196" width="196" />
 
 [![Linux/OSX Build Status](https://travis-ci.org/fstpackage/fst.svg?branch=develop)](https://travis-ci.org/fstpackage/fst)
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/6g6kp8onpb26jhnm/branch/develop?svg=true)](https://ci.appveyor.com/project/fstpackage/fst/branch/develop)
@@ -22,6 +22,7 @@ knitr::opts_chunk$set(
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/fst)](https://cran.r-project.org/package=fst)
 [![codecov](https://codecov.io/gh/fstpackage/fst/branch/develop/graph/badge.svg)](https://codecov.io/gh/fstpackage/fst)
 [![downloads](http://cranlogs.r-pkg.org/badges/fst)](http://cran.rstudio.com/web/packages/fst/index.html)
+[![total_downloads](https://cranlogs.r-pkg.org/badges/grand-total/fst)](http://cran.rstudio.com/web/packages/fst/index.html)
 
 ## Overview
 
@@ -29,7 +30,7 @@ The [_fst_ package][fstRepo] for R  provides a fast, easy and flexible way to se
 
 The figure below compares the read and write performance of the _fst_ package to various alternatives.
 
-```{r speedTable, results='asis', message=FALSE, echo=FALSE}
+```{r speedTable, results = 'asis', message = FALSE, echo = FALSE}
 require(ggplot2)
 require(data.table)
 require(fst)
@@ -91,7 +92,7 @@ The _fst_ package relies heavily on multi-threading to boost the read- and write
 
 The easiest way to install the package is from CRAN:
 
-```{r, eval=FALSE}
+```{r, eval = FALSE}
 install.packages("fst")
 ```
 
@@ -110,7 +111,7 @@ require(fst)
 
 Using _fst_ is simple. Data can be stored and retrieved using methods _write\_fst_ and _read\_fst_:
 
-```{r, echo='hide'}
+```{r}
 # Generate some random data frame with 10 million rows and various column types
 nr_of_rows <- 1e7
 
@@ -134,7 +135,7 @@ _Note: the dataset defined in this example code was also used to obtain the benc
 
 The _fst_ file format provides full random access to stored datasets. You can retrieve a selection of columns and rows with:
 
-```{r, results='hide'}
+```{r, results = 'hide'}
   df_subset <- read.fst("dataset.fst", c("Logical", "Factor"), from = 2000, to = 5000)
 ```
 
@@ -144,7 +145,7 @@ This reads rows 2000 to 5000 from columns _Logical_ and _Factor_ without actuall
 
 For compression the excellent and speedy [LZ4][lz4Repo] and [ZSTD][zstdRepo] compression algorithms are used. These compressors (in combination with type-specific bit filters), enable _fst_ to achieve high compression speeds at reasonable compression factors. The compression factor can be tuned from 0 (minimum) to 100 (maximum):
 
-```{r, results='hide'}
+```{r, results = 'hide'}
 write.fst(df, "dataset.fst", 100)  # use maximum compression
 ```
 
@@ -172,12 +173,16 @@ The _csv_ format used by the _fread_ and _fwrite_ methods of package _data.table
 
 ## Bindings in other languages
 
-**Julia**: [**`fstformat.jl`**][fstformatRepo] A naive Julia binding using RCall.jl
+**Julia**: [**`FstFileFormat.jl`**][fstformatRepo] A naive Julia binding using RCall.jl
 
 > **Note to users**: From CRAN release v0.8.0, the _fst_ format is stable and backwards compatible. That means that all _fst_ files generated with package v0.8.0 or later can be read by future versions of the package.
 
+```{r, echo = FALSE, results = 'hide'}
+# cleanup
+file.remove("dataset.fst")
+```
 
 [fstRepo]: https://github.com/fstpackage/fst
 [lz4Repo]: https://github.com/lz4/lz4
 [zstdRepo]: https://github.com/facebook/zstd
-[fstformatRepo]: https://github.com/xiaodaigh/fstformat.jl
+[fstformatRepo]: https://github.com/xiaodaigh/FstFileFormat.jl

@@ -223,7 +223,7 @@ test_that("fst_table has correct printing for big single column table", {
 
 
 test_that("fst_table has correct printing for big multi column table", {
-  df <- data.frame(X = 1:104, Y = c(LETTERS, LETTERS, LETTERS, LETTERS))
+  df <- data.frame(X = 1:104, Y = c(LETTERS, LETTERS, LETTERS, LETTERS), stringsAsFactors = TRUE)
   write_fst(df, test_file)
   x <- fst(test_file)
 
@@ -251,7 +251,7 @@ test_that("fst_table has correct printing for big multi column table", {
 
 
 test_that("fst_table has correct printing for small multi column table", {
-  df <- data.frame(X = 1:9, Y = LETTERS[10:18])
+  df <- data.frame(X = 1:9, Y = LETTERS[10:18], stringsAsFactors = TRUE)
   write_fst(df, test_file)
   x <- fst(test_file)
 

@@ -48,18 +48,18 @@
 #' x <- data.frame(A = 1:10000, B = sample(c(TRUE, FALSE, NA), 10000, replace = TRUE))
 #'
 #' # Default compression
-#' write_fst(x, "dataset.fst")  # filesize: 17 KB
-#' y <- read_fst("dataset.fst") # read fst file
-#'
+#' fst_file <- tempfile(fileext = ".fst")
+#' write_fst(x, fst_file)  # filesize: 17 KB
+#' y <- read_fst(fst_file) # read fst file
+
 #' # Maximum compression
-#' write_fst(x, "dataset.fst", 100)  # fileSize: 4 KB
-#' y <- read_fst("dataset.fst") # read fst file
+#' write_fst(x, fst_file, 100)  # fileSize: 4 KB
+#' y <- read_fst(fst_file) # read fst file
 #'
 #' # Random access
-#' y <- read_fst("dataset.fst", "B") # read selection of columns
-#' y <- read_fst("dataset.fst", "A", 100, 200) # read selection of columns and rows
+#' y <- read_fst(fst_file, "B") # read selection of columns
+#' y <- read_fst(fst_file, "A", 100, 200) # read selection of columns and rows
 #' @export
-#' @md
 write_fst <- function(x, path, compress = 50, uniform_encoding = TRUE) {
   if (!is.character(path)) stop("Please specify a correct path.")
 
@@ -92,10 +92,11 @@ write_fst <- function(x, path, compress = 50, uniform_encoding = TRUE) {
 #'   Last = sample(LETTERS, 10))
 #'
 #' # Write to fst file
-#' write_fst(x, "dataset.fst")
+#' fst_file <- tempfile(fileext = ".fst")
+#' write_fst(x, fst_file)
 #'
 #' # Display meta information
-#' metadata_fst("dataset.fst")
+#' metadata_fst(fst_file)
 #' @export
 metadata_fst <- function(path, old_format = FALSE) {
 
@@ -112,13 +113,13 @@ metadata_fst <- function(path, old_format = FALSE) {
     stop(metadata)
   }
 
-  colInfo <- list(path = full_path, nrOfRows = metadata$nrOfRows,
+  col_info <- list(path = full_path, nrOfRows = metadata$nrOfRows,
     keys = metadata$keyNames, columnNames = metadata$colNames,
     columnBaseTypes = metadata$colBaseType, keyColIndex = metadata$keyColIndex,
     columnTypes = metadata$colType)
-  class(colInfo) <- "fstmetadata"
+  class(col_info) <- "fstmetadata"
 
-  colInfo
+  col_info
 }
 
 
@@ -132,22 +133,42 @@ print.fstmetadata <- function(x, ...) {
     "IDate", "ITime", "double", "Date", "POSIXct", "difftime", "ITime", "logical", "integer64",
     "nanotime", "raw")
 
-  colNames <- format(encodeString(x$columnNames, quote = "'"))
-
-  # Table has no key columns
+  # table has no key columns
   if (is.null(x$keys)) {
-    cat(paste0("* ", colNames, ": ", types[x$columnTypes], "\n"), sep = "")
+    column_names <- format(encodeString(x$columnNames, quote = "'"))
+    cat(paste0("* ", column_names, ": ", types[x$columnTypes], "\n"), sep = "")
     return(invisible(NULL))
   }
 
-  # Table has key columns
-  keys <- data.frame(k = x$keys, count = 1:length(x$keys))
-  colTab <- data.frame(k = x$columnNames, o = 1:length(x$columnNames))
-  colTab <- merge(colTab, keys, "k", all.x = TRUE)
-  colTab$l <- paste0(" (key ", colTab$count, ")")
-  colTab[is.na(colTab$count), "l"] <- ""
+  # table has key columns
+  keys <- data.frame(
+    k = x$keys,
+    count = seq_along(x$keys),
+    stringsAsFactors = FALSE)
 
-  cat(paste0("* ", colNames, ": ", types[x$columnTypes], colTab$l, "\n"), sep = "")
+  col_info <- data.frame(
+    k = x$columnNames,
+    o = seq_along(x$columnNames),
+    t = types[x$columnTypes],
+    stringsAsFactors = FALSE)
+
+  # merge keys to correct column
+  col_info <- merge(col_info, keys, "k", all.x = TRUE, sort = FALSE)
+
+  col_info$k <- format(encodeString(col_info$k, quote = "'"))
+  col_info$l <- paste0(" (key ", col_info$count, ")")
+  col_info[is.na(col_info$count), "l"] <- ""
+
+  col_info <- col_info[order(col_info$count, col_info$o), ]  # key columns at the top
+
+  cat(paste0("* ", col_info$k, ": ", col_info$t, col_info$l, "\n"), sep = "")
+}
+
+
+#' @rdname write_fst
+#' @export
+write.fst <- function(x, path, compress = 50, uniform_encoding = TRUE) {
+  write_fst(x, path, compress, uniform_encoding)
 }
 
 
@@ -163,8 +184,8 @@ print.fstmetadata <- function(x, ...) {
 #' converted with fst package versions 0.8.0 to 0.8.10.
 #'
 #' @export
-read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE, old_format = FALSE) {
-  fileName <- normalizePath(path, mustWork = FALSE)
+read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE, old_format = FALSE) {  # nolint
+  file_name <- normalizePath(path, mustWork = FALSE)
 
   if (!is.null(columns)) {
     if (!is.character(columns)) {
@@ -191,21 +212,27 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
     " lower than 0.8.0 should be read (and rewritten) using fst package versions <= 0.8.10.")
   }
 
-  res <- fstretrieve(fileName, columns, from, to)
+  res <- fstretrieve(file_name, columns, from, to)
 
   if (inherits(res, "fst_error")) {
     stop(res)
   }
 
+  # long vectors are not supported yet with data.table, tibble's or data.frame,
+  # so return a list instead
+  nr_of_rows <- length(res$resTable[[1]])
+  if (nr_of_rows >= 2 ^ 31) {
+    return(res$resTable)
+  }
 
   if (as.data.table) {
     if (!requireNamespace("data.table", quietly = TRUE)) {
       stop("Please install package data.table when using as.data.table = TRUE")
     }
 
-    keyNames <- res$keyNames
+    key_names <- res$keyNames
     res <- data.table::setDT(res$resTable)  # nolint
-    if (length(keyNames) > 0) data.table::setattr(res, "sorted", keyNames)
+    if (length(key_names) > 0) data.table::setattr(res, "sorted", key_names)
     return(res)
   }
 
@@ -214,10 +241,10 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
   # use setters from data.table to improve performance
   if (requireNamespace("data.table", quietly = TRUE)) {
     data.table::setattr(res_table, "class", "data.frame")
-    data.table::setattr(res_table, "row.names", 1:length(res_table[[1L]]))
+    data.table::setattr(res_table, "row.names", seq_len(length(res_table[[1L]])))
   } else {
     class(res_table) <- "data.frame"
-    attr(res_table, "row.names") <- 1:length(res_table[[1L]])
+    attr(res_table, "row.names") <- seq_len(length(res_table[[1L]]))
   }
 
   res_table
@@ -226,20 +253,13 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
 
 #' @rdname write_fst
 #' @export
-write.fst <- function(x, path, compress = 50, uniform_encoding = TRUE) {
-  write_fst(x, path, compress, uniform_encoding)
-}
-
-
-#' @rdname write_fst
-#' @export
-read.fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE, old_format = FALSE) {
+read.fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = FALSE, old_format = FALSE) {  # nolint
   read_fst(path, columns, from, to, as.data.table, old_format)
 }
 
 
 #' @rdname metadata_fst
 #' @export
-fst.metadata <- function(path, old_format = FALSE) {
+fst.metadata <- function(path, old_format = FALSE) {  # nolint
   metadata_fst(path, old_format)
 }

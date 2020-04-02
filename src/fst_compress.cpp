@@ -56,7 +56,8 @@ SEXP fsthasher(SEXP rawVec, SEXP seed, SEXP blockHash)
   // use default fst seed
   if (Rf_isNull(seed))
   {
-    hashResult = hasher.HashBlob((unsigned char*) RAW(rawVec), Rf_length(rawVec), bHash);
+    hashResult = hasher.HashBlob((unsigned char*) RAW(rawVec), Rf_xlength(rawVec), bHash);
+
     std::memcpy(uintP, &hashResult, 8);
 
     UNPROTECT(1);
@@ -70,7 +71,7 @@ SEXP fsthasher(SEXP rawVec, SEXP seed, SEXP blockHash)
   return res;
 
   // use custom seed
-  hashResult = hasher.HashBlobSeed((unsigned char*) RAW(rawVec), Rf_length(rawVec),
+  hashResult = hasher.HashBlobSeed((unsigned char*) RAW(rawVec), Rf_xlength(rawVec),
     *((unsigned int*) INTEGER(seed)), bHash);
   std::memcpy(uintP, &hashResult, 8);
 
@@ -79,9 +80,9 @@ SEXP fsthasher(SEXP rawVec, SEXP seed, SEXP blockHash)
 }
 
 
-SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash)
+SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash, SEXP r_container)
 {
-  std::unique_ptr<TypeFactory> typeFactoryP(new TypeFactory());
+  std::unique_ptr<TypeFactory> typeFactoryP(new TypeFactory(r_container));
   COMPRESSION_ALGORITHM algo;
 
   if (!Rf_isLogical(hash))
@@ -134,9 +135,9 @@ SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash)
 }
 
 
-SEXP fstdecomp(SEXP rawVec)
+SEXP fstdecomp(SEXP rawVec, SEXP r_container)
 {
-  std::unique_ptr<ITypeFactory> typeFactoryP(new TypeFactory());
+  std::unique_ptr<ITypeFactory> typeFactoryP(new TypeFactory(r_container));
 
   FstCompressor fstcompressor((ITypeFactory*) typeFactoryP.get());
 

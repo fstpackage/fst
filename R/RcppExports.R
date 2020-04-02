@@ -21,12 +21,12 @@ fsthasher <- function(rawVec, seed, blockHash) {
     .Call(`_fst_fsthasher`, rawVec, seed, blockHash)
 }
 
-fstcomp <- function(rawVec, compressor, compression, hash) {
-    .Call(`_fst_fstcomp`, rawVec, compressor, compression, hash)
+fstcomp <- function(rawVec, compressor, compression, hash, r_container) {
+    .Call(`_fst_fstcomp`, rawVec, compressor, compression, hash, r_container)
 }
 
-fstdecomp <- function(rawVec) {
-    .Call(`_fst_fstdecomp`, rawVec)
+fstdecomp <- function(rawVec, r_container) {
+    .Call(`_fst_fstdecomp`, rawVec, r_container)
 }
 
 getnrofthreads <- function() {

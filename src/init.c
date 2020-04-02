@@ -9,8 +9,8 @@ Check these declarations against the C/Fortran source code.
 */
 
 /* .Call calls */
-extern SEXP _fst_fstcomp(SEXP, SEXP, SEXP, SEXP);
-extern SEXP _fst_fstdecomp(SEXP);
+extern SEXP _fst_fstcomp(SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _fst_fstdecomp(SEXP, SEXP);
 extern SEXP _fst_fsthasher(SEXP, SEXP, SEXP);
 extern SEXP _fst_fstmetadata(SEXP);
 extern SEXP _fst_fstretrieve(SEXP, SEXP, SEXP, SEXP);
@@ -24,8 +24,8 @@ extern int avoid_openmp_hang_within_fork();
 
 
 static const R_CallMethodDef CallEntries[] = {
-  {"_fst_fstcomp",            (DL_FUNC) &_fst_fstcomp,            4},
-  {"_fst_fstdecomp",          (DL_FUNC) &_fst_fstdecomp,          1},
+  {"_fst_fstcomp",            (DL_FUNC) &_fst_fstcomp,            5},
+  {"_fst_fstdecomp",          (DL_FUNC) &_fst_fstdecomp,          2},
   {"_fst_fsthasher",          (DL_FUNC) &_fst_fsthasher,          3},
   {"_fst_fstmetadata",        (DL_FUNC) &_fst_fstmetadata,        1},
   {"_fst_fstretrieve",        (DL_FUNC) &_fst_fstretrieve,        4},

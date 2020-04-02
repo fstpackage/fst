@@ -2,20 +2,32 @@
 % Please edit documentation in R/fst.R
 \name{write_fst}
 \alias{write_fst}
-\alias{read_fst}
 \alias{write.fst}
+\alias{read_fst}
 \alias{read.fst}
 \title{Read and write fst files.}
 \usage{
 write_fst(x, path, compress = 50, uniform_encoding = TRUE)
 
-read_fst(path, columns = NULL, from = 1, to = NULL,
-  as.data.table = FALSE, old_format = FALSE)
-
 write.fst(x, path, compress = 50, uniform_encoding = TRUE)
 
-read.fst(path, columns = NULL, from = 1, to = NULL,
-  as.data.table = FALSE, old_format = FALSE)
+read_fst(
+  path,
+  columns = NULL,
+  from = 1,
+  to = NULL,
+  as.data.table = FALSE,
+  old_format = FALSE
+)
+
+read.fst(
+  path,
+  columns = NULL,
+  from = 1,
+  to = NULL,
+  as.data.table = FALSE,
+  old_format = FALSE
+)
 }
 \arguments{
 \item{x}{a data frame to write to disk}
@@ -25,10 +37,10 @@ read.fst(path, columns = NULL, from = 1, to = NULL,
 \item{compress}{value in the range 0 to 100, indicating the amount of compression to use.
 Lower values mean larger file sizes. The default compression is set to 50.}
 
-\item{uniform_encoding}{If \code{TRUE}, all character vectors will be assumed to have elements with equal encoding.
+\item{uniform_encoding}{If `TRUE`, all character vectors will be assumed to have elements with equal encoding.
 The encoding (latin1, UTF8 or native) of the first non-NA element will used as encoding for the whole column.
 This will be a correct assumption for most use cases.
-If \code{uniform.encoding} is set to \code{FALSE}, no such assumption will be made and all elements will be converted
+If `uniform.encoding` is set to `FALSE`, no such assumption will be made and all elements will be converted
 to the same encoding. The latter is a relatively expensive operation and will reduce write performance for
 character columns.}
 
@@ -46,17 +58,17 @@ requires \code{data.table} package to be installed.}
 converted with fst package versions 0.8.0 to 0.8.10.}
 }
 \value{
-\code{read_fst} returns a data frame with the selected columns and rows. \code{write_fst}
-writes \code{x} to a \code{fst} file and invisibly returns \code{x} (so you can use this function in a pipeline).
+`read_fst` returns a data frame with the selected columns and rows. `write_fst`
+writes `x` to a `fst` file and invisibly returns `x` (so you can use this function in a pipeline).
 }
 \description{
-Read and write data frames from and to a fast-storage (\code{fst}) file.
+Read and write data frames from and to a fast-storage (`fst`) file.
 Allows for compression and (file level) random access of stored data, even for compressed datasets.
 Multiple threads are used to obtain high (de-)serialization speeds but all background threads are
-re-joined before \code{write_fst} and \code{read_fst} return (reads and writes are stable).
-When using a \code{data.table} object for \code{x}, the key (if any) is preserved,
+re-joined before `write_fst` and `read_fst` return (reads and writes are stable).
+When using a `data.table` object for `x`, the key (if any) is preserved,
 allowing storage of sorted data.
-Methods \code{read_fst} and \code{write_fst} are equivalent to \code{read.fst} and \code{write.fst} (but the
+Methods `read_fst` and `write_fst` are equivalent to `read.fst` and `write.fst` (but the
 former syntax is preferred).
 }
 \examples{
@@ -64,14 +76,14 @@ former syntax is preferred).
 x <- data.frame(A = 1:10000, B = sample(c(TRUE, FALSE, NA), 10000, replace = TRUE))
 
 # Default compression
-write_fst(x, "dataset.fst")  # filesize: 17 KB
-y <- read_fst("dataset.fst") # read fst file
-
+fst_file <- tempfile(fileext = ".fst")
+write_fst(x, fst_file)  # filesize: 17 KB
+y <- read_fst(fst_file) # read fst file
 # Maximum compression
-write_fst(x, "dataset.fst", 100)  # fileSize: 4 KB
-y <- read_fst("dataset.fst") # read fst file
+write_fst(x, fst_file, 100)  # fileSize: 4 KB
+y <- read_fst(fst_file) # read fst file
 
 # Random access
-y <- read_fst("dataset.fst", "B") # read selection of columns
-y <- read_fst("dataset.fst", "A", 100, 200) # read selection of columns and rows
+y <- read_fst(fst_file, "B") # read selection of columns
+y <- read_fst(fst_file, "A", 100, 200) # read selection of columns and rows
 }

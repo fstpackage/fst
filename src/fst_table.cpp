@@ -292,6 +292,11 @@ double* FstTable::GetDoubleWriter(unsigned int colNr)
 }
 
 
+IByteBlockColumn* FstTable::GetByteBlockWriter(unsigned int col_nr){
+  return nullptr;
+}
+
+
 IStringWriter* FstTable::GetStringWriter(unsigned int colNr)
 {
   cols = VECTOR_ELT(*rTable, colNr);  // retrieve column vector
@@ -441,6 +446,13 @@ void FstTable::SetDoubleColumn(IDoubleColumn* doubleColumn, int colNr)
   // retrieve from memory-safe r container
   SEXP resTable = VECTOR_ELT(this->r_container, 0);
   SET_VECTOR_ELT(resTable, colNr, dColumn->colVec);
+}
+
+
+IByteBlockColumn* FstTable::add_byte_block_column(unsigned col_nr)
+{
+  // to be implemented
+  return nullptr;
 }
 
 

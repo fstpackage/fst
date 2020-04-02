@@ -1,5 +1,31 @@
 
-# fst 0.9.0 (April 2, 2019)
+# fst 0.9.2
+
+Version 0.9.2 of the `fst` package brings support for zero-row table serialization and compression for long vectors. In
+addition, `fst` was prepared for the change in the default settings for the stringsAsFactors argument (data.frame) in
+R 4.0.0.
+
+## Library updates
+
+* Library `fstlib` updated to version 0.1.6
+* Library LZ4 updated to version 1.9.2
+* library ZSTD updated to version 1.4.4
+
+## Enhancements
+
+* Incorrect column selection gets a more informative error message (issue #138, thanks Jean-Luc and @Moohan for reporting).
+* Long raw vectors can be hashed with hash_fst (issue #202)
+* Empty tables are serialized correctly using `write_fst()` (issue #99)
+
+## Bugs solved
+
+* Ellipsis is forwarded in method `str.fst_table()` (issue #219, thanks @nbenn for reporting).
+* Coloring is turned off for terminals that don't support it or when package `crayon` is not installed (issue #198, thanks @muschellij2 for reporting and the code fix).
+* Method `metadata_fst()` correctly displays the key of the data table if column names are not in alphabetical order (issue #199, thanks @renkun-ken for the pull request).
+* stringsAsFactors argument defaults to FALSE for upcoming R 4.0.0 (issue #234, thanks @CRAN for reporting)
+
+
+# fst 0.9.0
 
 Version 0.9.0 of the `fst` package addresses the request from CRAN maintainers to fix issues identified by rchk. These issues result from PROTECT / UNPROTECT pairs called in the constructor / destructor pairs of C++ classes. rchk (rightfully) warns about those because it can't determine from the code if pairs are properly matched. With this submission the relevant SEXP classes are protected by containing them in SEXP classes that are already PROTECTED, which allows for removal of the PROTECT / UNPROTECT pairs in question.
 
@@ -21,7 +47,8 @@ As of `fst` version 0.9.0, support for fst files generated with `fst` package ve
 
 Various documentation issues have been fixed (thanks @ginberg and @renkun-ken for the pull requests).
 
-# fst 0.8.10 (December 14, 2018)
+
+# fst 0.8.10
 
 Version 0.8.10 of the `fst` package is an intermediate release designed to update the incorporated C++ libraries
 to their latest versions and to fix reported issues. Also, per request of CRAN maintainers, the OpenMP build option was moved to the correct flag in the Makevars file, resolving a warning in the package check.
@@ -47,11 +74,12 @@ to their latest versions and to fix reported issues. Also, per request of CRAN m
 * Documentation updates (issue #158, thanks @HughParsonage for submitting)
 
 
-# fst 0.8.8 (June 6, 2018)
+# fst 0.8.8
 
 Version 0.8.8 of the `fst` package is an intermediate release designed to fix valgrind warnings reported on CRAN builds (per request of CRAN maintainers). These warnings were due to `fst` writing uninitialized data buffers to file, which was done to maximize speed. To fix these warnings (and for safety), all memory blocks are now initialized to zero before being written to disk.
 
-# fst 0.8.6 (May 15, 2018)
+
+# fst 0.8.6
 
 Version 0.8.6 of the `fst` package brings clearer printing of `fst_table` objects. It also includes optimizations for controlling the number of threads used by the package during reads and writes and after a fork has ended. The `LZ4` and `ZSTD` compression libraries are updated to their latest (and fastest) releases. UTF-8 encoded column names are now correctly stored in the `fst` format.
 
@@ -147,7 +175,7 @@ The v0.8.4 release brings a `data.frame` interface to the `fst` package. Column 
 
 * A data.table warning message was given on modification of columns of a sorted table. _Thanks @martinblostein._
 
-* Stack imbalance warnings under centain conditions. _Thanks @ryankennedyio_
+* Stack imbalance warnings under certain conditions. _Thanks @ryankennedyio_
 
 ## Benchmarks
 

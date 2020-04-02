@@ -42,8 +42,10 @@
 #include <logical/logical_v10.h>
 #include <integer64/integer64_v11.h>
 #include <byte/byte_v12.h>
+#include <byteblock/byteblock_v13.h>
 
 #include <xxhash.h>
+#include "byteblock/byteblock_v13.h"
 
 using namespace std;
 
@@ -329,7 +331,7 @@ void FstStore::fstWrite(IFstTable &fstTable, const int compress) const
   *p_primChunksetIndex     = 0;
   *p_secChunksetIndex      = 0;
 
-  const unsigned long long nrOfRows = fstTable.NrOfRows();
+  const uint64_t nrOfRows = fstTable.NrOfRows();
   *p_nrOfRows                 = nrOfRows;
   *p_nrOfChunksetCols         = nrOfCols;
   *p_freeBytes4               = 0;
@@ -339,11 +341,6 @@ void FstStore::fstWrite(IFstTable &fstTable, const int compress) const
   *p_colNamesVersion       = FST_VERSION;
   *p_colNamesFlags         = 0;
   *p_freeBytes5            = 0;
-
-  if (nrOfRows == 0)
-  {
-    throw(runtime_error(FSTERROR_NO_DATA));
-  }
 
   // Create file buffer
   //const size_t bufsize = 4096;
@@ -503,7 +500,15 @@ void FstStore::fstWrite(IFstTable &fstTable, const int compress) const
 		  break;
 	  }
 
-    default:
+    case FstColumnType::BYTE_BLOCK:
+    {
+        colTypes[colNr] = 13;
+        IByteBlockColumn* p_byte_block = fstTable.GetByteBlockWriter(colNr);
+        fdsWriteByteBlockVec_v13(myfile, p_byte_block, nrOfRows, static_cast<uint32_t>(compress));
+        break;
+    }
+
+	  default:
         myfile.close();
         throw(runtime_error("Unknown type found in column."));
     }
@@ -832,7 +837,10 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
       if (equal == -1)
       {
         myfile.close();
-        throw(runtime_error("Selected column not found."));
+        std::string error = "Column '";
+        error.append(str1);
+        error.append("' not found");
+        throw(runtime_error(error));
       }
 
       colIndex[colSel] = equal;
@@ -842,9 +850,9 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
 
   // Check range of selected rows
   const long long firstRow = startRow - 1;
-  const unsigned long long nrOfRows = *p_chunkRows;  // TODO: check for row numbers > INT_MAX !!!
+  const uint64_t nrOfRows = *p_chunkRows;  // TODO: check for row numbers > INT_MAX !!!
 
-  if (firstRow >= static_cast<long long>(nrOfRows) || firstRow < 0)
+  if (nrOfRows != 0 && (firstRow >= static_cast<long long>(nrOfRows) || firstRow < 0))
   {
     myfile.close();
 
@@ -856,8 +864,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
     throw(runtime_error("Row selection is out of range."));
   }
 
-  long long length = nrOfRows - firstRow;
-
+  long long length = max(static_cast<long long>(nrOfRows) - firstRow, 0LL);
 
   // Determine vector length
   if (endRow != -1)
@@ -868,7 +875,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
       throw(runtime_error("Incorrect row range specified."));
     }
 
-    length = min(endRow - firstRow, static_cast<long long>(nrOfRows) - firstRow);
+    length = max(min(endRow - firstRow, static_cast<long long>(nrOfRows) - firstRow), 0LL);
   }
 
   tableReader.InitTable(nrOfSelect, length);
@@ -883,7 +890,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
       throw(runtime_error("Column selection is out of range."));
     }
 
-    const unsigned long long pos = blockPos[colNr];
+    const uint64_t pos = blockPos[colNr];
     const short int scale = colScales[colNr];
 
     switch (colTypes[colNr])
@@ -894,7 +901,7 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
         std::unique_ptr<IStringColumn> stringColumnP(columnFactory->CreateStringColumn(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr])));
         IStringColumn* stringColumn = stringColumnP.get();
 
-        stringColumn->AllocateVec(static_cast<unsigned int>(length));
+        stringColumn->AllocateVec(static_cast<uint64_t>(length));
         tableReader.SetStringColumn(stringColumn, colSel);
 
         fdsReadCharVec_v6(myfile, stringColumn, pos, firstRow, length, nrOfRows);
@@ -968,10 +975,10 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
 	  case 11:
 	  {
       std::unique_ptr<IInt64Column> int64ColumP(columnFactory->CreateInt64Column(length, static_cast<FstColumnAttribute>(colAttributeTypes[colNr]), scale));
-	    IInt64Column* int64Column = int64ColumP.get();
-	    tableReader.SetInt64Column(int64Column, colSel);
-	    fdsReadInt64Vec_v11(myfile, int64Column->Data(), pos, firstRow, length, nrOfRows);
-	    break;
+      IInt64Column* int64Column = int64ColumP.get();
+      tableReader.SetInt64Column(int64Column, colSel);
+      fdsReadInt64Vec_v11(myfile, int64Column->Data(), pos, firstRow, static_cast<uint64_t>(length), nrOfRows);
+      break;
 	  }
 
 	  // byte vector
@@ -983,6 +990,15 @@ void FstStore::fstRead(IFstTable &tableReader, IStringArray* columnSelection, co
 		  fdsReadByteVec_v12(myfile, byteColumn->Data(), pos, firstRow, length, nrOfRows);
 		  break;
 	  }
+
+    // byte block vector
+    case 13:
+    {
+      IByteBlockColumn* byte_block = tableReader.add_byte_block_column(colSel);
+
+      read_byte_block_vec_v13(myfile, byte_block, pos, firstRow, length, nrOfRows);
+      break;
+    }
 
     default:
       myfile.close();
