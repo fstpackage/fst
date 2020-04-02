@@ -19,3 +19,4 @@
 *.TMP
 /revdep/*
 /docs/*
+/src-i386/
