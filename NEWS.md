@@ -1,5 +1,5 @@
 
-# fst 0.9.2 (April 1, 2020)
+# fst 0.9.2
 
 ## Library updates
 
@@ -21,7 +21,7 @@
 * stringsAsFactors argument defaults to FALSE for upcoming R 4.0.0 (issue #234, thanks @CRAN for reporting)
 
 
-# fst 0.9.0 (April 2, 2019)
+# fst 0.9.0
 
 Version 0.9.0 of the `fst` package addresses the request from CRAN maintainers to fix issues identified by rchk. These issues result from PROTECT / UNPROTECT pairs called in the constructor / destructor pairs of C++ classes. rchk (rightfully) warns about those because it can't determine from the code if pairs are properly matched. With this submission the relevant SEXP classes are protected by containing them in SEXP classes that are already PROTECTED, which allows for removal of the PROTECT / UNPROTECT pairs in question.
 
@@ -43,7 +43,8 @@ As of `fst` version 0.9.0, support for fst files generated with `fst` package ve
 
 Various documentation issues have been fixed (thanks @ginberg and @renkun-ken for the pull requests).
 
-# fst 0.8.10 (December 14, 2018)
+
+# fst 0.8.10
 
 Version 0.8.10 of the `fst` package is an intermediate release designed to update the incorporated C++ libraries
 to their latest versions and to fix reported issues. Also, per request of CRAN maintainers, the OpenMP build option was moved to the correct flag in the Makevars file, resolving a warning in the package check.
@@ -69,11 +70,12 @@ to their latest versions and to fix reported issues. Also, per request of CRAN m
 * Documentation updates (issue #158, thanks @HughParsonage for submitting)
 
 
-# fst 0.8.8 (June 6, 2018)
+# fst 0.8.8
 
 Version 0.8.8 of the `fst` package is an intermediate release designed to fix valgrind warnings reported on CRAN builds (per request of CRAN maintainers). These warnings were due to `fst` writing uninitialized data buffers to file, which was done to maximize speed. To fix these warnings (and for safety), all memory blocks are now initialized to zero before being written to disk.
 
-# fst 0.8.6 (May 15, 2018)
+
+# fst 0.8.6
 
 Version 0.8.6 of the `fst` package brings clearer printing of `fst_table` objects. It also includes optimizations for controlling the number of threads used by the package during reads and writes and after a fork has ended. The `LZ4` and `ZSTD` compression libraries are updated to their latest (and fastest) releases. UTF-8 encoded column names are now correctly stored in the `fst` format.
 
