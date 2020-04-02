@@ -873,8 +873,8 @@ MEM_STATIC U32 ZSTD_window_update(ZSTD_window_t* window,
     }
     window->nextSrc = ip + srcSize;
     /* if input and dictionary overlap : reduce dictionary (area presumed modified by input) */
-    if ( (ip+srcSize > window->dictBase + window->lowLimit)
-       & (ip < window->dictBase + window->dictLimit)) {
+    if ( ((size_t) ip + srcSize > (size_t) window->dictBase + (size_t) window->lowLimit)
+       & ((size_t) ip < (size_t) window->dictBase + (size_t) window->dictLimit)) {
         ptrdiff_t const highInputIdx = (ip + srcSize) - window->dictBase;
         U32 const lowLimitMax = (highInputIdx > (ptrdiff_t)window->dictLimit) ? window->dictLimit : (U32)highInputIdx;
         window->lowLimit = lowLimitMax;

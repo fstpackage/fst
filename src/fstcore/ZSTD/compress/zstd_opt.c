@@ -417,7 +417,7 @@ static U32 ZSTD_insertBt1(
     const BYTE* const base = ms->window.base;
     const BYTE* const dictBase = ms->window.dictBase;
     const U32 dictLimit = ms->window.dictLimit;
-    const BYTE* const dictEnd = dictBase + dictLimit;
+    const uintptr_t dictEnd = (uintptr_t) dictBase + (uintptr_t) dictLimit;
     const BYTE* const prefixStart = base + dictLimit;
     const BYTE* match;
     const U32 current = (U32)(ip-base);
@@ -474,7 +474,7 @@ static U32 ZSTD_insertBt1(
             matchLength += ZSTD_count(ip+matchLength, match+matchLength, iend);
         } else {
             match = dictBase + matchIndex;
-            matchLength += ZSTD_count_2segments(ip+matchLength, match+matchLength, iend, dictEnd, prefixStart);
+            matchLength += ZSTD_count_2segments(ip+matchLength, match+matchLength, iend, (const BYTE*) dictEnd, prefixStart);
             if (matchIndex+matchLength >= dictLimit)
                 match = base + matchIndex;   /* to prepare for next usage of match[matchLength] */
         }
@@ -565,7 +565,7 @@ U32 ZSTD_insertBtAndGetAllMatches (
     size_t commonLengthSmaller=0, commonLengthLarger=0;
     const BYTE* const dictBase = ms->window.dictBase;
     U32 const dictLimit = ms->window.dictLimit;
-    const BYTE* const dictEnd = dictBase + dictLimit;
+    const uintptr_t dictEnd = (uintptr_t) dictBase + (uintptr_t) dictLimit;
     const BYTE* const prefixStart = base + dictLimit;
     U32 const btLow = (btMask >= current) ? 0 : current - btMask;
     U32 const windowLow = ZSTD_getLowestMatchIndex(ms, current, cParams->windowLog);
@@ -608,14 +608,14 @@ U32 ZSTD_insertBtAndGetAllMatches (
                 }
             } else {  /* repIndex < dictLimit || repIndex >= current */
                 const BYTE* const repMatch = dictMode == ZSTD_dictMatchState ?
-                                             dmsBase + repIndex - dmsIndexDelta :
-                                             dictBase + repIndex;
+                  (const BYTE*) ((uintptr_t) dmsBase + (uintptr_t) repIndex - (uintptr_t) dmsIndexDelta) :
+                  (const BYTE*)((uintptr_t) dictBase + (uintptr_t) repIndex);
                 assert(current >= windowLow);
                 if ( dictMode == ZSTD_extDict
                   && ( ((repOffset-1) /*intentional overflow*/ < current - windowLow)  /* equivalent to `current > repIndex >= windowLow` */
                      & (((U32)((dictLimit-1) - repIndex) >= 3) ) /* intentional overflow : do not test positions overlapping 2 memory segments */)
                   && (ZSTD_readMINMATCH(ip, minMatch) == ZSTD_readMINMATCH(repMatch, minMatch)) ) {
-                    repLen = (U32)ZSTD_count_2segments(ip+minMatch, repMatch+minMatch, iLimit, dictEnd, prefixStart) + minMatch;
+                    repLen = (U32)ZSTD_count_2segments(ip+minMatch, repMatch+minMatch, iLimit, (const BYTE*) dictEnd, prefixStart) + minMatch;
                 }
                 if (dictMode == ZSTD_dictMatchState
                   && ( ((repOffset-1) /*intentional overflow*/ < current - (dmsLowLimit + dmsIndexDelta))  /* equivalent to `current > repIndex >= dmsLowLimit` */
@@ -647,7 +647,7 @@ U32 ZSTD_insertBtAndGetAllMatches (
                 mlen = ZSTD_count(ip, match, iLimit);
             } else {
                 const BYTE* const match = dictBase + matchIndex3;
-                mlen = ZSTD_count_2segments(ip, match, iLimit, dictEnd, prefixStart);
+                mlen = ZSTD_count_2segments(ip, match, iLimit, (const BYTE*) dictEnd, prefixStart);
             }
 
             /* save best solution */
@@ -684,7 +684,7 @@ U32 ZSTD_insertBtAndGetAllMatches (
         } else {
             match = dictBase + matchIndex;
             assert(memcmp(match, ip, matchLength) == 0);  /* ensure early section of match is equal as expected */
-            matchLength += ZSTD_count_2segments(ip+matchLength, match+matchLength, iLimit, dictEnd, prefixStart);
+            matchLength += ZSTD_count_2segments(ip+matchLength, match+matchLength, iLimit, (const BYTE*) dictEnd, prefixStart);
             if (matchIndex+matchLength >= dictLimit)
                 match = base + matchIndex;   /* prepare for match[matchLength] read */
         }

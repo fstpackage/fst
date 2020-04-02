@@ -1,35 +1,47 @@
 
+## Resubmission 2
+
+Resubmission 1 failed on clang-10 ubsan warnings ("adding offset to a null pointer"). These warnings have been fixed locally and checked on a local instrumented build using clang-10 on Ubuntu 18.04.4 (thanks Prof Hornik and Prof Ripley for the pointers).
+
+## Resubmission 1
+
+The pre-checks for my original submission failed on a specific warning in the included ZSTD compressor component (from Facebook). To remedy this, I've adapted the C++ macro responsible for the warning and all corresponding calls. This could be safely done as the macro is only activated in a specially prepared DEBUG build and therefore it is not used bycalls from the fst package. I have raised an issue with the ZSTD team addressing this problem (see https://github.com/facebook/zstd/issues/2035).
+
 ## Submission
 
-This submission of fst (v0.9.0) addresses Dr. Kurt Hornik's request to fix issues identified by rchk. These issues result from PROTECT / UNPROTECT pairs called in the constructor / destructor pairs of C++ classes. rchk (rightfully) warns about those because it can't determine from the code if pairs are properly matched. With this submission the relevant SEXP classes are protected by containing them in SEXP classes that are already PROTECTED, which allows for removal of the PROTECT / UNPROTECT pairs in question.
-
-Two false warnings remain, detected in fst_compress.cpp. The code was thoroughly checked to affirm the stability of the code.
-
-In addition, with this submission, support for fst files generated with package versions before 0.8.0 has been deprecated, significantly reducing the (C++) code base.
+This submission of fst (v0.9.2) addresses Dr. Kurt Hornik's request to fix problems shown for the r-devel checks. These issues are related to the new stringsAsFactors = FALSE default, which is planned for R 4.0.0.
 
 ## Test environments 
 
-* OSX on travis-ci
-* Ubuntu 14.04 on travis-ci
-* Ubuntu 18.10 locally
-* Ubuntu 18.10 locally using clang-6.0
+* OSX on travis-ci (version 10.13.6)
+* Ubuntu Ubuntu 16.04.6 LTS on travis-ci
+* Ubuntu 19.10 locally
+* Ubuntu 19.10 locally using clang-6.0
 * Docker with the rocker/r-devel-ubsan-clang instrumented image
-* Docker with the rocker/r-devel-san instrumented image
-* Windows 10 local R 3.5.3
-* Windows 10 local R-dev 3.6.0 pre-release
-* Windows Server 2012 R2 x64 (build 9600) on AppVeyor (R 3.5.3)
+* Local Ubuntu with instrumenten image using clang-10
+* Windows 10 local R 3.6.4
+* Windows 10 local R-dev 4.0.0 pre-release (r77640)
+* Windows Server 2012 R2 x64 (build 9600) on AppVeyor (R 3.6.3)
 * Singularity-container package for running rchk on Ubuntu 18.10
-* Valgrind on Ubuntu 18.10.
-* Rhub (only on systems that support OpenMP)
+* Valgrind on Ubuntu 19.10.
+* Rhub (all available systems)
 
 ## R CMD check results
 
-There were no ERRORs or WARNINGs.
+There are no errors or warnings.
 
 ## Downstream dependencies
 
-I have run R CMD check on downstream dependencies and found no issues:
+I have run R CMD check on downstream dependencies and found no issues. The notes on the grattan and tidyfst packages are unrelated to fst.
 
-* heims: runs without warnings or errors.
-* rio: runs without warnings or errors.
-* grattan: runs without warnings or errors.
+-- CHECKED 9 packages --
+
+disk.frame 0.3.4
+drake 7.11.0
+expss 0.10.1
+grattan 1.8.0.0 ->  1 note unrelated to fst
+hdd 0.1.0
+heims 0.4.0
+readabs 0.4.3
+rio 0.5.16
+tidyfst 0.7.7 ->  1 note unrelated to fst

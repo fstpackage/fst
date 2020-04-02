@@ -492,7 +492,7 @@ size_t ZSTD_HcFindBestMatch_generic (
     const BYTE* const dictBase = ms->window.dictBase;
     const U32 dictLimit = ms->window.dictLimit;
     const BYTE* const prefixStart = base + dictLimit;
-    const BYTE* const dictEnd = dictBase + dictLimit;
+    const uintptr_t dictEnd = (uintptr_t) dictBase + (uintptr_t) dictLimit;
     const U32 current = (U32)(ip-base);
     const U32 maxDistance = 1U << cParams->windowLog;
     const U32 lowestValid = ms->window.lowLimit;
@@ -517,7 +517,7 @@ size_t ZSTD_HcFindBestMatch_generic (
             const BYTE* const match = dictBase + matchIndex;
             assert(match+4 <= dictEnd);
             if (MEM_read32(match) == MEM_read32(ip))   /* assumption : matchIndex <= dictLimit-4 (by table construction) */
-                currentMl = ZSTD_count_2segments(ip+4, match+4, iLimit, dictEnd, prefixStart) + 4;
+                currentMl = ZSTD_count_2segments(ip+4, match+4, iLimit, (const BYTE*) dictEnd, prefixStart) + 4;
         }
 
         /* save best solution */
@@ -660,7 +660,7 @@ ZSTD_compressBlock_lazy_generic(
     const U32 dictIndexDelta       = dictMode == ZSTD_dictMatchState ?
                                      prefixLowestIndex - (U32)(dictEnd - dictBase) :
                                      0;
-    const U32 dictAndPrefixLength = (U32)(ip - prefixLowest + dictEnd - dictLowest);
+    const U32 dictAndPrefixLength = (U32)((uintptr_t) ip - (uintptr_t) prefixLowest + (uintptr_t) dictEnd - (uintptr_t) dictLowest);
 
     /* init */
     ip += (dictAndPrefixLength == 0);

@@ -96,7 +96,7 @@ size_t ZSTD_compressBlock_doubleFast_generic(
                                      dictCParams->hashLog : hBitsL;
     const U32 dictHBitsS           = dictMode == ZSTD_dictMatchState ?
                                      dictCParams->chainLog : hBitsS;
-    const U32 dictAndPrefixLength  = (U32)(ip - prefixLowest + dictEnd - dictStart);
+    const U32 dictAndPrefixLength  = (U32)((uintptr_t) ip - (uintptr_t) prefixLowest + (uintptr_t) dictEnd - (uintptr_t) dictStart);
 
     DEBUGLOG(5, "ZSTD_compressBlock_doubleFast_generic");
 

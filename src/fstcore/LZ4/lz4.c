@@ -815,7 +815,7 @@ LZ4_FORCE_INLINE int LZ4_compress_generic(
 
     int const maybe_extMem = (dictDirective == usingExtDict) || (dictDirective == usingDictCtx);
     U32 const prefixIdxLimit = startIndex - dictSize;   /* used when dictDirective == dictSmall */
-    const BYTE* const dictEnd = dictionary + dictSize;
+    const uintptr_t dictEnd = (uintptr_t) dictionary + (uintptr_t) dictSize;
     const BYTE* anchor = (const BYTE*) source;
     const BYTE* const iend = ip + inputSize;
     const BYTE* const mflimitPlusOne = iend - MFLIMIT + 1;
@@ -823,9 +823,9 @@ LZ4_FORCE_INLINE int LZ4_compress_generic(
 
     /* the dictCtx currentOffset is indexed on the start of the dictionary,
      * while a dictionary in the current context precedes the currentOffset */
-    const BYTE* dictBase = (dictDirective == usingDictCtx) ?
-                            dictionary + dictSize - dictCtx->currentOffset :
-                            dictionary + dictSize - startIndex;
+    const uintptr_t dictBase = (dictDirective == usingDictCtx) ?
+                            (const uintptr_t) dictionary + dictSize - dictCtx->currentOffset :
+                            (const uintptr_t) dictionary + dictSize - startIndex;
 
     BYTE* op = (BYTE*) dest;
     BYTE* const olimit = op + maxOutputSize;
@@ -912,7 +912,7 @@ LZ4_FORCE_INLINE int LZ4_compress_generic(
                         /* there was no match, try the dictionary */
                         assert(tableType == byU32);
                         matchIndex = LZ4_getIndexOnHash(h, dictCtx->hashTable, byU32);
-                        match = dictBase + matchIndex;
+                        match = (BYTE*) (dictBase + matchIndex);
                         matchIndex += dictDelta;   /* make dictCtx index comparable with current context */
                         lowLimit = dictionary;
                     } else {
@@ -923,7 +923,7 @@ LZ4_FORCE_INLINE int LZ4_compress_generic(
                     if (matchIndex < startIndex) {
                         DEBUGLOG(7, "extDict candidate: matchIndex=%5u  <  startIndex=%5u", matchIndex, startIndex);
                         assert(startIndex - matchIndex >= MINMATCH);
-                        match = dictBase + matchIndex;
+                        match = (BYTE*) (dictBase + matchIndex);
                         lowLimit = dictionary;
                     } else {
                         match = base + matchIndex;
@@ -1015,7 +1015,7 @@ _next_match:
 
             if ( (dictDirective==usingExtDict || dictDirective==usingDictCtx)
               && (lowLimit==dictionary) /* match within extDict */ ) {
-                const BYTE* limit = ip + (dictEnd-match);
+                const BYTE* limit = ip + ((BYTE*) dictEnd - match);
                 assert(dictEnd > match);
                 if (limit > matchlimit) limit = matchlimit;
                 matchCode = LZ4_count(ip+MINMATCH, match+MINMATCH, limit);
@@ -1102,7 +1102,7 @@ _next_match:
                 if (matchIndex < startIndex) {
                     /* there was no match, try the dictionary */
                     matchIndex = LZ4_getIndexOnHash(h, dictCtx->hashTable, byU32);
-                    match = dictBase + matchIndex;
+                    match = (const BYTE*) (dictBase + matchIndex);
                     lowLimit = dictionary;   /* required for match length counter */
                     matchIndex += dictDelta;
                 } else {
@@ -1111,11 +1111,11 @@ _next_match:
                 }
             } else if (dictDirective==usingExtDict) {
                 if (matchIndex < startIndex) {
-                    match = dictBase + matchIndex;
+                    match = (const BYTE*)(dictBase + matchIndex);
                     lowLimit = dictionary;   /* required for match length counter */
                 } else {
                     match = base + matchIndex;
-                    lowLimit = (const BYTE*)source;   /* required for match length counter */
+                    lowLimit = (const BYTE*) source;   /* required for match length counter */
                 }
             } else {   /* single memory segment */
                 match = base + matchIndex;

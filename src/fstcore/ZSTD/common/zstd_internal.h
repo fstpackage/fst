@@ -60,10 +60,9 @@ extern "C" {
  * In order to do that (particularly, printing the conditional that failed),
  * this can't just wrap RETURN_ERROR().
  */
-#define RETURN_ERROR_IF(cond, err, ...) \
+#define RETURN_ERROR_IF(cond, err) \
   if (cond) { \
     RAWLOG(3, "%s:%d: ERROR!: check %s failed, returning %s", __FILE__, __LINE__, ZSTD_QUOTE(cond), ZSTD_QUOTE(ERROR(err))); \
-    RAWLOG(3, ": " __VA_ARGS__); \
     RAWLOG(3, "\n"); \
     return ERROR(err); \
   }
@@ -73,11 +72,11 @@ extern "C" {
  *
  * In debug modes, prints additional information.
  */
-#define RETURN_ERROR(err, ...) \
+#define RETURN_ERROR(err, message) \
   do { \
     RAWLOG(3, "%s:%d: ERROR!: unconditional check failed, returning %s", __FILE__, __LINE__, ZSTD_QUOTE(ERROR(err))); \
-    RAWLOG(3, ": " __VA_ARGS__); \
     RAWLOG(3, "\n"); \
+    RAWLOG(3, message);   \
     return ERROR(err); \
   } while(0);
 
@@ -86,12 +85,11 @@ extern "C" {
  *
  * In debug modes, prints additional information.
  */
-#define FORWARD_IF_ERROR(err, ...) \
+#define FORWARD_IF_ERROR(err) \
   do { \
     size_t const err_code = (err); \
     if (ERR_isError(err_code)) { \
       RAWLOG(3, "%s:%d: ERROR!: forwarding error in %s: %s", __FILE__, __LINE__, ZSTD_QUOTE(err), ERR_getErrorName(err_code)); \
-      RAWLOG(3, ": " __VA_ARGS__); \
       RAWLOG(3, "\n"); \
       return err_code; \
     } \

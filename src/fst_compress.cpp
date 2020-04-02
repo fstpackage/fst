@@ -80,9 +80,9 @@ SEXP fsthasher(SEXP rawVec, SEXP seed, SEXP blockHash)
 }
 
 
-SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash)
+SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash, SEXP r_container)
 {
-  std::unique_ptr<TypeFactory> typeFactoryP(new TypeFactory());
+  std::unique_ptr<TypeFactory> typeFactoryP(new TypeFactory(r_container));
   COMPRESSION_ALGORITHM algo;
 
   if (!Rf_isLogical(hash))
@@ -135,9 +135,9 @@ SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash)
 }
 
 
-SEXP fstdecomp(SEXP rawVec)
+SEXP fstdecomp(SEXP rawVec, SEXP r_container)
 {
-  std::unique_ptr<ITypeFactory> typeFactoryP(new TypeFactory());
+  std::unique_ptr<ITypeFactory> typeFactoryP(new TypeFactory(r_container));
 
   FstCompressor fstcompressor((ITypeFactory*) typeFactoryP.get());
 

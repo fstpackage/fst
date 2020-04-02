@@ -34,11 +34,11 @@ SEXP fsthasher(SEXP rawVec, SEXP seed, SEXP blockHash);
 
 
 // [[Rcpp::export]]
-SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash);
+SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash, SEXP r_container);
 
 
 // [[Rcpp::export]]
-SEXP fstdecomp(SEXP rawVec);
+SEXP fstdecomp(SEXP rawVec, SEXP r_container);
 
 
 #endif  // FASTSTORE_H

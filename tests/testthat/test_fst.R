@@ -1,8 +1,9 @@
 
 context("subsetting and compression")
 
-suppressMessages(library(bit64))
-suppressMessages(library(nanotime))
+
+require(bit64)
+require(nanotime)
 
 
 # Clean testdata directory

@@ -141,8 +141,7 @@ static void ZSTD_freeCCtxContent(ZSTD_CCtx* cctx)
 size_t ZSTD_freeCCtx(ZSTD_CCtx* cctx)
 {
     if (cctx==NULL) return 0;   /* support free on NULL */
-    RETURN_ERROR_IF(cctx->staticSize, memory_allocation,
-                    "not compatible with static CCtx");
+    RETURN_ERROR_IF(cctx->staticSize, memory_allocation);
     {
         int cctxInWorkspace = ZSTD_cwksp_owns_buffer(&cctx->workspace, cctx);
         ZSTD_freeCCtxContent(cctx);
@@ -476,14 +475,13 @@ size_t ZSTD_CCtx_setParameter(ZSTD_CCtx* cctx, ZSTD_cParameter param, int value)
         if (ZSTD_isUpdateAuthorized(param)) {
             cctx->cParamsChanged = 1;
         } else {
-            RETURN_ERROR(stage_wrong);
+            RETURN_ERROR(stage_wrong, "stage wrong");
     }   }
 
     switch(param)
     {
     case ZSTD_c_nbWorkers:
-        RETURN_ERROR_IF((value!=0) && cctx->staticSize, parameter_unsupported,
-                        "MT not compatible with static alloc");
+        RETURN_ERROR_IF((value!=0) && cctx->staticSize, parameter_unsupported);
         break;
 
     case ZSTD_c_compressionLevel:
@@ -513,7 +511,7 @@ size_t ZSTD_CCtx_setParameter(ZSTD_CCtx* cctx, ZSTD_cParameter param, int value)
     case ZSTD_c_srcSizeHint:
         break;
 
-    default: RETURN_ERROR(parameter_unsupported);
+    default: RETURN_ERROR(parameter_unsupported, "unsupported");
     }
     return ZSTD_CCtxParams_setParameter(&cctx->requestedParams, param, value);
 }
@@ -615,7 +613,7 @@ size_t ZSTD_CCtxParams_setParameter(ZSTD_CCtx_params* CCtxParams,
 
     case ZSTD_c_nbWorkers :
 #ifndef ZSTD_MULTITHREAD
-        RETURN_ERROR_IF(value!=0, parameter_unsupported, "not compiled with multithreading");
+        RETURN_ERROR_IF(value!=0, parameter_unsupported);
         return 0;
 #else
         FORWARD_IF_ERROR(ZSTD_cParam_clampBounds(param, &value));
@@ -625,7 +623,7 @@ size_t ZSTD_CCtxParams_setParameter(ZSTD_CCtx_params* CCtxParams,
 
     case ZSTD_c_jobSize :
 #ifndef ZSTD_MULTITHREAD
-        RETURN_ERROR_IF(value!=0, parameter_unsupported, "not compiled with multithreading");
+        RETURN_ERROR_IF(value!=0, parameter_unsupported);
         return 0;
 #else
         /* Adjust to the minimum non-default value. */
@@ -639,7 +637,7 @@ size_t ZSTD_CCtxParams_setParameter(ZSTD_CCtx_params* CCtxParams,
 
     case ZSTD_c_overlapLog :
 #ifndef ZSTD_MULTITHREAD
-        RETURN_ERROR_IF(value!=0, parameter_unsupported, "not compiled with multithreading");
+        RETURN_ERROR_IF(value!=0, parameter_unsupported);
         return 0;
 #else
         FORWARD_IF_ERROR(ZSTD_cParam_clampBounds(ZSTD_c_overlapLog, &value));
@@ -649,7 +647,7 @@ size_t ZSTD_CCtxParams_setParameter(ZSTD_CCtx_params* CCtxParams,
 
     case ZSTD_c_rsyncable :
 #ifndef ZSTD_MULTITHREAD
-        RETURN_ERROR_IF(value!=0, parameter_unsupported, "not compiled with multithreading");
+        RETURN_ERROR_IF(value!=0, parameter_unsupported);
         return 0;
 #else
         FORWARD_IF_ERROR(ZSTD_cParam_clampBounds(ZSTD_c_overlapLog, &value));
@@ -879,8 +877,7 @@ size_t ZSTD_CCtx_loadDictionary_advanced(
         ZSTD_dictLoadMethod_e dictLoadMethod, ZSTD_dictContentType_e dictContentType)
 {
     RETURN_ERROR_IF(cctx->streamStage != zcss_init, stage_wrong);
-    RETURN_ERROR_IF(cctx->staticSize, memory_allocation,
-                    "no malloc for static CCtx");
+    RETURN_ERROR_IF(cctx->staticSize, memory_allocation);
     DEBUGLOG(4, "ZSTD_CCtx_loadDictionary_advanced (size: %u)", (U32)dictSize);
     ZSTD_clearAllDicts(cctx);  /* in case one already exists */
     if (dict == NULL || dictSize == 0)  /* no dictionary mode */
@@ -1102,7 +1099,7 @@ ZSTD_sizeof_matchState(const ZSTD_compressionParameters* const cParams,
 
 size_t ZSTD_estimateCCtxSize_usingCCtxParams(const ZSTD_CCtx_params* params)
 {
-    RETURN_ERROR_IF(params->nbWorkers > 0, GENERIC, "Estimate CCtx size is supported for single-threaded compression only.");
+    RETURN_ERROR_IF(params->nbWorkers > 0, GENERIC);
     {   ZSTD_compressionParameters const cParams =
                 ZSTD_getCParamsFromCCtxParams(params, 0, 0);
         size_t const blockSize = MIN(ZSTD_BLOCKSIZE_MAX, (size_t)1 << cParams.windowLog);
@@ -1153,7 +1150,7 @@ size_t ZSTD_estimateCCtxSize(int compressionLevel)
 
 size_t ZSTD_estimateCStreamSize_usingCCtxParams(const ZSTD_CCtx_params* params)
 {
-    RETURN_ERROR_IF(params->nbWorkers > 0, GENERIC, "Estimate CCtx size is supported for single-threaded compression only.");
+    RETURN_ERROR_IF(params->nbWorkers > 0, GENERIC);
     {   ZSTD_compressionParameters const cParams =
                 ZSTD_getCParamsFromCCtxParams(params, 0, 0);
         size_t const CCtxSize = ZSTD_estimateCCtxSize_usingCCtxParams(params);
@@ -1323,7 +1320,7 @@ ZSTD_reset_matchState(ZSTD_matchState_t* ms,
         memset(&ms->window, 0, sizeof(ms->window));
         ms->window.dictLimit = 1;    /* start from 1, so that 1st position is valid */
         ms->window.lowLimit = 1;     /* it ensures first and later CCtx usages compress the same */
-        ms->window.nextSrc = ms->window.base + 1;   /* see issue #1241 */
+        ms->window.nextSrc = (BYTE const*)((uintptr_t) (ms->window.base) + 1);   /* see issue #1241 */
         ZSTD_cwksp_mark_tables_dirty(ws);
     }
 
@@ -1340,8 +1337,7 @@ ZSTD_reset_matchState(ZSTD_matchState_t* ms,
     ms->hashTable = (U32*)ZSTD_cwksp_reserve_table(ws, hSize * sizeof(U32));
     ms->chainTable = (U32*)ZSTD_cwksp_reserve_table(ws, chainSize * sizeof(U32));
     ms->hashTable3 = (U32*)ZSTD_cwksp_reserve_table(ws, h3Size * sizeof(U32));
-    RETURN_ERROR_IF(ZSTD_cwksp_reserve_failed(ws), memory_allocation,
-                    "failed a workspace allocation in ZSTD_reset_matchState");
+    RETURN_ERROR_IF(ZSTD_cwksp_reserve_failed(ws), memory_allocation);
 
     DEBUGLOG(4, "reset table : %u", crp!=ZSTDcrp_leaveDirty);
     if (crp!=ZSTDcrp_leaveDirty) {
@@ -1362,8 +1358,7 @@ ZSTD_reset_matchState(ZSTD_matchState_t* ms,
 
     ms->cParams = *cParams;
 
-    RETURN_ERROR_IF(ZSTD_cwksp_reserve_failed(ws), memory_allocation,
-                    "failed a workspace allocation in ZSTD_reset_matchState");
+    RETURN_ERROR_IF(ZSTD_cwksp_reserve_failed(ws), memory_allocation);
 
     return 0;
 }
@@ -1454,7 +1449,7 @@ static size_t ZSTD_resetCCtx_internal(ZSTD_CCtx* zc,
                             ZSTD_cwksp_sizeof(ws) >> 10,
                             neededSpace >> 10);
 
-                RETURN_ERROR_IF(zc->staticSize, memory_allocation, "static cctx : no resize");
+                RETURN_ERROR_IF(zc->staticSize, memory_allocation);
 
                 needsIndexReset = ZSTDirp_reset;
 
@@ -1467,11 +1462,11 @@ static size_t ZSTD_resetCCtx_internal(ZSTD_CCtx* zc,
                  * though prev/next block swap places */
                 assert(ZSTD_cwksp_check_available(ws, 2 * sizeof(ZSTD_compressedBlockState_t)));
                 zc->blockState.prevCBlock = (ZSTD_compressedBlockState_t*) ZSTD_cwksp_reserve_object(ws, sizeof(ZSTD_compressedBlockState_t));
-                RETURN_ERROR_IF(zc->blockState.prevCBlock == NULL, memory_allocation, "couldn't allocate prevCBlock");
+                RETURN_ERROR_IF(zc->blockState.prevCBlock == NULL, memory_allocation);
                 zc->blockState.nextCBlock = (ZSTD_compressedBlockState_t*) ZSTD_cwksp_reserve_object(ws, sizeof(ZSTD_compressedBlockState_t));
-                RETURN_ERROR_IF(zc->blockState.nextCBlock == NULL, memory_allocation, "couldn't allocate nextCBlock");
+                RETURN_ERROR_IF(zc->blockState.nextCBlock == NULL, memory_allocation);
                 zc->entropyWorkspace = (U32*) ZSTD_cwksp_reserve_object(ws, HUF_WORKSPACE_SIZE);
-                RETURN_ERROR_IF(zc->blockState.nextCBlock == NULL, memory_allocation, "couldn't allocate entropyWorkspace");
+                RETURN_ERROR_IF(zc->blockState.nextCBlock == NULL, memory_allocation);
         }   }
 
         ZSTD_cwksp_clear(ws);
@@ -2489,8 +2484,7 @@ static size_t ZSTD_compress_frameChunk (ZSTD_CCtx* cctx,
         U32 const lastBlock = lastFrameChunk & (blockSize >= remaining);
 
         RETURN_ERROR_IF(dstCapacity < ZSTD_blockHeaderSize + MIN_CBLOCK_SIZE,
-                        dstSize_tooSmall,
-                        "not enough space to store compressed block");
+                        dstSize_tooSmall);
         if (remaining < blockSize) blockSize = remaining;
 
         ZSTD_overflowCorrectIfNeeded(
@@ -2612,8 +2606,7 @@ static size_t ZSTD_compressContinue_internal (ZSTD_CCtx* cctx,
 
     DEBUGLOG(5, "ZSTD_compressContinue_internal, stage: %u, srcSize: %u",
                 cctx->stage, (unsigned)srcSize);
-    RETURN_ERROR_IF(cctx->stage==ZSTDcs_created, stage_wrong,
-                    "missing init (ZSTD_compressBegin)");
+    RETURN_ERROR_IF(cctx->stage==ZSTDcs_created, stage_wrong);
 
     if (frame && (cctx->stage==ZSTDcs_init)) {
         fhSize = ZSTD_writeFrameHeader(dst, dstCapacity, &cctx->appliedParams,
@@ -2653,10 +2646,7 @@ static size_t ZSTD_compressContinue_internal (ZSTD_CCtx* cctx,
             ZSTD_STATIC_ASSERT(ZSTD_CONTENTSIZE_UNKNOWN == (unsigned long long)-1);
             RETURN_ERROR_IF(
                 cctx->consumedSrcSize+1 > cctx->pledgedSrcSizePlusOne,
-                srcSize_wrong,
-                "error : pledgedSrcSize = %u, while realSrcSize >= %u",
-                (unsigned)cctx->pledgedSrcSizePlusOne-1,
-                (unsigned)cctx->consumedSrcSize);
+                srcSize_wrong);
         }
         return cSize + fhSize;
     }
@@ -3019,7 +3009,7 @@ static size_t ZSTD_writeEpilogue(ZSTD_CCtx* cctx, void* dst, size_t dstCapacity)
     size_t fhSize = 0;
 
     DEBUGLOG(4, "ZSTD_writeEpilogue");
-    RETURN_ERROR_IF(cctx->stage == ZSTDcs_created, stage_wrong, "init missing");
+    RETURN_ERROR_IF(cctx->stage == ZSTDcs_created, stage_wrong);
 
     /* special case : empty frame */
     if (cctx->stage == ZSTDcs_init) {
@@ -3068,10 +3058,7 @@ size_t ZSTD_compressEnd (ZSTD_CCtx* cctx,
         DEBUGLOG(4, "end of frame : controlling src size");
         RETURN_ERROR_IF(
             cctx->pledgedSrcSizePlusOne != cctx->consumedSrcSize+1,
-            srcSize_wrong,
-             "error : pledgedSrcSize = %u, while realSrcSize = %u",
-            (unsigned)cctx->pledgedSrcSizePlusOne-1,
-            (unsigned)cctx->consumedSrcSize);
+            srcSize_wrong);
     }
     return cSize + endResult;
 }
@@ -3922,7 +3909,7 @@ size_t ZSTD_compress2(ZSTD_CCtx* cctx,
         FORWARD_IF_ERROR(result);
         if (result != 0) {  /* compression not completed, due to lack of output space */
             assert(oPos == dstCapacity);
-            RETURN_ERROR(dstSize_tooSmall);
+            RETURN_ERROR(dstSize_tooSmall, "too small");
         }
         assert(iPos == srcSize);   /* all input is expected consumed */
         return oPos;
