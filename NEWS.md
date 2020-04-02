@@ -1,6 +1,10 @@
 
 # fst 0.9.2
 
+Version 0.9.2 of the `fst` package brings support for zero-row table serialization and compression for long vectors. In
+addition, `fst` was prepared for the change in the default settings for the stringsAsFactors argument (data.frame) in
+R 4.0.0.
+
 ## Library updates
 
 * Library `fstlib` updated to version 0.1.6
