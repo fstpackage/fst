@@ -1,4 +1,13 @@
 
+# fst 0.9.3 (in development)
+
+## Library updates
+
+## Enhancements
+
+## Bugs solved
+
+
 # fst 0.9.2
 
 Version 0.9.2 of the `fst` package brings support for zero-row table serialization and compression for long vectors. In
