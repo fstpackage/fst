@@ -1,6 +1,6 @@
-language: R
+language: r
 cache: packages
-sudo: false
+dist: xenial
 warnings_are_errors: true
 
 r:
@@ -11,7 +11,7 @@ os:
   - linux
   - osx
 
-matrix:
+jobs:
   exclude:
   - r: devel
     os: osx
