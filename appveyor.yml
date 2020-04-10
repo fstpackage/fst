@@ -37,6 +37,8 @@ build_script:
   - travis-tool.sh r_install testthat
   - travis-tool.sh r_install data.table
   - travis-tool.sh r_install lintr
+  - travis-tool.sh install_github fstpackage/fstcore
+  - travis-tool.sh install_deps
 
 test_script:
   - travis-tool.sh run_tests
