@@ -44,27 +44,5 @@
     # check for old version
     if (dev && (Sys.Date() - as.Date(d)) > 28)
       packageStartupMessage("\n!!! This development version of the package is rather old, please update !!!")
-
-    # option fst_threads can be used to set the number of threads when the package is loaded.
-    fst_threads_option <- getOption("fst_threads")
-    nr_of_threads <- threads_fst()
-
-    if (!is.null(fst_threads_option) && (!is.numeric(fst_threads_option) || is.na(fst_threads_option))) {
-      # report incorrect thread option
-      packageStartupMessage("Incorrect option 'fst_threads' found and ignored.")
-    }
-
-    # check for OpenMP support
-    if (!hasopenmp()) {
-      packageStartupMessage("(OpenMP was not detected, using single threaded mode)")
-    } else if (!is.null(fst_threads_option) && nr_of_threads == fst_threads_option) {
-
-      # the number of threads is equal to the amount specified in option fst_threads
-        packageStartupMessage("(OpenMP detected, using ", threads_fst(),
-          " threads from option 'fst_threads')")
-    } else {
-      # number of threads set to default or selected by the user after loading
-      packageStartupMessage("(OpenMP detected, using ", threads_fst(), " threads)")
-    }
   }
 }

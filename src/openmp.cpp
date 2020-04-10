@@ -24,78 +24,33 @@ You can contact the author at:
 
 #include <Rcpp.h>
 
-#include <interface/openmphelper.h>
-
-#ifdef _OPENMP
-#include <pthread.h>
-#endif
+#include <fstcore.h>
 
 
-static int FstThreadsAtFork = 1;
-static bool RestoreAfterFork = true;
-
-
+// [[Rcpp::export]]
 SEXP getnrofthreads()
 {
-  return Rf_ScalarInteger(GetFstThreads());
+  return fstcore::getnrofthreads();
 }
 
 
+// [[Rcpp::export]]
 int setnrofthreads(SEXP nrOfThreads)
 {
-  SEXP intVal = Rf_coerceVector(nrOfThreads, INTSXP);
-
-  if (!Rf_isInteger(intVal) || Rf_length(intVal) != 1 || INTEGER(intVal)[0] < 0)
-  {
-    // catches NA too since NA is -ve
-    Rf_error("Argument to threads_fst must be a single integer >= 0. \
-               Default 0 is recommended to use all CPU.");
-  }
-
-  return ThreadsFst(*INTEGER(intVal));
+  return fstcore::setnrofthreads(nrOfThreads);
 }
 
 
+// [[Rcpp::export]]
 void restore_after_fork(bool restore)
 {
-  RestoreAfterFork = restore;
-}
-
-// Folowing code was adopted from package data.table:
-// TODO: implement in fstcore to guard against forking issues with OpenMP
-
-void when_fork()
-{
-  // use call to fstlib that does not call any OpenMP library functions internally
-  FstThreadsAtFork = GetThreads();
-
-  SetThreads(1);
+  fstcore::restore_after_fork(restore);
 }
 
 
-void when_unfork()
-{
-  // use call to fstlib that does not call any OpenMP library functions internally
-  if (RestoreAfterFork)
-  {
-    SetThreads(FstThreadsAtFork);
-  }
-}
-
-
-extern "C" int avoid_openmp_hang_within_fork()
-{
-  // Called once on loading fst from init.c
-#ifdef _OPENMP
-  return pthread_atfork(&when_fork, &when_unfork, NULL);
-#endif
-
-  return 0;
-}
-
-
+// [[Rcpp::export]]
 SEXP hasopenmp()
 {
-  return Rf_ScalarLogical(HasOpenMP());
+  return fstcore::hasopenmp();
 }
 

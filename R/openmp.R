@@ -48,19 +48,5 @@
 #' @return the number of threads (previously) used
 #' @export
 threads_fst <- function(nr_of_threads = NULL, reset_after_fork = NULL) {
-
-  if (!is.null(reset_after_fork)) {
-    if (!is.logical(reset_after_fork) || length(reset_after_fork) != 1 || is.na(reset_after_fork)) {
-      stop("Parameter reset_after_fork should be set to TRUE or FALSE")
-    }
-
-    # change unfork behavior
-    restore_after_fork(reset_after_fork)
-  }
-
-  if (is.null(nr_of_threads)) {
-    return(getnrofthreads())
-  }
-
-  invisible(setnrofthreads(nr_of_threads))
+  fstcore::threads_fstlib(nr_of_threads, reset_after_fork)
 }
