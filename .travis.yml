@@ -16,7 +16,9 @@ jobs:
   - r: devel
     os: osx
 
+
 before_install:
+  - tlmgr install inconsolata
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install llvm &&
     export PATH="/usr/local/opt/llvm/bin:$PATH" &&
     export LDFLAGS="-L/usr/local/opt/llvm/lib" &&
