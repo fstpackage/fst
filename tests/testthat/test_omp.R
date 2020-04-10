@@ -51,13 +51,13 @@ test_that("Loading fst works with options", {
 
   # First test that .onload, which happens when the namespace is loaded by ::,
   # reads from the fst.threads option.
-  fst:::.onLoad()
+  fstcore:::.onLoad()
   nr_of_threads <- threads_fst()
   expect_equal(nr_of_threads, 1)
 
   # Next, test that subsequently attaching the package doesn't change
   # the number of threads.
-  fst:::.onAttach()
+  fstcore:::.onAttach()
   nr_of_threads <- threads_fst()
   expect_equal(nr_of_threads, 1)
   options(fst.threads = orig_op)  # reset option

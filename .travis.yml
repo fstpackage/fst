@@ -2,6 +2,7 @@ language: r
 cache: packages
 dist: xenial
 warnings_are_errors: true
+latex: false
 
 r:
   - oldrel

@@ -22,145 +22,28 @@
 */
 
 
-#include <memory>
-#include <cstring>
-
 #include <Rcpp.h>
 
-#include <interface/fstcompressor.h>
-#include <interface/fsthash.h>
+#include <fstcore.h>
 
-#include <fst_type_factory.h>
-#include <fst_error.h>
 
-// Calculate the 64-bit xxHash of a raw vector using a default or
-// custom hash seed
+// [[Rcpp::export]]
 SEXP fsthasher(SEXP rawVec, SEXP seed, SEXP blockHash)
 {
-  FstHasher hasher;
-
-  SEXP res = PROTECT(Rf_allocVector(INTSXP, 2));
-
-  bool bHash = false;
-
-  // blockHash == FALSE
-  if (*LOGICAL(blockHash) == 1)
-  {
-    bHash = true;
-  }
-
-  int* uintP = INTEGER(res);
-
-  unsigned long long hashResult = 0;
-
-  // use default fst seed
-  if (Rf_isNull(seed))
-  {
-    hashResult = hasher.HashBlob((unsigned char*) RAW(rawVec), Rf_xlength(rawVec), bHash);
-
-    std::memcpy(uintP, &hashResult, 8);
-
-    UNPROTECT(1);
-    return res;
-  }
-
-  uintP[0] = 2;
-  uintP[1] = 2;
-
-  UNPROTECT(1);
-  return res;
-
-  // use custom seed
-  hashResult = hasher.HashBlobSeed((unsigned char*) RAW(rawVec), Rf_xlength(rawVec),
-    *((unsigned int*) INTEGER(seed)), bHash);
-  std::memcpy(uintP, &hashResult, 8);
-
-  UNPROTECT(1);
-  return res;
+  return fstcore::fsthasher(rawVec, seed, blockHash);
 }
 
 
+// [[Rcpp::export]]
 SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash, SEXP r_container)
 {
-  std::unique_ptr<TypeFactory> typeFactoryP(new TypeFactory(r_container));
-  COMPRESSION_ALGORITHM algo;
-
-  if (!Rf_isLogical(hash))
-  {
-    Rf_error("Please specify true of false for parameter hash.");
-  }
-
-  SEXP lz4_str  = PROTECT(Rf_mkChar("LZ4"));
-  SEXP zstd_str = PROTECT(Rf_mkChar("ZSTD"));
-
-  if (Rf_NonNullStringMatch(STRING_ELT(compressor, 0), lz4_str))
-  {
-    algo = COMPRESSION_ALGORITHM::ALGORITHM_LZ4;
-  } else if (Rf_NonNullStringMatch(STRING_ELT(compressor, 0), zstd_str))
-  {
-    algo = COMPRESSION_ALGORITHM::ALGORITHM_ZSTD;
-  } else
-  {
-    UNPROTECT(2);  // lz4_str and zstd_str
-    return fst_error("Unknown compression algorithm selected");
-  }
-
-  UNPROTECT(2);  // lz4_str and zstd_str
-
-  FstCompressor fstcompressor(algo, *INTEGER(compression), (ITypeFactory*) typeFactoryP.get());
-
-  unsigned long long vecLength = Rf_xlength(rawVec);
-  unsigned char* data = (unsigned char*) RAW(rawVec);
-
-  std::unique_ptr<IBlobContainer> blobContainerP;
-
-  try
-  {
-    // Creates an UNPROTECTED SEXP vector which needs to be protected before calling an allocating R API method
-    blobContainerP = std::unique_ptr<IBlobContainer>(fstcompressor.CompressBlob(data, vecLength, *LOGICAL(hash)));
-  }
-  catch(const std::runtime_error& e)
-  {
-    return fst_error(e.what());
-  }
-  catch ( ... )
-  {
-    return fst_error("Unexpected error detected while compressing data.");
-  }
-
-  SEXP resVec = ((BlobContainer*)(blobContainerP.get()))->RVector();
-
-  // IBlobContainer will be destructed upon exiting function
-  return resVec;
+  return fstcore::fstcomp(rawVec, compressor, compression, hash, r_container);
 }
 
 
+// [[Rcpp::export]]
 SEXP fstdecomp(SEXP rawVec, SEXP r_container)
 {
-  std::unique_ptr<ITypeFactory> typeFactoryP(new TypeFactory(r_container));
-
-  FstCompressor fstcompressor((ITypeFactory*) typeFactoryP.get());
-
-  unsigned long long vecLength = Rf_xlength(rawVec);
-  unsigned char* data = (unsigned char*) (RAW(rawVec));
-
-  std::unique_ptr<BlobContainer> resultContainerP;
-
-  try
-  {
-    resultContainerP = std::unique_ptr<BlobContainer>(static_cast<BlobContainer*>(fstcompressor.DecompressBlob(data, vecLength)));
-  }
-  catch(const std::runtime_error& e)
-  {
-    return fst_error(e.what());
-  }
-  catch ( ... )
-  {
-    return fst_error("Error detected while decompressing data.");
-  }
-
-  SEXP resVec = resultContainerP->RVector();
-
-  return resVec;
+  return fstcore::fstdecomp(rawVec, r_container);
 }
 

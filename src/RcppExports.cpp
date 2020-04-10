@@ -5,16 +5,6 @@
 
 using namespace Rcpp;
 
-// fstlib_version
-int fstlib_version();
-RcppExport SEXP _fst_fstlib_version() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(fstlib_version());
-    return rcpp_result_gen;
-END_RCPP
-}
 // fststore
 SEXP fststore(Rcpp::String fileName, SEXP table, SEXP compression, SEXP uniformEncoding);
 RcppExport SEXP _fst_fststore(SEXP fileNameSEXP, SEXP tableSEXP, SEXP compressionSEXP, SEXP uniformEncodingSEXP) {
@@ -115,6 +105,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// restore_after_fork
+void restore_after_fork(bool restore);
+RcppExport SEXP _fst_restore_after_fork(SEXP restoreSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< bool >::type restore(restoreSEXP);
+    restore_after_fork(restore);
+    return R_NilValue;
+END_RCPP
+}
 // hasopenmp
 SEXP hasopenmp();
 RcppExport SEXP _fst_hasopenmp() {
@@ -125,13 +125,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// restore_after_fork
-void restore_after_fork(bool restore);
-RcppExport SEXP _fst_restore_after_fork(SEXP restoreSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< bool >::type restore(restoreSEXP);
-    restore_after_fork(restore);
-    return R_NilValue;
-END_RCPP
+
+static const R_CallMethodDef CallEntries[] = {
+    {"_fst_fststore", (DL_FUNC) &_fst_fststore, 4},
+    {"_fst_fstmetadata", (DL_FUNC) &_fst_fstmetadata, 1},
+    {"_fst_fstretrieve", (DL_FUNC) &_fst_fstretrieve, 4},
+    {"_fst_fsthasher", (DL_FUNC) &_fst_fsthasher, 3},
+    {"_fst_fstcomp", (DL_FUNC) &_fst_fstcomp, 5},
+    {"_fst_fstdecomp", (DL_FUNC) &_fst_fstdecomp, 2},
+    {"_fst_getnrofthreads", (DL_FUNC) &_fst_getnrofthreads, 0},
+    {"_fst_setnrofthreads", (DL_FUNC) &_fst_setnrofthreads, 1},
+    {"_fst_restore_after_fork", (DL_FUNC) &_fst_restore_after_fork, 1},
+    {"_fst_hasopenmp", (DL_FUNC) &_fst_hasopenmp, 0},
+    {NULL, NULL, 0}
+};
+
+RcppExport void R_init_fst(DllInfo *dll) {
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
 }

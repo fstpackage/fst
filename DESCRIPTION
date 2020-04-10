@@ -15,9 +15,14 @@ Authors@R: c(
 LazyData: true
 Depends:
     R (>= 3.0.0)
+Remotes:
+    fstpackage/fstcore
 Imports:
-    Rcpp
-LinkingTo: Rcpp
+    Rcpp,
+    fstcore
+LinkingTo:
+    Rcpp,
+    fstcore
 SystemRequirements: little-endian platform
 RoxygenNote: 7.1.0
 Suggests:
