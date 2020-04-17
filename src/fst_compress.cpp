@@ -35,15 +35,15 @@ SEXP fsthasher(SEXP rawVec, SEXP seed, SEXP blockHash)
 
 
 // [[Rcpp::export]]
-SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash, SEXP r_container)
+SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash)
 {
-  return fstcore::fstcomp(rawVec, compressor, compression, hash, r_container);
+  return fstcore::fstcomp(rawVec, compressor, compression, hash);
 }
 
 
 // [[Rcpp::export]]
-SEXP fstdecomp(SEXP rawVec, SEXP r_container)
+SEXP fstdecomp(SEXP rawVec)
 {
-  return fstcore::fstdecomp(rawVec, r_container);
+  return fstcore::fstdecomp(rawVec);
 }
 
