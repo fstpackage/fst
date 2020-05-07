@@ -11,8 +11,6 @@ Authors@R:
 LazyData: true
 Depends:
     R (>= 3.0.0)
-Remotes:
-    fstpackage/fstcore
 Imports:
     Rcpp,
     fstcore
