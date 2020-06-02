@@ -241,10 +241,10 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
   # use setters from data.table to improve performance
   if (requireNamespace("data.table", quietly = TRUE)) {
     data.table::setattr(res_table, "class", "data.frame")
-    data.table::setattr(res_table, "row.names", seq_len(length(res_table[[1L]])))
+    data.table::setattr(res_table, "row.names", base::.set_row_names(length(res_table[[1L]])))
   } else {
     class(res_table) <- "data.frame"
-    attr(res_table, "row.names") <- seq_len(length(res_table[[1L]]))
+    attr(res_table, "row.names") <- base::.set_row_names(length(res_table[[1L]]))
   }
 
   res_table
