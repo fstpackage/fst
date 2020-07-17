@@ -11,9 +11,10 @@ Authors@R:
 LazyData: true
 Depends:
     R (>= 3.0.0)
-Imports:
-    Rcpp,
+Remotes:
     fstcore
+Imports:
+    Rcpp
 LinkingTo:
     Rcpp,
     fstcore
