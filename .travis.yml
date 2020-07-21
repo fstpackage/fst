@@ -1,6 +1,6 @@
 language: r
 cache: packages
-dist: xenial
+dist: bionic
 warnings_are_errors: true
 latex: false
 
@@ -12,16 +12,16 @@ os:
   - linux
   - osx
 
+brew_packages:
+  - llvm
+
 jobs:
   exclude:
   - r: devel
     os: osx
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install llvm &&
-    export PATH="/usr/local/opt/llvm/bin:$PATH" &&
-    export LDFLAGS="-L/usr/local/opt/llvm/lib" &&
-    export CPPFLAGS="-I/usr/local/opt/llvm/include"; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then rm "/usr/local/bin/gfortran"; fi
 
 r_packages:
   - covr
