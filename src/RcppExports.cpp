@@ -68,8 +68,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // fstcomp
-SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash, SEXP r_container);
-RcppExport SEXP _fst_fstcomp(SEXP rawVecSEXP, SEXP compressorSEXP, SEXP compressionSEXP, SEXP hashSEXP, SEXP r_containerSEXP) {
+SEXP fstcomp(SEXP rawVec, SEXP compressor, SEXP compression, SEXP hash);
+RcppExport SEXP _fst_fstcomp(SEXP rawVecSEXP, SEXP compressorSEXP, SEXP compressionSEXP, SEXP hashSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -77,20 +77,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< SEXP >::type compressor(compressorSEXP);
     Rcpp::traits::input_parameter< SEXP >::type compression(compressionSEXP);
     Rcpp::traits::input_parameter< SEXP >::type hash(hashSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type r_container(r_containerSEXP);
-    rcpp_result_gen = Rcpp::wrap(fstcomp(rawVec, compressor, compression, hash, r_container));
+    rcpp_result_gen = Rcpp::wrap(fstcomp(rawVec, compressor, compression, hash));
     return rcpp_result_gen;
 END_RCPP
 }
 // fstdecomp
-SEXP fstdecomp(SEXP rawVec, SEXP r_container);
-RcppExport SEXP _fst_fstdecomp(SEXP rawVecSEXP, SEXP r_containerSEXP) {
+SEXP fstdecomp(SEXP rawVec);
+RcppExport SEXP _fst_fstdecomp(SEXP rawVecSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type rawVec(rawVecSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type r_container(r_containerSEXP);
-    rcpp_result_gen = Rcpp::wrap(fstdecomp(rawVec, r_container));
+    rcpp_result_gen = Rcpp::wrap(fstdecomp(rawVec));
     return rcpp_result_gen;
 END_RCPP
 }
