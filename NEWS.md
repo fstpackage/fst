@@ -1,18 +1,17 @@
 
-# fst 0.9.3 (in development)
+# fst 0.9.4
 
-## Library updates
-
-## Enhancements
+Version 0.9.4 is a minor update to 'hotfix' an issue with suggested packages as reported by CRAN.
 
 ## Bugs solved
+
+* Packages `nanotime`, `bit64` and `lintr` are now used conditionally as is required for packages suggested
+in DESCRIPTION, see 'Writing R Extensions' §1.1.3.1 (thanks @CRAN for reporting)
 
 
 # fst 0.9.2
 
-Version 0.9.2 of the `fst` package brings support for zero-row table serialization and compression for long vectors. In
-addition, `fst` was prepared for the change in the default settings for the stringsAsFactors argument (data.frame) in
-R 4.0.0.
+Version 0.9.2 of the `fst` package brings support for zero-row table serialization and compression for long vectors. In addition, `fst` was prepared for the change in the default settings for the stringsAsFactors argument (data.frame) in R 4.0.0.
 
 ## Library updates
 
