@@ -17,3 +17,4 @@ LZ4/LICENSE$
 ^res_readme\.fst$
 ^_pkgdown\.yml$
 ^CRAN-RELEASE$
+^revdep$
