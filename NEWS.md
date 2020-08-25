@@ -5,8 +5,7 @@ Version 0.9.4 is a minor update to 'hotfix' an issue with suggested packages as 
 
 ## Bugs solved
 
-* Packages `nanotime`, `bit64` and `lintr` are now used conditionally as is required for packages suggested
-in DESCRIPTION, see 'Writing R Extensions' §1.1.3.1 (thanks @CRAN for reporting)
+* Packages `nanotime`, `bit64` and `lintr` are now used conditionally as is required for packages suggested in DESCRIPTION, see 'Writing R Extensions' 1.1.3.1 (thanks @CRAN for reporting)
 
 
 # fst 0.9.2

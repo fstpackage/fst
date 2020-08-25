@@ -15,8 +15,7 @@
 * Update README.Rmd and verify generated README.md on Github (release)
 * Update cran_comments.md
 * Build docs folder using pkgdown::build_site()
-* Update NEWS.md and make sure to remove '(in development)' in the version title
-  and update the version number
+* Update NEWS.md and make sure to remove '(in development)' in the version title and update version number
 * Credit all GitHub contributions in NEWS.md
 * Submit to CRAN
 
