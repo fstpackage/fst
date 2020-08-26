@@ -1,6 +1,6 @@
 Package: fst
 Type: Package
-Title: Lightning Fast Serialization of Data Frames for R
+Title: Lightning Fast Serialization of Data Frames
 Description: Multithreaded serialization of compressed data frames using the
     'fst' format. The 'fst' format allows for random access of stored data and
     compression with the LZ4 and ZSTD compressors created by Yann Collet. The ZSTD
@@ -32,5 +32,5 @@ Encoding: UTF-8
 Copyright: This package includes sources from the LZ4 library written
     by Yann Collet, sources of the ZSTD library owned by Facebook, Inc.
     and sources of the fstlib library owned by Mark Klik
-URL: https://fstpackage.github.io
+URL: http://www.fstpackage.org
 BugReports: https://github.com/fstpackage/fst/issues
