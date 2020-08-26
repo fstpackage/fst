@@ -1,4 +1,8 @@
 
+## Resubmission
+
+This resubmission of fst (v0.9.4) addresses the submission comments of Dr. Uwe Ligges on the package title and URL.
+
 ## Submission
 
 This submission of fst (v0.9.4) addresses Prof. Brian Ripley's request to fix problems shown in updated CRAN checks. Packages that are in Suggests are now used conditionally in the package code and tests.
