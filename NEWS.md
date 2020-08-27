@@ -1,4 +1,13 @@
 
+# fst 0.9.5 (in development)
+
+## Library updates
+
+## Enhancements
+
+## Bugs solved
+
+
 # fst 0.9.4
 
 Version 0.9.4 is a minor update to 'hotfix' an issue with suggested packages as reported by CRAN.
