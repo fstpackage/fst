@@ -14,6 +14,7 @@ LZ4/LICENSE$
 \.png$
 \.yml$
 ^dataset\.fst$
-^res - readme\.fst$
+^res_readme\.fst$
 ^_pkgdown\.yml$
 ^CRAN-RELEASE$
+^revdep$
