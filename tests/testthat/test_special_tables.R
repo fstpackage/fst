@@ -24,8 +24,6 @@ datatable <- data.frame(
   Qchar = character(0),
   Ordered = ordered(sample(LETTERS, 26, replace = TRUE))[0],
   Date = as.Date("2019-01-01")[0],
-  Integer64 = as.integer64(2345612345679)[0],
-  Nanotime = nanotime(1000000)[0],
   Raw = as.raw(255)[0],
   Difftime = difftime_mode(),
   DiffTime_int = difftime_mode("integer"),

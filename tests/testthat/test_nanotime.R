@@ -1,7 +1,6 @@
 
 context("nanotime column")
 
-library(nanotime)
 library(data.table)
 
 # Clean testdata directory
@@ -12,12 +11,14 @@ if (!file.exists("testdata")) {
 }
 
 
-# Prepare example
-dt_nanotime <- data.frame(
-  Nano = nanotime(Sys.Date() + 1:100))
-
-
 test_that("Cycle return the nanotime type", {
+
+  skip_if_not(requireNamespace("nanotime", quietly = TRUE))
+
+  # Prepare example
+  dt_nanotime <- data.frame(
+    Nano = nanotime::nanotime(Sys.Date() + 1:100))
+
   expect_true(inherits(dt_nanotime$Nano, "nanotime"))
 
   # Write to fst

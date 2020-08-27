@@ -15,20 +15,20 @@
 * Update README.Rmd and verify generated README.md on Github (release)
 * Update cran_comments.md
 * Build docs folder using pkgdown::build_site()
-* Update NEWS.md and make sure to remove '(in development)' in the version title
-  and update the version number
+* Update NEWS.md and make sure to remove '(in development)' in the version title and update version number
 * Credit all GitHub contributions in NEWS.md
 * Submit to CRAN
 
 # After releasing to CRAN
 
 * Update NEWS.md with the release date
+* Build docs folder using pkgdown::build_site(). Check that the package date is correct.
 * Merge branch release into master
 * Tag the release on Github
-* Commit the fstpackage.github.io repository with the latest docs
-* Merge branch master into release
+* Commit latest docs to the fstpackage.github.io and fstpackage.github.io/fst repository
 * Go to the repository release page and create a new release with tag version vx.y.z.
   Copy and paste the contents of the relevant NEWS.md section into the release notes.
+* Merge branch master into release
 * Add '(in development)' to version title in NEWS.md and update to odd version number
 * Check package startup message
 * Merge release branch into develop
