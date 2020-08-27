@@ -1,11 +1,11 @@
 Package: fst
 Type: Package
-Title: Lightning Fast Serialization of Data Frames for R
+Title: Lightning Fast Serialization of Data Frames
 Description: Multithreaded serialization of compressed data frames using the 'fst' format. The
     'fst' format allows for full random access of stored data and a wide range of compression
     settings using the LZ4 and ZSTD compressors.
-Version: 0.9.3
-Date: 2020-04-02
+Version: 0.9.5
+Date: 2020-08-27
 Authors@R:
     person("Mark", "Klik", email = "markklik@gmail.com", role = c("aut", "cre", "cph"))
 LazyData: true
@@ -30,5 +30,5 @@ Suggests:
     crayon
 License: AGPL-3 | file LICENSE
 Encoding: UTF-8
-URL: https://fstpackage.github.io
+URL: http://www.fstpackage.org
 BugReports: https://github.com/fstpackage/fst/issues

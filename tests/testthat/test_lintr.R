@@ -1,8 +1,6 @@
 
 context("code quality")
 
-library(lintr)
-
 # issues with lintr:
 #   * is.data.table method from data.table not recognized
 #   * RcppExports not excluded
@@ -12,16 +10,18 @@ test_that("Package Style", {
   # lintr throws a lot of valgrind warnings, so skip on CRAN for now
   skip_on_cran()
 
+  skip_if_not(requireNamespace("lintr", quietly = TRUE))
+
   # lintr has many new and updated lints from version 2 onwards
   major_lintr_version <- strsplit(as.character(packageVersion("lintr")), ".", fixed = TRUE)[[1]]
 
   if (as.integer(major_lintr_version[1]) >= 2) {
-    lints <- with_defaults(
-      line_length_linter = line_length_linter(120),
-      cyclocomp_linter = cyclocomp_linter(37))
+    lints <- lintr::with_defaults(
+      line_length_linter = lintr::line_length_linter(120),
+      cyclocomp_linter = lintr::cyclocomp_linter(37))
   } else {
-    lints <- with_defaults(
-      line_length_linter = line_length_linter(120))
+    lints <- lintr::with_defaults(
+      line_length_linter = lintr::line_length_linter(120))
   }
 
   lints <- lints[!(names(lints) %in%
@@ -36,10 +36,10 @@ test_that("Package Style", {
 
   # Calculate lintr results for all code files
   lint_results <- lintr:::flatten_lints(lapply(code_files, function(file) {
-      if (interactive()) {
-          message(".", appendLF = FALSE)
-      }
-      lint(file, linters = lints, parse_settings = FALSE)
+    if (interactive()) {
+        message(".", appendLF = FALSE)
+    }
+    lintr::lint(file, linters = lints, parse_settings = FALSE)
   }))
 
   # newline

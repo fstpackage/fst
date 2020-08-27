@@ -36,7 +36,7 @@ require(data.table)
 require(fst)
 require(knitr)
 
-speed_results <- read_fst("res - readme.fst", as.data.table = TRUE)
+speed_results <- read_fst("res_readme.fst", as.data.table = TRUE)
 
 speeds <- speed_results[NrOfRows == 5e7, list(
   `Time (ms)` = as.integer(median(Time)),

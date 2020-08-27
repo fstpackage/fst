@@ -2,10 +2,6 @@
 context("subsetting and compression")
 
 
-require(bit64)
-require(nanotime)
-
-
 # Clean testdata directory
 if (!file.exists("FactorStore")) {
   dir.create("FactorStore")
@@ -56,12 +52,11 @@ datatable <- data.frame(
   CharLong = char_veclong(nr_of_rows),
   Date = date_vec(nr_of_rows),
   DateDouble = as.Date("2015-01-01") + 1:nr_of_rows,
-  Integer64 = as.integer64(sample(c(2345612345679, 10, 8714567890), nr_of_rows, replace = TRUE)),
-  Nanotime = nanotime(sample(1000000:2000000, nr_of_rows, replace = TRUE)),
   Raw = as.raw(sample(0:255, nr_of_rows, replace = TRUE)),
   Difftime = difftime_vec(nr_of_rows),
   DiffTime_int = difftime_vec(nr_of_rows, "integer"),
   stringsAsFactors = FALSE)
+
 
 # A write / read cylce for a range of columns and rows
 test_write_read <- function(col, from = 1L, to = nr_of_rows, sel_columns = NULL, compress = 0L,
@@ -102,6 +97,7 @@ test_write_read <- function(col, from = 1L, to = nr_of_rows, sel_columns = NULL,
 }
 
 col_names <- colnames(datatable)
+
 
 test_that("Single uncompressed vectors", {
   sapply(col_names,
@@ -227,10 +223,6 @@ test_that("Real column block tests", {
 })
 
 
-test_that("Integer64 column block tests", {
-  blocktestsingletype("Integer64")
-})
-
 block_size <- 2047
 
 test_that("Character column block tests", {
@@ -249,25 +241,25 @@ test_that("Character column block tests with NA's", {
 
 
 test_that("Mixed columns are stored correctly", {
-  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date", "Integer64"))
+  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date"))
 })
 
 
 test_that("From and to row can be set", {
-  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date", "Integer64"), from = 10)
-  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date", "Integer64"), to = 8)
-  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date", "Integer64"), from = 4, to = 13)
+  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date"), from = 10)
+  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date"), to = 8)
+  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date"), from = 4, to = 13)
 })
 
 
 test_that("Select columns", {
-  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date", "Integer64"),
+  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date"),
     sel_columns = "Zdoub")
-  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date", "Integer64"),
+  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date"),
     sel_columns = c("Ylog", "WFact"))
-  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date", "Integer64"),
+  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date"),
     sel_columns = c("WFact", "Ylog"))
-  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date", "Integer64"),
+  test_write_read(c("Xint", "Ylog", "Zdoub", "Qchar", "WFact", "char_na", "Date"),
     from = 7, to = 13, sel_columns = c("Ylog", "Qchar"))
 })
 
