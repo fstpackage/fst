@@ -29,6 +29,7 @@ r_packages:
   - bit64
   - nanotime
   - testthat
+  - fstcore
   - data.table
 
 after_success:
