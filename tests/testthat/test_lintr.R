@@ -1,14 +1,13 @@
 
 context("code quality")
 
-# issues with lintr:
-#   * is.data.table method from data.table not recognized
-#   * RcppExports not excluded
 
 test_that("Package Style", {
 
   # lintr throws a lot of valgrind warnings, so skip on CRAN for now
   skip_on_cran()
+
+  skip_on_ci()
 
   skip_if_not(requireNamespace("lintr", quietly = TRUE))
 
