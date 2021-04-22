@@ -9,19 +9,15 @@ test_that("Package Style", {
 
   skip_on_ci()
 
-  skip_if_not(requireNamespace("lintr", quietly = TRUE))
+  skip_if_not_installed("lintr", "2.0.0")
 
   # lintr has many new and updated lints from version 2 onwards
   major_lintr_version <- strsplit(as.character(packageVersion("lintr")), ".", fixed = TRUE)[[1]]
 
-  if (as.integer(major_lintr_version[1]) >= 2) {
-    lints <- lintr::with_defaults(
-      line_length_linter = lintr::line_length_linter(120),
-      cyclocomp_linter = lintr::cyclocomp_linter(37))
-  } else {
-    lints <- lintr::with_defaults(
-      line_length_linter = lintr::line_length_linter(120))
-  }
+  lints <- lintr::with_defaults(
+    line_length_linter = lintr::line_length_linter(120),
+    cyclocomp_linter = lintr::cyclocomp_linter(37)
+  )
 
   lints <- lints[!(names(lints) %in%
     c("object_usage_linter", "camel_case_linter", "commas_linter", "multiple_dots_linter"))]
