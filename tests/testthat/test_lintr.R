@@ -19,9 +19,6 @@ test_that("Package Style", {
     cyclocomp_linter = lintr::cyclocomp_linter(37)
   )
 
-  lints <- lints[!(names(lints) %in%
-    c("object_usage_linter", "camel_case_linter", "commas_linter", "multiple_dots_linter"))]
-
   code_files <- list.files(
     c("../../R", "../../tests"), "R$", full.names = TRUE, recursive = TRUE)
 

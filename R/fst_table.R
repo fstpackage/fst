@@ -282,8 +282,6 @@ print.fst_table <- function(x, number_of_rows = 50, ...) {
   row_text_size <- regexpr("^[0-9-]*", tail(y, 1))
   row_text_size <- attr(row_text_size, "match.length")
 
-  row_text <- substr(y[-gray_rows], 1, row_text_size)
-
   y[-gray_rows] <- paste0("\033[38;5;248m", substr(y[-gray_rows], 1, row_text_size),
     "\033[39m", substr(y[-gray_rows], row_text_size + 1, nchar(y[-gray_rows])))
 
