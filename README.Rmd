@@ -16,8 +16,7 @@ knitr::opts_chunk$set(
 
 <img src="fst.png" align="right" height="196" width="196" />
 
-[![Linux/OSX Build Status](https://travis-ci.org/fstpackage/fst.svg?branch=develop)](https://travis-ci.org/fstpackage/fst)
-[![Windows Build status](https://ci.appveyor.com/api/projects/status/6g6kp8onpb26jhnm/branch/develop?svg=true)](https://ci.appveyor.com/project/fstpackage/fst/branch/develop)
+[![Build Status](https://github.com/MarcusKlik/fst/actions/workflows/R-CMD-check.yaml/badge.svg?branch=develop)](https://github.com/MarcusKlik/fst/actions/workflows/R-CMD-check.yaml)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/fst)](https://cran.r-project.org/package=fst)
 [![codecov](https://codecov.io/gh/fstpackage/fst/branch/develop/graph/badge.svg)](https://codecov.io/gh/fstpackage/fst)
@@ -123,10 +122,10 @@ df <- data.frame(
   )
 
 # Store the data frame to disk
-  write.fst(df, "dataset.fst")
+  write_fst(df, "dataset.fst")
   
 # Retrieve the data frame again
-  df <- read.fst("dataset.fst")
+  df <- read_fst("dataset.fst")
 ```
 
 _Note: the dataset defined in this example code was also used to obtain the benchmark results shown in the introduction._
@@ -136,7 +135,7 @@ _Note: the dataset defined in this example code was also used to obtain the benc
 The _fst_ file format provides full random access to stored datasets. You can retrieve a selection of columns and rows with:
 
 ```{r, results = 'hide'}
-  df_subset <- read.fst("dataset.fst", c("Logical", "Factor"), from = 2000, to = 5000)
+  df_subset <- read_fst("dataset.fst", c("Logical", "Factor"), from = 2000, to = 5000)
 ```
 
 This reads rows 2000 to 5000 from columns _Logical_ and _Factor_ without actually touching any other data in the stored file. That means that a subset can be read from file **without reading the complete file first**. This is different from, say, _readRDS_ or _read\_feather_ where you have to read the complete file or column before you can make a subset.
@@ -146,7 +145,7 @@ This reads rows 2000 to 5000 from columns _Logical_ and _Factor_ without actuall
 For compression the excellent and speedy [LZ4][lz4Repo] and [ZSTD][zstdRepo] compression algorithms are used. These compressors (in combination with type-specific bit filters), enable _fst_ to achieve high compression speeds at reasonable compression factors. The compression factor can be tuned from 0 (minimum) to 100 (maximum):
 
 ```{r, results = 'hide'}
-write.fst(df, "dataset.fst", 100)  # use maximum compression
+write_fst(df, "dataset.fst", 100)  # use maximum compression
 ```
 
 Compression reduces the size of the _fst_ file that holds your data. But because the (de-)compression is done _on background threads_, it can increase the total read- and write speed as well. The graph below shows how the use of multiple threads enhances the read and write speed of our sample dataset.

@@ -3,10 +3,8 @@
 
 <img src="fst.png" align="right" height="196" width="196" />
 
-[![Linux/OSX Build
-Status](https://travis-ci.org/fstpackage/fst.svg?branch=develop)](https://travis-ci.org/fstpackage/fst)
-[![Windows Build
-status](https://ci.appveyor.com/api/projects/status/6g6kp8onpb26jhnm/branch/develop?svg=true)](https://ci.appveyor.com/project/fstpackage/fst/branch/develop)
+[![Build
+Status](https://github.com/MarcusKlik/fst/actions/workflows/R-CMD-check.yaml/badge.svg?branch=develop)](https://github.com/MarcusKlik/fst/actions/workflows/R-CMD-check.yaml)
 [![License: AGPL
 v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/fst)](https://cran.r-project.org/package=fst)
@@ -27,7 +25,7 @@ The figure below compares the read and write performance of the *fst*
 package to various alternatives.
 
 | Method         | Format  | Time (ms) | Size (MB) | Speed (MB/s) | N       |
-| :------------- | :------ | :-------- | :-------- | :----------- | :------ |
+|:---------------|:--------|:----------|:----------|:-------------|:--------|
 | readRDS        | bin     | 1577      | 1000      | 633          | 112     |
 | saveRDS        | bin     | 2042      | 1000      | 489          | 112     |
 | fread          | csv     | 2925      | 1038      | 410          | 232     |
@@ -96,10 +94,10 @@ df <- data.frame(
   )
 
 # Store the data frame to disk
-  write.fst(df, "dataset.fst")
+  write_fst(df, "dataset.fst")
   
 # Retrieve the data frame again
-  df <- read.fst("dataset.fst")
+  df <- read_fst("dataset.fst")
 ```
 
 *Note: the dataset defined in this example code was also used to obtain
@@ -111,7 +109,7 @@ The *fst* file format provides full random access to stored datasets.
 You can retrieve a selection of columns and rows with:
 
 ``` r
-  df_subset <- read.fst("dataset.fst", c("Logical", "Factor"), from = 2000, to = 5000)
+  df_subset <- read_fst("dataset.fst", c("Logical", "Factor"), from = 2000, to = 5000)
 ```
 
 This reads rows 2000 to 5000 from columns *Logical* and *Factor* without
@@ -132,7 +130,7 @@ compression factors. The compression factor can be tuned from 0
 (minimum) to 100 (maximum):
 
 ``` r
-write.fst(df, "dataset.fst", 100)  # use maximum compression
+write_fst(df, "dataset.fst", 100)  # use maximum compression
 ```
 
 Compression reduces the size of the *fst* file that holds your data. But
