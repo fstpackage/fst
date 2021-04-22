@@ -4,7 +4,7 @@
 <img src="fst.png" align="right" height="196" width="196" />
 
 [![Build
-Status](https://github.com/MarcusKlik/fst/actions/workflows/R-CMD-check.yaml/badge.svg?branch=develop)](https://github.com/MarcusKlik/fst/actions/workflows/R-CMD-check.yaml)
+Status](https://github.com/fstpackage/fst/actions/workflows/R-CMD-check.yaml/badge.svg?branch=develop)](https://github.com/fstpackage/fst/actions/workflows/R-CMD-check.yaml)
 [![License: AGPL
 v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/fst)](https://cran.r-project.org/package=fst)
