@@ -9,10 +9,8 @@ test_that("Package Style", {
 
   skip_on_ci()
 
-  skip_if_not_installed("lintr", "2.0.0")
-
   # lintr has many new and updated lints from version 2 onwards
-  major_lintr_version <- strsplit(as.character(packageVersion("lintr")), ".", fixed = TRUE)[[1]]
+  skip_if_not_installed("lintr", "2.0.0")
 
   lints <- lintr::with_defaults(
     line_length_linter = lintr::line_length_linter(120),
