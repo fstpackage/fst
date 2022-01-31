@@ -10,16 +10,17 @@ if (!file.exists("testoutput")) {
 }
 
 
-nr_of_levels <- 8
 char_vec <- function(nr_of_rows) {
   sapply(1:nr_of_rows,
     function(x) {
-      paste(sample(LETTERS, sample(1:4)), collapse = "")
+      paste(sample(LETTERS, sample(1:4, 1)), collapse = "")
     })
   }
 
 # Sample data
 nr_of_rows <- 10000L
+nr_of_levels <- 8
+
 char_na <- char_vec(nr_of_rows)
 char_na[sample(1:nr_of_rows, 10)] <- NA
 datatable <- data.frame(
