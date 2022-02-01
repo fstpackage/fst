@@ -12,7 +12,7 @@ if (!file.exists("FactorStore")) {
 
 char_vec <- function(nrofrows) {
   sapply(1:nrofrows, function(x) {
-    paste(sample(LETTERS, sample(1:4)), collapse = "")
+    paste(sample(LETTERS, sample(1:4, 1)), collapse = "")
   }
   ) }
 

@@ -5,21 +5,20 @@ Description: Multithreaded serialization of compressed data frames using the
     'fst' format. The 'fst' format allows for random access of stored data and
     compression with the LZ4 and ZSTD compressors created by Yann Collet. The ZSTD
     compression library is owned by Facebook Inc.
-Version: 0.9.4
-Date: 2020-08-26
+Version: 0.9.6
+Date: 2022-02-01
 Authors@R: c(
     person("Mark", "Klik", email = "markklik@gmail.com", role = c("aut", "cre", "cph")),
     person("Yann", "Collet", role = c("ctb", "cph"),
       comment = "Yann Collet is author of the bundled LZ4 and ZSTD code and copyright holder of LZ4"),
     person("Facebook, Inc.", role = "cph", comment = "Bundled ZSTD code"))
-LazyData: true
 Depends:
     R (>= 3.0.0)
 Imports:
     Rcpp
 LinkingTo: Rcpp
 SystemRequirements: little-endian platform
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Suggests:
     testthat,
     bit64,
