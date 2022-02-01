@@ -19,3 +19,4 @@ LZ4/LICENSE$
 ^_pkgdown\.yml$
 ^CRAN-RELEASE$
 ^revdep$
+^\.github$

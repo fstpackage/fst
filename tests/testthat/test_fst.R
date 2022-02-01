@@ -14,14 +14,14 @@ nroflevels <- 8
 
 char_vec <- function(nr_of_rows) {
   sapply(1:nr_of_rows, function(x) {
-    paste(sample(LETTERS, sample(1:4)), collapse = "")
+    paste(sample(LETTERS, sample(1:4, 1)), collapse = "")
   }
   ) }
 
 char_veclong <- function(nr_of_rows) {
   sapply(1:nr_of_rows,
     function(x) {
-      paste(sample(LETTERS, sample(20:25)), collapse = "")
+      paste(sample(LETTERS, sample(20:25, 1)), collapse = "")
     }
     ) }
 
