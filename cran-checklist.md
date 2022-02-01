@@ -9,7 +9,7 @@
     - Travis Linux and OSX
     - AppVeyor (Windows Server)
     - latest R dev version on Windows
-* Build packages with dependencies on fst
+* Test packages with dependencies on fst using revdepcheck::revdep_check()
 * Merge develop branch into release branch
 * Bump version to even value in DESCRIPTION and check package startup message
 * Update README.Rmd and verify generated README.md on Github (release)

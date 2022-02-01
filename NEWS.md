@@ -1,7 +1,7 @@
 
 # fst 0.9.6
 
-Version 0.9.4 is a minor update to 'hotfix' an issue with the use of `sample.int()`. All calls to `sample.int()` now
+Version 0.9.6 is a minor update to 'hotfix' an issue with the use of `sample.int()`. All calls to `sample.int()` now
 explicitly reference a length one size object.
 
 # fst 0.9.4
