@@ -1,4 +1,9 @@
 
+# fst 0.9.8
+
+Version 0.9.8 of the `fst` package addresses linking problems occurring on some OSX systems, originating from
+minor differences between the xxHash implementations in the LZ4 and ZSTD libraries.
+
 # fst 0.9.6
 
 Version 0.9.6 is a minor update to 'hotfix' an issue with the use of `sample.int()`. All calls to `sample.int()` now
