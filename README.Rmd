@@ -98,7 +98,7 @@ You can also use the development version from GitHub:
 
 ```{r, eval = FALSE}
 # install.packages("devtools")
-devtools::install_github("fstPackage/fst", ref = "develop")
+devtools::install_github("fstpackage/fst", ref = "develop")
 ```
 
 ## Basic usage
