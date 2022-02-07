@@ -20,3 +20,4 @@ LZ4/LICENSE$
 ^CRAN-RELEASE$
 ^revdep$
 ^\.github$
+^CRAN-SUBMISSION$
