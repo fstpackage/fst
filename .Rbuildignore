@@ -1,3 +1,4 @@
+^\.github$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 \.o$
@@ -18,3 +19,4 @@ LZ4/LICENSE$
 ^_pkgdown\.yml$
 ^CRAN-RELEASE$
 ^revdep$
+^\.github$

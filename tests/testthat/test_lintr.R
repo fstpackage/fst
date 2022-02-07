@@ -1,31 +1,21 @@
 
 context("code quality")
 
-# issues with lintr:
-#   * is.data.table method from data.table not recognized
-#   * RcppExports not excluded
 
 test_that("Package Style", {
 
   # lintr throws a lot of valgrind warnings, so skip on CRAN for now
   skip_on_cran()
 
-  skip_if_not(requireNamespace("lintr", quietly = TRUE))
+  skip_on_ci()
 
   # lintr has many new and updated lints from version 2 onwards
-  major_lintr_version <- strsplit(as.character(packageVersion("lintr")), ".", fixed = TRUE)[[1]]
+  skip_if_not_installed("lintr", "2.0.0")
 
-  if (as.integer(major_lintr_version[1]) >= 2) {
-    lints <- lintr::with_defaults(
-      line_length_linter = lintr::line_length_linter(120),
-      cyclocomp_linter = lintr::cyclocomp_linter(37))
-  } else {
-    lints <- lintr::with_defaults(
-      line_length_linter = lintr::line_length_linter(120))
-  }
-
-  lints <- lints[!(names(lints) %in%
-    c("object_usage_linter", "camel_case_linter", "commas_linter", "multiple_dots_linter"))]
+  lints <- lintr::with_defaults(
+    line_length_linter = lintr::line_length_linter(120),
+    cyclocomp_linter = lintr::cyclocomp_linter(37)
+  )
 
   code_files <- list.files(
     c("../../R", "../../tests"), "R$", full.names = TRUE, recursive = TRUE)

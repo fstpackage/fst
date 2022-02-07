@@ -41,3 +41,13 @@ test_that("zero row multi-column table", {
 
   expect_equal(datatable, y)
 })
+
+
+test_that("zero-column table", {
+
+  # read-write cycle
+  write_fst(data.frame(), "testdata/zero_column.fst")
+  y <- read_fst("testdata/zero_column.fst")
+
+  expect_equal(data.frame(), y)
+})

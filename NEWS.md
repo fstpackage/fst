@@ -1,12 +1,26 @@
 
-# fst 0.9.5 (in development)
+# fst 0.9.7 (in development)
 
-## Library updates
-
-## Enhancements
+With this release of the fst package, the `fstlib` library is now no longer build with the `fst` package, but
+imported from package `fstcore`. This allows for better separation of releases of the C++ code underlying the `fst`
+format and the R wrapper package. Updates can be done separately. Also, with this setup, other packages can directly
+use the C++ interface exported from the fstcore package.
 
 ## Bugs solved
 
+* The package had linking problems on ARM macOS systems, preventing a correct build. These problems originated from
+minor differences between the xxHash implementations in the LZ4 and ZSTD libraries and incorrect linker parameters.
+
+## Library updates
+
+* Library LZ4 updated to version 1.9.3
+* library ZSTD updated to version 1.5.2
+
+
+# fst 0.9.6
+
+Version 0.9.6 is a minor update to 'hotfix' an issue with the use of `sample.int()`. All calls to `sample.int()` now
+explicitly reference a length one size object.
 
 # fst 0.9.4
 
