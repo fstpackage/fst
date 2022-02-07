@@ -1,11 +1,20 @@
 
 # fst 0.9.7 (in development)
 
-Version 0.9.8 of the `fst` package addresses linking problems occurring on ARM macOS systems, originating from
-minor differences between the xxHash implementations in the LZ4 and ZSTD libraries.
-
+With this release of the fst package, the `fstlib` library is now no longer build with the `fst` package, but
+imported from package `fstcore`. This allows for better separation of releases of the C++ code underlying the `fst`
+format and the R wrapper package. Updates can be done separately. Also, with this setup, other packages can directly
+use the C++ interface exported from the fstcore package.
 
 ## Bugs solved
+
+* The package had linking problems on ARM macOS systems, preventing a correct build. These problems originated from
+minor differences between the xxHash implementations in the LZ4 and ZSTD libraries and incorrect linker parameters.
+
+## Library updates
+
+* Library LZ4 updated to version 1.9.3
+* library ZSTD updated to version 1.5.2
 
 
 # fst 0.9.6

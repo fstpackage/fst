@@ -1,8 +1,10 @@
 
 ## Submission
 
-This submission of fst (v0.9.8) addresses linking problems occurring on ARM OSX systems, originating from
-minor differences between the xxHash implementations in the LZ4 and ZSTD libraries.
+With this release of the fst package (v0.9.8), the fstlib library is no longer build with the fst package, but
+imported from package `fstcore`. This allows for better separation of releases of the fstlib C++ library and the fst
+wrapper package and avoids duplicate code in fst and fstcore. Packages can also directly use the interface
+exported from the fstcore package from C/C++ code.
 
 ## Test environments 
 
@@ -14,7 +16,8 @@ minor differences between the xxHash implementations in the LZ4 and ZSTD librari
 * Ubuntu 18.04 locally using clang-10.0
 * Docker with the rocker/r-devel-ubsan-clang instrumented image
 * Local Ubuntu with instrumented image using clang-10
-* Windows 10 local R 3.6.3
+* Windows 11 local R 3.6.3
+* Windows 11 local R 4.1.2
 * Singularity-container package for running rchk on Ubuntu 18.04
 * Valgrind on Ubuntu 18.04
 * Rhub (all available systems)
