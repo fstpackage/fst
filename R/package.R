@@ -46,7 +46,7 @@ NULL
 #' * **ZSTD**: library containing code to compress data with the ZSTD compressor. Written by
 #' Yann Collet and owned by Facebook, Inc.
 #'
-#' As of version 0.9.4, these libraries are included in the fstcore package, on which fst depends.
+#' As of version 0.9.8, these libraries are included in the fstcore package, on which fst depends.
 #' The copyright notices of the above libraries can be found in the fstcore package.
 #'
 #' @md

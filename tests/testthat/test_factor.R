@@ -2,6 +2,10 @@
 context("factor column")
 
 
+# some helper functions
+source("helper_fstwrite.R")
+
+
 # Clean testdata directory
 if (!file.exists("FactorStore")) {
   dir.create("FactorStore")

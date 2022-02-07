@@ -2,6 +2,10 @@
 context("subsetting and compression")
 
 
+# some helper functions
+source("helper_fstwrite.R")
+
+
 # Clean testdata directory
 if (!file.exists("FactorStore")) {
   dir.create("FactorStore")
