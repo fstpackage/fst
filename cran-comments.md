@@ -1,8 +1,8 @@
 
 ## Submission
 
-This submission of fst (v0.9.6) addresses package build errors caused by the incorrect use of the size argument in
-sample.int() as reported by Prof Ripley.
+This submission of fst (v0.9.8) addresses linking problems occurring on ARM OSX systems, originating from
+minor differences between the xxHash implementations in the LZ4 and ZSTD libraries.
 
 ## Test environments 
 
