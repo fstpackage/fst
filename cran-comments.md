@@ -1,7 +1,7 @@
 
 ## Submission
 
-This submission of fst (v0.9.8) addresses linking problems occurring on some OSX systems, originating from
+This submission of fst (v0.9.8) addresses linking problems occurring on ARM OSX systems, originating from
 minor differences between the xxHash implementations in the LZ4 and ZSTD libraries.
 
 ## Test environments 
