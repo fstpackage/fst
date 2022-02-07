@@ -1,7 +1,7 @@
 
 ## Submission
 
-With this release of fst (v0.9.8), the fstlib library is no longer build with the fst package, but
+With this release of fst (v0.9.8), the fstlib library is no longer inluded in the fst package, but
 imported from package `fstcore`. This allows for better separation of updates to the fstlib C++ library and the fst
 wrapper package and avoids duplicate code in fst and fstcore. Packages can also directly use the interface
 exported from the fstcore package from C/C++ code.
