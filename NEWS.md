@@ -1,10 +1,10 @@
 
-# fst 0.9.7 (in development)
+# fst 0.9.8
 
-With this release of the fst package, the `fstlib` library is now no longer build with the `fst` package, but
-imported from package `fstcore`. This allows for better separation of releases of the C++ code underlying the `fst`
-format and the R wrapper package. Updates can be done separately. Also, with this setup, other packages can directly
-use the C++ interface exported from the fstcore package.
+With this release of `fst`, the `fstlib` library is no longer build with the `fst` package, but
+imported from package `fstcore`. This allows for better separation of updates of the C++ code underlying the `fst`
+format and the R wrapper package. Also, with this setup, other packages can directly use the C++ interface exported
+from the fstcore package.
 
 ## Bugs solved
 
