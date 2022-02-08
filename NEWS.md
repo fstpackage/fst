@@ -1,4 +1,13 @@
 
+# fst 0.9.9 (in development)
+
+## Enhancements
+
+## Bugs solved
+
+## Library updates
+
+
 # fst 0.9.8
 
 With this release of `fst`, the `fstlib` library is no longer build with the `fst` package, but
