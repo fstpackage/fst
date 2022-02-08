@@ -218,11 +218,15 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
     stop(res)
   }
 
+  nr_of_rows <- 0
+  if (length(res$resTable) > 0) {  # check for NULL tables's
+    nr_of_rows <- length(res$resTable[[1]])
+  }
+
   # long vectors are not supported yet with data.table, tibble's or data.frame,
   # so return a list instead
-  nr_of_rows <- length(res$resTable[[1]])
   if (nr_of_rows >= 2 ^ 31) {
-    return(res$resTable)
+      return(res$resTable)
   }
 
   if (as.data.table) {
@@ -241,10 +245,10 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
   # use setters from data.table to improve performance
   if (requireNamespace("data.table", quietly = TRUE)) {
     data.table::setattr(res_table, "class", "data.frame")
-    data.table::setattr(res_table, "row.names", seq_len(length(res_table[[1L]])))
+    data.table::setattr(res_table, "row.names", base::.set_row_names(nr_of_rows))
   } else {
     class(res_table) <- "data.frame"
-    attr(res_table, "row.names") <- seq_len(length(res_table[[1L]]))
+    attr(res_table, "row.names") <- base::.set_row_names(nr_of_rows)
   }
 
   res_table

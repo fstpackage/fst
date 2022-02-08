@@ -2,6 +2,10 @@
 context("roundtrip-vector")
 
 
+# some helper functions
+source("helper_fstwrite.R")
+
+
 roundtrip_vector <- function(x) {
   df <- data.frame(x = x, stringsAsFactors = FALSE)
   roundtrip(df)$x

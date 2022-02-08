@@ -2,6 +2,10 @@
 context("encoding")
 
 
+# some helper functions
+source("helper_fstwrite.R")
+
+
 # Clean testdata directory
 if (!file.exists("testdata")) {
   dir.create("testdata")

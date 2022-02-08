@@ -1,22 +1,21 @@
 Package: fst
 Type: Package
 Title: Lightning Fast Serialization of Data Frames
-Description: Multithreaded serialization of compressed data frames using the
-    'fst' format. The 'fst' format allows for random access of stored data and
-    compression with the LZ4 and ZSTD compressors created by Yann Collet. The ZSTD
-    compression library is owned by Facebook Inc.
-Version: 0.9.6
-Date: 2022-02-01
-Authors@R: c(
-    person("Mark", "Klik", email = "markklik@gmail.com", role = c("aut", "cre", "cph")),
-    person("Yann", "Collet", role = c("ctb", "cph"),
-      comment = "Yann Collet is author of the bundled LZ4 and ZSTD code and copyright holder of LZ4"),
-    person("Facebook, Inc.", role = "cph", comment = "Bundled ZSTD code"))
+Description: Multithreaded serialization of compressed data frames using the 'fst' format. The
+    'fst' format allows for full random access of stored data and a wide range of compression
+    settings using the LZ4 and ZSTD compressors.
+Version: 0.9.8
+Date: 2022-02-07
+Authors@R:
+    person("Mark", "Klik", email = "markklik@gmail.com", role = c("aut", "cre", "cph"))
 Depends:
     R (>= 3.0.0)
 Imports:
+    fstcore,
     Rcpp
-LinkingTo: Rcpp
+LinkingTo:
+    Rcpp,
+    fstcore
 SystemRequirements: little-endian platform
 RoxygenNote: 7.1.2
 Suggests:
@@ -28,8 +27,5 @@ Suggests:
     crayon
 License: AGPL-3 | file LICENSE
 Encoding: UTF-8
-Copyright: This package includes sources from the LZ4 library written
-    by Yann Collet, sources of the ZSTD library owned by Facebook, Inc.
-    and sources of the fstlib library owned by Mark Klik
 URL: http://www.fstpackage.org
 BugReports: https://github.com/fstpackage/fst/issues

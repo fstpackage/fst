@@ -32,7 +32,7 @@ test_that("fst_table does throw normalizePath error on non-existing file", {
 
 
 test_that("fst_table returns a fst_table class object", {
-  expect_equal(class(x) , "fst_table")
+  expect_equal(class(x), "fst_table")
 
   str_object <- unclass(x)
   expect_equal(names(str_object), c("meta", "col_selection", "row_selection", "old_format"))
@@ -100,17 +100,17 @@ test_that("fst_table [ generic", {
 
   expect_equal(x[j = 2], df[2])
 
-  expect_equal(x[drop = FALSE], df[,])
+  expect_equal(x[drop = FALSE], df[, ])
 
   # '[' generic with 3 arguments
 
-  expect_equal(x[,], df[,])
+  expect_equal(x[, ], df[, ])
 
-  expect_equal(x[,2:3], df[, 2:3])
+  expect_equal(x[, 2:3], df[, 2:3])
 
-  expect_equal(as.list(x[2,]), as.list(df[2,]))
+  expect_equal(as.list(x[2, ]), as.list(df[2, ]))
 
-  expect_equal(as.list(x[2:10,]), as.list(df[2:10,]))
+  expect_equal(as.list(x[2:10, ]), as.list(df[2:10, ]))
 
   expect_equal(x[2, drop = FALSE], df[2])
 
@@ -118,9 +118,9 @@ test_that("fst_table [ generic", {
 
   # '[' generic with 4 arguments
 
-  expect_equal(x[,, drop = FALSE], df[])
+  expect_equal(x[, , drop = FALSE], df[])
 
-  expect_equal(x[,,], df[])
+  expect_equal(x[, , ], df[])
 
   expect_equal(x[j = 2, drop = FALSE], df[2])
 })
@@ -139,9 +139,9 @@ test_that("fst_table allows for drop argument", {
   # 4 arguments:
 
   expect_equal(df[, "X", drop = TRUE], x[, "X", drop = TRUE])
-  expect_equal(df[, "X",], x[, "X",])
+  expect_equal(df[, "X", ], x[, "X", ])
   expect_equal(df[2, "X", drop = TRUE], x[2, "X", drop = TRUE])
-  expect_equal(df[2, "X",], x[2, "X",])
+  expect_equal(df[2, "X", ], x[2, "X", ])
   expect_equal(df[2:4, "X", drop = TRUE], x[2:4, "X", drop = TRUE])
   expect_equal(df[2:4, "X", ], x[2:4, "X", ])
   expect_equal(df[2:4, 2, drop = TRUE], x[2:4, 2, drop = TRUE])

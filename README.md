@@ -8,7 +8,7 @@ Status](https://github.com/fstpackage/fst/actions/workflows/R-CMD-check.yaml/bad
 [![License: AGPL
 v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/fst)](https://cran.r-project.org/package=fst)
-[![codecov](https://codecov.io/gh/fstpackage/fst/branch/develop/graph/badge.svg)](https://codecov.io/gh/fstpackage/fst)
+[![codecov](https://codecov.io/gh/fstpackage/fst/branch/develop/graph/badge.svg)](https://app.codecov.io/gh/fstpackage/fst)
 [![downloads](http://cranlogs.r-pkg.org/badges/fst)](http://cran.rstudio.com/web/packages/fst/index.html)
 [![total_downloads](https://cranlogs.r-pkg.org/badges/grand-total/fst)](http://cran.rstudio.com/web/packages/fst/index.html)
 
@@ -74,7 +74,7 @@ You can also use the development version from GitHub:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("fstPackage/fst", ref = "develop")
+devtools::install_github("fstpackage/fst", ref = "develop")
 ```
 
 ## Basic usage
@@ -94,10 +94,10 @@ df <- data.frame(
   )
 
 # Store the data frame to disk
-  write.fst(df, "dataset.fst")
+  write_fst(df, "dataset.fst")
   
 # Retrieve the data frame again
-  df <- read.fst("dataset.fst")
+  df <- read_fst("dataset.fst")
 ```
 
 *Note: the dataset defined in this example code was also used to obtain
@@ -109,7 +109,7 @@ The *fst* file format provides full random access to stored datasets.
 You can retrieve a selection of columns and rows with:
 
 ``` r
-  df_subset <- read.fst("dataset.fst", c("Logical", "Factor"), from = 2000, to = 5000)
+  df_subset <- read_fst("dataset.fst", c("Logical", "Factor"), from = 2000, to = 5000)
 ```
 
 This reads rows 2000 to 5000 from columns *Logical* and *Factor* without
@@ -130,7 +130,7 @@ compression factors. The compression factor can be tuned from 0
 (minimum) to 100 (maximum):
 
 ``` r
-write.fst(df, "dataset.fst", 100)  # use maximum compression
+write_fst(df, "dataset.fst", 100)  # use maximum compression
 ```
 
 Compression reduces the size of the *fst* file that holds your data. But

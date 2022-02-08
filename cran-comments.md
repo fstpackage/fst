@@ -1,8 +1,12 @@
 
 ## Submission
 
-This submission of fst (v0.9.6) addresses package build errors caused by the incorrect use of the size argument in
-sample.int() as reported by Prof Ripley.
+With this release of fst (v0.9.8), the fstlib library is no longer inluded in the fst package, but
+imported from package `fstcore`. This allows for better separation of updates to the fstlib C++ library and the fst
+wrapper package and avoids duplicate code in fst and fstcore. Packages can also directly use the interface
+exported from the fstcore package from C/C++ code.
+
+With this new setup the linker problem on macOS systems is also resolved.
 
 ## Test environments 
 
@@ -14,7 +18,8 @@ sample.int() as reported by Prof Ripley.
 * Ubuntu 18.04 locally using clang-10.0
 * Docker with the rocker/r-devel-ubsan-clang instrumented image
 * Local Ubuntu with instrumented image using clang-10
-* Windows 10 local R 3.6.3
+* Windows 11 local R 3.6.3
+* Windows 11 local R 4.1.2
 * Singularity-container package for running rchk on Ubuntu 18.04
 * Valgrind on Ubuntu 18.04
 * Rhub (all available systems)
