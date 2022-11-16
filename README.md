@@ -8,6 +8,8 @@ Status](https://github.com/fstpackage/fst/actions/workflows/R-CMD-check.yaml/bad
 [![License: AGPL
 v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/fst)](https://cran.r-project.org/package=fst)
+[![fastverse status
+badge](https://fastverse.r-universe.dev/badges/fst)](https://fastverse.r-universe.dev/ui#package:fastverse)
 [![codecov](https://codecov.io/gh/fstpackage/fst/branch/develop/graph/badge.svg)](https://app.codecov.io/gh/fstpackage/fst)
 [![downloads](http://cranlogs.r-pkg.org/badges/fst)](http://cran.rstudio.com/web/packages/fst/index.html)
 [![total_downloads](https://cranlogs.r-pkg.org/badges/grand-total/fst)](http://cran.rstudio.com/web/packages/fst/index.html)
