@@ -32,19 +32,19 @@
 #' @export
 hash_fst <- function(x, seed = NULL, block_hash = TRUE) {
   if (!is.null(seed)) {
-    if (((!is.numeric(seed)) | (length(seed) != 1))) {  # nolint
-      stop("Please specify an integer value for the hash seed.");
+    if (((!is.numeric(seed)) || (length(seed) != 1))) {  # nolint
+      stop("Please specify an integer value for the hash seed")
     }
 
     seed <- as.integer(seed)
   }
 
-  if (!is.logical(block_hash) | length(block_hash) != 1) {
-    stop("Please specify a logical value for parameter block_hash.");
+  if (!is.logical(block_hash) || length(block_hash) != 1) {
+    stop("Please specify a logical value for parameter block_hash")
   }
 
   if (!is.raw(x)) {
-    stop("Please specify a raw vector as input parameter x.");
+    stop("Please specify a raw vector as input parameter x")
   }
 
   fsthasher(x, seed, block_hash)

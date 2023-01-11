@@ -17,7 +17,7 @@ LinkingTo:
     Rcpp,
     fstcore
 SystemRequirements: little-endian platform
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3
 Suggests:
     testthat,
     bit64,

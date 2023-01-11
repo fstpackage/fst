@@ -220,7 +220,7 @@ test_that("Print meta data with keys and unordered columns", {
 
   colnames(x) <- LETTERS[seq.int(ncol(x), 1)]
 
-  setkey(x, L, F, N)
+  setkey(x, L, F, N)  # nolint
   fstwriteproxy(x, "testdata/meta.fst", compress = 100)
   y <- fstmetaproxy("testdata/meta.fst")
   res <- capture_output(print(fstmetaproxy("testdata/meta.fst")))

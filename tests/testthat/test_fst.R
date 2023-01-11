@@ -19,15 +19,18 @@ nroflevels <- 8
 char_vec <- function(nr_of_rows) {
   sapply(1:nr_of_rows, function(x) {
     paste(sample(LETTERS, sample(1:4, 1)), collapse = "")
-  }
-  ) }
+  })
+}
+
 
 char_veclong <- function(nr_of_rows) {
   sapply(1:nr_of_rows,
     function(x) {
       paste(sample(LETTERS, sample(20:25, 1)), collapse = "")
     }
-    ) }
+  )
+}
+
 
 date_vec <- function(nr_of_rows) {
   date_vec <- sample(1:nr_of_rows, replace = TRUE)
@@ -35,11 +38,13 @@ date_vec <- function(nr_of_rows) {
   date_vec
 }
 
+
 difftime_vec <- function(nr_of_rows, mode = "double") {
   vec <- (Sys.time() + 1:nr_of_rows) - Sys.time()
   mode(vec) <- mode
   vec
 }
+
 
 # Sample data
 nr_of_rows <- 10000L

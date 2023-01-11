@@ -167,7 +167,7 @@ print.fstmetadata <- function(x, ...) {
 
 #' @rdname write_fst
 #' @export
-write.fst <- function(x, path, compress = 50, uniform_encoding = TRUE) {
+write.fst <- function(x, path, compress = 50, uniform_encoding = TRUE) {  # nolint
   write_fst(x, path, compress, uniform_encoding)
 }
 
@@ -248,7 +248,7 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
     data.table::setattr(res_table, "row.names", base::.set_row_names(nr_of_rows))
   } else {
     class(res_table) <- "data.frame"
-    attr(res_table, "row.names") <- base::.set_row_names(nr_of_rows)
+    attr(res_table, "row.names") <- base::.set_row_names(nr_of_rows)  # nolint
   }
 
   res_table

@@ -291,7 +291,7 @@ print.fst_table <- function(x, number_of_rows = 50, ...) {
 
 
 #' @export
-as.data.frame.fst_table <- function(x, row.names = NULL, optional = FALSE, ...) {
+as.data.frame.fst_table <- function(x, row.names = NULL, optional = FALSE, ...) {  # nolint
   meta_info <- .subset2(x, "meta")
   as.data.frame(read_fst(meta_info$path, old_format = .subset2(x, "old_format")), row.names, optional, ...)
 }
@@ -342,7 +342,7 @@ as.list.fst_table <- function(x, ...) {
 # drop to lower dimension when drop = TRUE
 return_drop <- function(x, drop) {
 
-  if (!drop | ncol(x) > 1) return(x)
+  if (!drop || ncol(x) > 1) return(x)
 
   x[[1]]
 }

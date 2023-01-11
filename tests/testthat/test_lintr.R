@@ -12,7 +12,7 @@ test_that("Package Style", {
   # lintr has many new and updated lints from version 2 onwards
   skip_if_not_installed("lintr", "2.0.0")
 
-  lints <- lintr::with_defaults(
+  lints <- lintr::linters_with_defaults(
     line_length_linter = lintr::line_length_linter(120),
     cyclocomp_linter = lintr::cyclocomp_linter(37)
   )
