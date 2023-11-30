@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-<img src="fst.png" align="right" height="196" width="196" />
+<img src="man/figures/fst.png" align="right" height="196" width="196" />
 
 [![Build
 Status](https://github.com/fstpackage/fst/actions/workflows/R-CMD-check.yaml/badge.svg?branch=develop)](https://github.com/fstpackage/fst/actions/workflows/R-CMD-check.yaml)
@@ -43,7 +43,7 @@ Parameter *Speed* was calculated by dividing the in-memory size of the
 data frame by the measured time. These results are also visualized in
 the following graph:
 
-![](README-speed-bench-1.png)<!-- -->
+![](man/figures/README-speed-bench-1.png)<!-- -->
 
 As can be seen from the figure, the measured speeds for the *fst*
 package are very high and even top the maximum drive speed of the SSD
@@ -141,7 +141,7 @@ increase the total read- and write speed as well. The graph below shows
 how the use of multiple threads enhances the read and write speed of our
 sample dataset.
 
-![](README-multi-threading-1.png)<!-- -->
+![](man/figures/README-multi-threading-1.png)<!-- -->
 
 The *csv* format used by the *fread* and *fwrite* methods of package
 *data.table* is actually a human-readable text format and not a binary

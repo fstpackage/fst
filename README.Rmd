@@ -9,11 +9,11 @@ output:
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.path = "README-"
+  fig.path = "man/figures/README-"
 )
 ```
 
-<img src="fst.png" align="right" height="196" width="196" />
+<img src="man/figures/fst.png" align="right" height="196" width="196" />
 
 [![Build Status](https://github.com/fstpackage/fst/actions/workflows/R-CMD-check.yaml/badge.svg?branch=develop)](https://github.com/fstpackage/fst/actions/workflows/R-CMD-check.yaml)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
