@@ -1,7 +1,9 @@
 
 context("metadata")
 
-require(data.table)
+
+library(data.table)
+
 
 require_extensions <- function() {
   requireNamespace("nanotime", quietly = TRUE) && requireNamespace("bit64", quietly = TRUE)
@@ -46,8 +48,8 @@ x <- data.table(
 
 
 if (require_extensions()) {
-  x$O <- bit64::as.integer64(101:110)  # nolint
-  x$P <- nanotime::nanotime(2:11)  # nolint
+  x$O <- bit64::as.integer64(101:110) # nolint
+  x$P <- nanotime::nanotime(2:11) # nolint
 }
 
 
@@ -61,14 +63,14 @@ test_that("v0.7.2 interface still works", {
 
 
 test_that("format contains fst magic value", {
-  zz <- file("testdata/meta.fst", "rb")  # open file in binary mode
+  zz <- file("testdata/meta.fst", "rb") # open file in binary mode
   header_hash <- readBin(zz, integer(), 12)
   close(zz)
 
-  expect_equal(header_hash[3], 1)  # fst format version (even numbers are dev versions)
-  expect_equal(header_hash[12], 1346453840)  # fst magic number
-  expect_equal(header_hash[5], 0)  # free bytes
-  expect_equal(header_hash[6], 0)  # free bytes
+  expect_equal(header_hash[3], 1) # fst format version (even numbers are dev versions)
+  expect_equal(header_hash[12], 1346453840) # fst magic number
+  expect_equal(header_hash[5], 0) # free bytes
+  expect_equal(header_hash[6], 0) # free bytes
 })
 
 
@@ -99,7 +101,6 @@ test_that("Read meta of compressed file", {
 
 
 test_that("Print meta data without keys", {
-
   fstwriteproxy(x, "testdata/meta.fst", compress = 100)
   y <- fstmetaproxy("testdata/meta.fst")
   res <- capture_output(print(fstmetaproxy("testdata/meta.fst")))
@@ -123,7 +124,8 @@ test_that("Print meta data without keys", {
       "* 'N': ITime",
       "* 'O': integer64",
       "* 'P': nanotime",
-      sep = "\n"))
+      sep = "\n"
+    ))
   } else {
     expect_equal(res, paste(
       "<fst file>\n10 rows, 14 columns (meta.fst)\n",
@@ -141,17 +143,17 @@ test_that("Print meta data without keys", {
       "* 'L': difftime",
       "* 'M': difftime",
       "* 'N': ITime",
-      sep = "\n"))
+      sep = "\n"
+    ))
   }
 })
 
 
 # raw sorting not supported
-x$J <- NULL  # nolint
+x$J <- NULL # nolint
 
 
 test_that("Read meta of sorted file", {
-
   z <- copy(x)
   setkey(z, B, C)
   fstwriteproxy(z, "testdata/meta.fst")
@@ -167,7 +169,6 @@ test_that("Read meta of sorted file", {
 
 
 test_that("Print meta data with keys", {
-
   z <- copy(x)
   setkey(z, D, K, B)
   fstwriteproxy(z, "testdata/meta.fst", compress = 100)
@@ -192,7 +193,8 @@ test_that("Print meta data with keys", {
       "* 'N': ITime",
       "* 'O': integer64",
       "* 'P': nanotime",
-      sep = "\n"))
+      sep = "\n"
+    ))
   } else {
     expect_equal(res, paste(
       "<fst file>\n10 rows, 13 columns (meta.fst)\n",
@@ -209,18 +211,18 @@ test_that("Print meta data with keys", {
       "* 'L': difftime",
       "* 'M': difftime",
       "* 'N': ITime",
-      sep = "\n"))
+      sep = "\n"
+    ))
   }
 })
 
 
 test_that("Print meta data with keys and unordered columns", {
-
   skip_if_not(require_extensions())
 
   colnames(x) <- LETTERS[seq.int(ncol(x), 1)]
 
-  setkey(x, L, F, N)  # nolint
+  setkey(x, L, F, N) # nolint
   fstwriteproxy(x, "testdata/meta.fst", compress = 100)
   y <- fstmetaproxy("testdata/meta.fst")
   res <- capture_output(print(fstmetaproxy("testdata/meta.fst")))
@@ -243,5 +245,6 @@ test_that("Print meta data with keys and unordered columns", {
     "* 'C': ITime",
     "* 'B': integer64",
     "* 'A': nanotime",
-    sep = "\n"))
+    sep = "\n"
+  ))
 })

@@ -22,29 +22,38 @@
 
 # load bit64 namespace when integer64 type column is read from file
 require_bit64 <- function() {
-  if (!requireNamespace("bit64", quietly = TRUE))
-    warning("Some columns are type 'integer64' but package bit64 is not installed. ",
+  if (!requireNamespace("bit64", quietly = TRUE)) {
+    warning(
+      "Some columns are type 'integer64' but package bit64 is not installed. ",
       "Those columns will print as strange looking floating point data. ",
       "There is no need to reload the data. Simply install.packages('bit64') to obtain ",
-      "the integer64 print method and print the data again.")
+      "the integer64 print method and print the data again."
+    )
+  }
 }
 
 
 # load data.table namespace when ITime type column is read from file
 require_data_table <- function() {
-  if (!requireNamespace("data.table", quietly = TRUE))
-    warning("Some columns are type 'ITime' but package data.table is not installed. ",
-     "Those columns will print incorrectly. There is no need to ",
-     "reload the data. Simply install.packages('data.table') to obtain the data.table print ",
-     "method and print the data again.")
+  if (!requireNamespace("data.table", quietly = TRUE)) {
+    warning(
+      "Some columns are type 'ITime' but package data.table is not installed. ",
+      "Those columns will print incorrectly. There is no need to ",
+      "reload the data. Simply install.packages('data.table') to obtain the data.table print ",
+      "method and print the data again."
+    )
+  }
 }
 
 
 require_nanotime <- function() {
   # called in print when they see nanotime columns are present
-  if (!requireNamespace("nanotime", quietly = TRUE))
-    warning("Some columns are type 'nanotime' but package nanotime is not installed. ",
+  if (!requireNamespace("nanotime", quietly = TRUE)) {
+    warning(
+      "Some columns are type 'nanotime' but package nanotime is not installed. ",
       "Those columns will print as strange looking floating point data. There is no need to ",
       "reload the data. Simply install.packages('nanotime') to obtain the nanotime print ",
-      "method and print the data again.")
+      "method and print the data again."
+    )
+  }
 }

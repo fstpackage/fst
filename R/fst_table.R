@@ -62,11 +62,12 @@
 #' names(ft)
 #' }
 fst <- function(path, old_format = FALSE) {
-
   # old format is deprecated as of v0.9.0
   if (old_format != FALSE) {
-    stop("Parameter old_format is depricated, fst files written with fst package version",
-      " lower than 0.8.0 should be read (and rewritten) using fst package versions <= 0.8.10.")
+    stop(
+      "Parameter old_format is depricated, fst files written with fst package version",
+      " lower than 0.8.0 should be read (and rewritten) using fst package versions <= 0.8.10."
+    )
   }
 
   # wrap in a list so that additional elements can be added if required
@@ -98,8 +99,10 @@ dim.fst_table <- function(x) {
 
 #' @export
 dimnames.fst_table <- function(x) {
-  list(as.character(seq_len(.subset2(x, "meta")$nrOfRows)),
-    .subset2(x, "meta")$columnNames)
+  list(
+    as.character(seq_len(.subset2(x, "meta")$nrOfRows)),
+    .subset2(x, "meta")$columnNames
+  )
 }
 
 
@@ -118,7 +121,6 @@ names.fst_table <- function(x) {
   meta_info <- .subset2(x, "meta")
 
   if (length(j) != 1) {
-
     # select at least one column number
     if (length(j) == 0) {
       stop("Please use a length one integer or character vector to specify the column", call. = FALSE)
@@ -142,8 +144,15 @@ names.fst_table <- function(x) {
 
     col_name <- meta_info$columnNames[as.integer(j[1])]
 
-    return(read_fst(meta_info$path, col_name, from = j[2], to = j[2],
-      old_format = .subset2(x, "old_format"))[[1]])
+    return(
+      read_fst(
+        meta_info$path,
+        col_name,
+        from = j[2],
+        to = j[2],
+        old_format = .subset2(x, "old_format")
+      )[[1]]
+    )
   }
 
   if (!(is.numeric(j) || is.character(j))) {
@@ -189,18 +198,24 @@ print.fst_table <- function(x, number_of_rows = 50, ...) {
 
   cat("<fst file>\n")
   cat(meta_info$nrOfRows, " rows, ", length(meta_info$columnNames),
-      " columns (", basename(meta_info$path), ")\n\n", sep = "")
+    " columns (", basename(meta_info$path), ")\n\n",
+    sep = ""
+  )
 
   if (!is.numeric(number_of_rows)) number_of_rows <- 100L
   if (!is.infinite(number_of_rows)) number_of_rows <- as.integer(number_of_rows)
-  if (number_of_rows <= 0L) return(invisible())   # ability to turn off printing
+  if (number_of_rows <= 0L) {
+    return(invisible())
+  } # ability to turn off printing
 
   table_splitted <- (meta_info$nrOfRows > number_of_rows) && (meta_info$nrOfRows > 10)
 
   if (table_splitted) {
     sample_data_head <- read_fst(meta_info$path, from = 1, to = 5, old_format = .subset2(x, "old_format"))
-    sample_data_tail <- read_fst(meta_info$path, from = meta_info$nrOfRows - 4, to = meta_info$nrOfRows,
-      old_format = .subset2(x, "old_format"))
+    sample_data_tail <- read_fst(meta_info$path,
+      from = meta_info$nrOfRows - 4, to = meta_info$nrOfRows,
+      old_format = .subset2(x, "old_format")
+    )
 
     sample_data <- rbind.data.frame(sample_data_head, sample_data_tail)
   } else {
@@ -208,19 +223,21 @@ print.fst_table <- function(x, number_of_rows = 50, ...) {
   }
 
   # use bit64 package if available for correct printing
-  if ((!"bit64"      %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "integer64"))) require_bit64() # nolint
-  if ((!"nanotime"   %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "nanotime"))) require_nanotime() # nolint
+  if ((!"bit64" %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "integer64"))) require_bit64() # nolint
+  if ((!"nanotime" %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "nanotime"))) require_nanotime() # nolint
   if ((!"data.table" %in% loadedNamespaces()) && any(sapply(sample_data, inherits, "ITime"))) require_data_table() # nolint
 
-  types <- c("unknown", "character", "factor", "ordered factor", "integer", "POSIXct", "difftime",
+  types <- c(
+    "unknown", "character", "factor", "ordered factor", "integer", "POSIXct", "difftime",
     "IDate", "ITime", "double", "Date", "POSIXct", "difftime", "ITime", "logical", "integer64",
-    "nanotime", "raw")
+    "nanotime", "raw"
+  )
 
   # turn off colored output at default
   color_on <- FALSE
 
   if (requireNamespace("crayon", quietly = TRUE)) {
-    color_on <- crayon::has_color()  # terminal has color
+    color_on <- crayon::has_color() # terminal has color
   }
 
   type_row <- matrix(paste("<", types[meta_info$columnTypes], ">", sep = ""), nrow = 1)
@@ -237,7 +254,8 @@ print.fst_table <- function(x, number_of_rows = 50, ...) {
       type_row,
       sample_data_print[1:5, , drop = FALSE],
       dot_row,
-      sample_data_print[6:10, , drop = FALSE])
+      sample_data_print[6:10, , drop = FALSE]
+    )
 
     rownames(sample_data_print) <- c(" ", 1:5, "--", (meta_info$nrOfRows - 4):meta_info$nrOfRows)
 
@@ -260,7 +278,8 @@ print.fst_table <- function(x, number_of_rows = 50, ...) {
     # table is not splitted along the row axis
     sample_data_print <- rbind(
       type_row,
-      sample_data_print)
+      sample_data_print
+    )
 
     rownames(sample_data_print) <- c(" ", 1:meta_info$nrOfRows)
 
@@ -282,8 +301,10 @@ print.fst_table <- function(x, number_of_rows = 50, ...) {
   row_text_size <- regexpr("^[0-9-]*", tail(y, 1))
   row_text_size <- attr(row_text_size, "match.length")
 
-  y[-gray_rows] <- paste0("\033[38;5;248m", substr(y[-gray_rows], 1, row_text_size),
-    "\033[39m", substr(y[-gray_rows], row_text_size + 1, nchar(y[-gray_rows])))
+  y[-gray_rows] <- paste0(
+    "\033[38;5;248m", substr(y[-gray_rows], 1, row_text_size),
+    "\033[39m", substr(y[-gray_rows], row_text_size + 1, nchar(y[-gray_rows]))
+  )
 
   cat(y, sep = "\n")
   return(invisible(x))
@@ -291,7 +312,7 @@ print.fst_table <- function(x, number_of_rows = 50, ...) {
 
 
 #' @export
-as.data.frame.fst_table <- function(x, row.names = NULL, optional = FALSE, ...) {  # nolint
+as.data.frame.fst_table <- function(x, row.names = NULL, optional = FALSE, ...) { # nolint
   meta_info <- .subset2(x, "meta")
   as.data.frame(read_fst(meta_info$path, old_format = .subset2(x, "old_format")), row.names, optional, ...)
 }
@@ -303,7 +324,6 @@ as.list.fst_table <- function(x, ...) {
 
 
 .column_indexes_fst <- function(meta_info, j) {
-
   # test correct column names
   if (is.character(j)) {
     wrong <- !(j %in% meta_info$columnNames)
@@ -313,7 +333,6 @@ as.list.fst_table <- function(x, ...) {
       stop(sprintf("Undefined columns: %s", paste(names, collapse = ", ")))
     }
   } else if (is.logical(j)) {
-
     if (any(is.na(j))) {
       stop("Subscript out of bounds.", call. = FALSE)
     }
@@ -341,8 +360,9 @@ as.list.fst_table <- function(x, ...) {
 
 # drop to lower dimension when drop = TRUE
 return_drop <- function(x, drop) {
-
-  if (!drop || ncol(x) > 1) return(x)
+  if (!drop || ncol(x) > 1) {
+    return(x)
+  }
 
   x[[1]]
 }
@@ -350,11 +370,12 @@ return_drop <- function(x, drop) {
 
 #' @export
 `[.fst_table` <- function(x, i, j, drop) {
-
   # check for old_format in case an 'old' fst_table object was deserialized
   if (.subset2(x, "old_format") != FALSE) {
-    stop("fst files written with fst package version",
-      " lower than 0.8.0 should be read (and rewritten) using fst package versions <= 0.8.10.")
+    stop(
+      "fst files written with fst package version",
+      " lower than 0.8.0 should be read (and rewritten) using fst package versions <= 0.8.10."
+    )
   }
 
   meta_info <- .subset2(x, "meta")
@@ -362,14 +383,12 @@ return_drop <- function(x, drop) {
   # no additional arguments provided
 
   if (missing(i) && missing(j)) {
-
     # never drop as with data.frame
     return(read_fst(meta_info$path))
   }
 
 
   if (nargs() <= 2) {
-
     # result is never dropped with 2 arguments
 
     if (missing(i)) {
@@ -387,7 +406,6 @@ return_drop <- function(x, drop) {
   drop_dim <- FALSE
 
   if (!missing(j) && length(j) == 1) {
-
     if (!(!missing(drop) && drop == FALSE)) {
       drop_dim <- TRUE
     }
@@ -407,7 +425,9 @@ return_drop <- function(x, drop) {
     j <- .column_indexes_fst(meta_info, j)
     x <- read_fst(meta_info$path, j)
 
-    if (!drop_dim) return(x)
+    if (!drop_dim) {
+      return(x)
+    }
     return(x[[1]])
   }
 
@@ -447,13 +467,15 @@ return_drop <- function(x, drop) {
   # select all columns
   if (missing(j)) {
     fst_data <- read_fst(meta_info$path, from = min_row, to = max_row)
-    x <- fst_data[1 + i - min_row, ]  # row selection, no dropping
+    x <- fst_data[1 + i - min_row, ] # row selection, no dropping
   } else {
     j <- .column_indexes_fst(meta_info, j)
     fst_data <- read_fst(meta_info$path, j, from = min_row, to = max_row)
-    x <- fst_data[1 + i - min_row, , drop = FALSE]  # row selection, no dropping
+    x <- fst_data[1 + i - min_row, , drop = FALSE] # row selection, no dropping
   }
 
-  if (!drop_dim) return(x)
+  if (!drop_dim) {
+    return(x)
+  }
   return(x[[1]])
 }

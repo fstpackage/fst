@@ -77,7 +77,7 @@ x <- data.frame(A = 1:10000, B = sample(c(TRUE, FALSE, NA), 10000, replace = TRU
 
 # Default compression
 fst_file <- tempfile(fileext = ".fst")
-write_fst(x, fst_file)  # filesize: 17 KB
+write_fst(x, fst_file) # filesize: 17 KB
 y <- read_fst(fst_file) # read fst file
 # Maximum compression
 write_fst(x, fst_file, 100)  # fileSize: 4 KB

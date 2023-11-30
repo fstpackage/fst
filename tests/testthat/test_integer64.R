@@ -1,7 +1,9 @@
 
 context("integer64 column")
 
+
 library(data.table)
+
 
 # Clean testdata directory
 if (!file.exists("testdata")) {

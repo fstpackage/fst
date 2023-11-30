@@ -50,26 +50,30 @@ test_that("I can eat glass in various languages", {
 
 test_that("Mixed encodings", {
   x <- data.frame(Mixed = c("Ärende", enc2native("native"), enc2utf8("Ärende")), stringsAsFactors = FALSE)
-  Encoding(x$Mixed[1]) <- "latin1"  # be sure
+  Encoding(x$Mixed[1]) <- "latin1" # be sure
 
   fstwriteproxy(x, "testdata/mixed.fst")
   y <- fstreadproxy("testdata/mixed.fst")
 
-  expect_equal(Encoding(y$Mixed), c("latin1", "unknown", "latin1"))  # recoded to latin1
+  expect_equal(Encoding(y$Mixed), c("latin1", "unknown", "latin1")) # recoded to latin1
 
-  expect_failure(expect_equal(x, y))  # mix of unknown, latin1 and UTF-8
+  expect_failure(expect_equal(x, y)) # mix of unknown, latin1 and UTF-8
 
-  expect_error(fstwriteproxy(x, "testdata/mixed.fst", uniform_encoding = FALSE),
-    "Character vectors with mixed encodings are currently not supported")
+  expect_error(
+    fstwriteproxy(x, "testdata/mixed.fst", uniform_encoding = FALSE),
+    "Character vectors with mixed encodings are currently not supported"
+  )
 
-  Encoding(x$Mixed[1]) <- "UTF-8"  # mix of unknown and UTF-8
-  expect_error(fstwriteproxy(x, "testdata/mixed.fst", uniform_encoding = FALSE),
-    "Character vectors with mixed encodings are currently not supported")
+  Encoding(x$Mixed[1]) <- "UTF-8" # mix of unknown and UTF-8
+  expect_error(
+    fstwriteproxy(x, "testdata/mixed.fst", uniform_encoding = FALSE),
+    "Character vectors with mixed encodings are currently not supported"
+  )
 
   fstwriteproxy(x, "testdata/mixed.fst")
   y <- fstreadproxy("testdata/mixed.fst")
 
-  expect_equal(Encoding(y$Mixed), c("UTF-8", "unknown", "UTF-8"))  # recoded to UTF-8
+  expect_equal(Encoding(y$Mixed), c("UTF-8", "unknown", "UTF-8")) # recoded to UTF-8
 })
 
 

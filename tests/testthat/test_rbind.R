@@ -11,11 +11,13 @@ if (!file.exists("testoutput")) {
 
 
 char_vec <- function(nr_of_rows) {
-  sapply(1:nr_of_rows,
+  sapply(
+    1:nr_of_rows,
     function(x) {
       paste(sample(LETTERS, sample(1:4, 1)), collapse = "")
-    })
-  }
+    }
+  )
+}
 
 # Sample data
 nr_of_rows <- 10000L
@@ -30,4 +32,5 @@ datatable <- data.frame(
   Qchar = char_vec(nr_of_rows),
   WFact = factor(sample(char_vec(nr_of_levels), nr_of_rows, replace = TRUE)),
   char_na = char_na,
-  stringsAsFactors = FALSE)
+  stringsAsFactors = FALSE
+)

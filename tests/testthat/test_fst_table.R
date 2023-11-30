@@ -25,9 +25,7 @@ y <- fst(test_file2)
 
 # see issues #175 and #136
 test_that("fst_table does throw normalizePath error on non-existing file", {
-
   expect_error(fst("testdata/non_existing.fst"), "Error opening fst file for reading")
-
 })
 
 
@@ -89,7 +87,6 @@ test_that("fst_table has basic data.frame interface", {
 
 
 test_that("fst_table [ generic", {
-
   # '[' generic with 2 arguments
 
   expect_equal(x[], df[])
@@ -127,7 +124,6 @@ test_that("fst_table [ generic", {
 
 
 test_that("fst_table allows for drop argument", {
-
   # fst drops dimensions in same cases as data.frame. Less warnings are given.
 
   # 3 arguments:
@@ -190,7 +186,8 @@ test_that("fst_table has correct printing for small single column table", {
     "         X",
     "  <double>",
     "1        1",
-    sep = "\n"))
+    sep = "\n"
+  ))
 })
 
 
@@ -218,7 +215,8 @@ test_that("fst_table has correct printing for big single column table", {
     "98         98",
     "99         99",
     "100       100",
-    sep = "\n"))
+    sep = "\n"
+  ))
 })
 
 
@@ -246,7 +244,8 @@ test_that("fst_table has correct printing for big multi column table", {
     "102       102        X",
     "103       103        Y",
     "104       104        Z",
-    sep = "\n"))
+    sep = "\n"
+  ))
 })
 
 
@@ -272,5 +271,6 @@ test_that("fst_table has correct printing for small multi column table", {
     "7         7        P",
     "8         8        Q",
     "9         9        R",
-    sep = "\n"))
+    sep = "\n"
+  ))
 })
