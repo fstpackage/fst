@@ -37,8 +37,11 @@ test_that("zero row multi-column table", {
 
   # read-write cycle
   write_fst(datatable, "testdata/zero_row.fst")
-  y <- read_fst("testdata/zero_row.fst")
 
+  x <- fst("testdata/zero_row.fst")
+  expect_equal(nrow(x), 0)
+
+  y <- read_fst("testdata/zero_row.fst")
   expect_equal(datatable, y)
 })
 
@@ -47,7 +50,11 @@ test_that("zero-column table", {
 
   # read-write cycle
   write_fst(data.frame(), "testdata/zero_column.fst")
-  y <- read_fst("testdata/zero_column.fst")
 
+  x <- fst("testdata/zero_column.fst")
+  expect_equal(ncol(x), 0)
+  expect_equal(nrow(x), 0)
+
+  y <- read_fst("testdata/zero_column.fst")
   expect_equal(data.frame(), y)
 })
