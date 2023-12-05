@@ -281,7 +281,7 @@ print.fst_table <- function(x, number_of_rows = 50, ...) {
       sample_data_print
     )
 
-    rownames(sample_data_print) <- c(" ", 1:meta_info$nrOfRows)
+    rownames(sample_data_print) <- c(" ", seq_len(meta_info$nrOfRows))
 
     # no color terminal available
     if (!color_on) {
