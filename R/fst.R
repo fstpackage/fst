@@ -201,6 +201,16 @@ read_fst <- function(path, columns = NULL, from = 1, to = NULL, as.data.table = 
     if (!is.character(columns)) {
       stop("Parameter 'columns' should be a character vector of column names.")
     }
+
+    # check if any requested 'columns' are not present in the 'path'
+    file_cols = metadata_fst(path)$columnNames
+    miss_cols = setdiff(columns, file_cols)
+
+    if (length(miss_cols) > 0) {
+      stop("Parameter 'columns' should name columns in the file stored at 'path'. These columns are not in that file: ",
+           paste(miss_cols, collapse = ", "))
+    }
+
   }
 
   if (!is.numeric(from) || from < 1 || length(from) != 1) {
